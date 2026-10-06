@@ -5,7 +5,7 @@ Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` un
 | Game | Folder | Status |
 | --- | --- | --- |
 | Farmora | `games/farmora/` | Bisa dimainkan |
-| LADAGO | `games/ladago/` | Bisa dimainkan |
+| Ladago | `games/ladago/` | Bisa dimainkan |
 | Fotoin | `games/fotoin/` | Bisa dipakai |
 
 Untuk menambah game baru, buat folder `games/<nama-game>/index.html`, lalu tambahkan kartunya di `index.html`. Sediakan juga tautan kembali ke `../../index.html`.
@@ -57,7 +57,7 @@ npx http-server .
 
 ---
 
-# LADAGO 💞
+# Ladago 💞
 
 Ular tangga 3D kooperatif untuk pasangan: papan klasik 10×10 berisi 100 kotak di atas pulau yang ceria, tentang perjalanan hubungan dari kenalan sampai masa depan. Kamera otomatis zoom mengikuti pion saat bergerak, dan bisa diganti ke tampilan seluruh papan. Satu pion dipakai bersama, dan pemain melempar dadu bergantian. Setiap kotak membuka kartu yang dijawab secara rahasia lalu dibuka bersamaan.
 
@@ -69,7 +69,9 @@ Ular tangga 3D kooperatif untuk pasangan: papan klasik 10×10 berisi 100 kotak d
 
 ## Cara main
 - **Berdua di 1 HP:** jalan di mana saja. Jawaban rahasia diisi bergiliran, dengan layar "jangan intip".
-- **Online berdua:** memakai fitur ruangan real-time milik artifact claude.ai. Satu orang membuat ruangan, pasangannya bergabung dengan kode 4 huruf. Hanya bisa dipakai saat dibuka lewat link claude.ai: kedua pemain harus login, dan link harus sudah dibagikan ke pasangan. Di GitHub Pages, mode ini nonaktif.
+- **Online berdua:** satu orang membuat ruangan, pasangannya bergabung dengan kode 4 huruf.
+  - Di link claude.ai: memakai fitur ruangan real-time milik artifact. Kedua pemain harus login, dan link harus sudah dibagikan ke pasangan.
+  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Ada tombol untuk menyalin link undangan.
 
 ---
 
