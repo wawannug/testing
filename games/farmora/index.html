@@ -463,10 +463,17 @@
         const BOUNDS = { minX: -23.5, maxX: 23.5, minZ: -22.5, maxZ: 22.5 };
 
         // ---------- World layout ----------
-        const PEN_CHICKEN = { minX: -21, maxX: -13, minZ: -1.5, maxZ: 10 };
-        const PEN_BARN = { minX: 6, maxX: 22, minZ: -9, maxZ: 9 };
-        const AREA_CHICKEN = { minX: -20.3, maxX: -13.7, minZ: -0.8, maxZ: 9.3 };
-        const AREA_BARN = { minX: 6.8, maxX: 21.2, minZ: -8.2, maxZ: 8.3 };
+        // One pen per species. Animals wander inside the pen, inset from the fence.
+        const PEN_CHICKEN = { minX: -20, maxX: -14, minZ: 1, maxZ: 8.5 };
+        const PEN_COW = { minX: 5, maxX: 13, minZ: -8, maxZ: 0 };
+        const PEN_GOAT = { minX: 14.5, maxX: 22.5, minZ: -8, maxZ: 0 };
+        const PEN_SHEEP = { minX: 14.5, maxX: 22.5, minZ: 4, maxZ: 12 };
+        const PENS = [PEN_CHICKEN, PEN_COW, PEN_GOAT, PEN_SHEEP];
+        const inset = (r, m) => ({ minX: r.minX + m, maxX: r.maxX - m, minZ: r.minZ + m, maxZ: r.maxZ - m });
+        const AREA_CHICKEN = inset(PEN_CHICKEN, 0.7);
+        const AREA_COW = inset(PEN_COW, 1.0);
+        const AREA_GOAT = inset(PEN_GOAT, 0.8);
+        const AREA_SHEEP = inset(PEN_SHEEP, 0.8);
         const AREA_YARD = { minX: -8.5, maxX: 4, minZ: -8, maxZ: 9 };
         const FIELD = { minX: -6, maxX: 2, minZ: 11, maxZ: 18 };
         const POND = { x: 12, z: 16, r: 3.2 };
@@ -500,7 +507,7 @@
         }
         const PATHS = [
             [-11, -9, -11, 3],     // house -> main road
-            [-13, 6, 1, 3],        // main road east-west
+            [-14, 22.5, 1, 3],     // main road east-west, past every pen gate
             [-3, -1, 3, 10.5],     // to the field
         ];
         PATHS.forEach(p => pathStrip(...p));
@@ -552,31 +559,64 @@
         }
         const HOUSE_DOOR = new THREE.Vector3(HOUSE.x, 0, HOUSE.z + HOUSE.d / 2 + 0.3);
 
-        // Barn
-        const BARN = { x: 14, z: -12, w: 8, d: 6 };
-        {
-            const g = building({ ...BARN, h: 3.6, wall: 0xb8382f, roof: 0x5a4a42, roofH: 2.6 });
-            const front = BARN.d / 2 + 0.05;
-            box(2.8, 2.8, 0.12, 0x8f2a23, 0, 1.4, front, g);
-            box(2.8, 0.18, 0.18, C.white, 0, 2.8, front + 0.06, g);
-            box(0.18, 2.8, 0.18, C.white, -1.4, 1.4, front + 0.06, g);
-            box(0.18, 2.8, 0.18, C.white, 1.4, 1.4, front + 0.06, g);
-            const diag = Math.hypot(2.8, 2.8) * 0.95;
-            box(0.16, diag, 0.16, C.white, 0, 1.4, front + 0.08, g).rotation.z = Math.PI / 4;
-            box(0.16, diag, 0.16, C.white, 0, 1.4, front + 0.08, g).rotation.z = -Math.PI / 4;
-            box(1, 1, 0.1, windowMat, 0, 4.4, front + 0.3, g);
-            // hay bales
-            for (const [hx, hz] of [[4.8, 1.5], [4.8, 0.3], [4.8, 0.9]]) {
-                const b = box(1, 0.8, 1.1, C.straw, hx, 0.4, hz, g);
-                if (hz === 0.9) b.position.set(4.8, 1.2, 0.9);
-            }
+        // Big red barn door with the white X brace
+        function barnDoor(g, z, size) {
+            box(size, size, 0.12, 0x8f2a23, 0, size / 2, z, g);
+            box(size, 0.16, 0.16, C.white, 0, size, z + 0.06, g);
+            box(0.16, size, 0.16, C.white, -size / 2, size / 2, z + 0.06, g);
+            box(0.16, size, 0.16, C.white, size / 2, size / 2, z + 0.06, g);
+            const diag = Math.hypot(size, size) * 0.95;
+            box(0.14, diag, 0.14, C.white, 0, size / 2, z + 0.08, g).rotation.z = Math.PI / 4;
+            box(0.14, diag, 0.14, C.white, 0, size / 2, z + 0.08, g).rotation.z = -Math.PI / 4;
         }
 
+        // Shed with a plain door and two windows; doorSide 1 = faces +z, -1 = faces -z
+        function shed({ x, z, wall, roof, doorSide = 1 }) {
+            const w = 4.5, d = 3;
+            const g = building({ x, z, w, d, h: 2.3, wall, roof, roofH: 1.4 });
+            const fz = doorSide * (d / 2 + 0.05);
+            box(0.9, 1.4, 0.1, 0x7a4b25, 0, 0.7, fz, g);
+            box(0.7, 0.6, 0.1, windowMat, -1.4, 1.4, fz, g);
+            box(0.7, 0.6, 0.1, windowMat, 1.4, 1.4, fz, g);
+            return g;
+        }
+
+        // Signboard naming a pen
+        function sign(x, z, text) {
+            box(0.12, 1.3, 0.12, C.darkWood, x, 0.65, z, scene);
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 96;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#d9b27a'; ctx.fillRect(0, 0, 256, 96);
+            ctx.strokeStyle = '#7a4b25'; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 246, 86);
+            ctx.fillStyle = '#4a2f14'; ctx.font = 'bold 58px Fredoka, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 128, 52);
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            const board = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.72, 0.08),
+                [mat(0xd9b27a), mat(0xd9b27a), mat(0xd9b27a), mat(0xd9b27a), new THREE.MeshLambertMaterial({ map: tex }), mat(0xd9b27a)]);
+            board.position.set(x, 1.45, z + 0.08);
+            board.castShadow = true;
+            scene.add(board);
+            addCircleCollider(x, z, 0.2);
+        }
+
+        // Cow barn, north of the cow pen
+        {
+            const g = building({ x: 9, z: -10.5, w: 6, d: 4, h: 3, wall: 0xb8382f, roof: 0x5a4a42, roofH: 2 });
+            barnDoor(g, 2.05, 2.2);
+            box(0.8, 0.8, 0.1, windowMat, 0, 3.7, 2.25, g);
+            for (const [hx, hy, hz] of [[3.7, 0.4, 0.8], [3.7, 0.4, -0.4], [3.7, 1.2, 0.2]]) box(0.9, 0.8, 1.1, C.straw, hx, hy, hz, g);
+            addBoxCollider(12.2, 13.2, -11.6, -9.2);
+        }
+        // Goat shed and sheep shed
+        shed({ x: 18.5, z: -10, wall: 0xd8b98a, roof: 0x6d4c3d });
+        shed({ x: 18.5, z: 14, wall: 0xe9e4d6, roof: 0x4f6d8f, doorSide: -1 });
         // Chicken coop
         {
-            const g = building({ x: -17, z: -3, w: 4.5, d: 3, h: 2.2, wall: 0xe6c27a, roof: 0x3f7f5a, roofH: 1.4 });
+            const g = building({ x: -17, z: -0.7, w: 4.5, d: 3, h: 2.2, wall: 0xe6c27a, roof: 0x3f7f5a, roofH: 1.4 });
             box(0.8, 1, 0.1, 0x7a4b25, 0, 0.5, 1.56, g);
-            box(0.7, 0.08, 1.2, C.darkWood, 0, 0.2, 2.1, g).rotation.x = 0.3;
+            box(0.7, 0.08, 0.9, C.darkWood, 0, 0.2, 1.95, g).rotation.x = 0.3;
             box(0.7, 0.6, 0.1, windowMat, -1.3, 1.4, 1.55, g);
             box(0.7, 0.6, 0.1, windowMat, 1.3, 1.4, 1.55, g);
         }
@@ -610,15 +650,25 @@
                 }
             }
         }
-        fenceRect(PEN_CHICKEN, { side: 'e', a: 0.6, b: 3.6 });
-        fenceRect(PEN_BARN, { side: 'w', a: 0.6, b: 3.6 });
+        fenceRect(PEN_CHICKEN, { side: 'e', a: 1.2, b: 3.6 });
+        fenceRect(PEN_COW, { side: 's', a: 7, b: 9.8 });
+        fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 });
+        fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 });
+        sign(-13.4, 0.4, 'Ayam');
+        sign(5.6, 0.6, 'Sapi');
+        sign(15.1, 0.6, 'Kambing');
+        sign(15.1, 3.4, 'Domba');
 
-        // Feeding troughs
-        box(3, 0.5, 0.7, C.darkWood, 9, 0.25, -7.6, scene);
-        box(2.8, 0.1, 0.5, C.straw, 9, 0.5, -7.6, scene);
-        addBoxCollider(7.5, 10.5, -8, -7.2);
-        box(1.6, 0.35, 0.6, C.darkWood, -19.8, 0.18, 8.8, scene);
-        box(1.4, 0.08, 0.4, 0xe8d27a, -19.8, 0.37, 8.8, scene);
+        // Feeding troughs along the back fence of each pen
+        function trough(x, z, w, d, feed) {
+            box(w, 0.45, d, C.darkWood, x, 0.23, z, scene);
+            box(w - 0.15, 0.08, d - 0.15, feed, x, 0.46, z, scene);
+            addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2);
+        }
+        trough(9, -7.55, 2.6, 0.45, C.straw);
+        trough(18.5, -7.55, 2.2, 0.45, C.straw);
+        trough(18.5, 11.55, 2.2, 0.45, 0x9cc95a);
+        trough(-19.55, 7.3, 0.45, 1.4, 0xe8d27a);
 
         // Shipping bin
         const BIN = new THREE.Vector3(-6.5, 0, -10.2);
@@ -645,6 +695,7 @@
         }
         lampPost(-8, -9.6);
         lampPost(5, 3.8);
+        lampPost(13.75, 3.8);
         lampPost(-12.2, 0.2);
 
         // Pond
@@ -745,7 +796,7 @@
         // Flowers, grass tufts and rocks
         {
             const inRect = (x, z, r, m = 0.6) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
-            const blocked = (x, z) => inRect(x, z, PEN_CHICKEN, 1) || inRect(x, z, PEN_BARN, 1) || inRect(x, z, FIELD, 1) ||
+            const blocked = (x, z) => PENS.some(r => inRect(x, z, r, 1)) || inRect(x, z, FIELD, 1) ||
                 PATHS.some(([a, b, c, d]) => inRect(x, z, { minX: a, maxX: b, minZ: c, maxZ: d }, 0.3)) ||
                 colliders.some(c => c.t === 'b' ? inRect(x, z, c, 0.5) : Math.hypot(x - c.x, z - c.z) < c.r + 0.4);
             const flowerColors = [0xff6b8a, 0xffd34d, 0xffffff, 0xb07cff, 0xff8f3d];
@@ -1055,12 +1106,12 @@
         const ANIMAL_DEFS = [
             { kind: 'chicken', name: 'Jago', sex: 'm', variant: 'rooster', area: AREA_CHICKEN },
             { kind: 'chicken', name: 'Kiki', sex: 'f', variant: 'white', area: AREA_CHICKEN },
-            { kind: 'cow', name: 'Bento', sex: 'm', variant: 'jersey', area: AREA_BARN },
-            { kind: 'cow', name: 'Mimi', sex: 'f', variant: 'holstein', area: AREA_BARN },
-            { kind: 'goat', name: 'Gogo', sex: 'm', variant: 'brown', area: AREA_BARN },
-            { kind: 'goat', name: 'Bimbi', sex: 'f', variant: 'white', area: AREA_BARN },
-            { kind: 'sheep', name: 'Wolly', sex: 'm', area: AREA_BARN },
-            { kind: 'sheep', name: 'Kapas', sex: 'f', area: AREA_BARN },
+            { kind: 'cow', name: 'Bento', sex: 'm', variant: 'jersey', area: AREA_COW },
+            { kind: 'cow', name: 'Mimi', sex: 'f', variant: 'holstein', area: AREA_COW },
+            { kind: 'goat', name: 'Gogo', sex: 'm', variant: 'brown', area: AREA_GOAT },
+            { kind: 'goat', name: 'Bimbi', sex: 'f', variant: 'white', area: AREA_GOAT },
+            { kind: 'sheep', name: 'Wolly', sex: 'm', area: AREA_SHEEP },
+            { kind: 'sheep', name: 'Kapas', sex: 'f', area: AREA_SHEEP },
             { kind: 'cat', name: 'Oyen', area: AREA_YARD },
             { kind: 'dog', name: 'Bruno', area: AREA_YARD },
         ];

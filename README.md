@@ -16,11 +16,11 @@ Game peternakan mungil 3D low-poly, terinspirasi dari Stardew Valley, Coral Isla
 
 ## Isi peternakan
 - 🏠 Rumah, kotak pengiriman, ladang sayur, kolam, dan orang-orangan sawah
-- Sepasang hewan jantan ♂ dan betina ♀ untuk setiap jenis ternak:
-  - 🐔 Ayam: Jago (jantan) dan Kiki (betina), di kandang ayam
-  - 🐄 Sapi: Bento (jantan) dan Mimi (betina), di padang lumbung
-  - 🐐 Kambing: Gogo (jantan) dan Bimbi (betina), di padang lumbung
-  - 🐑 Domba: Wolly (jantan) dan Kapas (betina), di padang lumbung
+- Sepasang hewan jantan ♂ dan betina ♀ untuk setiap jenis ternak, masing-masing dengan kandang sendiri (kandang ayam, lumbung sapi, kandang kambing, kandang domba):
+  - 🐔 Ayam: Jago (jantan) dan Kiki (betina),
+  - 🐄 Sapi: Bento (jantan) dan Mimi (betina)
+  - 🐐 Kambing: Gogo (jantan) dan Bimbi (betina)
+  - 🐑 Domba: Wolly (jantan) dan Kapas (betina)
 - 🐱 🐶 Hewan peliharaan: Oyen si kucing oren dan Bruno si anjing yang suka mengikutimu
 
 ## Cara main
