@@ -1,6 +1,18 @@
-# Kebun Kecil 🌾
+# Pojok Main 🎮
 
-Game peternakan mungil 3D low-poly yang bisa dimainkan langsung di browser, terinspirasi dari Stardew Valley, Coral Island, dan Story of Seasons. Dibuat dengan [Three.js](https://threejs.org/) dalam satu file `index.html`, tanpa proses build.
+Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` untuk menu awal, lalu pilih game.
+
+| Game | Folder | Status |
+| --- | --- | --- |
+| Farmora | `games/farmora/` | Bisa dimainkan |
+
+Untuk menambah game baru, buat folder `games/<nama-game>/index.html`, lalu tambahkan kartunya di `index.html`. Sediakan juga tautan kembali ke `../../index.html`.
+
+---
+
+# Farmora 🌾
+
+Game peternakan mungil 3D low-poly, terinspirasi dari Stardew Valley, Coral Island, dan Story of Seasons. Dibuat dengan [Three.js](https://threejs.org/) dalam satu file `games/farmora/index.html`, tanpa proses build.
 
 ## Isi peternakan
 - 🏠 Rumah, kotak pengiriman, ladang sayur, kolam, dan orang-orangan sawah

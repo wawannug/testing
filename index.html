@@ -3,282 +3,281 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kebun Kecil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pojok Main</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
+        /* Layout: a game shelf. One featured "cartridge" with a live diorama, then a row of empty slots for upcoming games. */
         :root {
-            --wood: #8b5a2b;
-            --wood-dark: #5e3a17;
-            --paper: #fbefd0;
-            --paper-2: #f3dfb0;
-            --ink: #4a2f14;
-            --accent: #e85d4a;
-            --green: #5aa83c;
+            --bg: #eaf1e6;
+            --surface: #ffffff;
+            --fg: #1e2b22;
+            --muted: #5d6f62;
+            --line: #c9d8c6;
+            --accent: #2f8a3e;
+            --accent-ink: #ffffff;
+            --sun: #ffc93c;
+            --sky-top: #9fd9ff;
+            --sky-bottom: #e4f6ff;
+            --shadow: rgba(30, 60, 35, .16);
+            --font-display: 'Lilita One', 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
+            --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+            color-scheme: light;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #111914;
+                --surface: #1a251d;
+                --fg: #e7f0e8;
+                --muted: #9db1a2;
+                --line: #2e3f33;
+                --accent: #6fcf7a;
+                --accent-ink: #0d1a10;
+                --sun: #ffd45c;
+                --sky-top: #1f2f5a;
+                --sky-bottom: #3d4d7a;
+                --shadow: rgba(0, 0, 0, .45);
+                color-scheme: dark;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #111914;
+            --surface: #1a251d;
+            --fg: #e7f0e8;
+            --muted: #9db1a2;
+            --line: #2e3f33;
+            --accent: #6fcf7a;
+            --accent-ink: #0d1a10;
+            --sun: #ffd45c;
+            --sky-top: #1f2f5a;
+            --sky-bottom: #3d4d7a;
+            --shadow: rgba(0, 0, 0, .45);
+            color-scheme: dark;
         }
 
         * { box-sizing: border-box; }
 
-        html, body {
+        body {
             margin: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #8fd3ff;
-            color-scheme: light;
-            font-family: 'Fredoka', system-ui, sans-serif;
-            color: var(--ink);
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
-
-        canvas { display: block; }
-
-        .panel {
-            background: var(--paper);
-            border: 3px solid var(--wood);
-            border-radius: 12px;
-            box-shadow: 0 3px 0 var(--wood-dark), 0 6px 14px rgba(0, 0, 0, .25);
-        }
-
-        #clock {
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            padding: 8px 14px;
-            min-width: 170px;
-            line-height: 1.25;
-        }
-
-        #clock .day { font-weight: 600; font-size: 15px; }
-        #clock .season { font-size: 12px; opacity: .75; }
-        #clock .time { font-weight: 700; font-size: 26px; letter-spacing: 1px; }
-        #clock .gold { margin-top: 2px; font-weight: 600; font-size: 16px; color: #a86a00; }
-
-        #topRight {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            font-family: inherit;
-            font-weight: 700;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-body);
             font-size: 16px;
-            color: var(--ink);
-            background: var(--paper);
-            border: 3px solid var(--wood);
-            border-radius: 10px;
-            box-shadow: 0 3px 0 var(--wood-dark);
-            padding: 6px 12px;
-            cursor: pointer;
+            line-height: 1.55;
         }
 
-        .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-dark); }
-
-        #inventory {
-            position: fixed;
-            left: 50%;
-            bottom: 12px;
-            transform: translateX(-50%);
+        .wrap {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding-inline: 20px;
+            padding-block: 28px 56px;
             display: flex;
-            gap: 6px;
-            padding: 6px;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        main { display: flex; flex-direction: column; gap: 36px; }
+
+        header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+        }
+
+        .brand {
+            font-family: var(--font-display);
+            font-size: clamp(30px, 5vw, 40px);
+            line-height: 1;
+            margin: 0;
+            letter-spacing: .5px;
+        }
+
+        .brand span { color: var(--accent); }
+
+        .tagline { margin: 0; color: var(--muted); font-weight: 600; }
+
+        .label {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: var(--muted);
+            margin: 0 0 12px;
+        }
+
+        /* Featured game */
+        .featured {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+            background: var(--surface);
+            border: 2px solid var(--line);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .stage {
+            position: relative;
+            min-height: 320px;
+            background: linear-gradient(var(--sky-top), var(--sky-bottom));
+        }
+
+        .stage canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .stage .fallback {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-size: 64px;
+        }
+
+        .stage.ready .fallback { display: none; }
+
+        .info {
+            padding: 28px 28px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .info h2 {
+            font-family: var(--font-display);
+            font-weight: 400;
+            font-size: clamp(44px, 7vw, 64px);
+            line-height: .95;
+            margin: 0;
+            color: var(--accent);
+            text-wrap: balance;
+        }
+
+        .info p { margin: 0; max-width: 46ch; }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; list-style: none; }
+
+        .chips li {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1.5px solid var(--line);
+            color: var(--muted);
+        }
+
+        .cast {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 14px;
+            font-size: 14px;
+            color: var(--muted);
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 16px;
+            margin-top: auto;
+            padding-top: 6px;
+        }
+
+        .play {
+            font-family: var(--font-display);
+            font-size: 22px;
+            letter-spacing: .5px;
+            background: var(--accent);
+            color: var(--accent-ink);
+            text-decoration: none;
+            padding: 12px 28px 10px;
+            border-radius: 14px;
+            box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .play:hover { transform: translateY(-2px); box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+        .play:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+        .play:focus-visible, .slot:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+
+        .save {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .save b { color: var(--fg); font-weight: 500; }
+
+        /* Upcoming slots */
+        .shelf {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
         }
 
         .slot {
-            width: 64px;
-            height: 64px;
-            background: var(--paper-2);
-            border: 2px solid #c79a5b;
-            border-radius: 8px;
+            border: 2px dashed var(--line);
+            border-radius: 18px;
+            padding: 22px;
             display: flex;
-            flex-direction: column;
+            gap: 16px;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            font-size: 26px;
+            color: var(--muted);
+            min-width: 0;
         }
 
-        .slot small { font-size: 10px; font-weight: 600; line-height: 1; margin-top: 2px; }
-        .slot b {
-            position: absolute;
-            right: 4px;
-            top: 2px;
-            font-size: 13px;
-        }
-        .slot.empty { opacity: .45; }
-
-        #prompt {
-            position: fixed;
-            left: 50%;
-            bottom: 100px;
-            transform: translateX(-50%);
-            padding: 6px 14px;
-            font-weight: 600;
-            font-size: 16px;
-            white-space: nowrap;
-            display: none;
-        }
-
-        #prompt kbd {
-            display: inline-block;
-            background: var(--wood);
-            color: #fff;
-            border-radius: 6px;
-            padding: 0 7px;
-            margin-right: 6px;
-            font-family: inherit;
-        }
-
-        #prompt .hearts { color: var(--accent); margin-left: 6px; letter-spacing: 1px; }
-
-        #toasts {
-            position: fixed;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            pointer-events: none;
-            width: min(92vw, 420px);
-        }
-
-        .toast {
-            padding: 6px 14px;
-            font-weight: 600;
-            font-size: 15px;
-            text-align: center;
-            animation: toastIn .25s ease-out;
-            transition: opacity .4s, transform .4s;
-        }
-
-        .toast.out { opacity: 0; transform: translateY(-8px); }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: none; }
-        }
-
-        #fade {
-            position: fixed;
-            inset: 0;
-            background: #0d1022;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .8s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
+        .slot .mark {
+            flex: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: var(--bg);
+            border: 2px solid var(--line);
+            display: grid;
+            place-items: center;
+            font-family: var(--font-display);
             font-size: 28px;
-            font-weight: 600;
+            color: var(--line);
         }
 
-        #fade.show { opacity: 1; pointer-events: all; }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(30, 50, 20, .35);
-            padding: 16px;
-        }
-
-        .overlay.hidden { display: none; }
-
-        .card {
-            max-width: 420px;
-            width: 100%;
-            padding: 22px 24px;
-            text-align: center;
-        }
-
-        .card h1 {
+        .slot h3 {
             margin: 0;
-            font-size: 42px;
-            color: var(--green);
-            text-shadow: 0 3px 0 #2f6b1d;
+            font-family: var(--font-display);
+            font-weight: 400;
+            font-size: 22px;
+            color: var(--fg);
+            opacity: .55;
         }
 
-        .card p { margin: 6px 0 14px; }
+        .slot p { margin: 2px 0 0; font-size: 14px; }
 
-        .card table {
-            margin: 6px auto 16px;
-            text-align: left;
-            font-size: 14px;
-            border-spacing: 10px 4px;
+        footer { color: var(--muted); font-size: 13px; }
+
+        @media (max-width: 760px) {
+            .featured { grid-template-columns: minmax(0, 1fr); }
+            .stage { min-height: 260px; }
+            .info { padding: 22px 20px 24px; }
+            .shelf { grid-template-columns: minmax(0, 1fr); }
         }
 
-        .card td:first-child { font-weight: 700; white-space: nowrap; }
-
-        .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-        .btn.big { font-size: 20px; padding: 10px 22px; background: #ffe08a; }
-        .btn.danger { background: #ffd2c8; font-size: 14px; }
-
-        /* Touch controls */
-        #joy, #actBtn { display: none; }
-
-        @media (pointer: coarse) {
-            #joy {
-                display: block;
-                position: fixed;
-                left: 18px;
-                bottom: 18px;
-                width: 124px;
-                height: 124px;
-                border-radius: 50%;
-                background: rgba(251, 239, 208, .55);
-                border: 3px solid rgba(139, 90, 43, .8);
-            }
-
-            #joyKnob {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                width: 54px;
-                height: 54px;
-                margin: -27px 0 0 -27px;
-                border-radius: 50%;
-                background: var(--paper);
-                border: 3px solid var(--wood);
-            }
-
-            #actBtn {
-                display: block;
-                position: fixed;
-                right: 22px;
-                bottom: 30px;
-                width: 84px;
-                height: 84px;
-                border-radius: 50%;
-                font-size: 30px;
-                padding: 0;
-            }
-
-            #inventory {
-                left: auto;
-                right: 12px;
-                bottom: auto;
-                top: 64px;
-                transform: none;
-                flex-direction: column;
-            }
-
-            .slot { width: 52px; height: 52px; font-size: 22px; }
-            .slot small { display: none; }
-            #prompt { bottom: 150px; font-size: 15px; }
-            #prompt kbd { display: none; }
-            .desktop-only { display: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .play { transition: none; }
         }
     </style>
     <script type="importmap">
@@ -287,1200 +286,218 @@
 </head>
 
 <body>
-    <div id="clock" class="panel">
-        <div class="day" id="dayLabel">Senin · Hari 1</div>
-        <div class="season">🌸 Musim Semi</div>
-        <div class="time" id="timeLabel">06:00</div>
-        <div class="gold" id="goldLabel">💰 0 G</div>
+    <div class="wrap">
+        <header>
+            <h1 class="brand">Pojok <span>Main</span></h1>
+            <p class="tagline">Koleksi game kecil yang bisa langsung dimainkan di browser.</p>
+        </header>
+
+        <main>
+            <section aria-labelledby="farmoraTitle">
+                <p class="label">Bisa dimainkan</p>
+                <article class="featured">
+                    <div class="stage" id="stage">
+                        <div class="fallback" aria-hidden="true">🐄</div>
+                    </div>
+                    <div class="info">
+                        <h2 id="farmoraTitle">Farmora</h2>
+                        <ul class="chips" aria-label="Info game">
+                            <li>3D low-poly</li>
+                            <li>Simulasi peternakan</li>
+                            <li>Santai</li>
+                            <li>Keyboard &amp; layar sentuh</li>
+                        </ul>
+                        <p>Rawat peternakan mungilmu. Elus hewan setiap hari, ambil telur, susu, dan wol, lalu jual di kotak pengiriman sebelum hari berganti.</p>
+                        <ul class="cast" aria-label="Penghuni peternakan">
+                            <li>🐔 3 ayam</li>
+                            <li>🐄 2 sapi</li>
+                            <li>🐐 2 kambing</li>
+                            <li>🐑 2 domba</li>
+                            <li>🐱 Oyen</li>
+                            <li>🐶 Bruno</li>
+                        </ul>
+                        <div class="actions">
+                            <a class="play" id="playBtn" href="games/farmora/index.html">Main</a>
+                            <span class="save" id="saveInfo">Belum ada progres tersimpan</span>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section aria-labelledby="soonTitle">
+                <p class="label" id="soonTitle">Segera hadir</p>
+                <div class="shelf">
+                    <div class="slot">
+                        <div class="mark" aria-hidden="true">?</div>
+                        <div>
+                            <h3>Game kedua</h3>
+                            <p>Sedang dikerjakan.</p>
+                        </div>
+                    </div>
+                    <div class="slot">
+                        <div class="mark" aria-hidden="true">?</div>
+                        <div>
+                            <h3>Game ketiga</h3>
+                            <p>Masih berupa ide.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>Progres setiap game tersimpan di browser ini.</footer>
     </div>
 
-    <div id="topRight">
-        <button class="btn" id="helpBtn" title="Bantuan">?</button>
-    </div>
-
-    <div id="inventory" class="panel"></div>
-    <div id="prompt" class="panel"></div>
-    <div id="toasts"></div>
-    <div id="fade"><span id="fadeText"></span></div>
-
-    <div id="joy"><div id="joyKnob"></div></div>
-    <button id="actBtn" class="btn">✋</button>
-
-    <div id="startScreen" class="overlay">
-        <div class="card panel">
-            <h1>Kebun Kecil</h1>
-            <p>Peternakan mungilmu sudah menunggu. Rawat hewan-hewanmu, kumpulkan hasilnya, lalu jual di kotak pengiriman.</p>
-            <table>
-                <tr class="desktop-only"><td>WASD / ← ↑ → ↓</td><td>Berjalan (Shift = lari)</td></tr>
-                <tr class="desktop-only"><td>E / Spasi</td><td>Elus hewan · ambil hasil · jual · tidur</td></tr>
-                <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
-                <tr><td>🐔 🐄 🐐 🐑</td><td>Elus setiap hari agar makin sayang ❤</td></tr>
-                <tr><td>📦</td><td>Kotak pengiriman di dekat rumah</td></tr>
-                <tr><td>🚪</td><td>Pintu rumah untuk tidur ke hari berikutnya</td></tr>
-            </table>
-            <div class="row">
-                <button class="btn big" id="startBtn">Mulai Bermain</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="helpScreen" class="overlay hidden">
-        <div class="card panel">
-            <h1 style="font-size:30px">Bantuan</h1>
-            <table>
-                <tr class="desktop-only"><td>WASD / Panah</td><td>Berjalan</td></tr>
-                <tr class="desktop-only"><td>Shift</td><td>Lari</td></tr>
-                <tr class="desktop-only"><td>E / Spasi</td><td>Interaksi</td></tr>
-                <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
-                <tr class="desktop-only"><td>H</td><td>Buka/tutup bantuan</td></tr>
-                <tr><td>🥚 Telur</td><td>50 G</td></tr>
-                <tr><td>🥛 Susu Sapi</td><td>125 G</td></tr>
-                <tr><td>🍼 Susu Kambing</td><td>225 G</td></tr>
-                <tr><td>🧶 Wol</td><td>340 G</td></tr>
-            </table>
-            <p style="font-size:13px">Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis saat tidur dan berjualan.</p>
-            <div class="row">
-                <button class="btn big" id="closeHelp">Lanjut</button>
-                <button class="btn danger" id="resetBtn">Mulai ulang</button>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Show Farmora save progress if one exists in this browser.
+        (function () {
+            let save = null;
+            try { save = JSON.parse(localStorage.getItem('farmora.v1') || localStorage.getItem('kebunKecil.v1')); } catch (e) { }
+            if (!save || !save.day) return;
+            const gold = (save.gold || 0).toLocaleString('id-ID');
+            document.getElementById('saveInfo').innerHTML = `Tersimpan: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
+            document.getElementById('playBtn').textContent = 'Lanjutkan';
+        })();
+    </script>
 
     <script type="module">
+        // Live diorama: a small floating farm island that slowly turns.
         import * as THREE from 'three';
 
-        // ---------- Utilities ----------
-        const rand = (a, b) => a + Math.random() * (b - a);
-        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-        const lerp = (a, b, t) => a + (b - a) * t;
-        function lerpAngle(a, b, t) {
-            const d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-            return a + d * t;
-        }
-        function mulberry32(seed) {
-            return function () {
-                seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-                let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-                return ((t ^ t >>> 14) >>> 0) / 4294967296;
-            };
-        }
-        const srand = mulberry32(20261006);
-        const srange = (a, b) => a + srand() * (b - a);
+        const stage = document.getElementById('stage');
+        const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // ---------- Renderer / scene ----------
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        // If WebGL is unavailable this throws and the emoji fallback stays visible.
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.prepend(renderer.domElement);
+        stage.appendChild(renderer.domElement);
+        stage.classList.add('ready');
 
         const scene = new THREE.Scene();
-        const skyColor = new THREE.Color(0x8fd3ff);
-        scene.background = skyColor;
-        scene.fog = new THREE.Fog(skyColor, 45, 85);
+        const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+        camera.position.set(0, 9, 15);
+        camera.lookAt(0, 0.8, 0);
 
-        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-        let zoom = 1;
-
-        const hemi = new THREE.HemisphereLight(0xe6f4ff, 0x6b8f3a, 0.9);
-        scene.add(hemi);
-        const sun = new THREE.DirectionalLight(0xfff3dd, 1.6);
+        scene.add(new THREE.HemisphereLight(0xeaf6ff, 0x6b8f3a, 1.0));
+        const sun = new THREE.DirectionalLight(0xfff2d8, 1.7);
+        sun.position.set(6, 12, 6);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(2048, 2048);
-        Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 80 });
-        sun.shadow.bias = -0.0006;
-        scene.add(sun, sun.target);
+        sun.shadow.mapSize.set(1024, 1024);
+        Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 });
+        scene.add(sun);
 
-        // ---------- Materials & primitive helpers ----------
-        const matCache = {};
-        const mat = c => matCache[c] ||= new THREE.MeshLambertMaterial({ color: c });
+        const mats = {};
+        const mat = c => mats[c] ||= new THREE.MeshLambertMaterial({ color: c });
         const BOX = new THREE.BoxGeometry(1, 1, 1);
-        const ICO = new THREE.IcosahedronGeometry(1, 0);
-        const CONE = new THREE.ConeGeometry(1, 1, 7);
-        const CYL = new THREE.CylinderGeometry(1, 1, 1, 12);
-
-        function mesh(geo, material, parent) {
-            const m = new THREE.Mesh(geo, material);
-            m.castShadow = true;
-            m.receiveShadow = true;
-            if (parent) parent.add(m);
-            return m;
-        }
-        function box(w, h, d, color, x = 0, y = 0, z = 0, parent) {
-            const m = mesh(BOX, typeof color === 'number' ? mat(color) : color, parent);
+        function box(w, h, d, c, x, y, z, parent) {
+            const m = new THREE.Mesh(BOX, mat(c));
             m.scale.set(w, h, d);
             m.position.set(x, y, z);
+            m.castShadow = m.receiveShadow = true;
+            parent.add(m);
             return m;
         }
-        // A limb pivoting at its top so rotation.x swings it
-        function limb(parent, x, y, z, w, h, color) {
-            const pivot = new THREE.Group();
-            pivot.position.set(x, y, z);
-            box(w, h, w, color, 0, -h / 2, 0, pivot);
-            parent.add(pivot);
-            return pivot;
-        }
 
-        const C = {
-            white: 0xfafafa, black: 0x2b2b2b, red: 0xd9443a, orange: 0xf2a33a, pink: 0xf4a6b0,
-            cream: 0xf1e3c4, brown: 0x8a5a33, darkBrown: 0x5b3a1e, wood: 0xc89b63, darkWood: 0x8d6338,
-            grass: 0x7cc35a, dirt: 0xb98a58, tilled: 0x7a5233, stone: 0xa3a3a3, skin: 0xf2c49b,
-            straw: 0xe8c66a, leaf1: 0x5fae45, leaf2: 0x4c9a3c, leaf3: 0x77c050, wool: 0xf6f2e8,
-        };
+        const island = new THREE.Group();
+        scene.add(island);
 
-        // ---------- Collision ----------
-        const colliders = [];
-        function addBoxCollider(minX, maxX, minZ, maxZ) { colliders.push({ t: 'b', minX, maxX, minZ, maxZ }); }
-        function addCircleCollider(x, z, r) { colliders.push({ t: 'c', x, z, r }); }
-        function resolveCollisions(p, r) {
-            for (const c of colliders) {
-                if (c.t === 'b') {
-                    const cx = clamp(p.x, c.minX, c.maxX), cz = clamp(p.z, c.minZ, c.maxZ);
-                    const dx = p.x - cx, dz = p.z - cz, d2 = dx * dx + dz * dz;
-                    if (d2 < r * r) {
-                        if (d2 > 1e-8) {
-                            const d = Math.sqrt(d2), k = (r - d) / d;
-                            p.x += dx * k; p.z += dz * k;
-                        } else {
-                            const opts = [p.x - c.minX, c.maxX - p.x, p.z - c.minZ, c.maxZ - p.z];
-                            const i = opts.indexOf(Math.min(...opts));
-                            if (i === 0) p.x = c.minX - r; else if (i === 1) p.x = c.maxX + r;
-                            else if (i === 2) p.z = c.minZ - r; else p.z = c.maxZ + r;
-                        }
-                    }
-                } else {
-                    const dx = p.x - c.x, dz = p.z - c.z, d = Math.hypot(dx, dz), min = c.r + r;
-                    if (d < min && d > 1e-6) { p.x = c.x + dx / d * min; p.z = c.z + dz / d * min; }
-                }
-            }
-        }
-        const BOUNDS = { minX: -23.5, maxX: 23.5, minZ: -22.5, maxZ: 22.5 };
-
-        // ---------- World layout ----------
-        const PEN_CHICKEN = { minX: -21, maxX: -13, minZ: -1.5, maxZ: 10 };
-        const PEN_BARN = { minX: 6, maxX: 22, minZ: -9, maxZ: 9 };
-        const AREA_CHICKEN = { minX: -20.3, maxX: -13.7, minZ: -0.8, maxZ: 9.3 };
-        const AREA_BARN = { minX: 6.8, maxX: 21.2, minZ: -8.2, maxZ: 8.3 };
-        const AREA_YARD = { minX: -8.5, maxX: 4, minZ: -8, maxZ: 9 };
-        const FIELD = { minX: -6, maxX: 2, minZ: 11, maxZ: 18 };
-        const POND = { x: 12, z: 16, r: 3.2 };
-
-        // Ground with subtle color variation
-        {
-            const geo = new THREE.PlaneGeometry(130, 130, 65, 65);
-            geo.rotateX(-Math.PI / 2);
-            const colors = [];
-            const base = new THREE.Color(C.grass), tmp = new THREE.Color();
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const x = pos.getX(i), z = pos.getZ(i);
-                const n = Math.sin(x * 0.35) * Math.cos(z * 0.3) * 0.5 + srand() * 0.5;
-                tmp.copy(base).offsetHSL(n * 0.02, 0, (n - 0.25) * 0.08);
-                colors.push(tmp.r, tmp.g, tmp.b);
-            }
-            geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-            const ground = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
-            ground.receiveShadow = true;
-            scene.add(ground);
-        }
-
-        // Dirt paths
-        function pathStrip(minX, maxX, minZ, maxZ) {
-            const m = new THREE.Mesh(BOX, mat(C.dirt));
-            m.scale.set(maxX - minX, 0.04, maxZ - minZ);
-            m.position.set((minX + maxX) / 2, 0.02, (minZ + maxZ) / 2);
-            m.receiveShadow = true;
-            scene.add(m);
-        }
-        const PATHS = [
-            [-11, -9, -11, 3],     // house -> main road
-            [-13, 6, 1, 3],        // main road east-west
-            [-3, -1, 3, 10.5],     // to the field
-        ];
-        PATHS.forEach(p => pathStrip(...p));
-
-        // Window material glows at night
-        const windowMat = new THREE.MeshLambertMaterial({ color: 0x9fd8ff, emissive: 0xffc35c, emissiveIntensity: 0 });
-
-        function gableRoof(span, length, height, color) {
-            const s = new THREE.Shape();
-            s.moveTo(-span / 2, 0); s.lineTo(span / 2, 0); s.lineTo(0, height); s.closePath();
-            const geo = new THREE.ExtrudeGeometry(s, { depth: length, bevelEnabled: false });
-            geo.translate(0, 0, -length / 2);
-            return mesh(geo, mat(color));
-        }
-
-        function building({ x, z, w, d, h, wall, roof, roofH, ridgeAlongX, trim = C.white }) {
-            const g = new THREE.Group();
-            g.position.set(x, 0, z);
-            box(w, h, d, wall, 0, h / 2, 0, g);
-            box(w + 0.1, 0.25, d + 0.1, trim, 0, 0.12, 0, g);
-            const r = ridgeAlongX ? gableRoof(d + 0.8, w + 0.8, roofH, roof) : gableRoof(w + 0.8, d + 0.8, roofH, roof);
-            if (ridgeAlongX) r.rotation.y = Math.PI / 2;
-            r.position.y = h;
-            g.add(r);
-            scene.add(g);
-            addBoxCollider(x - w / 2 - 0.05, x + w / 2 + 0.05, z - d / 2 - 0.05, z + d / 2 + 0.05);
-            return g;
-        }
-
-        // House
-        const HOUSE = { x: -10, z: -14, w: 8, d: 6 };
-        {
-            const g = building({ ...HOUSE, h: 3.2, wall: 0xf3e2c0, roof: 0xc0503c, roofH: 2.4, ridgeAlongX: true });
-            const front = HOUSE.d / 2 + 0.05;
-            box(1.3, 2.2, 0.12, 0x8b4f2a, 0, 1.1, front, g);            // door
-            box(0.12, 0.12, 0.08, 0xf2c94c, 0.4, 1.1, front + 0.08, g);  // knob
-            for (const wx of [-2.4, 2.4]) {
-                box(1.3, 1.1, 0.1, windowMat, wx, 1.9, front, g);
-                box(1.5, 0.15, 0.2, C.white, wx, 1.28, front + 0.05, g);
-                box(0.1, 1.1, 0.12, C.white, wx, 1.9, front + 0.02, g);
-            }
-            box(0.8, 1.8, 0.8, 0x9c5b45, 2.3, 4.4, -1, g);                // chimney
-            box(2.4, 0.15, 1.2, 0x9c7a55, 0, 0.08, front + 0.6, g);       // porch step
-            // flower boxes
-            for (const wx of [-2.4, 2.4]) {
-                box(1.4, 0.3, 0.35, C.darkWood, wx, 1.15, front + 0.2, g);
-                for (let i = 0; i < 4; i++) box(0.18, 0.18, 0.18, [0xff6b8a, 0xffd34d, 0xb07cff, 0xff8f3d][i], wx - 0.5 + i * 0.33, 1.38, front + 0.2, g);
-            }
-        }
-        const HOUSE_DOOR = new THREE.Vector3(HOUSE.x, 0, HOUSE.z + HOUSE.d / 2 + 0.3);
+        // Ground: grass top over a dirt cliff
+        const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 8), mat(0x7cc35a));
+        top.position.y = -0.25; top.receiveShadow = true; island.add(top);
+        const cliff = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 3.2, 2.2, 8), mat(0x9a6b42));
+        cliff.position.y = -1.6; island.add(cliff);
+        const rock = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.6, 8), mat(0x7a5233));
+        rock.position.y = -3.4; rock.rotation.x = Math.PI; island.add(rock);
 
         // Barn
-        const BARN = { x: 14, z: -12, w: 8, d: 6 };
-        {
-            const g = building({ ...BARN, h: 3.6, wall: 0xb8382f, roof: 0x5a4a42, roofH: 2.6 });
-            const front = BARN.d / 2 + 0.05;
-            box(2.8, 2.8, 0.12, 0x8f2a23, 0, 1.4, front, g);
-            box(2.8, 0.18, 0.18, C.white, 0, 2.8, front + 0.06, g);
-            box(0.18, 2.8, 0.18, C.white, -1.4, 1.4, front + 0.06, g);
-            box(0.18, 2.8, 0.18, C.white, 1.4, 1.4, front + 0.06, g);
-            const diag = Math.hypot(2.8, 2.8) * 0.95;
-            box(0.16, diag, 0.16, C.white, 0, 1.4, front + 0.08, g).rotation.z = Math.PI / 4;
-            box(0.16, diag, 0.16, C.white, 0, 1.4, front + 0.08, g).rotation.z = -Math.PI / 4;
-            box(1, 1, 0.1, windowMat, 0, 4.4, front + 0.3, g);
-            // hay bales
-            for (const [hx, hz] of [[4.8, 1.5], [4.8, 0.3], [4.8, 0.9]]) {
-                const b = box(1, 0.8, 1.1, C.straw, hx, 0.4, hz, g);
-                if (hz === 0.9) b.position.set(4.8, 1.2, 0.9);
-            }
+        const barn = new THREE.Group(); barn.position.set(-1.4, 0, -1.8); island.add(barn);
+        box(2.6, 1.8, 2, 0xb8382f, 0, 0.9, 0, barn);
+        const roofShape = new THREE.Shape();
+        roofShape.moveTo(-1.6, 0); roofShape.lineTo(1.6, 0); roofShape.lineTo(0, 1.2); roofShape.closePath();
+        const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 2.4, bevelEnabled: false });
+        roofGeo.translate(0, 0, -1.2);
+        const roof = new THREE.Mesh(roofGeo, mat(0x5a4a42)); roof.position.y = 1.8; roof.castShadow = true; barn.add(roof);
+        box(1, 1.2, 0.08, 0x8f2a23, 0, 0.6, 1.02, barn);
+        box(0.08, 1.5, 0.1, 0xfafafa, 0, 0.6, 1.06, barn).rotation.z = 0.7;
+        box(0.08, 1.5, 0.1, 0xfafafa, 0, 0.6, 1.06, barn).rotation.z = -0.7;
+
+        // Tree
+        const ico = new THREE.IcosahedronGeometry(1, 0);
+        const tree = new THREE.Group(); tree.position.set(2.6, 0, -1.6); island.add(tree);
+        box(0.3, 1.2, 0.3, 0x5b3a1e, 0, 0.6, 0, tree);
+        const leaves = new THREE.Mesh(ico, mat(0x5fae45)); leaves.scale.setScalar(0.95); leaves.position.y = 1.7; leaves.castShadow = true; tree.add(leaves);
+        for (const [x, y, z] of [[0.6, 1.5, 0.5], [-0.5, 1.9, 0.6], [0.2, 1.4, -0.8]]) {
+            const f = new THREE.Mesh(ico, mat(0xe8413a)); f.scale.setScalar(0.11); f.position.set(x, y, z); tree.add(f);
         }
 
-        // Chicken coop
-        {
-            const g = building({ x: -17, z: -3, w: 4.5, d: 3, h: 2.2, wall: 0xe6c27a, roof: 0x3f7f5a, roofH: 1.4 });
-            box(0.8, 1, 0.1, 0x7a4b25, 0, 0.5, 1.56, g);
-            box(0.7, 0.08, 1.2, C.darkWood, 0, 0.2, 2.1, g).rotation.x = 0.3;
-            box(0.7, 0.6, 0.1, windowMat, -1.3, 1.4, 1.55, g);
-            box(0.7, 0.6, 0.1, windowMat, 1.3, 1.4, 1.55, g);
+        // Fence along the front
+        for (let i = 0; i < 7; i++) box(0.12, 0.6, 0.12, 0x8d6338, -2.7 + i * 0.9, 0.3, 2.9, island);
+        box(5.4, 0.08, 0.06, 0xc89b63, 0, 0.42, 2.9, island);
+        box(5.4, 0.08, 0.06, 0xc89b63, 0, 0.22, 2.9, island);
+
+        // Hay bale
+        box(0.7, 0.55, 0.8, 0xe8c66a, -3.2, 0.28, -0.2, island);
+
+        // Cow
+        const cow = new THREE.Group(); cow.position.set(0.9, 0, 0.8); cow.rotation.y = -0.6; island.add(cow);
+        box(0.6, 0.55, 1.1, 0xfafafa, 0, 0.75, 0, cow);
+        box(0.62, 0.28, 0.35, 0x2b2b2b, 0, 0.82, 0.15, cow);
+        box(0.62, 0.25, 0.3, 0x2b2b2b, 0, 0.7, -0.35, cow);
+        const head = new THREE.Group(); head.position.set(0, 0.98, 0.66); cow.add(head);
+        box(0.38, 0.38, 0.35, 0xfafafa, 0, 0, 0, head);
+        box(0.32, 0.18, 0.12, 0xf4a6b0, 0, -0.1, 0.22, head);
+        box(0.06, 0.15, 0.06, 0xf1e3c4, 0.13, 0.25, 0, head);
+        box(0.06, 0.15, 0.06, 0xf1e3c4, -0.13, 0.25, 0, head);
+        for (const [x, z] of [[0.2, 0.38], [-0.2, 0.38], [0.2, -0.38], [-0.2, -0.38]]) box(0.14, 0.5, 0.14, 0xfafafa, x, 0.25, z, cow);
+
+        // Chickens
+        const chickens = [];
+        for (const [x, z, c] of [[-0.8, 1.6, 0xfafafa], [-1.5, 1.1, 0xc0783c]]) {
+            const ch = new THREE.Group(); ch.position.set(x, 0, z); island.add(ch);
+            box(0.3, 0.26, 0.36, c, 0, 0.3, 0, ch);
+            const h = new THREE.Group(); h.position.set(0, 0.48, 0.14); ch.add(h);
+            box(0.18, 0.2, 0.18, c, 0, 0, 0, h);
+            box(0.05, 0.08, 0.12, 0xd9443a, 0, 0.13, 0, h);
+            box(0.08, 0.05, 0.08, 0xf2a33a, 0, 0, 0.12, h);
+            box(0.04, 0.17, 0.04, 0xf2a33a, 0.06, 0.08, 0, ch);
+            box(0.04, 0.17, 0.04, 0xf2a33a, -0.06, 0.08, 0, ch);
+            chickens.push(h);
         }
 
-        // Fences
-        function fenceRect(r, gate) {
-            const sides = {
-                n: [[r.minX, r.minZ], [r.maxX, r.minZ]],
-                s: [[r.minX, r.maxZ], [r.maxX, r.maxZ]],
-                w: [[r.minX, r.minZ], [r.minX, r.maxZ]],
-                e: [[r.maxX, r.minZ], [r.maxX, r.maxZ]],
-            };
-            for (const [side, [[x0, z0], [x1, z1]]] of Object.entries(sides)) {
-                const alongX = z0 === z1;
-                const len = alongX ? x1 - x0 : z1 - z0;
-                const n = Math.ceil(len / 1.6), step = len / n;
-                for (let i = 0; i <= n; i++) {
-                    const px = alongX ? x0 + i * step : x0, pz = alongX ? z0 : z0 + i * step;
-                    box(0.18, 1.1, 0.18, C.darkWood, px, 0.55, pz, scene);
-                }
-                for (let i = 0; i < n; i++) {
-                    const mid = (alongX ? x0 : z0) + (i + 0.5) * step;
-                    if (gate && gate.side === side && mid > gate.a && mid < gate.b) continue;
-                    const cx = alongX ? mid : x0, cz = alongX ? z0 : mid;
-                    for (const y of [0.45, 0.85]) {
-                        if (alongX) box(step, 0.1, 0.08, C.wood, cx, y, cz, scene);
-                        else box(0.08, 0.1, step, C.wood, cx, y, cz, scene);
-                    }
-                    if (alongX) addBoxCollider(cx - step / 2, cx + step / 2, cz - 0.12, cz + 0.12);
-                    else addBoxCollider(cx - 0.12, cx + 0.12, cz - step / 2, cz + step / 2);
-                }
-            }
-        }
-        fenceRect(PEN_CHICKEN, { side: 'e', a: 0.6, b: 3.6 });
-        fenceRect(PEN_BARN, { side: 'w', a: 0.6, b: 3.6 });
-
-        // Feeding troughs
-        box(3, 0.5, 0.7, C.darkWood, 9, 0.25, -7.6, scene);
-        box(2.8, 0.1, 0.5, C.straw, 9, 0.5, -7.6, scene);
-        addBoxCollider(7.5, 10.5, -8, -7.2);
-        box(1.6, 0.35, 0.6, C.darkWood, -19.8, 0.18, 8.8, scene);
-        box(1.4, 0.08, 0.4, 0xe8d27a, -19.8, 0.37, 8.8, scene);
-
-        // Shipping bin
-        const BIN = new THREE.Vector3(-6.5, 0, -10.2);
-        {
-            const g = new THREE.Group();
-            g.position.copy(BIN);
-            box(1.6, 0.9, 1, 0x9a6a3a, 0, 0.45, 0, g);
-            box(1.7, 0.15, 1.1, 0x6e4723, 0, 0.95, 0, g);
-            box(1.62, 0.1, 0.1, 0x6e4723, 0, 0.45, 0.5, g);
-            scene.add(g);
-            addBoxCollider(BIN.x - 0.85, BIN.x + 0.85, BIN.z - 0.55, BIN.z + 0.55);
+        // Flowers
+        const colors = [0xff6b8a, 0xffd34d, 0xffffff, 0xb07cff];
+        for (let i = 0; i < 18; i++) {
+            const a = i * 2.4, r = 3.4 + (i % 3) * 0.4;
+            const x = Math.cos(a) * r, z = Math.sin(a) * r;
+            if (z > 2.4) continue;
+            box(0.12, 0.12, 0.12, colors[i % colors.length], x, 0.12, z, island);
         }
 
-        // Lamp posts (light up at night)
-        const lamps = [];
-        function lampPost(x, z) {
-            box(0.16, 2.6, 0.16, 0x3d3d3d, x, 1.3, z, scene);
-            const lantern = box(0.4, 0.45, 0.4, new THREE.MeshLambertMaterial({ color: 0xfff1c1, emissive: 0xffb84d, emissiveIntensity: 0 }), x, 2.75, z, scene);
-            const light = new THREE.PointLight(0xffb85c, 0, 12, 1.6);
-            light.position.set(x, 2.6, z);
-            scene.add(light);
-            lamps.push({ lantern, light });
-            addCircleCollider(x, z, 0.2);
-        }
-        lampPost(-8, -9.6);
-        lampPost(5, 3.8);
-        lampPost(-12.2, 0.2);
-
-        // Pond
-        {
-            const water = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 24), new THREE.MeshLambertMaterial({ color: 0x4fb3e8, transparent: true, opacity: 0.9 }));
-            water.rotation.x = -Math.PI / 2;
-            water.position.set(POND.x, 0.05, POND.z);
-            water.receiveShadow = true;
-            scene.add(water);
-            for (let i = 0; i < 22; i++) {
-                const a = i / 22 * Math.PI * 2;
-                const s = srange(0.4, 0.7);
-                const st = box(s, s * 0.5, s, C.stone, POND.x + Math.cos(a) * (POND.r + 0.15), 0.12, POND.z + Math.sin(a) * (POND.r + 0.15), scene);
-                st.rotation.y = srand() * 3;
-            }
-            for (const [lx, lz] of [[-1, 0.5], [1.2, -0.8], [0.3, 1.6]]) {
-                const pad = new THREE.Mesh(new THREE.CircleGeometry(0.35, 8), mat(0x3e9b4a));
-                pad.rotation.x = -Math.PI / 2;
-                pad.position.set(POND.x + lx, 0.07, POND.z + lz);
-                scene.add(pad);
-            }
-            for (let i = 0; i < 6; i++) box(0.06, srange(0.6, 1.1), 0.06, 0x4a7f2c, POND.x + POND.r + 0.3 + srand() * 0.3, 0.4, POND.z - 1 + i * 0.35, scene);
-            addCircleCollider(POND.x, POND.z, POND.r + 0.1);
-        }
-
-        // Crop field (decorative)
-        {
-            for (let z = FIELD.minZ + 0.5; z < FIELD.maxZ; z += 1.4) {
-                box(FIELD.maxX - FIELD.minX, 0.14, 0.9, C.tilled, (FIELD.minX + FIELD.maxX) / 2, 0.07, z, scene);
-                const type = Math.floor(srand() * 4);
-                for (let x = FIELD.minX + 0.6; x < FIELD.maxX; x += 1) {
-                    if (type === 0) { // cabbage
-                        const m = mesh(ICO, mat(0x8ccf5a), scene); m.scale.setScalar(0.32); m.position.set(x, 0.38, z);
-                    } else if (type === 1) { // carrot tops
-                        for (let k = -1; k <= 1; k++) box(0.06, 0.4, 0.06, 0x4fa83a, x + k * 0.08, 0.35, z, scene).rotation.z = k * 0.4;
-                        box(0.18, 0.1, 0.18, 0xf08a2c, x, 0.17, z, scene);
-                    } else if (type === 2) { // tomato
-                        box(0.05, 0.9, 0.05, C.darkWood, x, 0.55, z, scene);
-                        const bush = mesh(ICO, mat(C.leaf2), scene); bush.scale.setScalar(0.28); bush.position.set(x, 0.6, z);
-                        for (const [ox, oy] of [[0.18, 0.55], [-0.15, 0.7], [0.05, 0.42]]) {
-                            const t = mesh(ICO, mat(0xe8413a), scene); t.scale.setScalar(0.09); t.position.set(x + ox, oy, z + 0.15);
-                        }
-                    } else { // sprout
-                        box(0.05, 0.25, 0.05, 0x5fbf3a, x, 0.26, z, scene);
-                        box(0.2, 0.04, 0.1, 0x6fd04a, x, 0.4, z, scene).rotation.z = 0.3;
-                    }
-                }
-            }
-            // Scarecrow
-            const g = new THREE.Group();
-            g.position.set(3.6, 0, 13.5);
-            box(0.12, 2, 0.12, C.darkWood, 0, 1, 0, g);
-            box(1.6, 0.12, 0.12, C.darkWood, 0, 1.5, 0, g);
-            box(0.6, 0.7, 0.3, 0x5c7fbf, 0, 1.45, 0, g);
-            box(0.42, 0.42, 0.42, 0xe8d6a0, 0, 2.05, 0, g);
-            const brim = mesh(CYL, mat(C.straw), g); brim.scale.set(0.45, 0.04, 0.45); brim.position.y = 2.28;
-            const crown = mesh(CYL, mat(C.straw), g); crown.scale.set(0.25, 0.25, 0.25); crown.position.y = 2.42;
-            scene.add(g);
-            addCircleCollider(3.6, 13.5, 0.3);
-        }
-
-        // Trees
-        function roundTree(x, z, s = 1) {
-            const g = new THREE.Group();
-            g.position.set(x, 0, z);
-            box(0.4 * s, 1.6 * s, 0.4 * s, C.darkBrown, 0, 0.8 * s, 0, g);
-            const c = [C.leaf1, C.leaf2, C.leaf3][Math.floor(srand() * 3)];
-            const a = mesh(ICO, mat(c), g); a.scale.setScalar(1.2 * s); a.position.y = 2.3 * s; a.rotation.y = srand() * 3;
-            const b = mesh(ICO, mat(c), g); b.scale.setScalar(0.8 * s); b.position.set(0.5 * s, 3.1 * s, 0.2 * s);
-            if (srand() < 0.35) for (let i = 0; i < 4; i++) {
-                const f = mesh(ICO, mat(0xe8413a), g); f.scale.setScalar(0.12 * s);
-                const ang = srand() * Math.PI * 2;
-                f.position.set(Math.cos(ang) * 1.05 * s, 2.1 * s + srand() * 0.6, Math.sin(ang) * 1.05 * s);
-            }
-            scene.add(g);
-        }
-        function pineTree(x, z, s = 1) {
-            const g = new THREE.Group();
-            g.position.set(x, 0, z);
-            box(0.35 * s, 1.2 * s, 0.35 * s, C.darkBrown, 0, 0.6 * s, 0, g);
-            for (let i = 0; i < 3; i++) {
-                const c = mesh(CONE, mat(0x3f8a4a), g);
-                c.scale.set((1.4 - i * 0.35) * s, 1.5 * s, (1.4 - i * 0.35) * s);
-                c.position.y = (1.6 + i * 0.85) * s;
-            }
-            scene.add(g);
-        }
-        for (let i = 0; i < 170; i++) {
-            const x = srange(-44, 44), z = srange(-40, 40);
-            if (Math.abs(x) < 25 && Math.abs(z) < 24) continue;
-            (srand() < 0.5 ? pineTree : roundTree)(x, z, srange(0.9, 1.5));
-        }
-        for (const [x, z, s] of [[-2, -17, 1.1], [4, -16, 1.3], [-20.5, -16, 1], [-21, 16, 1.2], [-13, 19, 1], [21, 18.5, 1.1], [21.5, -17, 1], [6, 19.5, 0.9], [-21.5, 13, 0.9]]) {
-            roundTree(x, z, s);
-            addCircleCollider(x, z, 0.45 * s);
-        }
-
-        // Flowers, grass tufts and rocks
-        {
-            const inRect = (x, z, r, m = 0.6) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
-            const blocked = (x, z) => inRect(x, z, PEN_CHICKEN, 1) || inRect(x, z, PEN_BARN, 1) || inRect(x, z, FIELD, 1) ||
-                PATHS.some(([a, b, c, d]) => inRect(x, z, { minX: a, maxX: b, minZ: c, maxZ: d }, 0.3)) ||
-                colliders.some(c => c.t === 'b' ? inRect(x, z, c, 0.5) : Math.hypot(x - c.x, z - c.z) < c.r + 0.4);
-            const flowerColors = [0xff6b8a, 0xffd34d, 0xffffff, 0xb07cff, 0xff8f3d];
-            for (let i = 0; i < 220; i++) {
-                const x = srange(-23, 23), z = srange(-22, 22);
-                if (blocked(x, z)) continue;
-                const r = srand();
-                if (r < 0.45) {
-                    box(0.05, 0.3, 0.05, 0x4fa83a, x, 0.15, z, scene);
-                    box(0.18, 0.12, 0.18, flowerColors[Math.floor(srand() * flowerColors.length)], x, 0.32, z, scene);
-                } else if (r < 0.9) {
-                    for (let k = 0; k < 3; k++) box(0.06, 0.3, 0.06, 0x5fae45, x + k * 0.08 - 0.08, 0.13, z, scene).rotation.z = (k - 1) * 0.35;
-                } else {
-                    const s = srange(0.3, 0.6);
-                    const m = mesh(ICO, mat(C.stone), scene); m.scale.set(s, s * 0.6, s); m.position.set(x, s * 0.2, z);
-                }
-            }
-        }
-
-        // ---------- Sprites (icons, hearts) ----------
-        function canvasSprite(draw, scale = 0.7) {
-            const c = document.createElement('canvas');
-            c.width = c.height = 128;
-            draw(c.getContext('2d'));
-            const tex = new THREE.CanvasTexture(c);
-            tex.colorSpace = THREE.SRGBColorSpace;
-            const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-            s.scale.set(scale, scale, 1);
-            return s;
-        }
-        function bubbleSprite(emoji) {
-            return canvasSprite(ctx => {
-                ctx.fillStyle = '#fffaf0';
-                ctx.strokeStyle = '#8b5a2b';
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.arc(64, 58, 48, 0, Math.PI * 2);
-                ctx.moveTo(52, 102); ctx.lineTo(64, 124); ctx.lineTo(76, 102);
-                ctx.fill(); ctx.stroke();
-                ctx.font = '62px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(emoji, 64, 62);
-            }, 0.8);
-        }
-        const heartTexSprite = () => canvasSprite(ctx => {
-            ctx.fillStyle = '#ff4d6d';
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 6;
-            ctx.beginPath();
-            ctx.moveTo(64, 108);
-            ctx.bezierCurveTo(4, 66, 26, 6, 64, 38);
-            ctx.bezierCurveTo(102, 6, 124, 66, 64, 108);
-            ctx.fill(); ctx.stroke();
-        }, 0.6);
-
-        const particles = [];
-        function spawnHearts(pos, count = 3) {
-            for (let i = 0; i < count; i++) {
-                const s = heartTexSprite();
-                s.position.set(pos.x + rand(-0.4, 0.4), pos.y + rand(0, 0.3), pos.z + rand(-0.4, 0.4));
-                scene.add(s);
-                particles.push({ s, life: 1.2 + i * 0.15, max: 1.2 + i * 0.15, vy: rand(1, 1.6) });
-            }
-        }
-        function spawnIcon(pos, emoji) {
-            const s = bubbleSprite(emoji);
-            s.position.copy(pos);
-            scene.add(s);
-            particles.push({ s, life: 1.1, max: 1.1, vy: 1.4 });
-        }
-
-        // ---------- Animal models (all face +Z) ----------
-        function makeChicken(variant) {
-            const col = variant === 'brown' ? 0xc0783c : C.white;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.45, 0.4, 0.55, col, 0, 0.45, 0, body);
-            box(0.32, 0.32, 0.16, col, 0, 0.62, -0.3, body);
-            box(0.08, 0.26, 0.34, variant === 'brown' ? 0xa5652f : 0xeeeeee, 0.25, 0.47, 0, body);
-            box(0.08, 0.26, 0.34, variant === 'brown' ? 0xa5652f : 0xeeeeee, -0.25, 0.47, 0, body);
-            const head = new THREE.Group(); head.position.set(0, 0.72, 0.2); body.add(head);
-            box(0.28, 0.3, 0.28, col, 0, 0.08, 0, head);
-            box(0.07, 0.12, 0.2, C.red, 0, 0.29, 0, head);
-            box(0.12, 0.08, 0.13, C.orange, 0, 0.06, 0.2, head);
-            box(0.06, 0.09, 0.05, C.red, 0, -0.04, 0.16, head);
-            box(0.05, 0.05, 0.05, C.black, 0.14, 0.14, 0.07, head);
-            box(0.05, 0.05, 0.05, C.black, -0.14, 0.14, 0.07, head);
-            const legs = [limb(g, 0.1, 0.26, 0, 0.06, 0.26, C.orange), limb(g, -0.1, 0.26, 0, 0.06, 0.26, C.orange)];
-            return { group: g, body, head, legs, height: 1.05 };
-        }
-
-        function makeCow(variant) {
-            const jersey = variant === 'jersey';
-            const col = jersey ? 0xb5793f : C.white, spot = jersey ? 0xf3e6cf : C.black;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.9, 0.8, 1.6, col, 0, 1.1, 0, body);
-            box(0.92, 0.4, 0.5, spot, 0, 1.2, 0.2, body);
-            box(0.92, 0.35, 0.4, spot, 0, 1.0, -0.5, body);
-            box(0.5, 0.82, 0.3, spot, 0.1, 1.1, -0.1, body);
-            box(0.32, 0.16, 0.32, C.pink, 0, 0.64, -0.35, body);
-            const tail = new THREE.Group(); tail.position.set(0, 1.4, -0.8); body.add(tail);
-            box(0.07, 0.6, 0.07, col, 0, -0.3, -0.02, tail);
-            box(0.12, 0.15, 0.12, C.black, 0, -0.62, -0.02, tail);
-            const head = new THREE.Group(); head.position.set(0, 1.4, 0.95); body.add(head);
-            box(0.55, 0.55, 0.5, col, 0, 0, 0, head);
-            box(0.47, 0.28, 0.2, C.pink, 0, -0.14, 0.32, head);
-            box(0.06, 0.06, 0.04, 0x7a3b3b, 0.12, -0.12, 0.43, head);
-            box(0.06, 0.06, 0.04, 0x7a3b3b, -0.12, -0.12, 0.43, head);
-            box(0.07, 0.07, 0.04, C.black, 0.2, 0.1, 0.26, head);
-            box(0.07, 0.07, 0.04, C.black, -0.2, 0.1, 0.26, head);
-            box(0.08, 0.22, 0.08, C.cream, 0.2, 0.36, -0.05, head);
-            box(0.08, 0.22, 0.08, C.cream, -0.2, 0.36, -0.05, head);
-            box(0.25, 0.1, 0.14, col, 0.38, 0.14, -0.05, head);
-            box(0.25, 0.1, 0.14, col, -0.38, 0.14, -0.05, head);
-            const legs = [
-                limb(g, 0.3, 0.72, 0.55, 0.2, 0.72, col), limb(g, -0.3, 0.72, 0.55, 0.2, 0.72, col),
-                limb(g, 0.3, 0.72, -0.55, 0.2, 0.72, col), limb(g, -0.3, 0.72, -0.55, 0.2, 0.72, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 2.0 };
-        }
-
-        function makeGoat(variant) {
-            const col = variant === 'brown' ? 0x9b6b43 : 0xe9e1d2, dark = variant === 'brown' ? 0x5e3d22 : 0xb7a993;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.55, 0.55, 1.0, col, 0, 0.85, 0, body);
-            box(0.57, 0.15, 0.6, dark, 0, 1.08, -0.1, body);
-            const tail = new THREE.Group(); tail.position.set(0, 1.05, -0.5); body.add(tail);
-            box(0.08, 0.25, 0.08, col, 0, 0.1, -0.03, tail).rotation.x = -0.5;
-            const head = new THREE.Group(); head.position.set(0, 1.18, 0.6); body.add(head);
-            box(0.34, 0.38, 0.45, col, 0, 0, 0.05, head);
-            box(0.26, 0.2, 0.15, dark, 0, -0.1, 0.32, head);
-            box(0.08, 0.2, 0.06, C.white, 0, -0.3, 0.22, head);
-            box(0.06, 0.06, 0.04, C.black, 0.15, 0.06, 0.22, head);
-            box(0.06, 0.06, 0.04, C.black, -0.15, 0.06, 0.22, head);
-            box(0.24, 0.07, 0.11, col, 0.27, 0.08, -0.05, head).rotation.z = -0.3;
-            box(0.24, 0.07, 0.11, col, -0.27, 0.08, -0.05, head).rotation.z = 0.3;
-            box(0.06, 0.32, 0.06, 0x8a7a66, 0.09, 0.3, -0.12, head).rotation.x = -0.6;
-            box(0.06, 0.32, 0.06, 0x8a7a66, -0.09, 0.3, -0.12, head).rotation.x = -0.6;
-            const legs = [
-                limb(g, 0.18, 0.6, 0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, 0.35, 0.12, 0.6, col),
-                limb(g, 0.18, 0.6, -0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, -0.35, 0.12, 0.6, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 1.6 };
-        }
-
-        function makeSheep() {
-            const dark = 0x3a3330;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            const wool = new THREE.Group(); wool.position.set(0, 0.9, 0); body.add(wool);
-            box(0.85, 0.7, 1.1, C.wool, 0, 0, 0, wool);
-            for (const [x, y, z] of [[0.3, 0.35, 0.3], [-0.3, 0.35, -0.2], [0, 0.4, -0.35], [0.1, 0.38, 0.05], [0.42, 0.05, -0.3], [-0.42, 0.08, 0.25], [0.42, -0.05, 0.3], [-0.42, -0.02, -0.3], [0, 0.1, -0.55]]) {
-                box(0.4, 0.3, 0.4, 0xfffcf4, x, y, z, wool);
-            }
-            box(0.5, 0.45, 0.8, 0xd9d2c2, 0, 0.85, 0, body); // sheared core
-            const head = new THREE.Group(); head.position.set(0, 1.05, 0.65); body.add(head);
-            box(0.34, 0.38, 0.4, dark, 0, 0, 0.05, head);
-            box(0.38, 0.14, 0.3, C.wool, 0, 0.22, -0.02, head);
-            box(0.06, 0.06, 0.04, C.white, 0.12, 0.05, 0.25, head);
-            box(0.06, 0.06, 0.04, C.white, -0.12, 0.05, 0.25, head);
-            box(0.22, 0.08, 0.12, dark, 0.26, 0.06, 0, head).rotation.z = -0.4;
-            box(0.22, 0.08, 0.12, dark, -0.26, 0.06, 0, head).rotation.z = 0.4;
-            const legs = [
-                limb(g, 0.24, 0.56, 0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, 0.33, 0.13, 0.56, dark),
-                limb(g, 0.24, 0.56, -0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, -0.33, 0.13, 0.56, dark),
-            ];
-            return { group: g, body, head, legs, wool, height: 1.6 };
-        }
-
-        function makeCat() {
-            const col = 0xf09a3e, stripe = 0xc96f1f;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.3, 0.28, 0.62, col, 0, 0.38, 0, body);
-            for (const z of [-0.15, 0.05]) box(0.32, 0.08, 0.08, stripe, 0, 0.47, z, body);
-            const tail = new THREE.Group(); tail.position.set(0, 0.46, -0.3); body.add(tail);
-            const t = box(0.07, 0.07, 0.5, col, 0, 0.18, -0.18, tail); t.rotation.x = -0.9;
-            box(0.08, 0.08, 0.1, stripe, 0, 0.37, -0.3, tail);
-            const head = new THREE.Group(); head.position.set(0, 0.6, 0.36); body.add(head);
-            box(0.36, 0.3, 0.3, col, 0, 0, 0, head);
-            box(0.37, 0.06, 0.2, stripe, 0, 0.13, -0.02, head);
-            box(0.1, 0.12, 0.06, col, 0.11, 0.2, -0.02, head).rotation.z = -0.3;
-            box(0.1, 0.12, 0.06, col, -0.11, 0.2, -0.02, head).rotation.z = 0.3;
-            box(0.16, 0.08, 0.06, 0xfff1dd, 0, -0.07, 0.16, head);
-            box(0.05, 0.04, 0.03, C.pink, 0, -0.02, 0.18, head);
-            box(0.06, 0.07, 0.03, 0x3ca34a, 0.09, 0.04, 0.16, head);
-            box(0.06, 0.07, 0.03, 0x3ca34a, -0.09, 0.04, 0.16, head);
-            const legs = [
-                limb(g, 0.1, 0.25, 0.2, 0.08, 0.25, col), limb(g, -0.1, 0.25, 0.2, 0.08, 0.25, col),
-                limb(g, 0.1, 0.25, -0.2, 0.08, 0.25, col), limb(g, -0.1, 0.25, -0.2, 0.08, 0.25, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 0.95 };
-        }
-
-        function makeDog() {
-            const col = 0xb07a45, light = 0xf1dcbc, dark = 0x6b4422;
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.4, 0.38, 0.8, col, 0, 0.56, 0, body);
-            box(0.3, 0.2, 0.5, light, 0, 0.42, 0.05, body);
-            const tail = new THREE.Group(); tail.position.set(0, 0.68, -0.4); body.add(tail);
-            box(0.08, 0.08, 0.36, col, 0, 0.12, -0.12, tail).rotation.x = -0.8;
-            const head = new THREE.Group(); head.position.set(0, 0.86, 0.45); body.add(head);
-            box(0.38, 0.36, 0.36, col, 0, 0, 0, head);
-            box(0.24, 0.18, 0.24, light, 0, -0.07, 0.27, head);
-            box(0.1, 0.08, 0.06, C.black, 0, -0.01, 0.4, head);
-            box(0.06, 0.06, 0.03, C.black, 0.1, 0.07, 0.19, head);
-            box(0.06, 0.06, 0.03, C.black, -0.1, 0.07, 0.19, head);
-            box(0.08, 0.26, 0.16, dark, 0.22, 0.0, -0.02, head);
-            box(0.08, 0.26, 0.16, dark, -0.22, 0.0, -0.02, head);
-            box(0.42, 0.08, 0.1, C.red, 0, -0.2, -0.08, head);
-            box(0.08, 0.08, 0.04, 0xf2c94c, 0, -0.26, 0.0, head);
-            const legs = [
-                limb(g, 0.13, 0.38, 0.28, 0.12, 0.38, col), limb(g, -0.13, 0.38, 0.28, 0.12, 0.38, col),
-                limb(g, 0.13, 0.38, -0.28, 0.12, 0.38, col), limb(g, -0.13, 0.38, -0.28, 0.12, 0.38, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 1.25 };
-        }
-
-        const BUILDERS = { chicken: makeChicken, cow: makeCow, goat: makeGoat, sheep: makeSheep, cat: makeCat, dog: makeDog };
-
-        const PRODUCTS = {
-            egg: { label: 'Telur', icon: '🥚', price: 50 },
-            milk: { label: 'Susu Sapi', icon: '🥛', price: 125 },
-            goatMilk: { label: 'Susu Kambing', icon: '🍼', price: 225 },
-            wool: { label: 'Wol', icon: '🧶', price: 340 },
-        };
-
-        const KIND_INFO = {
-            chicken: { product: 'egg', verb: 'Ambil telur', speed: 1.2, radius: 0.3, reach: 1.6, idle: [1, 4], species: 'Ayam' },
-            cow: { product: 'milk', verb: 'Perah susu', speed: 0.9, radius: 0.8, reach: 2.4, idle: [3, 8], species: 'Sapi' },
-            goat: { product: 'goatMilk', verb: 'Perah susu', speed: 1.3, radius: 0.5, reach: 2.0, idle: [2, 6], species: 'Kambing' },
-            sheep: { product: 'wool', verb: 'Cukur wol', speed: 1.0, radius: 0.55, reach: 2.1, idle: [2, 7], species: 'Domba' },
-            cat: { speed: 1.6, radius: 0.3, reach: 1.6, idle: [3, 9], species: 'Kucing', pet: true },
-            dog: { speed: 2.2, radius: 0.35, reach: 1.9, idle: [1, 4], species: 'Anjing', pet: true },
-        };
-
-        const PET_LINES = {
-            chicken: n => `${n} berkotek senang!`,
-            cow: n => `${n} melenguh "Mooo~" dengan gembira.`,
-            goat: n => `${n} mengembik riang, "Mbeee!"`,
-            sheep: n => `${n} terasa lembut sekali. "Beee~"`,
-            cat: n => `${n} mendengkur... purrr~ 😺`,
-            dog: n => `${n} menggoyangkan ekornya! Guk! 🐶`,
-        };
-
-        // ---------- Player ----------
-        const player = (() => {
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            const overalls = 0x3f6fb5, shirt = 0xd9534a;
-            const legs = [limb(g, 0.13, 0.75, 0, 0.2, 0.75, overalls), limb(g, -0.13, 0.75, 0, 0.2, 0.75, overalls)];
-            for (const l of legs) box(0.22, 0.12, 0.3, 0x5b3a1e, 0, -0.72, 0.04, l);
-            box(0.52, 0.6, 0.32, shirt, 0, 1.05, 0, body);
-            box(0.44, 0.38, 0.05, overalls, 0, 0.95, 0.17, body);
-            box(0.08, 0.3, 0.05, overalls, 0.16, 1.2, 0.17, body);
-            box(0.08, 0.3, 0.05, overalls, -0.16, 1.2, 0.17, body);
-            const arms = [limb(body, 0.34, 1.32, 0, 0.15, 0.55, shirt), limb(body, -0.34, 1.32, 0, 0.15, 0.55, shirt)];
-            for (const a of arms) box(0.14, 0.12, 0.14, C.skin, 0, -0.6, 0, a);
-            const head = new THREE.Group(); head.position.set(0, 1.58, 0); body.add(head);
-            box(0.42, 0.42, 0.42, C.skin, 0, 0, 0, head);
-            box(0.44, 0.2, 0.2, 0x5b3a1e, 0, 0.05, -0.13, head);
-            box(0.06, 0.08, 0.03, C.black, 0.1, 0.02, 0.215, head);
-            box(0.06, 0.08, 0.03, C.black, -0.1, 0.02, 0.215, head);
-            box(0.1, 0.04, 0.03, 0xe58b7a, 0.15, -0.08, 0.215, head);
-            box(0.1, 0.04, 0.03, 0xe58b7a, -0.15, -0.08, 0.215, head);
-            const brim = mesh(CYL, mat(C.straw), head); brim.scale.set(0.45, 0.04, 0.45); brim.position.y = 0.23;
-            const crown = mesh(CYL, mat(C.straw), head); crown.scale.set(0.26, 0.22, 0.26); crown.position.y = 0.35;
-            const band = mesh(CYL, mat(C.red), head); band.scale.set(0.265, 0.06, 0.265); band.position.y = 0.28;
-            g.position.set(-10, 0, -8);
-            scene.add(g);
-            return { group: g, body, legs, arms, head, pos: g.position, heading: Math.PI, phase: 0 };
-        })();
-
-        // ---------- Game state ----------
-        const SAVE_KEY = 'kebunKecil.v1';
-        const DAY_NAMES = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-        const ANIMAL_DEFS = [
-            { kind: 'chicken', name: 'Kiki', variant: 'white', area: AREA_CHICKEN },
-            { kind: 'chicken', name: 'Popo', variant: 'brown', area: AREA_CHICKEN },
-            { kind: 'chicken', name: 'Ciko', variant: 'white', area: AREA_CHICKEN },
-            { kind: 'cow', name: 'Mimi', variant: 'holstein', area: AREA_BARN },
-            { kind: 'cow', name: 'Moli', variant: 'jersey', area: AREA_BARN },
-            { kind: 'goat', name: 'Gogo', variant: 'white', area: AREA_BARN },
-            { kind: 'goat', name: 'Bimbi', variant: 'brown', area: AREA_BARN },
-            { kind: 'sheep', name: 'Wolly', area: AREA_BARN },
-            { kind: 'sheep', name: 'Kapas', area: AREA_BARN },
-            { kind: 'cat', name: 'Oyen', area: AREA_YARD },
-            { kind: 'dog', name: 'Bruno', area: AREA_YARD },
-        ];
-
-        function freshState() {
-            const animals = {};
-            for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !KIND_INFO[d.kind].pet };
-            return { day: 1, minutes: 6 * 60, gold: 0, inv: { egg: 0, milk: 0, goatMilk: 0, wool: 0 }, animals };
-        }
-        let state = freshState();
-        try {
-            const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-            if (saved && saved.animals) {
-                const base = freshState();
-                state = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals } };
-            }
-        } catch (e) { /* storage unavailable */ }
-        function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { } }
-
-        // ---------- Animals ----------
-        class Animal {
-            constructor(def) {
-                Object.assign(this, def, KIND_INFO[def.kind]);
-                Object.assign(this, BUILDERS[def.kind](def.variant));
-                this.pos = this.group.position;
-                this.pos.set(rand(this.area.minX, this.area.maxX), 0, rand(this.area.minZ, this.area.maxZ));
-                this.heading = rand(0, Math.PI * 2);
-                this.target = new THREE.Vector3();
-                this.mode = 'idle';
-                this.timer = rand(0, 3);
-                this.walkTime = 0;
-                this.phase = 0;
-                this.seed = rand(0, 100);
-                this.legOffsets = this.legs.length === 2 ? [0, Math.PI] : [0, Math.PI, Math.PI, 0];
-                if (this.product) {
-                    this.icon = bubbleSprite(PRODUCTS[this.product].icon);
-                    this.icon.visible = false;
-                    scene.add(this.icon);
-                }
-                scene.add(this.group);
-            }
-            get data() { return state.animals[this.name]; }
-            hearts() { return Math.min(5, Math.floor(this.data.friend / 100)); }
-            pickTarget() {
-                const a = this.area;
-                this.target.set(rand(a.minX, a.maxX), 0, rand(a.minZ, a.maxZ));
-                this.mode = 'walk';
-                this.walkTime = 0;
-            }
-            pause(sec, faceTo) {
-                this.mode = 'idle';
-                this.timer = sec;
-                if (faceTo) this.targetHeading = Math.atan2(faceTo.x - this.pos.x, faceTo.z - this.pos.z);
-            }
-            update(dt, t) {
-                let moving = false, sp = this.speed;
-                if (this.kind === 'dog' && this.mode !== 'paused') {
-                    const d = Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z);
-                    if (d < 14 && d > 2.4) { this.mode = 'follow'; this.target.copy(player.pos); }
-                    else if (this.mode === 'follow') { this.mode = 'idle'; this.timer = rand(1, 3); }
-                }
-                if (this.mode === 'idle') {
-                    this.timer -= dt;
-                    if (this.timer <= 0) this.pickTarget();
-                } else {
-                    const dx = this.target.x - this.pos.x, dz = this.target.z - this.pos.z, d = Math.hypot(dx, dz);
-                    this.walkTime += dt;
-                    if (this.mode === 'follow') sp = d > 6 ? 5.6 : 3.6;
-                    if ((this.mode === 'walk' && (d < 0.15 || this.walkTime > 10))) {
-                        this.mode = 'idle';
-                        this.timer = rand(...this.idle);
-                    } else if (d > 0.01) {
-                        const step = Math.min(d, sp * dt);
-                        this.pos.x += dx / d * step;
-                        this.pos.z += dz / d * step;
-                        this.targetHeading = Math.atan2(dx, dz);
-                        moving = true;
-                    }
-                }
-                if (this.pet) resolveCollisions(this.pos, this.radius);
-                else {
-                    this.pos.x = clamp(this.pos.x, this.area.minX, this.area.maxX);
-                    this.pos.z = clamp(this.pos.z, this.area.minZ, this.area.maxZ);
-                }
-                this.pos.x = clamp(this.pos.x, BOUNDS.minX, BOUNDS.maxX);
-                this.pos.z = clamp(this.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
-
-                if (this.targetHeading !== undefined) this.heading = lerpAngle(this.heading, this.targetHeading, Math.min(1, dt * 6));
-                this.group.rotation.y = this.heading;
-
-                // Animation
-                if (moving) this.phase += dt * sp * 5;
-                this.legs.forEach((l, i) => {
-                    const target = moving ? Math.sin(this.phase + this.legOffsets[i]) * 0.6 : 0;
-                    l.rotation.x = lerp(l.rotation.x, target, Math.min(1, dt * 12));
-                });
-                this.body.position.y = moving ? Math.abs(Math.sin(this.phase)) * 0.05 : 0;
-                if (this.kind === 'chicken') {
-                    const peck = !moving && Math.sin(t * 0.8 + this.seed) > 0.4;
-                    this.head.rotation.x = lerp(this.head.rotation.x, peck ? (Math.sin(t * 14) > 0 ? 0.9 : 0.3) : 0, Math.min(1, dt * 14));
-                } else if (this.kind === 'cow' || this.kind === 'sheep' || this.kind === 'goat') {
-                    const graze = !moving && Math.sin(t * 0.35 + this.seed) > 0.3;
-                    this.head.rotation.x = lerp(this.head.rotation.x, graze ? 0.6 : 0, Math.min(1, dt * 3));
-                    if (this.tail) this.tail.rotation.z = Math.sin(t * 2.5 + this.seed) * 0.3;
-                } else if (this.kind === 'dog') {
-                    const near = player.pos.distanceTo(this.pos) < 4;
-                    this.tail.rotation.y = Math.sin(t * (near ? 20 : 7)) * 0.7;
-                    this.head.rotation.x = Math.sin(t * 2 + this.seed) * 0.08;
-                } else if (this.kind === 'cat') {
-                    this.tail.rotation.y = Math.sin(t * 1.8 + this.seed) * 0.45;
-                    this.head.rotation.y = Math.sin(t * 0.6 + this.seed) * 0.3;
-                }
-                if (this.wool) {
-                    const s = this.data.product ? 1 : 0.62;
-                    this.wool.scale.setScalar(lerp(this.wool.scale.x, s, Math.min(1, dt * 4)));
-                }
-                if (this.icon) {
-                    this.icon.visible = this.data.product;
-                    this.icon.position.set(this.pos.x, this.height + 0.45 + Math.sin(t * 3 + this.seed) * 0.06, this.pos.z);
-                }
-            }
-        }
-        const animals = ANIMAL_DEFS.map(d => new Animal(d));
-
-        // ---------- HUD ----------
-        const $ = id => document.getElementById(id);
-        const hud = { day: $('dayLabel'), time: $('timeLabel'), gold: $('goldLabel'), inv: $('inventory'), prompt: $('prompt') };
-        let lastHud = '';
-        function fmtTime(m) {
-            const tm = Math.floor(m / 10) * 10;
-            const h = Math.floor(tm / 60) % 24, mm = tm % 60;
-            return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-        }
-        function updateHud() {
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}`;
-            if (key === lastHud) return;
-            lastHud = key;
-            hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
-            hud.time.textContent = fmtTime(state.minutes);
-            hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
-            hud.inv.innerHTML = Object.entries(PRODUCTS).map(([k, p]) =>
-                `<div class="slot ${state.inv[k] ? '' : 'empty'}" title="${p.label} (${p.price} G)">${p.icon}<small>${p.label}</small><b>${state.inv[k] || ''}</b></div>`).join('');
-        }
-
-        function toast(text) {
-            const el = document.createElement('div');
-            el.className = 'toast panel';
-            el.textContent = text;
-            const box = $('toasts');
-            box.appendChild(el);
-            while (box.children.length > 3) box.firstChild.remove();
-            setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, 2600);
-        }
-
-        // ---------- Sound ----------
-        let actx;
-        function chime(freqs, dur = 0.1, type = 'triangle', vol = 0.07) {
-            try {
-                actx ||= new (window.AudioContext || window.webkitAudioContext)();
-                const t0 = actx.currentTime;
-                freqs.forEach((f, i) => {
-                    const o = actx.createOscillator(), g = actx.createGain();
-                    o.type = type; o.frequency.value = f;
-                    const s = t0 + i * dur;
-                    g.gain.setValueAtTime(0.0001, s);
-                    g.gain.exponentialRampToValueAtTime(vol, s + 0.015);
-                    g.gain.exponentialRampToValueAtTime(0.0001, s + dur * 1.6);
-                    o.connect(g).connect(actx.destination);
-                    o.start(s); o.stop(s + dur * 1.7);
-                });
-            } catch (e) { }
-        }
-
-        // ---------- Interactions ----------
-        function interactables() {
-            const list = animals.map(a => ({
-                pos: a.pos, reach: a.reach, animal: a,
-                label() {
-                    const d = a.data;
-                    const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
-                    if (!d.petted) return `Elus ${a.name}${hearts}`;
-                    if (d.product) return `${a.verb} ${a.name}${hearts}`;
-                    return `${a.name} (${a.species})${hearts}`;
-                },
-                act() {
-                    const d = a.data;
-                    a.pause(2.5, player.pos);
-                    const above = new THREE.Vector3(a.pos.x, a.height, a.pos.z);
-                    if (!d.petted) {
-                        d.petted = true;
-                        d.friend = Math.min(500, d.friend + 20);
-                        spawnHearts(above);
-                        chime([660, 880, 990]);
-                        toast(PET_LINES[a.kind](a.name));
-                    } else if (d.product) {
-                        d.product = false;
-                        const p = PRODUCTS[a.product];
-                        state.inv[a.product]++;
-                        spawnIcon(above, p.icon);
-                        chime([523, 784]);
-                        toast(`Dapat ${p.icon} ${p.label} dari ${a.name}!`);
-                    } else {
-                        spawnHearts(above, 1);
-                        toast(`${a.name} sudah senang hari ini ❤`);
-                    }
-                },
-            }));
-            list.push({
-                pos: BIN, reach: 2.0,
-                label: () => 'Jual barang di kotak pengiriman',
-                act() {
-                    let total = 0, count = 0;
-                    for (const [k, p] of Object.entries(PRODUCTS)) { total += state.inv[k] * p.price; count += state.inv[k]; state.inv[k] = 0; }
-                    if (!count) { toast('Belum ada barang untuk dijual.'); return; }
-                    state.gold += total;
-                    chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
-                    toast(`Terjual ${count} barang · +${total.toLocaleString('id-ID')} G 💰`);
-                    save();
-                },
-            });
-            list.push({
-                pos: HOUSE_DOOR, reach: 1.8,
-                label: () => state.minutes < 18 * 60 ? 'Tidur (lewati sisa hari)' : 'Tidur',
-                act: () => sleep(false),
-            });
-            return list;
-        }
-        const INTERACTABLES = interactables();
-        let focus = null;
-
-        function findFocus() {
-            let best = null, bestD = Infinity;
-            for (const it of INTERACTABLES) {
-                const d = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
-                if (d < it.reach && d < bestD) { best = it; bestD = d; }
-            }
-            return best;
-        }
-
-        function interact() {
-            if (!started || sleeping || !focus) return;
-            player.targetHeading = Math.atan2(focus.pos.x - player.pos.x, focus.pos.z - player.pos.z);
-            focus.act();
-            lastPrompt = '';
-        }
-
-        // ---------- Day cycle ----------
-        let sleeping = false;
-        function sleep(passedOut) {
-            if (sleeping) return;
-            sleeping = true;
-            $('fadeText').textContent = passedOut ? 'Kamu pingsan karena kelelahan... 😵' : 'Zzz...';
-            $('fade').classList.add('show');
-            setTimeout(() => {
-                for (const a of animals) {
-                    const d = a.data;
-                    if (!a.pet && !d.petted) d.friend = Math.max(0, d.friend - 10);
-                    d.petted = false;
-                    if (!a.pet) d.product = true;
-                }
-                state.day++;
-                state.minutes = 6 * 60;
-                player.pos.set(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.5);
-                player.heading = 0;
-                save();
-                updateHud();
-                $('fade').classList.remove('show');
-                sleeping = false;
-                toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day}`);
-            }, 1700);
-        }
-
-        const SKY_DAY = new THREE.Color(0x8fd3ff), SKY_DUSK = new THREE.Color(0xf4a261), SKY_NIGHT = new THREE.Color(0x16203d);
-        function updateLighting() {
-            const h = state.minutes / 60;
-            // 0 = night, 1 = full day
-            let day;
-            if (h < 6) day = 0.2;
-            else if (h < 7) day = lerp(0.75, 1, h - 6);
-            else if (h < 17.5) day = 1;
-            else if (h < 20.5) day = lerp(1, 0, (h - 17.5) / 3);
-            else day = 0;
-            const dusk = h > 17 && h < 21 ? 1 - Math.abs(h - 19) / 2 : (h > 6 && h < 7.5 ? 0.5 : 0);
-            skyColor.copy(SKY_NIGHT).lerp(SKY_DAY, day).lerp(SKY_DUSK, dusk * 0.45);
-            scene.fog.color.copy(skyColor);
-            sun.intensity = 0.08 + 1.55 * day;
-            sun.color.setHSL(lerp(0.62, 0.1, day), 0.6, lerp(0.7, 0.95, day));
-            hemi.intensity = 0.22 + 0.7 * day;
-            hemi.color.setHSL(lerp(0.63, 0.57, day), 0.6, lerp(0.55, 0.95, day));
-            const night = 1 - day;
-            windowMat.emissiveIntensity = night * 0.9;
-            for (const l of lamps) { l.light.intensity = night * 14; l.lantern.material.emissiveIntensity = night * 1.2; }
-        }
-
-        // ---------- Input ----------
-        const keys = new Set();
-        let started = false;
-        window.addEventListener('keydown', e => {
-            if (e.code === 'KeyH') { toggleHelp(); return; }
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
-            keys.add(e.code);
-            if (!e.repeat && ['KeyE', 'Space', 'Enter'].includes(e.code)) interact();
-        });
-        window.addEventListener('keyup', e => keys.delete(e.code));
-        window.addEventListener('blur', () => keys.clear());
-        window.addEventListener('wheel', e => { zoom = clamp(zoom + Math.sign(e.deltaY) * 0.1, 0.6, 1.6); }, { passive: true });
-
-        // Touch joystick
-        const joy = { x: 0, y: 0, id: null };
-        {
-            const base = $('joy'), knob = $('joyKnob');
-            const move = t => {
-                const r = base.getBoundingClientRect();
-                let dx = t.clientX - (r.left + r.width / 2), dy = t.clientY - (r.top + r.height / 2);
-                const max = r.width / 2 - 10, d = Math.hypot(dx, dy);
-                if (d > max) { dx = dx / d * max; dy = dy / d * max; }
-                knob.style.transform = `translate(${dx}px, ${dy}px)`;
-                joy.x = dx / max; joy.y = dy / max;
-            };
-            base.addEventListener('touchstart', e => { e.preventDefault(); const t = e.changedTouches[0]; joy.id = t.identifier; move(t); }, { passive: false });
-            base.addEventListener('touchmove', e => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === joy.id) move(t); }, { passive: false });
-            const end = e => { for (const t of e.changedTouches) if (t.identifier === joy.id) { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ''; } };
-            base.addEventListener('touchend', end);
-            base.addEventListener('touchcancel', end);
-            $('actBtn').addEventListener('touchstart', e => { e.preventDefault(); interact(); }, { passive: false });
-            $('actBtn').addEventListener('click', interact);
-        }
-
-        // Menus
-        function toggleHelp(force) {
-            const el = $('helpScreen');
-            const show = force ?? el.classList.contains('hidden');
-            el.classList.toggle('hidden', !show);
-        }
-        $('helpBtn').addEventListener('click', () => toggleHelp(true));
-        $('closeHelp').addEventListener('click', () => toggleHelp(false));
-        let resetArmed = 0;
-        $('resetBtn').addEventListener('click', () => {
-            const btn = $('resetBtn');
-            if (Date.now() - resetArmed > 3000) {
-                resetArmed = Date.now();
-                btn.textContent = 'Yakin? Klik lagi';
-                setTimeout(() => { btn.textContent = 'Mulai ulang'; }, 3000);
-                return;
-            }
-            resetArmed = 0;
-            btn.textContent = 'Mulai ulang';
-            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
-            state = freshState();
-            player.pos.set(-10, 0, -8);
-            lastHud = '';
-            updateHud();
-            toggleHelp(false);
-            toast('Peternakan dimulai dari awal 🌱');
-        });
-        $('startBtn').addEventListener('click', () => {
-            $('startScreen').classList.add('hidden');
-            started = true;
-            chime([523, 659, 784]);
-            toast(state.day > 1 ? `Selamat datang kembali! Hari ${state.day}` : 'Selamat datang di Kebun Kecil! 🌾');
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        function resize() {
+            const w = stage.clientWidth, h = stage.clientHeight;
+            renderer.setSize(w, h, false);
+            camera.aspect = w / h;
+            camera.position.set(0, 9, w / h < 1 ? 19 : 15);
+            camera.lookAt(0, 0.6, 0);
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
+        new ResizeObserver(resize).observe(stage);
+        resize();
 
-        // ---------- Main loop ----------
         const clock = new THREE.Clock();
-        const camTarget = new THREE.Vector3();
-        let lastPrompt = '';
-        let elapsed = 0;
-
-        function updatePlayer(dt) {
-            let ix = 0, iz = 0;
-            if (keys.has('KeyA') || keys.has('ArrowLeft')) ix -= 1;
-            if (keys.has('KeyD') || keys.has('ArrowRight')) ix += 1;
-            if (keys.has('KeyW') || keys.has('ArrowUp')) iz -= 1;
-            if (keys.has('KeyS') || keys.has('ArrowDown')) iz += 1;
-            ix += joy.x; iz += joy.y;
-            const len = Math.hypot(ix, iz);
-            const helpOpen = !$('helpScreen').classList.contains('hidden');
-            const moving = started && !sleeping && !helpOpen && len > 0.1;
-            if (moving) {
-                const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null;
-                const sp = (run ? 7.5 : 4.5) * Math.min(1, len);
-                player.pos.x += ix / len * sp * dt;
-                player.pos.z += iz / len * sp * dt;
-                player.targetHeading = Math.atan2(ix, iz);
-                player.phase += dt * sp * 2.6;
-            }
-            resolveCollisions(player.pos, 0.35);
-            player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
-            player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
-            if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
-            player.group.rotation.y = player.heading;
-            const swing = moving ? Math.sin(player.phase) * 0.7 : 0;
-            const k = Math.min(1, dt * 14);
-            player.legs[0].rotation.x = lerp(player.legs[0].rotation.x, swing, k);
-            player.legs[1].rotation.x = lerp(player.legs[1].rotation.x, -swing, k);
-            player.arms[0].rotation.x = lerp(player.arms[0].rotation.x, -swing * 0.8, k);
-            player.arms[1].rotation.x = lerp(player.arms[1].rotation.x, swing * 0.8, k);
-            player.body.position.y = moving ? Math.abs(Math.sin(player.phase)) * 0.06 : 0;
-        }
-
-        function tick() {
-            const dt = Math.min(clock.getDelta(), 0.05);
-            elapsed += dt;
-            const helpOpen = !$('helpScreen').classList.contains('hidden');
-
-            if (started && !sleeping && !helpOpen) {
-                state.minutes += dt * (10 / 7); // 10 in-game minutes per 7 seconds
-                if (state.minutes >= 26 * 60) sleep(true);
-            }
-
-            updatePlayer(dt);
-            for (const a of animals) a.update(dt, elapsed);
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.life -= dt;
-                p.s.position.y += p.vy * dt;
-                p.s.material.opacity = Math.min(1, p.life / p.max * 2);
-                if (p.life <= 0) {
-                    scene.remove(p.s);
-                    p.s.material.map.dispose();
-                    p.s.material.dispose();
-                    particles.splice(i, 1);
-                }
-            }
-
-            focus = started && !sleeping ? findFocus() : null;
-            const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
-            if (html !== lastPrompt) {
-                lastPrompt = html;
-                hud.prompt.innerHTML = html;
-                hud.prompt.style.display = html ? 'block' : 'none';
-            }
-
-            updateLighting();
-            updateHud();
-
-            camTarget.lerp(player.pos, Math.min(1, dt * 5));
-            camera.position.set(camTarget.x, camTarget.y + 15 * zoom, camTarget.z + 13.5 * zoom);
-            camera.lookAt(camTarget.x, camTarget.y + 0.8, camTarget.z);
-            sun.position.set(camTarget.x + 14, 24, camTarget.z + 9);
-            sun.target.position.copy(camTarget);
-
+        function frame() {
+            const t = clock.getElapsedTime();
+            island.rotation.y = reduceMotion ? 0.5 : 0.5 + t * 0.18;
+            island.position.y = reduceMotion ? 0 : Math.sin(t * 1.2) * 0.12;
+            head.rotation.x = Math.max(0, Math.sin(t * 0.7)) * 0.5;
+            chickens.forEach((h, i) => { h.rotation.x = Math.sin(t * 0.9 + i * 2) > 0.3 ? (Math.sin(t * 14) > 0 ? 0.9 : 0.3) : 0; });
             renderer.render(scene, camera);
-            requestAnimationFrame(tick);
+            if (!reduceMotion) requestAnimationFrame(frame);
         }
-        camTarget.copy(player.pos);
-        window.kebun = { state, player, animals }; // handy for debugging in the console
-        updateHud();
-        tick();
+        frame();
+        if (reduceMotion) new ResizeObserver(() => renderer.render(scene, camera)).observe(stage);
     </script>
 </body>
 
