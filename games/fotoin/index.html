@@ -172,6 +172,18 @@
         .viewfinder { position: relative; border-radius: 12px; overflow: hidden; background: var(--booth-2); aspect-ratio: 4 / 3; max-width: 100%; }
         .viewfinder video, .viewfinder .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .viewfinder video.mirror { transform: scaleX(-1); }
+        .viewfinder.duo video { width: 50%; }
+        .viewfinder.duo .left { left: 0; right: auto; }
+        .viewfinder.duo .right { left: 50%; right: auto; }
+        .viewfinder .tag { position: absolute; bottom: 10px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+        .viewfinder .tag.left { left: 10px; }
+        .viewfinder .tag.right { left: calc(50% + 10px); }
+        .duo-code { font-family: var(--font-display); font-size: 42px; letter-spacing: 6px; text-align: center; background: #fff7d9; border: 2px dashed var(--ink); border-radius: 14px; padding: 4px 0 0; }
+        .status { font-weight: 800; font-size: 14px; }
+        .status.ok { color: #1f7a50; }
+        .status.wait { color: var(--muted); }
+        .warnbox { background: #fff0ec; border: 2px solid var(--cherry); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+        .warnbox a { color: var(--cherry-dark); font-weight: 800; word-break: break-all; }
         .vf-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #fff; text-align: center; padding: 20px; }
         .vf-msg .big { font-size: 46px; line-height: 1; }
         .vf-msg p { margin: 0; max-width: 34ch; }
@@ -283,6 +295,13 @@
 
             <div class="panel">
                 <div class="opts-row">
+                    <span><span class="optlabel">Mode</span><span class="seg" id="modeSeg"></span></span>
+                </div>
+                <div id="duoBox" hidden></div>
+            </div>
+
+            <div class="panel">
+                <div class="opts-row">
                     <span><span class="optlabel">Hitung mundur</span><span class="seg" id="timerSeg"></span></span>
                     <span><span class="optlabel">Jeda antarfoto</span><span class="seg" id="gapSeg"></span></span>
                 </div>
@@ -302,6 +321,9 @@
                 <div class="screen">
                     <div class="viewfinder" id="viewfinder">
                         <video id="video" class="mirror" playsinline muted autoplay></video>
+                        <video id="rvideo" class="mirror" playsinline autoplay hidden></video>
+                        <span class="tag left" id="tagL" hidden></span>
+                        <span class="tag right" id="tagR" hidden></span>
                         <img class="still" id="still" alt="" hidden>
                         <div class="vf-msg" id="vfMsg" hidden></div>
                         <div class="shotlabel" id="shotLabel"></div>
@@ -313,6 +335,7 @@
                 <div class="panel">
                     <h2 class="sec" id="boothTitle">Siap bergaya?</h2>
                     <p class="note" id="boothHint"></p>
+                    <p class="status" id="duoStatus" hidden></p>
                     <div>
                         <span class="optlabel">Filter</span>
                         <div class="chips" id="boothFilters" style="margin-top:6px"></div>
@@ -321,6 +344,8 @@
                     <div class="actions">
                         <button class="btn small" id="uploadBtn">🖼️ Unggah foto</button>
                         <button class="btn small" id="flipBtn" hidden>🔄 Ganti kamera</button>
+                        <button class="btn small" id="micBtn" hidden>🎤 Mic nyala</button>
+                        <button class="btn small" id="spkBtn" hidden>🔈 Suara pasangan</button>
                     </div>
                     <input type="file" id="fileIn" accept="image/*" hidden>
                     <input type="file" id="camIn" accept="image/*" capture="user" hidden>
@@ -418,7 +443,11 @@
             shots: [], // per slot: canvas (raw, unfiltered) or null
             frame: '#ffffff', pattern: 'plain', caption: '', font: 'hand', date: true, logo: true,
             stickers: [], sel: -1,
+            mode: 'solo',
         };
+        // Inside the claude.ai viewer the frame blocks the camera and WebRTC; the web version has both
+        const IN_CLAUDE = !!(window.claude && window.claude.use);
+        const WEB_URL = 'https://wawannug.github.io/testing/games/fotoin/';
 
         // ---------- Helpers ----------
         const $ = s => document.querySelector(s);
@@ -474,12 +503,16 @@
                 const [cols, rows] = l.mini;
                 const mini = h('span', { class: 'mini', style: `grid-template-columns:repeat(${cols},${cols > 1 ? 22 : 30}px)` },
                     Array.from({ length: cols * rows }, () => h('i', { style: `height:${k === 'polaroid' ? 30 : 18}px` })));
-                return h('button', { class: 'layout' + (st.layout === k ? ' sel' : ''), onclick: () => { st.layout = k; renderHome(); }, 'aria-pressed': st.layout === k ? 'true' : 'false' },
+                return h('button', { class: 'layout' + (st.layout === k ? ' sel' : ''), disabled: duo.role === 'guest', onclick: () => { st.layout = k; renderHome(); sendCfg(); }, 'aria-pressed': st.layout === k ? 'true' : 'false' },
                     mini, h('b', { text: l.name }), h('small', { text: l.desc }));
             }));
-            const seg = (el, list, key, unit) => $(el).replaceChildren(...list.map(v => h('button', { class: st[key] === v ? 'on' : '', onclick: () => { st[key] = v; renderHome(); } }, v + unit)));
+            const seg = (el, list, key, unit) => $(el).replaceChildren(...list.map(v => h('button', { class: st[key] === v ? 'on' : '', disabled: duo.role === 'guest', onclick: () => { st[key] = v; renderHome(); sendCfg(); } }, v + unit)));
             seg('#timerSeg', TIMERS, 'timer', ' dtk');
             seg('#gapSeg', GAPS, 'gap', ' dtk');
+            $('#modeSeg').replaceChildren(...[['solo', 'Sendiri'], ['duo', 'Berdua online 💞']].map(([k, n]) => h('button', { class: st.mode === k ? 'on' : '', disabled: !!duo.peer, onclick: () => { st.mode = k; renderHome(); } }, n)));
+            renderDuoBox();
+            $('#enterBooth').disabled = st.mode === 'duo' && (!duo.connected || duo.role === 'guest');
+            $('#enterBooth').textContent = st.mode === 'duo' ? (duo.role === 'guest' ? 'Menunggu pembuat ruang masuk booth…' : duo.connected ? 'Masuk booth berdua 📸' : 'Hubungkan pasangan dulu') : 'Masuk booth 📸';
             renderGallery();
         }
 
@@ -505,12 +538,16 @@
         let stream = null, facing = 'user', camOk = false, busy = false, active = 0, uploadTarget = 0;
         const video = $('#video');
 
+        async function getStream(withAudio) {
+            return navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: withAudio ? { echoCancellation: true, noiseSuppression: true } : false });
+        }
         async function startCamera() {
+            if (st.mode === 'duo' && duo.local) return showDuoCamera();
             stopCamera();
             camOk = false;
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return showNoCam();
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+                stream = await getStream(false);
                 video.srcObject = stream;
                 await video.play().catch(() => { });
                 camOk = true;
@@ -523,10 +560,45 @@
             }
             renderBooth();
         }
-        function stopCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; }
+        function stopCamera() { if (stream && stream !== duo.local) stream.getTracks().forEach(t => t.stop()); stream = null; }
+        function showDuoCamera() {
+            stream = duo.local;
+            video.srcObject = duo.local;
+            video.play().catch(() => { });
+            camOk = true;
+            video.hidden = false;
+            $('#vfMsg').hidden = true;
+            layoutViewfinder();
+            renderBooth();
+        }
+        // Host always sits on the left, guest on the right, in the preview and in every photo
+        function layoutViewfinder() {
+            const vf = $('#viewfinder'), duoOn = st.mode === 'duo';
+            vf.classList.toggle('duo', duoOn);
+            const rv = $('#rvideo');
+            rv.hidden = !duoOn;
+            for (const id of ['#tagL', '#tagR']) $(id).hidden = !duoOn;
+            video.classList.remove('left', 'right'); rv.classList.remove('left', 'right');
+            if (!duoOn) return;
+            const meLeft = duo.role === 'host';
+            video.classList.add(meLeft ? 'left' : 'right');
+            rv.classList.add(meLeft ? 'right' : 'left');
+            $('#tagL').textContent = meLeft ? 'Kamu' : 'Pasangan';
+            $('#tagR').textContent = meLeft ? 'Pasangan' : 'Kamu';
+        }
         function showNoCam() {
             video.hidden = true;
             const touch = matchMedia('(pointer: coarse)').matches;
+            if (IN_CLAUDE) {
+                $('#vfMsg').replaceChildren(h('div', { class: 'big', text: '📷' }),
+                    h('p', { text: 'Link claude.ai tidak mengizinkan kamera langsung.' }),
+                    h('p', { class: 'note', style: 'color:#d8cfe6', text: 'Untuk kamera langsung dan foto berdua yang saling kelihatan, buka Fotoin versi web:' }),
+                    h('a', { class: 'btn small', href: WEB_URL, target: '_blank', rel: 'noopener' }, 'Buka Fotoin versi web'),
+                    h('p', { class: 'note', style: 'color:#d8cfe6', text: 'Atau ketuk kotak foto di bawah untuk memakai foto dari galeri atau kamera HP.' }));
+                $('#vfMsg').hidden = false;
+                renderBooth();
+                return;
+            }
             $('#vfMsg').replaceChildren(h('div', { class: 'big', text: '📷' }),
                 h('p', { text: 'Kamera tidak bisa dibuka di sini.' }),
                 h('p', { class: 'note', style: 'color:#d8cfe6', text: touch ? 'Tidak apa-apa: ketuk kotak foto di bawah untuk memotret dengan kamera HP atau memilih dari galeri.' : 'Izinkan akses kamera di browser, atau pakai tombol Unggah foto untuk tiap kotak.' }),
@@ -536,12 +608,15 @@
         }
 
         function enterBooth() {
+            if (st.mode === 'duo' && duo.role === 'host') { sendCfg(); duoSend({ t: 'enter' }); }
+            duo.frames = {};
             st.shots = Array(L().slots.length).fill(null);
             st.stickers = []; st.sel = -1;
             filteredCache.clear();
             active = 0;
             $('#home').hidden = true; $('#studio').hidden = true; $('#booth').hidden = false;
             $('#viewfinder').style.aspectRatio = st.layout === 'polaroid' ? '1 / 1' : '4 / 3';
+            layoutViewfinder();
             startCamera();
             renderBooth();
             scrollTo({ top: 0 });
@@ -558,6 +633,17 @@
             $('#shotLabel').textContent = `Foto ${Math.min(done + 1, n)} dari ${n}`;
             $('#boothTitle').textContent = done === n ? 'Semua foto siap! 🎉' : 'Siap bergaya?';
             $('#boothHint').textContent = camOk ? `Kamera menghitung mundur ${st.timer} detik sebelum tiap jepretan. Ketuk foto kecil untuk mengambil ulang.` : 'Ketuk kotak foto untuk memotret atau memilih gambar.';
+            const duoOn = st.mode === 'duo';
+            $('#duoStatus').hidden = !duoOn;
+            if (duoOn) {
+                $('#duoStatus').className = 'status ' + (duo.connected ? 'ok' : 'wait');
+                $('#duoStatus').textContent = duo.connected ? (duo.remote ? '💞 Terhubung, kalian saling kelihatan' : '💞 Terhubung, menunggu video pasangan…') : '… Pasangan terputus, menunggu kembali';
+                $('#boothHint').textContent = `Kalian berdua menghitung mundur bersama ${st.timer} detik. Siapa pun boleh menekan tombol jepret.`;
+            }
+            $('#micBtn').hidden = !duoOn || !duo.local || !duo.local.getAudioTracks().length;
+            $('#spkBtn').hidden = !duoOn || !duo.remote;
+            $('#uploadBtn').hidden = duoOn;
+            $('#backHome').hidden = duoOn && duo.role === 'guest';
             $('#shootBtn').hidden = !camOk;
             $('#shootBtn').disabled = busy;
             $('#shootBtn').textContent = busy ? 'Bergaya!' : done === 0 ? 'Mulai jepret' : done === n ? 'Jepret ulang semua' : 'Lanjut jepret';
@@ -600,6 +686,7 @@
         }
 
         async function shootAll() {
+            if (st.mode === 'duo') { if (duo.role === 'host') return shootAllDuo(); if (!busy) duoSend({ t: 'start' }); return; }
             if (busy || !camOk) return;
             busy = true;
             const n = st.shots.length;
@@ -618,6 +705,7 @@
 
         async function slotTap(i) {
             if (busy) return;
+            if (st.mode === 'duo') { if (duo.role === 'host') shootSlotDuo(i); else duoSend({ t: 'retake', slot: i }); return; }
             if (camOk) { busy = true; await shootSlot(i); busy = false; renderBooth(); return; }
             uploadTarget = i;
             (matchMedia('(pointer: coarse)').matches ? $('#camIn') : $('#fileIn')).click();
@@ -640,6 +728,282 @@
         }
         for (const id of ['#fileIn', '#camIn']) $(id).addEventListener('change', e => { loadFile(e.target.files[0], uploadTarget); e.target.value = ''; });
         $('#uploadBtn').addEventListener('click', () => { uploadTarget = Math.max(0, st.shots.findIndex(s => !s)); if (st.shots.every(Boolean)) uploadTarget = 0; $('#fileIn').click(); });
+
+        // ---------- Berdua online (WebRTC via PeerJS) ----------
+        const duo = { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, waiters: {}, error: '' };
+        const PEER_OPTS = (() => {
+            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+            const q = new URLSearchParams(location.search).get('peerhost'); // a self-hosted PeerServer, e.g. ?peerhost=localhost:9000
+            if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
+            return o;
+        })();
+        const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        const peerId = code => 'fotoin-' + code.toLowerCase();
+
+        function loadPeerJs() {
+            return new Promise((res, rej) => {
+                if (window.Peer) return res();
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
+                sc.onload = () => res(); sc.onerror = () => rej(new Error('peerjs'));
+                document.head.append(sc);
+            });
+        }
+
+        function renderDuoBox() {
+            const box = $('#duoBox');
+            box.hidden = st.mode !== 'duo';
+            if (box.hidden) return;
+            if (IN_CLAUDE) {
+                box.replaceChildren(h('div', { class: 'warnbox' },
+                    h('b', { text: 'Mode berdua butuh Fotoin versi web.' }),
+                    h('span', { text: 'Link claude.ai tidak mengizinkan kamera dan video call antar browser. Buka Fotoin versi web, lalu kirim kode ruang ke pasanganmu.' }),
+                    h('a', { href: WEB_URL, target: '_blank', rel: 'noopener', text: WEB_URL })));
+                return;
+            }
+            if (!duo.peer) {
+                const input = h('input', { type: 'text', id: 'joinCode', maxlength: 4, placeholder: 'ABCD', autocapitalize: 'characters', style: 'text-transform:uppercase;letter-spacing:3px;border:2px solid var(--ink);border-radius:10px;padding:8px 10px;flex:1 1 90px', value: new URLSearchParams(location.search).get('join') || '' });
+                box.replaceChildren(...[
+                    h('p', { class: 'note', text: 'Foto bareng dari HP masing-masing. Kalian saling melihat lewat video, menghitung mundur bersama, dan tiap foto berisi kalian berdua berdampingan.' }),
+                    h('div', { class: 'actions' }, h('button', { class: 'btn primary', onclick: createDuo }, 'Buat ruang foto')),
+                    h('div', { class: 'actions' }, input, h('button', { class: 'btn', onclick: () => joinDuo(input.value) }, 'Gabung')),
+                    duo.error ? h('p', { class: 'status', style: 'color:var(--cherry-dark)', text: duo.error }) : null,
+                    h('p', { class: 'note', text: 'Butuh izin kamera dan mikrofon. Koneksi langsung antar perangkat; di beberapa jaringan kantor atau seluler koneksi bisa gagal.' })].filter(Boolean));
+                return;
+            }
+            const link = location.origin + location.pathname + '?join=' + duo.code;
+            box.replaceChildren(...[
+                duo.role === 'host' ? h('div', { class: 'duo-code', text: duo.code }) : null,
+                duo.role === 'host' ? h('div', { class: 'actions' }, h('button', { class: 'btn small', onclick: () => copy(link) }, '🔗 Salin link undangan'), h('button', { class: 'btn small', onclick: () => copy(duo.code) }, 'Salin kode')) : null,
+                h('p', { class: 'status ' + (duo.connected ? 'ok' : 'wait'), text: duo.connected ? `💞 Terhubung dengan pasangan${duo.remote ? ', video sudah masuk' : ''}` : duo.role === 'host' ? '… Menunggu pasangan bergabung' : '… Menghubungkan ke ruang ' + duo.code }),
+                duo.role === 'guest' && duo.connected ? h('p', { class: 'note', text: 'Pembuat ruang memilih bentuk strip dan masuk booth. Kamu akan ikut otomatis.' }) : null,
+                h('button', { class: 'btn small', onclick: () => leaveDuo() }, 'Keluar dari ruang')].filter(Boolean));
+        }
+
+        function copy(text) {
+            const ok = () => toast('Disalin 📋');
+            if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, () => prompt('Salin teks ini:', text));
+            else prompt('Salin teks ini:', text);
+        }
+
+        async function prepareDuo() {
+            duo.error = '';
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { duo.error = 'Browser ini tidak bisa membuka kamera.'; renderHome(); return false; }
+            try { duo.local = await getStream(true); }
+            catch (e) {
+                try { duo.local = await getStream(false); toast('Mikrofon tidak tersedia, lanjut tanpa suara'); }
+                catch (e2) { duo.error = 'Kamera belum diizinkan. Izinkan akses kamera di browser, lalu coba lagi.'; renderHome(); return false; }
+            }
+            try { await loadPeerJs(); } catch (e) { duo.error = 'Gagal memuat modul koneksi. Periksa internet, lalu coba lagi.'; renderHome(); return false; }
+            return true;
+        }
+
+        function newPeer(id) {
+            const p = id ? new Peer(id, PEER_OPTS) : new Peer(PEER_OPTS);
+            p.on('call', call => {
+                call.answer(duo.local);
+                attachCall(call);
+            });
+            p.on('connection', c => { if (duo.conn && duo.conn.open) { c.close(); return; } attachConn(c); });
+            p.on('disconnected', () => { try { p.reconnect(); } catch (e) { } });
+            return p;
+        }
+
+        async function createDuo() {
+            if (!await prepareDuo()) return;
+            duo.role = 'host';
+            const tryOpen = () => {
+                duo.code = Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+                duo.peer = newPeer(peerId(duo.code));
+                duo.peer.on('open', () => renderHome());
+                duo.peer.on('error', e => {
+                    if (e.type === 'unavailable-id') { duo.peer.destroy(); tryOpen(); return; }
+                    duoError(e);
+                });
+            };
+            tryOpen();
+            renderHome();
+        }
+
+        async function joinDuo(raw) {
+            const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+            if (code.length !== 4) { toast('Kode ruang terdiri dari 4 huruf'); return; }
+            if (!await prepareDuo()) return;
+            duo.role = 'guest'; duo.code = code;
+            duo.peer = newPeer(null);
+            duo.peer.on('open', () => {
+                attachConn(duo.peer.connect(peerId(code), { reliable: true }));
+                attachCall(duo.peer.call(peerId(code), duo.local));
+            });
+            duo.peer.on('error', duoError);
+            renderHome();
+        }
+
+        function duoError(e) {
+            const msg = e && e.type === 'peer-unavailable' ? 'Kode ruang tidak ditemukan. Pastikan pasanganmu sudah membuat ruang dan halamannya masih terbuka.'
+                : e && e.type === 'network' ? 'Koneksi ke server ruang terputus. Periksa internet.'
+                    : 'Koneksi gagal (' + (e && e.type || 'tidak diketahui') + '). Coba lagi.';
+            if (duo.role === 'guest' && !duo.connected) { leaveDuo(true); duo.error = msg; }
+            else toast(msg);
+            renderHome();
+        }
+
+        function attachCall(call) {
+            duo.call = call;
+            call.on('stream', s => {
+                duo.remote = s;
+                const rv = $('#rvideo');
+                rv.srcObject = s;
+                rv.play().catch(() => { rv.muted = true; rv.play().catch(() => { }); toast('Ketuk 🔈 untuk mendengar pasangan'); });
+                renderHome(); renderBooth();
+            });
+            call.on('close', () => { duo.remote = null; renderBooth(); });
+        }
+
+        function attachConn(c) {
+            duo.conn = c;
+            c.on('open', () => {
+                duo.connected = true;
+                toast('Pasangan terhubung 💞');
+                if (duo.role === 'host') sendCfg();
+                renderHome(); renderBooth();
+            });
+            c.on('data', onDuoMessage);
+            c.on('close', () => {
+                duo.connected = false; duo.remote = null;
+                busy = false;
+                toast('Pasangan keluar dari ruang');
+                renderHome(); renderBooth();
+                if (duo.role === 'guest') { duo.conn = null; }
+                else duo.conn = null;
+            });
+        }
+
+        function leaveDuo(silent) {
+            try { duo.conn && duo.conn.close(); } catch (e) { }
+            try { duo.call && duo.call.close(); } catch (e) { }
+            try { duo.peer && duo.peer.destroy(); } catch (e) { }
+            if (duo.local) duo.local.getTracks().forEach(t => t.stop());
+            Object.assign(duo, { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, error: '' });
+            if (!silent) renderHome();
+        }
+
+        function duoSend(msg) { if (duo.conn && duo.conn.open) duo.conn.send(msg); }
+        function sendCfg() { if (st.mode === 'duo' && duo.role === 'host') duoSend({ t: 'cfg', layout: st.layout, timer: st.timer, gap: st.gap }); }
+
+        function onDuoMessage(m) {
+            if (!m || typeof m !== 'object') return;
+            if (m.t === 'cfg' && duo.role === 'guest') {
+                if (LAYOUTS[m.layout]) st.layout = m.layout;
+                if (TIMERS.includes(m.timer)) st.timer = m.timer;
+                if (GAPS.includes(m.gap)) st.gap = m.gap;
+                renderHome();
+            } else if (m.t === 'enter' && duo.role === 'guest') {
+                enterBooth();
+            } else if (m.t === 'home' && duo.role === 'guest') {
+                $('#booth').hidden = true; $('#studio').hidden = true; $('#home').hidden = false; renderHome();
+            } else if (m.t === 'start' && duo.role === 'host') {
+                if ($('#booth').hidden) enterBooth();
+                shootAllDuo();
+            } else if (m.t === 'retake' && duo.role === 'host' && Number.isInteger(m.slot)) {
+                shootSlotDuo(m.slot);
+            } else if (m.t === 'reset' && duo.role === 'guest') {
+                st.shots = Array(L().slots.length).fill(null); duo.frames = {}; filteredCache.clear(); renderBooth();
+            } else if (m.t === 'go' && duo.role === 'guest' && Number.isInteger(m.slot) && m.slot < L().slots.length) {
+                if ($('#booth').hidden) enterBooth();
+                busy = true; renderBooth();
+                duoShoot(m.slot);
+            } else if (m.t === 'idle' && duo.role === 'guest') {
+                busy = false; active = -1; renderBooth();
+            } else if (m.t === 'frame' && Number.isInteger(m.slot) && typeof m.data === 'string' && m.data.startsWith('data:image/jpeg;base64,') && m.data.length < 3e6) {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+                    c.getContext('2d').drawImage(img, 0, 0);
+                    (duo.frames[m.slot] ||= {}).them = c;
+                    tryCompose(m.slot);
+                };
+                img.src = m.data;
+            }
+        }
+
+        // Each side photographs only itself (half a slot) and sends it; both halves make one photo
+        async function duoShoot(i) {
+            active = i; renderBooth();
+            await countdown();
+            const sl = L().slots[i];
+            const half = cropTo(video, video.videoWidth || 640, video.videoHeight || 480, { w: sl.w / 2, h: sl.h }, true);
+            (duo.frames[i] ||= {}).me = half;
+            duoSend({ t: 'frame', slot: i, data: half.toDataURL('image/jpeg', 0.88) });
+            tryCompose(i);
+        }
+
+        function tryCompose(i, force) {
+            const f = duo.frames[i];
+            if (!f || !f.me || (!f.them && !force)) return false;
+            const sl = L().slots[i];
+            const c = document.createElement('canvas'); c.width = sl.w * S; c.height = sl.h * S;
+            const g = c.getContext('2d');
+            const left = duo.role === 'host' ? f.me : f.them, right = duo.role === 'host' ? f.them : f.me;
+            g.fillStyle = '#3b3442'; g.fillRect(0, 0, c.width, c.height);
+            if (left) g.drawImage(left, 0, 0, c.width / 2, c.height);
+            if (right) g.drawImage(right, c.width / 2, 0, c.width / 2, c.height);
+            st.shots[i] = c;
+            filteredCache.clear();
+            renderBooth();
+            if (duo.waiters[i]) { duo.waiters[i](); delete duo.waiters[i]; }
+            return true;
+        }
+
+        function waitComposed(i, ms) {
+            if (st.shots[i]) return Promise.resolve(true);
+            return new Promise(res => {
+                const timer = setTimeout(() => { delete duo.waiters[i]; res(false); }, ms);
+                duo.waiters[i] = () => { clearTimeout(timer); res(true); };
+            });
+        }
+
+        async function shootSlotDuo(i) {
+            if (busy || !duo.connected) return;
+            busy = true;
+            delete duo.frames[i]; st.shots[i] = null;
+            duoSend({ t: 'go', slot: i });
+            await duoShoot(i);
+            if (!await waitComposed(i, 10000)) { tryCompose(i, true); toast('Foto pasangan belum terkirim, coba ambil ulang kotak itu'); }
+            busy = false; active = -1;
+            duoSend({ t: 'idle' });
+            renderBooth();
+        }
+
+        async function shootAllDuo() {
+            if (busy || !duo.connected) return;
+            busy = true;
+            const n = L().slots.length;
+            if (st.shots.every(Boolean)) { st.shots = Array(n).fill(null); duo.frames = {}; duoSend({ t: 'reset' }); }
+            renderBooth();
+            for (let i = 0; i < n; i++) {
+                if (st.shots[i]) continue;
+                if (!duo.connected) break;
+                duoSend({ t: 'go', slot: i });
+                await duoShoot(i);
+                if (!await waitComposed(i, 10000)) { tryCompose(i, true); toast('Foto pasangan belum terkirim, coba ambil ulang kotak itu'); }
+                if (st.shots.some(x => !x)) await wait(st.gap * 1000);
+            }
+            busy = false; active = -1;
+            duoSend({ t: 'idle' });
+            renderBooth();
+            if (st.shots.every(Boolean)) toast('Semua foto berdua siap! Lanjut hias ✨');
+        }
+
+        $('#micBtn').addEventListener('click', () => {
+            const t = duo.local && duo.local.getAudioTracks()[0]; if (!t) return;
+            t.enabled = !t.enabled;
+            $('#micBtn').textContent = t.enabled ? '🎤 Mic nyala' : '🔇 Mic mati';
+        });
+        $('#spkBtn').addEventListener('click', () => {
+            const rv = $('#rvideo'); rv.muted = !rv.muted; rv.play().catch(() => { });
+            $('#spkBtn').textContent = rv.muted ? '🔇 Suara pasangan mati' : '🔈 Suara pasangan';
+        });
 
         // ---------- Filters (pixel level, so exports match on every browser) ----------
         const filteredCache = new Map();
@@ -757,7 +1121,7 @@
         // ---------- Darkroom ----------
         const preview = $('#preview');
         function enterStudio() {
-            stopCamera();
+            if (st.mode !== 'duo') stopCamera();
             $('#booth').hidden = true; $('#studio').hidden = false;
             renderStudio();
             scrollTo({ top: 0 });
@@ -860,11 +1224,12 @@
         $('#enterBooth').addEventListener('click', enterBooth);
         $('#shootBtn').addEventListener('click', shootAll);
         $('#toStudio').addEventListener('click', enterStudio);
-        $('#backHome').addEventListener('click', () => { stopCamera(); $('#booth').hidden = true; $('#home').hidden = false; renderHome(); });
+        $('#backHome').addEventListener('click', () => { stopCamera(); $('#booth').hidden = true; $('#home').hidden = false; renderHome(); if (st.mode === 'duo') duoSend({ t: 'home' }); });
         $('#flipBtn').addEventListener('click', () => { facing = facing === 'user' ? 'environment' : 'user'; startCamera(); });
         $('#retakeBtn').addEventListener('click', () => { $('#studio').hidden = true; $('#booth').hidden = false; startCamera(); renderBooth(); });
-        $('#newBtn').addEventListener('click', () => { $('#studio').hidden = true; $('#home').hidden = false; st.caption = ''; $('#caption').value = ''; renderHome(); scrollTo({ top: 0 }); });
+        $('#newBtn').addEventListener('click', () => { if (st.mode === 'duo' && duo.role === 'host') duoSend({ t: 'home' }); $('#studio').hidden = true; $('#home').hidden = false; st.caption = ''; $('#caption').value = ''; renderHome(); scrollTo({ top: 0 }); });
 
+        if (new URLSearchParams(location.search).get('join')) st.mode = 'duo';
         renderHome();
         if (document.fonts) document.fonts.ready.then(() => { if (!$('#studio').hidden) draw(); });
         (async () => {

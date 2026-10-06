@@ -77,3 +77,18 @@ Photobooth online di browser.
 
 Tanpa kamera, misalnya saat dibuka lewat link claude.ai yang tidak mengizinkan kamera, setiap kotak bisa diisi dengan unggah foto. Di HP, cara ini langsung membuka kamera bawaan.
 
+## Foto berdua online
+Pilih **Mode → Berdua online 💞**. Satu orang menekan **Buat ruang foto** lalu mengirim kode 4 huruf atau link undangan. Pasangannya menekan **Gabung**. Setelah itu:
+- kalian saling melihat lewat video, dan bisa saling mendengar kalau mikrofon diizinkan;
+- pembuat ruang memilih bentuk strip, lalu kalian berdua masuk booth bersama;
+- siapa pun boleh menekan jepret, dan hitung mundurnya berjalan serempak di kedua HP;
+- setiap foto berisi kalian berdua berdampingan: pembuat ruang di kiri, pasangan di kanan;
+- masing-masing bisa menghias dan mengunduh stripnya sendiri.
+
+Koneksinya memakai WebRTC melalui [PeerJS](https://peerjs.com/): server perantara gratis, dan video mengalir langsung antar perangkat. Di sebagian jaringan seluler atau kantor yang ketat, koneksi langsung bisa gagal. Mengatasinya butuh server TURN, yang belum dipasang.
+
+**Penting:** kamera dan mode berdua tidak jalan di link artifact claude.ai, karena link itu memblokir kamera dan WebRTC. Pakai versi web, misalnya GitHub Pages:
+1. Buka **Settings → Pages** di repo ini.
+2. Di **Source**, pilih *Deploy from a branch*, branch `claude/cloud-ldok5v` (atau `main` setelah digabung), folder `/ (root)`, lalu **Save**.
+3. Setelah 1–2 menit, Fotoin bisa dibuka di https://wawannug.github.io/testing/games/fotoin/
+
