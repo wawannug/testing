@@ -1,4 +1,4 @@
-# Pojok Main 🎮
+# Wadimar Playground 🎮
 
 Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` untuk menu awal, lalu pilih game.
 
