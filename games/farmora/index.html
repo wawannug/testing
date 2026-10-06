@@ -317,6 +317,13 @@
         .itemgrid .item b { position: absolute; top: 1px; right: 4px; font-size: 12px; }
         .itemgrid .item small { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slotbtn { font-size: 14px; text-align: left; }
+        .outfitrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .clothgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 50vh; overflow: auto; }
+        .btn.cloth { display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: left; padding: 5px 8px; }
+        .btn.cloth.on { background: #ffe08a; box-shadow: 0 0 0 3px var(--green) inset; }
+        .swatch { flex: none; width: 32px; height: 32px; border-radius: 8px; border: 2px solid var(--wood); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+        .shopitem .swatch { width: 34px; height: 34px; }
+        .tabs.chips .btn { font-size: 12.5px; padding: 3px 8px; }
         @media (max-width: 520px) { .stor { grid-template-columns: 1fr; } .itemgrid { max-height: 26vh; } }
         .ayat { font-family: 'Amiri', 'Traditional Arabic', serif; font-size: 30px; line-height: 1.9; color: #1f5a3a; }
         .arti { font-size: 16px; font-style: italic; }
@@ -481,7 +488,7 @@
             <div class="sect">
                 <b>Petanimu</b>
                 <p class="saveinfo" id="whoami" style="margin:0"></p>
-                <div class="shirts" id="shirtPick" aria-label="Warna baju"></div>
+                <div class="outfitrow" id="shirtPick" aria-label="Pakaian"></div>
             </div>
             <div class="sect">
                 <b>Farm kalian berdua 👫</b>
@@ -513,7 +520,7 @@
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00. Telur ada di tanah kandang ayam.</p>
-            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (komputer toko online 🖥️), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
+            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -1738,58 +1745,272 @@
         };
 
         // ---------- Farmers (you and, online, your friend) ----------
-        const SHIRTS = [0xd9534a, 0x3f8fd6, 0x4caf6a, 0xf2b33d, 0xb06fd8, 0xf27ba5];
+        // Human proportions: about 6.5 heads tall, with separate clothes for the top, bottom (or a one-piece),
+        // shoes and headwear. Clothes are drawn from the outfit, so changing clothes only rebuilds the farmer.
+        const SKIN = { adindayn: 0xe9b993, wawantn: 0xd9a077 };
+        const HAIR = 0x2a1a12;
+        const patCache = {};
+        // fabric patterns drawn once on a small canvas
+        function fabric(c, pat, c2) {
+            if (!pat) return mat(c);
+            const key = `${pat}|${c}|${c2}`;
+            if (patCache[key]) return patCache[key];
+            const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+            const g = cv.getContext('2d'), hex = v => '#' + v.toString(16).padStart(6, '0');
+            g.fillStyle = hex(c); g.fillRect(0, 0, 128, 128);
+            g.strokeStyle = g.fillStyle = hex(c2 ?? 0xffffff);
+            if (pat === 'stripe') for (let y = 0; y < 128; y += 16) g.fillRect(0, y, 128, 6);
+            else if (pat === 'plaid') { g.globalAlpha = 0.55; for (let i = 0; i < 128; i += 32) { g.fillRect(i, 0, 10, 128); g.fillRect(0, i, 128, 10); } }
+            else if (pat === 'sport') { g.fillRect(26, 0, 8, 128); g.fillRect(94, 0, 8, 128); }
+            else if (pat === 'denim') { g.globalAlpha = 0.18; for (let i = 0; i < 700; i++) g.fillRect(Math.random() * 128, Math.random() * 128, 2, 1); }
+            else if (pat === 'lace') { g.globalAlpha = 0.5; g.lineWidth = 2; for (let y = 8; y < 128; y += 20) for (let x = (y / 20 % 2) * 10 + 6; x < 128; x += 20) { g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.stroke(); } }
+            else if (pat === 'batik') {
+                // parang-like diagonal waves with dots
+                g.lineWidth = 5;
+                for (let i = -128; i < 256; i += 32) { g.beginPath(); for (let t = 0; t <= 128; t += 4) g.lineTo(i + t + Math.sin(t / 10) * 6, t); g.stroke(); }
+                g.fillStyle = hex(c2 === undefined ? 0xffffff : c2);
+                for (let y = 10; y < 128; y += 24) for (let x = 6 + (y % 48 ? 12 : 0); x < 128; x += 24) { g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill(); }
+            }
+            const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            return patCache[key] = new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
+        }
+
+        // ---- the clothes catalogue ----
+        // top: sleeve none|short|long, kind for details; bottom: legs long|short|skirt|longskirt|brief
+        const CLOTHES = [];
+        const cloth = (slot, base, label, icon, price, variants, style) => variants.forEach(([name, c, c2]) =>
+            CLOTHES.push({ id: base + (name ? '-' + name.toLowerCase().replace(/[^a-z]/g, '') : ''), base, slot, label: label + (name ? ' ' + name : ''), icon, price, c, c2, ...style }));
+        cloth('top', 'kaosp', 'Kaos lengan pendek', '👕', 60, [['Merah', 0xd9534a], ['Biru', 0x3f8fd6], ['Kuning', 0xf2b33d], ['Putih', 0xf2f2ee]], { sleeve: 'short', kind: 'kaos' });
+        cloth('top', 'kaosl', 'Kaos lengan panjang', '👕', 80, [['Hijau', 0x4caf6a], ['Abu', 0x8a8f99], ['Ungu', 0xb06fd8]], { sleeve: 'long', kind: 'kaos' });
+        cloth('top', 'kemejap', 'Kemeja lengan pendek', '👔', 120, [['Biru muda', 0x9cc8ec], ['Kotak merah', 0xc0392b, 0x2b2b2b]], { sleeve: 'short', kind: 'kemeja' });
+        CLOTHES[CLOTHES.length - 1].pat = 'plaid';
+        cloth('top', 'kemejal', 'Kemeja lengan panjang', '👔', 140, [['Putih', 0xf6f6f2], ['Biru tua', 0x2f4e7a]], { sleeve: 'long', kind: 'kemeja' });
+        cloth('top', 'hoodie', 'Hoodie', '🧥', 180, [['Abu', 0x9aa0a8], ['Merah muda', 0xf27ba5]], { sleeve: 'long', kind: 'hoodie', bulk: 1 });
+        cloth('top', 'jaket', 'Jaket', '🧥', 250, [['Denim', 0x4a6fa5], ['Hitam', 0x2a2a2a]], { sleeve: 'long', kind: 'jaket', bulk: 1 });
+        CLOTHES[CLOTHES.length - 2].pat = 'denim';
+        cloth('top', 'sweater', 'Sweater', '🧶', 170, [['Krem', 0xe8d8b8], ['Hijau tua', 0x2f6b4a]], { sleeve: 'long', kind: 'sweater', bulk: 1 });
+        cloth('top', 'batik', 'Kemeja batik', '🥻', 220, [['Cokelat', 0x7a4a24, 0xe8c87a], ['Biru', 0x23466e, 0xe6e0c8]], { sleeve: 'short', kind: 'kemeja', pat: 'batik' });
+        cloth('top', 'kebaya', 'Kebaya', '👘', 300, [['Putih', 0xfaf6ee, 0xd8c8b0], ['Merah muda', 0xf6b8c8, 0xffffff]], { sleeve: 'long', kind: 'kebaya', pat: 'lace' });
+        cloth('top', 'jas', 'Jas', '🤵', 400, [['Hitam', 0x23262c], ['Abu tua', 0x4a4f58]], { sleeve: 'long', kind: 'jas', bulk: 1 });
+        cloth('bottom', 'rok', 'Rok', '👗', 90, [['Merah muda', 0xf27ba5], ['Hitam', 0x2b2b2b], ['Kotak', 0x2f4e7a, 0xf2f2ee]], { legs: 'skirt' });
+        CLOTHES[CLOTHES.length - 1].pat = 'plaid';
+        cloth('bottom', 'rokpanjang', 'Rok panjang', '👗', 120, [['Krem', 0xe2cfa8], ['Batik', 0x6e3f1e, 0xe8c87a]], { legs: 'longskirt' });
+        CLOTHES[CLOTHES.length - 1].pat = 'batik';
+        cloth('bottom', 'jeans', 'Jeans', '👖', 160, [['Biru', 0x3d5f94], ['Hitam', 0x2b2f38]], { legs: 'long', pat: 'denim' });
+        cloth('bottom', 'pendek', 'Celana pendek', '🩳', 70, [['Krem', 0xcdb88e], ['Biru', 0x3f6fb5]], { legs: 'short' });
+        cloth('bottom', 'panjang', 'Celana panjang', '👖', 120, [['Hitam', 0x2b2b2b], ['Krem', 0xcdb88e], ['Abu', 0x6e737c]], { legs: 'long' });
+        cloth('full', 'dress', 'Dress', '👗', 250, [['Merah muda', 0xf27ba5], ['Kuning', 0xf2c94c], ['Biru', 0x7fb3e8]], { top: { sleeve: 'short', kind: 'dress' }, bottom: { legs: 'skirt' } });
+        cloth('full', 'overall', 'Overall', '👖', 200, [['Denim', 0x3f6fb5, 0xd9534a], ['Merah muda', 0xf4a6c0, 0xffffff]], { top: { sleeve: 'short', kind: 'overall' }, bottom: { legs: 'long' } });
+        cloth('full', 'jumpsuit', 'Jumpsuit', '🥼', 260, [['Hijau army', 0x5b6b3a], ['Hitam', 0x2b2b2b]], { top: { sleeve: 'short', kind: 'jumpsuit' }, bottom: { legs: 'long' } });
+        cloth('full', 'piyama', 'Piyama', '😴', 150, [['Biru', 0x9cc8ec, 0xffffff], ['Merah muda', 0xf6b8c8, 0xffffff]], { pat: 'stripe', top: { sleeve: 'long', kind: 'kemeja' }, bottom: { legs: 'long' } });
+        cloth('full', 'olahraga', 'Baju olahraga', '🏃', 140, [['Merah', 0xd9443a, 0xffffff], ['Biru', 0x2f6fd0, 0xffffff]], { pat: 'sport', top: { sleeve: 'short', kind: 'kaos' }, bottom: { legs: 'long' } });
+        cloth('full', 'seragam', 'Seragam', '🎒', 200, [['', 0xf6f6f2, 0x6e737c]], { top: { sleeve: 'short', kind: 'seragam' }, bottom: { legs: 'auto' } });
+        cloth('full', 'renang', 'Baju renang', '🩱', 120, [['Biru', 0x2f8fd0], ['Merah', 0xd9443a]], { top: { sleeve: 'none', kind: 'renang' }, bottom: { legs: 'brief' } });
+        cloth('full', 'beskap', 'Baju adat Jawa (beskap)', '🎎', 500, [['', 0x1f2228, 0x6e3f1e]], { top: { sleeve: 'long', kind: 'beskap' }, bottom: { legs: 'longskirt' } });
+        cloth('full', 'kebayaadat', 'Baju adat kebaya', '🎎', 500, [['', 0x9b2335, 0x6e3f1e]], { top: { sleeve: 'long', kind: 'kebaya' }, bottom: { legs: 'longskirt' } });
+        cloth('shoes', 'sneakers', 'Sneakers', '👟', 150, [['Putih', 0xf4f4f4, 0x3f8fd6], ['Merah', 0xd9443a, 0xffffff]], { kind: 'sneakers' });
+        cloth('shoes', 'sportshoe', 'Sepatu olahraga', '👟', 170, [['', 0x2f6fd0, 0xffffff]], { kind: 'sneakers' });
+        cloth('shoes', 'sandal', 'Sandal', '🩴', 50, [['', 0x8a5a3a]], { kind: 'sandal' });
+        cloth('shoes', 'jepit', 'Sandal jepit', '🩴', 25, [['', 0x3f8fd6]], { kind: 'jepit' });
+        cloth('shoes', 'boots', 'Sepatu boots', '🥾', 200, [['', 0x6e4723]], { kind: 'boots' });
+        cloth('shoes', 'pantofel', 'Sepatu pantofel', '👞', 220, [['', 0x1d1d1f]], { kind: 'pantofel' });
+        cloth('shoes', 'flat', 'Flat shoes', '🥿', 120, [['Merah muda', 0xf27ba5], ['Hitam', 0x2b2b2b]], { kind: 'flat' });
+        cloth('shoes', 'heels', 'Sepatu hak tinggi', '👠', 240, [['', 0xc0392b]], { kind: 'heels' });
+        cloth('head', 'jerami', 'Topi jerami', '👒', 60, [['', 0xe8c66a, 0xd9443a]], { kind: 'jerami' });
+        cloth('head', 'topi', 'Topi', '🧢', 80, [['Merah', 0xd9443a], ['Biru', 0x2f6fd0]], { kind: 'cap' });
+        cloth('head', 'peci', 'Peci', '🎩', 70, [['', 0x1a1a1c]], { kind: 'peci' });
+        cloth('head', 'kupluk', 'Kupluk', '🧶', 60, [['Abu', 0x8a8f99], ['Merah', 0xc0392b]], { kind: 'kupluk' });
+        cloth('head', 'hijab', 'Hijab', '🧕', 90, [['Krem', 0xe6d3b3], ['Hitam', 0x26262a], ['Navy', 0x23345a], ['Merah muda', 0xf2a6bc], ['Mint', 0x9fd8c4]], { kind: 'hijab' });
+        const CLOTH = Object.fromEntries(CLOTHES.map(c => [c.id, c]));
+        const SLOT_INFO = { top: '👕 Atasan', bottom: '👖 Bawahan', full: '👗 Terusan & setelan', shoes: '👟 Sepatu', head: '🧢 Penutup kepala' };
+        // clothes everyone starts with, and what they wear on day one
+        const STARTER = {
+            m: ['overall-denim', 'kaosp-biru', 'panjang-hitam', 'piyama-biru', 'boots', 'sneakers-putih', 'jerami', 'peci'],
+            f: ['dress-merahmuda', 'kaosp-putih', 'rok-merahmuda', 'piyama-merahmuda', 'flat-merahmuda', 'sandal', 'jerami', 'hijab-krem'],
+        };
+        const DEFAULT_OUTFIT = { m: { t: 'kaosp-biru', b: 'panjang-hitam', f: 'overall-denim', s: 'boots', h: 'jerami' }, f: { t: 'kaosp-putih', b: 'rok-merahmuda', f: 'dress-merahmuda', s: 'flat-merahmuda', h: 'jerami' } };
+        function cleanOutfit(o, g) {
+            const d = DEFAULT_OUTFIT[g], ok = (id, slot) => CLOTH[id] && CLOTH[id].slot === slot;
+            o = o && typeof o === 'object' ? o : {};
+            return { t: ok(o.t, 'top') ? o.t : d.t, b: ok(o.b, 'bottom') ? o.b : d.b, f: o.f === null ? null : ok(o.f, 'full') ? o.f : (o.t || o.b ? null : d.f), s: o.s === 'none' || ok(o.s, 'shoes') ? o.s : d.s, h: o.h === null ? null : ok(o.h, 'head') ? o.h : (o.h === undefined ? d.h : null) };
+        }
+
+        // ---- building the body ----
+        const torsoGeo = {};
+        function torsoShape(g) {
+            if (torsoGeo[g]) return torsoGeo[g];
+            const pts = (g === 'f'
+                ? [[0, 0], [0.15, 0], [0.15, 0.06], [0.125, 0.2], [0.155, 0.3], [0.165, 0.36], [0.158, 0.44], [0.14, 0.48], [0.055, 0.52], [0, 0.525]]
+                : [[0, 0], [0.16, 0], [0.165, 0.08], [0.155, 0.2], [0.175, 0.34], [0.195, 0.44], [0.17, 0.5], [0.06, 0.55], [0, 0.555]]).map(([r, y]) => new THREE.Vector2(r, y));
+            return torsoGeo[g] = new THREE.LatheGeometry(pts, 28);
+        }
+        const HALF = new THREE.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+        // headscarf: a hood open at the face
+        const HIJAB = new THREE.SphereGeometry(1, 28, 18, Math.PI / 2 + 0.95, Math.PI * 2 - 1.9, 0, 2.25);
+        const SKIRT = { skirt: new THREE.CylinderGeometry(0.17, 0.28, 0.44, 28, 1, true), longskirt: new THREE.CylinderGeometry(0.17, 0.21, 0.8, 28, 1, true) };
+        const DRAPE = new THREE.CylinderGeometry(0.1, 0.25, 0.3, 28, 1, true);
+        function clothMat(c, pat, c2) { const m = fabric(c, pat, c2); m.side = THREE.DoubleSide; return m; }
+
         function buildFarmer(f, look) {
             const g = f.group;
             while (g.children.length) g.remove(g.children[0]);
-            const body = new THREE.Group(); g.add(body);
-            const shirt = SHIRTS[look.c] ?? SHIRTS[0], girl = look.g === 'f';
-            const hair = girl ? 0x6b3a1e : 0x5b3a1e, overalls = 0x3f6fb5;
-            blob(g, 0.8, 0.8);
-            let legs;
-            if (girl) {
-                legs = [limb(g, 0.1, 0.74, 0, 0.14, 0.74, C.skin), limb(g, -0.1, 0.74, 0, 0.14, 0.74, C.skin)];
-                for (const l of legs) ball(0.095, 0.07, 0.15, 0xc0504d, 0, -0.72, 0.04, l);
-                ball(0.245, 0.32, 0.19, shirt, 0, 1.13, 0, body);
-                const skirt = mesh(new THREE.CylinderGeometry(0.22, 0.4, 0.5, 28), mat(shirt), body); skirt.position.y = 0.82;
-                box(0.26, 0.4, 0.04, 0xfff6e8, 0, 0.9, 0.24, body).rotation.x = -0.18;
-                ball(0.17, 0.05, 0.13, 0xfff6e8, 0, 1.42, 0.05, body);
-            } else {
-                legs = [limb(g, 0.12, 0.76, 0, 0.19, 0.76, overalls), limb(g, -0.12, 0.76, 0, 0.19, 0.76, overalls)];
-                for (const l of legs) ball(0.11, 0.07, 0.16, 0x5b3a1e, 0, -0.72, 0.04, l);
-                ball(0.27, 0.34, 0.2, shirt, 0, 1.1, 0, body);
-                ball(0.255, 0.22, 0.19, overalls, 0, 0.95, 0.012, body);
-                box(0.3, 0.2, 0.05, overalls, 0, 1.16, 0.17, body);
-                for (const sx of [1, -1]) {
-                    box(0.06, 0.32, 0.05, overalls, 0.14 * sx, 1.28, 0.15, body).rotation.x = -0.2;
-                    ball(0.025, 0.025, 0.012, 0xf2c94c, 0.14 * sx, 1.18, 0.2, body).material = glossy(0xf2c94c);
-                }
+            const girl = look.g === 'f', skin = SKIN[look.n] || 0xe0ac84;
+            const o = cleanOutfit(look.o, look.g);
+            const full = o.f && CLOTH[o.f];
+            const parts = full ? fullParts(full) : null;
+            const topItem = parts ? parts.top : CLOTH[o.t];
+            let botItem = parts ? parts.bot : CLOTH[o.b];
+            if (botItem && botItem.legs === 'auto') botItem = { ...botItem, legs: girl ? 'skirt' : 'long' };
+            const shoes = o.s === 'none' ? null : CLOTH[o.s], head = o.h && CLOTH[o.h];
+            const rig = new THREE.Group(); g.add(rig);
+            const scale = girl ? 1.02 : 1.08;
+            rig.scale.setScalar(scale);
+            blob(g, 0.6, 0.6);
+            const hipY = girl ? 0.88 : 0.92, shY = girl ? 1.38 : 1.42, shX = girl ? 0.175 : 0.2;
+            f.hip = hipY * scale; // used to seat the body on chairs and mats
+            // swimwear: a one-piece for her, trunks for him
+            const swim = topItem.kind === 'renang';
+            const topMat = swim && !girl ? mat(skin) : clothMat(topItem.c, topItem.pat, topItem.c2);
+            const botMat = clothMat(botItem.c, botItem.pat, botItem.c2);
+            const skinMat = mat(skin);
+
+            // legs (pivot at the hip): skin, then trousers over it, then shoes
+            const legs = [1, -1].map(side => {
+                const p = new THREE.Group(); p.position.set(0.09 * side, hipY - 0.02, 0); rig.add(p);
+                cap(0.068, 0.3, skin, 0, -0.21, 0, p);
+                cap(0.054, 0.32, skin, 0, -0.6, 0, p);
+                if (botItem.legs === 'long') { mesh(capGeo(0.077, 0.32), botMat, p).position.y = -0.21; mesh(capGeo(0.064, 0.34), botMat, p).position.y = -0.59; }
+                else if (botItem.legs === 'short') mesh(capGeo(0.08, 0.12), botMat, p).position.y = -0.12;
+                shoe(p, shoes, skin);
+                return p;
+            });
+            const body = new THREE.Group(); rig.add(body);
+            // torso and hips
+            const torso = mesh(torsoShape(look.g), topMat, body);
+            torso.position.y = hipY - 0.02;
+            torso.scale.set(topItem.bulk ? 1.07 : 1, 1, topItem.bulk ? 0.76 : 0.7);
+            const pelvis = ball(girl ? 0.176 : 0.172, 0.118, 0.13, 0, 0, hipY, 0, body); pelvis.material = swim && girl ? topMat : botItem.pat === 'sport' ? clothMat(botItem.c) : botMat;
+            if (swim && !girl) pelvis.material = clothMat(topItem.c);
+            const neck = mesh(CYL, skinMat, body); neck.scale.set(0.042, 0.13, 0.042); neck.position.y = shY + 0.06;
+            // skirts hang from the waist
+            if (botItem.legs === 'skirt' || botItem.legs === 'longskirt') {
+                const sk = mesh(SKIRT[botItem.legs], botMat, body);
+                sk.position.y = hipY + 0.06 - (botItem.legs === 'skirt' ? 0.22 : 0.4);
+                sk.scale.z = 0.8;
             }
-            const armX = girl ? 0.29 : 0.31;
-            const arms = [limb(body, armX, 1.36, 0, 0.12, 0.55, shirt), limb(body, -armX, 1.36, 0, 0.12, 0.55, shirt)];
-            for (const a of arms) ball(0.07, 0.07, 0.07, C.skin, 0, -0.57, 0, a);
-            const head = new THREE.Group(); head.position.set(0, 1.66, 0); body.add(head);
-            ball(0.23, 0.23, 0.22, C.skin, 0, 0, 0, head);
-            ball(0.245, 0.17, 0.23, hair, 0, 0.07, -0.05, head);
+            details(body, topItem, botItem, { hipY, shY, girl, skin });
+            // arms (pivot at the shoulder)
+            const sleeveMat = topMat === skinMat ? null : topMat;
+            const arms = [1, -1].map(side => {
+                const p = new THREE.Group(); p.position.set(shX * side, shY - 0.03, 0); body.add(p);
+                cap(0.046, 0.2, skin, 0, -0.14, 0, p);
+                cap(0.039, 0.2, skin, 0, -0.4, 0, p);
+                ball(0.042, 0.055, 0.035, skin, 0, -0.57, 0.005, p);
+                const bulk = topItem.bulk ? 0.008 : 0;
+                if (sleeveMat && !swim && topItem.sleeve === 'short') mesh(capGeo(0.058 + bulk, 0.08), sleeveMat, p).position.y = -0.08;
+                if (sleeveMat && !swim && topItem.sleeve === 'long') { mesh(capGeo(0.056 + bulk, 0.22), sleeveMat, p).position.y = -0.14; mesh(capGeo(0.049 + bulk, 0.2), sleeveMat, p).position.y = -0.39; }
+                return p;
+            });
+            // head
+            const hd = new THREE.Group(); hd.position.set(0, shY + 0.21, 0); body.add(hd);
+            ball(0.1, 0.122, 0.11, skin, 0, 0, 0, hd);
+            for (const sx of [1, -1]) ball(0.02, 0.034, 0.016, skin, 0.1 * sx, -0.005, 0, hd);
+            const eyes = [eye(hd, 0.038, 0.012, 0.096, 0.016), eye(hd, -0.038, 0.012, 0.096, 0.016)];
+            for (const sx of [1, -1]) box(0.036, 0.008, 0.008, HAIR, 0.039 * sx, 0.042, 0.1, hd).rotation.z = sx * (girl ? -0.1 : 0.06);
+            ball(0.012, 0.018, 0.014, skin, 0, -0.02, 0.108, hd);
+            box(0.032, 0.007, 0.006, girl ? 0xd0606a : 0xa8584e, 0, -0.058, 0.104, hd);
+            if (girl) for (const sx of [1, -1]) ball(0.02, 0.012, 0.006, 0xf08f80, 0.06 * sx, -0.03, 0.093, hd).castShadow = false;
+            const hijab = head && head.kind === 'hijab';
+            if (!hijab) hair(hd, girl, head);
+            if (head) hat(hd, head, girl);
+            Object.assign(f, { body, legs, arms, head: hd, eyes });
+        }
+        // the top and bottom of a one-piece or a matching set
+        function fullParts(it) {
+            const top = { ...it.top, c: it.c, pat: it.pat, c2: it.c2 }, bot = { legs: it.bottom.legs, c: it.c, pat: it.pat, c2: it.c2 };
+            if (it.base === 'overall') { top.bib = it.c; top.c = it.c2; top.pat = null; bot.pat = 'denim'; bot.c2 = 0xffffff; }
+            if (it.base === 'olahraga') Object.assign(bot, { c: 0x2b2f38, c2: 0xffffff });
+            if (it.base === 'seragam') Object.assign(bot, { c: it.c2, pat: null });
+            if (it.base === 'beskap' || it.base === 'kebayaadat') Object.assign(bot, { c: it.c2, pat: 'batik', c2: 0xe8c87a });
+            if (it.base === 'kebayaadat') Object.assign(top, { pat: 'lace', c2: 0xffffff });
+            return { top, bot };
+        }
+        const capGeo = (r, len) => geoCache[`c${r}|${len}`] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
+        function hair(hd, girl, head) {
+            const covered = head && ['cap', 'kupluk', 'peci'].includes(head.kind);
+            ball(0.107, covered ? 0.07 : 0.088, 0.117, HAIR, 0, 0.045, -0.012, hd);
             if (girl) {
-                ball(0.23, 0.33, 0.14, hair, 0, -0.14, -0.13, head);           // long hair down the back
-                for (const sx of [1, -1]) ball(0.07, 0.2, 0.08, hair, 0.2 * sx, -0.1, 0.02, head);
-                ball(0.2, 0.07, 0.1, hair, 0, 0.14, 0.15, head);               // bangs
+                ball(0.1, 0.2, 0.055, HAIR, 0, -0.11, -0.075, hd);              // long hair down the back
+                for (const sx of [1, -1]) ball(0.028, 0.12, 0.04, HAIR, 0.092 * sx, -0.06, 0.02, hd);
+                if (!covered) ball(0.092, 0.032, 0.05, HAIR, 0, 0.08, 0.07, hd); // bangs
+            } else if (!covered) ball(0.09, 0.028, 0.05, HAIR, 0, 0.085, 0.07, hd);
+        }
+        function hat(hd, it, girl) {
+            const m = mat(it.c);
+            if (it.kind === 'jerami') {
+                const brim = mesh(new THREE.CylinderGeometry(0.22, 0.235, 0.018, 32), m, hd); brim.position.y = 0.075;
+                const crown = mesh(new THREE.CylinderGeometry(0.095, 0.112, 0.11, 32), m, hd); crown.position.y = 0.125;
+                const band = mesh(new THREE.CylinderGeometry(0.114, 0.114, 0.025, 32), mat(girl ? 0xf27ba5 : it.c2), hd); band.position.y = 0.09;
+                if (girl) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; ball(0.022, 0.022, 0.01, 0xff8fb8, 0.1 + Math.cos(a) * 0.024, 0.11 + Math.sin(a) * 0.024, 0.06, hd); }
+            } else if (it.kind === 'cap') {
+                const dome = mesh(HALF, m, hd); dome.scale.set(0.112, 0.09, 0.12); dome.position.set(0, 0.035, -0.005);
+                box(0.12, 0.012, 0.1, it.c, 0, 0.045, 0.13, hd).rotation.x = 0.12;
+            } else if (it.kind === 'peci') {
+                const p = mesh(CYL, glossy(it.c), hd); p.scale.set(0.1, 0.075, 0.112); p.position.y = 0.085;
+            } else if (it.kind === 'kupluk') {
+                const dome = mesh(HALF, m, hd); dome.scale.set(0.115, 0.12, 0.122); dome.position.y = 0.02;
+                const band = mesh(CYL, m, hd); band.scale.set(0.118, 0.035, 0.124); band.position.y = 0.03;
+                ball(0.025, 0.025, 0.025, 0xf2f2ee, 0, 0.145, 0, hd);
+            } else if (it.kind === 'hijab') {
+                const m2 = clothMat(it.c);
+                const h = mesh(HIJAB, m2, hd); h.scale.set(0.127, 0.14, 0.13); h.position.set(0, 0.012, -0.006);
+                const d = mesh(DRAPE, m2, hd); d.position.set(0, -0.215, -0.005); d.scale.z = 0.8;
+                ball(0.072, 0.035, 0.06, it.c, 0, -0.118, 0.03, hd).material = m2;
             }
-            ball(0.05, 0.05, 0.05, C.skin, 0.225, -0.01, 0, head);
-            ball(0.05, 0.05, 0.05, C.skin, -0.225, -0.01, 0, head);
-            const eyes = [eye(head, 0.08, 0.0, 0.195, 0.032), eye(head, -0.08, 0.0, 0.195, 0.032)];
-            ball(0.05, 0.025, 0.02, 0xf08f80, 0.14, -0.07, 0.18, head).castShadow = false;
-            ball(0.05, 0.025, 0.02, 0xf08f80, -0.14, -0.07, 0.18, head).castShadow = false;
-            ball(0.025, 0.02, 0.02, 0xe8a882, 0, -0.04, 0.22, head);
-            const brim = mesh(new THREE.CylinderGeometry(0.43, 0.45, 0.04, 32), mat(C.straw), head); brim.position.y = 0.17;
-            const crown = mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.2, 32), mat(C.straw), head); crown.position.y = 0.28;
-            const band = mesh(new THREE.CylinderGeometry(0.245, 0.25, 0.05, 32), mat(girl ? 0xf27ba5 : C.red), head); band.position.y = 0.21;
-            if (girl) {
-                for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; ball(0.045, 0.045, 0.02, 0xff8fb8, 0.2 + Math.cos(a) * 0.05, 0.25 + Math.sin(a) * 0.05, 0.12, head); }
-                ball(0.03, 0.03, 0.025, 0xffd34d, 0.2, 0.25, 0.135, head);
+        }
+        function shoe(p, it, skin) {
+            const y = -0.86;
+            if (!it) { ball(0.045, 0.03, 0.095, skin, 0, y + 0.01, 0.04, p); return; }
+            const k = it.kind;
+            if (k === 'sandal' || k === 'jepit') {
+                ball(0.043, 0.028, 0.092, skin, 0, y + 0.02, 0.04, p);
+                box(0.1, 0.022, 0.23, it.c, 0, y - 0.015, 0.04, p);
+                if (k === 'sandal') box(0.1, 0.02, 0.04, it.c, 0, y + 0.03, 0.06, p);
+                else for (const sx of [1, -1]) box(0.008, 0.012, 0.07, it.c, 0.02 * sx, y + 0.02, 0.06, p).rotation.y = sx * 0.5;
+                return;
             }
-            Object.assign(f, { body, legs, arms, head, eyes });
+            if (k === 'boots') { const b = mesh(CYL, mat(it.c), p); b.scale.set(0.066, 0.2, 0.07); b.position.y = y + 0.1; }
+            const h = k === 'flat' || k === 'heels' ? 0.05 : 0.075;
+            box(k === 'flat' || k === 'heels' ? 0.09 : 0.105, h, 0.23, k === 'pantofel' ? glossy(it.c) : it.c, 0, y + h / 2 - 0.01, 0.04, p);
+            if (k === 'sneakers') { box(0.11, 0.022, 0.24, 0xffffff, 0, y - 0.02, 0.04, p); box(0.107, 0.014, 0.12, it.c2, 0, y + 0.02, 0.03, p); }
+            if (k === 'heels') { const hh = mesh(CYL, mat(it.c), p); hh.scale.set(0.012, 0.06, 0.012); hh.position.set(0, y - 0.02, -0.06); }
+        }
+        // collars, buttons, ties, hoods and the like
+        function details(body, top, bot, { hipY, shY, girl }) {
+            const zf = (top.bulk ? 0.76 : 0.7) * (girl ? 0.16 : 0.18) + 0.01;
+            const y = (f) => hipY + (shY - hipY) * f;
+            const k = top.kind;
+            if (k === 'kemeja' || k === 'seragam' || k === 'kebaya' || k === 'beskap') {
+                for (const sx of [1, -1]) box(0.06, 0.035, 0.012, k === 'beskap' ? top.c : 0xffffff, 0.035 * sx, shY + 0.01, 0.06, body).rotation.set(-0.4, 0, sx * 0.5);
+                for (let i = 0; i < 4; i++) ball(0.009, 0.009, 0.005, k === 'beskap' ? 0xd4af37 : 0xe8e0d0, 0, y(0.85 - i * 0.2), zf, body);
+            }
+            if (k === 'seragam') { box(0.05, 0.05, 0.006, 0xeeeeea, -0.07, y(0.72), zf, body); box(0.02, 0.012, 0.006, 0xd9443a, 0.07, y(0.78), zf, body); }
+            if (k === 'jas') {
+                box(0.08, 0.22, 0.01, 0xffffff, 0, y(0.72), zf + 0.002, body);
+                box(0.026, 0.16, 0.012, 0xc0392b, 0, y(0.68), zf + 0.008, body);
+                for (const sx of [1, -1]) box(0.03, 0.2, 0.01, top.c, 0.05 * sx, y(0.72), zf + 0.012, body).rotation.z = sx * 0.25;
+            }
+            if (k === 'hoodie') { ball(0.12, 0.08, 0.07, top.c, 0, shY + 0.02, -0.11, body); box(0.15, 0.07, 0.01, top.c, 0, y(0.25), zf, body); }
+            if (k === 'jaket') { box(0.012, 0.42, 0.012, 0xb8c2cc, 0, y(0.5), zf + 0.004, body); for (const sx of [1, -1]) box(0.07, 0.04, 0.02, top.c, 0.045 * sx, shY + 0.015, 0.07, body).rotation.set(-0.5, 0, sx * 0.4); }
+            if (k === 'sweater') box(girl ? 0.27 : 0.3, 0.035, 0.2, top.c, 0, hipY + 0.03, 0, body);
+            if (k === 'overall') {
+                const m = fabric(top.bib, 'denim', 0xffffff);
+                const bib = mesh(BOX, m, body); bib.scale.set(0.2, 0.2, 0.02); bib.position.set(0, y(0.38), zf);
+                for (const sx of [1, -1]) { const st = mesh(BOX, m, body); st.scale.set(0.035, 0.3, 0.02); st.position.set(0.075 * sx, y(0.68), zf - 0.005); st.rotation.x = -0.15; ball(0.012, 0.012, 0.006, 0xf2c94c, 0.075 * sx, y(0.55), zf + 0.012, body).material = glossy(0xf2c94c); }
+                box(0.06, 0.05, 0.005, top.bib, 0, y(0.4), zf + 0.011, body);
+            }
+            if (k === 'jumpsuit') box(girl ? 0.31 : 0.33, 0.035, 0.22, 0x3a2a1a, 0, hipY + 0.05, 0, body);
+            if (k === 'kebaya') ball(0.016, 0.016, 0.008, 0xd4af37, 0, y(0.7), zf + 0.004, body).material = glossy(0xd4af37);
         }
         function makeFarmer(look) {
             const f = { group: new THREE.Group(), heading: Math.PI, phase: 0 };
@@ -1823,11 +2044,15 @@
             return sp;
         }
 
-        // Each account plays its own farmer: adindayn is the girl, wawantn the boy; only the shirt color is chosen
-        const CHARACTERS = { adindayn: { g: 'f', c: 5 }, wawantn: { g: 'm', c: 1 } };
+        // Each account plays its own farmer: adindayn is the woman, wawantn the man; clothes are chosen in the wardrobe
+        const CHARACTERS = { adindayn: { g: 'f' }, wawantn: { g: 'm' } };
         const LOOK_KEY = 'farmora.look@' + USER;
-        let look = (() => { let saved = {}; try { saved = JSON.parse(localStorage.getItem(LOOK_KEY) || '{}'); } catch (e) { } const ch = CHARACTERS[USER] || { g: 'm', c: 0 }; return { c: Number.isInteger(saved.c) ? saved.c : ch.c, n: USER, g: ch.g }; })();
-        const lookOf = name => ({ n: name, g: CHARACTERS[name].g, c: Number.isInteger(state && state.looks && state.looks[name] && state.looks[name].c) ? state.looks[name].c : CHARACTERS[name].c });
+        let look = (() => { let saved = {}; try { saved = JSON.parse(localStorage.getItem(LOOK_KEY) || '{}'); } catch (e) { } const g = (CHARACTERS[USER] || { g: 'm' }).g; return { n: USER, g, o: cleanOutfit(saved.o, g) }; })();
+        const lookOf = name => ({ n: name, g: CHARACTERS[name].g, o: cleanOutfit(state && state.looks && state.looks[name] && state.looks[name].o, CHARACTERS[name].g) });
+        // clothes are bought on the laptop and delivered by the courier
+        for (const c of CLOTHES) SUPPLIES['c_' + c.id] = { label: c.label, icon: c.icon, price: c.price, cloth: c.id };
+        const ownedClothes = u => new Set([...STARTER[CHARACTERS[u].g], ...((state.wardrobe && state.wardrobe[u]) || [])]);
+        const clothPending = (u, id) => state.orders.some(o => o.by === u && o.k === 'c_' + id) || (state.pkgCloth || []).some(([c, w]) => c === id && w === u);
         const player = makeFarmer(look);
         player.pos.set(-10, 0, -8);
 
@@ -1874,7 +2099,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: 6 * 60, gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: 6 * 60, gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -1897,6 +2122,10 @@
             if (!Array.isArray(st.orders)) st.orders = [];
             st.orders = st.orders.filter(o => o && SUPPLIES[o.k]);
             st.pkg = { ...(saved.pkg || {}) }; st.ib = { ...(saved.ib || {}) };
+            const wd = saved.wardrobe || {};
+            st.wardrobe = { adindayn: (wd.adindayn || []).filter(id => CLOTH[id]), wawantn: (wd.wawantn || []).filter(id => CLOTH[id]) };
+            st.pkgCloth = (saved.pkgCloth || []).filter(v => Array.isArray(v) && CLOTH[v[0]] && CHARACTERS[v[1]]);
+            for (const u of Object.keys(CHARACTERS)) if (st.looks[u] && !st.looks[u].o) delete st.looks[u];
             for (const d of ANIMAL_DEFS) st.animals[d.name].product &&= !!productOf(d);
             for (const name of Object.keys(st.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete st.animals[name];
             return st;
@@ -2375,10 +2604,12 @@
             tvScreen = box(0.02, 0.72, 1.36, new THREE.MeshStandardMaterial({ color: 0x15191f, emissive: 0x3d8fd6, emissiveIntensity: 0 }), -8.5, 1.05, 4.6, g); tvScreen.castShadow = false;
             pottedPlant(g, -3.6, 6.4, 1.1); lamp(g, -8.4, 6.4);
             table(g, -4.3, -1.5, 1.4, 0.6, 0.75); col(f, -5.0, -3.6, -1.85, -1.2);
-            box(0.7, 0.45, 0.05, 0x1d232b, -4.3, 1.08, -1.65, g);
-            box(0.64, 0.38, 0.02, new THREE.MeshStandardMaterial({ color: 0x3aa37a, emissive: 0x3aa37a, emissiveIntensity: 0.5 }), -4.3, 1.08, -1.62, g).castShadow = false;
-            box(0.1, 0.25, 0.1, 0x1d232b, -4.3, 0.85, -1.68, g);
-            box(0.5, 0.03, 0.18, 0xe8e8e8, -4.3, 0.8, -1.35, g);
+            // laptop
+            box(0.44, 0.022, 0.3, 0xb8c2cc, -4.3, 0.8, -1.45, g);
+            box(0.36, 0.004, 0.13, 0x2b2f38, -4.3, 0.813, -1.42, g);
+            const lid = new THREE.Group(); lid.position.set(-4.3, 0.81, -1.6); lid.rotation.x = -0.25; g.add(lid);
+            box(0.44, 0.29, 0.016, 0xb8c2cc, 0, 0.145, 0, lid);
+            box(0.4, 0.25, 0.004, new THREE.MeshStandardMaterial({ color: 0x3aa37a, emissive: 0x3aa37a, emissiveIntensity: 0.55 }), 0, 0.148, 0.01, lid).castShadow = false;
             chair(g, -4.3, -0.75, Math.PI, 0x3d4a5c);
             frame(g, -6.0, 1.75, -1.86, 0.9, 0.6, 0xf2c94c);
             stairs(g, -8.7, -7.1, -1.8, 1.4, true); col(f, -8.9, -6.95, -1.9, 1.4);
@@ -2751,12 +2982,13 @@
         function sitPose(f, k, y) {
             if (k === 3) {
                 f.group.rotation.set(-Math.PI / 2, 0, 0);
-                f.pos.y = y || 0.8;
+                f.pos.y = (y || 0.8) - 0.04;
                 f.legs.forEach(l => { l.rotation.x = 0; });
                 f.arms.forEach(a => { a.rotation.x = 0; });
                 return;
             }
-            f.pos.y = k === 2 ? -0.52 : -0.3;
+            // seat the hips on the chair (k 1) or kneel on the mat (k 2)
+            f.pos.y = k === 2 ? 0.2 - f.hip : 0.47 - (f.hip - 0.08);
             f.legs.forEach(l => { l.rotation.x = k === 2 ? 1.5 : -1.4; });
         }
         // a bench or sofa for two: take the free place nearest to you
@@ -2798,29 +3030,38 @@
 
         const absMin = () => state.day * 1440 + state.minutes;
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
-        let shopTab = 'alat';
+        let shopTab = 'alat', shopSlot = 'top';
         function openShop() {
-            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias']];
-            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'alat' ? !s.plant : !!s.plant && GDEF[s.plant].type === shopTab);
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['baju', '👕 Pakaian']];
+            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'alat' ? !s.plant && !s.cloth : !!s.plant && GDEF[s.plant].type === shopTab);
+            const own = ownedClothes(USER);
             const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
             const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
                 const g = s.plant && GDEF[s.plant];
+                if (s.cloth) {
+                    const c = CLOTH[s.cloth], got = own.has(c.id), pend = clothPending(USER, c.id);
+                    const b = el('button', { class: 'btn', onclick: () => buy(k) }, got ? 'Sudah punya ✓' : pend ? 'Dikirim 📦' : `${s.price} G`);
+                    if (got || pend) b.disabled = true;
+                    return el('div', { class: 'shopitem' }, swatch(c), el('span', { class: 'nm' }, el('b', { text: c.label }), el('small', { text: SLOT_INFO[c.slot] })), b);
+                }
                 const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.note;
                 return el('div', { class: 'shopitem' },
                     el('span', { class: 'ic', text: g ? g.icon : s.icon }),
                     el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${sub} · di tas ${have(USER, k)}` })),
                     el('button', { class: 'btn', onclick: () => buy(k) }, `${s.price} G`));
             }));
-            openDlg('🖥️ Toko Online Farmora', [
+            openDlg('💻 Toko Online Farmora', [
                 el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pesanan diantar kurir ke depan rumah sekitar 2 jam (waktu game) setelah dibeli.` }),
                 state.orders.length ? el('p', { class: 'saveinfo', text: `📦 Dalam perjalanan: ${pendingCount()} barang, tiba sekitar pukul ${fmtTime(next % 1440)}${Math.floor(next / 1440) > state.day ? ' besok' : ''}` }) : null,
                 el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === shopTab ? ' on' : ''), onclick: () => { shopTab = k; openShop(); } }, t))),
+                shopTab === 'baju' ? el('div', { class: 'tabs chips' }, Object.entries(SLOT_INFO).map(([k, t]) => el('button', { class: 'btn' + (k === shopSlot ? ' on' : ''), onclick: () => { shopSlot = k; openShop(); } }, t))) : null,
                 list,
             ].filter(Boolean));
         }
         function buy(k) {
             const s = SUPPLIES[k];
             if (state.gold < s.price) { toast(`Uangnya belum cukup untuk ${s.label} (${s.price} G) 💸`); return; }
+            if (s.cloth && (ownedClothes(USER).has(s.cloth) || clothPending(USER, s.cloth))) return;
             sendAct('buy', k);
             setTimeout(() => { if (dlgOpen()) openShop(); }, 350);
         }
@@ -2840,16 +3081,39 @@
         const haveAll = k => have(USER, k) + (state.store.fridge[k] || 0);
         function chooseSeed(cb) {
             const seeds = GARDEN.filter(g => have(USER, 'b_' + g.key) > 0);
-            if (!seeds.length) { toast('Tidak ada benih di tasmu. Ambil dari kotak penyimpanan, atau beli lewat komputer 🖥️'); return; }
+            if (!seeds.length) { toast('Tidak ada benih di tasmu. Ambil dari kotak penyimpanan, atau beli lewat laptop 💻'); return; }
             openDlg('🌱 Tanam apa?', [el('div', { class: 'seedgrid' }, seeds.map(g => el('button', { class: 'btn', onclick: () => { closeDlg(); cb(g.key); } }, `${g.icon} ${g.label}`, el('small', { text: ` ×${have(USER, 'b_' + g.key)} · ${g.days} hari` }))))]);
         }
+        let wardTab = 'full';
+        function swatch(c) {
+            const sw = el('span', { class: 'swatch', text: c.icon });
+            const hex = v => '#' + (v ?? 0xffffff).toString(16).padStart(6, '0');
+            sw.style.background = c.pat ? `repeating-linear-gradient(45deg, ${hex(c.c)} 0 6px, ${hex(c.c2)} 6px 9px)` : hex(c.c);
+            return sw;
+        }
         function openWardrobe() {
-            openDlg('👚 Lemari baju', [el('p', { text: 'Pilih warna bajumu hari ini.' }), el('div', { class: 'shirts', style: 'justify-content:center' }, SHIRTS.map((c, i) => {
-                const b = el('button', { 'aria-label': 'Warna baju ' + (i + 1), class: look.c === i ? 'on' : '' });
-                b.style.background = '#' + c.toString(16).padStart(6, '0');
-                b.onclick = () => { look.c = i; applyLook(); openWardrobe(); };
-                return b;
-            }))]);
+            const own = ownedClothes(USER), o = look.o;
+            const worn = { top: !o.f && o.t, bottom: !o.f && o.b, full: o.f, shoes: o.s, head: o.h };
+            const list = CLOTHES.filter(c => c.slot === wardTab && own.has(c.id)).map(c =>
+                el('button', { class: 'btn cloth' + (worn[wardTab] === c.id ? ' on' : ''), onclick: () => wear(c.slot, c.id) }, swatch(c), el('span', { text: c.label })));
+            if (wardTab === 'shoes') list.unshift(el('button', { class: 'btn cloth' + (o.s === 'none' ? ' on' : ''), onclick: () => wear('shoes', 'none') }, el('span', { class: 'swatch', text: '🦶' }), el('span', { text: 'Tanpa alas kaki' })));
+            if (wardTab === 'head') list.unshift(el('button', { class: 'btn cloth' + (!o.h ? ' on' : ''), onclick: () => wear('head', null) }, el('span', { class: 'swatch', text: '🙂' }), el('span', { text: 'Tanpa penutup kepala' })));
+            openDlg('👚 Lemari pakaian', [
+                el('p', { class: 'small-note', text: 'Pilih atasan dan bawahan, atau satu pakaian terusan. Pakaian baru bisa dibeli lewat laptop di ruang keluarga 💻.' }),
+                el('div', { class: 'tabs' }, Object.entries(SLOT_INFO).map(([k, t]) => el('button', { class: 'btn' + (k === wardTab ? ' on' : ''), onclick: () => { wardTab = k; openWardrobe(); } }, t))),
+                el('div', { class: 'clothgrid' }, list.length ? list : [el('p', { class: 'small-note', text: 'Belum ada pakaian di sini.' })]),
+            ]);
+        }
+        function wear(slot, id) {
+            const o = { ...look.o };
+            if (slot === 'top') { o.t = id; o.f = null; }
+            else if (slot === 'bottom') { o.b = id; o.f = null; }
+            else if (slot === 'full') o.f = id;
+            else if (slot === 'shoes') o.s = id;
+            else if (slot === 'head') o.h = id;
+            look.o = cleanOutfit(o, look.g);
+            applyLook();
+            if (dlgOpen()) openWardrobe();
         }
         function pray(s) {
             const done = state.ib[USER] === state.day;
@@ -2999,7 +3263,7 @@
         let slotWrites = Promise.resolve();
         function writeSlot(i) {
             state.savedAt = Date.now();
-            state.looks[USER] = { c: look.c };
+            state.looks[USER] = { o: look.o };
             const rec = { json: JSON.stringify(state), at: state.savedAt, by: USER, day: state.day, gold: state.gold };
             slots[i] = rec;
             storeSlots();
@@ -3062,10 +3326,11 @@
             buy(who, k) {
                 const s = SUPPLIES[k];
                 if (!s || state.gold < s.price) return;
+                if (s.cloth && (ownedClothes(who).has(s.cloth) || clothPending(who, s.cloth))) return;
                 state.gold -= s.price;
                 const due = Math.ceil((absMin() + 120) / 10) * 10;
-                const o = state.orders.find(o => o.k === k && Math.abs(o.due - due) <= 20);
-                if (o) o.n++; else if (state.orders.length < 20) state.orders.push({ k, n: 1, due }); else { state.gold += s.price; return; }
+                const o = !s.cloth && state.orders.find(o => o.k === k && Math.abs(o.due - due) <= 20);
+                if (o) o.n++; else if (state.orders.length < 24) state.orders.push({ k, n: 1, due, by: who }); else { state.gold += s.price; return; }
                 emitEvent(`Memesan ${s.label} 🛒. Kurir datang sekitar pukul ${fmtTime(due % 1440)}.`, 'none', null, who);
             },
             cook(who, k) {
@@ -3092,10 +3357,14 @@
             const due = state.orders.filter(o => o.due <= now);
             if (!due.length) return;
             state.orders = state.orders.filter(o => o.due > now);
-            for (const o of due) state.pkg[o.k] = (state.pkg[o.k] || 0) + o.n;
+            for (const o of due) {
+                const c = SUPPLIES[o.k].cloth;
+                if (c) state.pkgCloth.push([c, CHARACTERS[o.by] ? o.by : USER]);
+                else state.pkg[o.k] = (state.pkg[o.k] || 0) + o.n;
+            }
             emitEvent('📦 Paket dari toko online sudah datang di depan rumah!', 'sell', null, '');
         }
-        const pkgCount = () => Object.values(state.pkg).reduce((s, n) => s + n, 0);
+        const pkgCount = () => Object.values(state.pkg).reduce((s, n) => s + n, 0) + (state.pkgCloth || []).length;
 
         function homeInteractables() {
             const L = [];
@@ -3108,17 +3377,25 @@
                 act(who) {
                     const n = pkgCount();
                     if (!n) return;
+                    // clothes go straight into their owner's wardrobe
+                    const clothes = state.pkgCloth.length;
+                    for (const [id, u] of state.pkgCloth) { const w = state.wardrobe[u] ||= []; if (!w.includes(id)) w.push(id); }
+                    const owners = [...new Set(state.pkgCloth.map(v => v[1]))];
+                    state.pkgCloth = [];
                     let got = 0;
                     for (const [k, c] of Object.entries(state.pkg)) { const m = addBag(who, k, c); got += m; if (m === c) delete state.pkg[k]; else state.pkg[k] = c - m; }
-                    if (!got) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                    emitEvent(`Membuka paket: ${got} barang masuk tas 🎁${got < n ? ' (tas penuh, sisanya masih di paket)' : ''}`, 'icon:📦', [PKG_POS.x, 1, PKG_POS.z], who);
+                    if (!got && !clothes) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    const parts = [];
+                    if (got) parts.push(`${got} barang masuk tas${got < n - clothes ? ' (tas penuh, sisanya masih di paket)' : ''}`);
+                    if (clothes) parts.push(`${clothes} pakaian baru ada di lemari ${owners.join(' & ')} 👗`);
+                    emitEvent(`Membuka paket: ${parts.join(', ')} 🎁`, 'icon:📦', [PKG_POS.x, 1, PKG_POS.z], who);
                 },
             });
             add('bench', new THREE.Vector3(TURU_SPOT.x, 0, TURU_SPOT.z + 0.3), 1.3, seatsAct(PORCH_SEATS, 'Santai di teras 🌿'));
             // floor 1
             add('h:exit', HV(F1, 0, 6.4), 1.3, { local: true, label: () => 'Keluar rumah 🚪', act: () => travel(new THREE.Vector3(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.4), 0, '') });
             add('h:up1', HV(F1, -7.9, 2.0), 1.2, { local: true, label: () => 'Naik ke lantai 2 🪜', act: () => travel(HV(F2, -6.3, -2.4), 0, '') });
-            add('h:pc', HV(F1, -4.3, -0.75), 1.1, { local: true, label: () => 'Buka komputer · toko online 🖥️', act: openShop });
+            add('h:pc', HV(F1, -4.3, -0.75), 1.1, { local: true, label: () => 'Buka laptop · toko online 💻', act: openShop });
             add('h:sofa1', HV(F1, -5.7, 4.6), 1.5, seatsAct(SEATS.sofaFamily, 'Nonton TV di sofa 🛋️📺'));
             add('h:sofa2', HV(F1, 0, 2.3), 1.2, seatsAct(SEATS.sofaGuest, 'Duduk di ruang tamu 🛋️'));
             add('h:armL', new THREE.Vector3(SEATS.armL.x, 0, SEATS.armL.z), 0.9, seatAct(SEATS.armL, 'Duduk di kursi tamu'));
@@ -3134,7 +3411,7 @@
             add('h:down2', HV(F2, -7.9, -2.3), 0.9, { local: true, label: () => 'Turun ke lantai 1 🪜', act: () => travel(HV(F1, -6.4, 2.6), 0, '') });
             add('h:up2', HV(F2, -7.9, -3.9), 0.9, { local: true, label: () => 'Naik ke rooftop 🌿', act: () => travel(HV(RF, -7, -3.4), 0, '') });
             add('bed', HV(F2, -1.75, -3.9), 1.7, { local: true, label: () => player.sit === BED[USER] ? 'Tidur / bangun 🛏️' : 'Tempat tidur 🛏️', act: askSleep });
-            add('h:wardrobe', HV(F2, -4.4, -2.2), 1.0, { local: true, label: () => 'Buka lemari baju 👚', act: openWardrobe });
+            add('h:wardrobe', HV(F2, -4.4, -2.2), 1.0, { local: true, label: () => 'Buka lemari pakaian 👚', act: openWardrobe });
             add('h:kid1', HV(F2, 3.75, -5.1), 1.2, info('Lihat kamar anak 1 🧸', '🧸 Kamar anak 1 sudah disiapkan untuk anak kalian nanti. Semoga jadi keluarga sakinah 🤍'));
             add('h:kid2', HV(F2, 7.25, -4.2), 1.2, info('Lihat kamar anak 2 🚀', '🚀 Kamar anak 2 menunggu penghuni kecilnya suatu hari nanti 🤍'));
             add('h:balc0', new THREE.Vector3(SEATS.balc0.x, 0, SEATS.balc0.z), 0.9, seatAct(SEATS.balc0, 'Santai di balkon 🌇'));
@@ -3160,7 +3437,7 @@
                 act(who, _pos, x) {
                     const p = state.pots[i], at = [pos.x, 1.0, pos.z];
                     if (!p) {
-                        if (!takeBag(who, 'pot')) { emitEvent('Tidak ada pot di tasmu. Ambil dari kotak penyimpanan atau beli lewat komputer 🖥️', 'none', null, who); return; }
+                        if (!takeBag(who, 'pot')) { emitEvent('Tidak ada pot di tasmu. Ambil dari kotak penyimpanan atau beli lewat laptop 💻', 'none', null, who); return; }
                         state.pots[i] = {};
                         emitEvent('Menaruh pot baru 🪴', 'icon:🪴', at, who); return;
                     }
@@ -3462,17 +3739,19 @@
 
         function sendMine() {
             if (!net.backend) return;
-            const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
                 const tr = {};
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
-                state.looks[USER] = { c: look.c };
+                state.looks[USER] = { o: look.o };
                 o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, an, tr,
                     bg: { adindayn: encBag(bagOf('adindayn')), wawantn: encBag(bagOf('wawantn')) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
-                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due]), pkg: state.pkg, ib: state.ib };
+                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
+                    wd: { adindayn: state.wardrobe.adindayn.map(id => CLOTHES.indexOf(CLOTH[id])), wawantn: state.wardrobe.wawantn.map(id => CLOTHES.indexOf(CLOTH[id])) },
+                    pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -3498,7 +3777,10 @@
             }
             net.partner = o;
             net.connected = true;
-            if (Number.isInteger(o.look && o.look.c) && o.look.c >= 0 && o.look.c < SHIRTS.length && (!state.looks[OTHER] || state.looks[OTHER].c !== o.look.c)) { state.looks[OTHER] = { c: o.look.c }; refreshPartnerLook(); }
+            if (o.look && o.look.o) {
+                const po = cleanOutfit(o.look.o, CHARACTERS[OTHER].g);
+                if (JSON.stringify(po) !== JSON.stringify(lookOf(OTHER).o)) { state.looks[OTHER] = { o: po }; refreshPartnerLook(); }
+            }
             if (!was) {
                 toast(`${OTHER} bangun dan datang ke farm 👋`);
                 // without a lease, two hosts settle it: whoever has run their farm longest keeps it
@@ -3556,7 +3838,9 @@
             if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
             if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
             if (Array.isArray(w.pots) && w.pots.length === POT_SLOTS) state.pots = w.pots.map(decPot);
-            if (Array.isArray(w.ord)) state.orders = w.ord.filter(v => Array.isArray(v) && SUPPLIES[v[0]]).map(v => ({ k: v[0], n: +v[1] || 1, due: +v[2] || 0 }));
+            if (Array.isArray(w.ord)) state.orders = w.ord.filter(v => Array.isArray(v) && SUPPLIES[v[0]]).map(v => ({ k: v[0], n: +v[1] || 1, due: +v[2] || 0, by: CHARACTERS[v[3]] ? v[3] : undefined }));
+            if (w.wd) for (const u of Object.keys(CHARACTERS)) if (Array.isArray(w.wd[u])) state.wardrobe[u] = w.wd[u].map(i => CLOTHES[i] && CLOTHES[i].id).filter(Boolean);
+            if (Array.isArray(w.pc)) state.pkgCloth = w.pc.filter(v => Array.isArray(v) && CLOTHES[v[0]] && CHARACTERS[v[1]]).map(v => [CLOTHES[v[0]].id, v[1]]);
             if (w.pkg && typeof w.pkg === 'object') { state.pkg = {}; for (const k of Object.keys(w.pkg)) if (SUPPLIES[k] && Number.isFinite(w.pkg[k])) state.pkg[k] = w.pkg[k]; }
             if (w.ib && typeof w.ib === 'object') for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.ib[u])) state.ib[u] = w.ib[u];
             state.savedAt = o.at || state.savedAt;
@@ -3778,18 +4062,14 @@
         // ---------- Title screen: character creator, save slot, online ----------
         function renderTitle() {
             const p = net.connected && net.partner, hosting = !!(p && p.role === 'host' && p.rdy);
-            const sig = JSON.stringify([look.c, hosting, hosting && p.w && p.w.day, net.connected, slots.map(x => x && x.at)]);
+            const sig = JSON.stringify([look.o, hosting, hosting && p.w && p.w.day, net.connected, slots.map(x => x && x.at)]);
             if (sig === renderTitle.sig) return;
             renderTitle.sig = sig;
-            $('whoami').textContent = `Kamu bermain sebagai ${look.n} · ${look.g === 'f' ? '👩‍🌾 Petani perempuan' : '👨‍🌾 Petani laki-laki'}`;
-            $('shirtPick').replaceChildren(...SHIRTS.map((c, i) => {
-                const b = document.createElement('button');
-                b.style.background = '#' + c.toString(16).padStart(6, '0');
-                b.className = look.c === i ? 'on' : '';
-                b.setAttribute('aria-label', 'Warna baju ' + (i + 1));
-                b.onclick = () => { look.c = i; applyLook(); };
-                return b;
-            }));
+            $('whoami').textContent = `Kamu bermain sebagai ${look.n} · ${look.g === 'f' ? '👩 Perempuan' : '👨 Laki-laki'}`;
+            const o = look.o, names = (o.f ? [o.f] : [o.t, o.b]).concat(o.s === 'none' ? [] : [o.s], o.h ? [o.h] : []).map(id => CLOTH[id].label);
+            const wb = document.createElement('button'); wb.className = 'btn'; wb.id = 'wardBtn'; wb.textContent = '👗 Ganti pakaian'; wb.onclick = openWardrobe;
+            const info = document.createElement('span'); info.className = 'small-note'; info.textContent = names.join(' · ');
+            $('shirtPick').replaceChildren(wb, info);
             $('partnerInfo').textContent = hosting ? `🟢 ${OTHER} sedang main (Hari ${p.w ? p.w.day : '…'})` : net.connected ? `🟢 ${OTHER} online, belum masuk farm` : `💤 ${OTHER} lagi turu`;
             const box = $('soloBtns');
             const btn = (id, cls, text, f) => { const b = document.createElement('button'); b.id = id; b.className = cls; b.textContent = text; b.onclick = f; return b; };
@@ -3804,7 +4084,7 @@
                 ...filled.map(([x, i]) => btn('slotBtn' + i, 'btn slotbtn', `📂 Slot ${i + 1} · ${slotLabel(x)}`, () => startGame('load', i))));
         }
         function applyLook() {
-            try { localStorage.setItem(LOOK_KEY, JSON.stringify({ c: look.c })); } catch (e) { }
+            try { localStorage.setItem(LOOK_KEY, JSON.stringify({ o: look.o })); } catch (e) { }
             buildFarmer(player, look);
             renderTitle();
         }
@@ -3959,7 +4239,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get state() { return state; }, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get state() { return state; }, makeFarmer, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

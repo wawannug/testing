@@ -52,6 +52,16 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (adindayn di kiri, wawantn di kanan).
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
+## Karakter dan pakaian 👗
+- Karakter bertubuh proporsional seperti manusia (wajah, rambut, leher, lengan dan kaki terpisah).
+- **Pakaian bisa dipadu:** atasan + bawahan, atau satu pakaian terusan/setelan. Ditambah sepatu dan penutup kepala (boleh juga tanpa alas kaki / tanpa penutup kepala).
+  - Atasan: kaos lengan pendek & panjang, kemeja lengan pendek & panjang, hoodie, jaket, sweater, kemeja batik, kebaya, jas.
+  - Bawahan: rok, rok panjang (termasuk batik), jeans, celana pendek, celana panjang.
+  - Terusan & setelan: dress, overall, jumpsuit, piyama, baju olahraga, seragam, baju renang, baju adat Jawa (beskap + jarik), baju adat kebaya + kain.
+  - Sepatu: sneakers, sepatu olahraga, sandal, sandal jepit, boots, pantofel, flat shoes, sepatu hak tinggi.
+  - Penutup kepala: topi jerami, topi, peci, kupluk, dan hijab (5 warna).
+- Pakaian dibeli lewat **laptop** di ruang keluarga (tab 👕 Pakaian), diantar kurir bersama paket, lalu langsung masuk ke lemari pemiliknya. Ganti pakaian di **lemari kamar utama** atau lewat tombol *Ganti pakaian* di layar awal. Pakaian dan baju yang sedang dipakai ikut tersimpan di save game dan terlihat oleh pasangan.
+
 ## Tas, alat, dan penyimpanan
 - **Tas pribadi 30 slot (3 baris × 10).** Baris paling atas adalah toolbar yang terlihat saat main (tombol 1–0); ketuk 🎒 untuk membuka semua isi tas, lalu tahan-geser (atau ketuk dua slot) untuk menukar tempat barang. Nama alat/barang muncul sebentar saat dipilih. Satu slot menumpuk sampai 99 barang yang sama.
 - Isi tas: Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.
