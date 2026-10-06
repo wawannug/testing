@@ -482,10 +482,11 @@
     </div>
 
     <script>
-        // Show the shared Farmora save if this browser has a copy.
+        // Show the newest Farmora save slot on this browser.
         window.__gate.then(function () {
             let save = null;
-            try { save = JSON.parse(localStorage.getItem('farmora.shared.v2')); } catch (e) { }
+            // the newest of the 10 save slots
+            try { save = (JSON.parse(localStorage.getItem('farmora.slots.v3')) || []).filter(Boolean).sort((x, y) => y.at - x.at)[0] || null; } catch (e) { }
             if (!save || !save.day) return;
             const gold = (save.gold || 0).toLocaleString('id-ID');
             document.getElementById('saveInfo').innerHTML = `Farm kalian: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;

@@ -39,25 +39,34 @@ Ada 20 tanaman buah khas Indonesia di **Kebun Barat**, **Kebun Utara**, dan bede
 Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Valley atau Coral Island). Bagian dalam adalah scene tersendiri yang baru dibangun saat pertama kali masuk dan hanya digambar ketika kamu di dalam, jadi farm luar tidak digambar bersamaan dan memori tetap hemat.
 
 - **Lantai 1:** 🚪 ruang tamu, 🛋️ ruang keluarga (sofa, TV, dan **komputer toko online** 🖥️), 🍳 dapur (masak 7 resep dari hasil kebun & ternak) dan 🍽️ ruang makan, 🚿 kamar mandi/WC, serta 🕌 **mushola** dengan 2 sajadah. Di mushola kamu ditanya mau beribadah atau tidak; kalau ya, muncul ayat harian (bergiliran tiap hari) lalu pesan *"Kamu anak pintar! Kamu sudah melaksanakan ibadah hari ini."*
-- **Lantai 2:** 🛏️ kamar utama (tidur di sini untuk ganti hari, ada lemari baju untuk ganti warna), 🧸 2 kamar anak yang disiapkan untuk nanti, dan 🌇 balkon untuk bersantai.
+- **Lantai 2:** tangga turun tepat di atas tangga ruang keluarga, tangga ke rooftop, lorong yang menghubungkan semua ruangan, 🛏️ kamar utama (tidur di sini untuk ganti hari, ada lemari baju untuk ganti warna), 🧸 2 kamar anak yang disiapkan untuk nanti, dan 🌇 balkon untuk bersantai.
 - **Rooftop (lantai 3):** taman atap dengan pergola, kursi santai, keran air, dan rak untuk 24 pot. Ada 15 sayuran dan 15 tanaman hias; siram setiap hari dan tanaman siap dijual dalam 3–10 hari sesuai jenisnya. Pupuk 🧪 mempercepat tumbuh 1,5×. Tanaman hias dijual bersama potnya.
-- **Toko online:** beli pot, pupuk, benih, dan bibit lewat komputer. Kurir mengantar paket 📦 ke depan rumah sekitar 2 jam (waktu game) kemudian. Rumah baru juga datang dengan hadiah: 4 pot terpasang, 2 pot cadangan, pupuk, dan beberapa benih.
+- **Toko online:** beli pot, pupuk, benih, dan bibit lewat komputer. Kurir mengantar paket 📦 ke depan rumah sekitar 2 jam (waktu game) kemudian. Rumah baru juga datang dengan hadiah: 4 pot terpasang, dan pot, pupuk, serta benih di tas masing-masing.
 - 🌿 Teras depan punya bangku untuk duduk santai.
 
 ## Karakter, farm bersama, dan turu 💤
-- **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih.
-- **Satu farm untuk berdua, selalu online.** Tidak ada mode main sendiri dan tidak perlu kode: cukup tekan **Masuk ke farm**. Hewan, waktu, kebun, inventori, dan uang dipakai bersama; ember air dimiliki masing-masing.
-- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di bangku teras. Begitu dia masuk, dia bangun dan langsung bergabung ke farm yang sedang berjalan.
-- Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu, hewan, dan menyimpan progres; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
-- **Progres tersimpan otomatis** setiap 15 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.
-  - Di link claude.ai: memakai ruangan real-time dan penyimpanan bersama artifact, jadi farm tersimpan untuk berdua. Keduanya harus login, dan pasangan perlu diundang lewat email dengan akses yang bisa menulis (Editor).
-  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Tiap perangkat menyimpan salinan farm; saat kalian bertemu online, salinan yang paling baru yang dipakai.
+- **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih (juga di lemari kamar).
+- **Satu farm untuk berdua.** Di layar awal pilih **Buat farm baru** atau **lanjutkan salah satu save game**. Kalau pasanganmu sudah main, tombolnya jadi **Gabung ke farm** dia. Hewan, waktu, kebun, kotak penyimpanan, dan uang dipakai bersama.
+- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di bangku teras.
+- Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
+
+## Tas, alat, dan penyimpanan
+- **Tas pribadi berisi maksimal 30 barang.** Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.
+- Membuka kulkas/kotak menampilkan isi kotak dan isi tas berdampingan seperti Stardew Valley: ketuk barang untuk memindahkannya (semua atau 1 buah).
+- **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur.
+- **Alat** (tombol 1–4 atau ketuk di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
+- **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di tanah kandang ayam.
+
+## Menyimpan progres
+- Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres** lalu pilih slot (ada 10 slot). **Tidur tanpa menyimpan** juga bisa.
+- Di link claude.ai, slot tersimpan di penyimpanan bersama artifact, jadi terlihat oleh berdua (pasangan perlu akses Editor). Di versi web (GitHub Pages), slot tersimpan di perangkat masing-masing.
 
 ## Cara main
 | Kontrol | Aksi |
 | --- | --- |
 | WASD / panah | Berjalan (tahan Shift untuk lari) |
-| E / Spasi | Interaksi: elus hewan, siram, jual, masuk rumah, duduk, tidur di kasur |
+| E / Spasi | Interaksi: elus hewan, siram, buka kotak, masuk rumah, duduk, tidur di kasur |
+| 1–4 | Pilih alat: tangan, penyiram, pemeras susu, gunting bulu |
 | Scroll | Zoom kamera |
 | H | Bantuan |
 
