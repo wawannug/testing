@@ -88,9 +88,14 @@
             bottom: 12px;
             transform: translateX(-50%);
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 6px;
             padding: 6px;
+            max-width: min(94vw, 760px);
         }
+        .slot.water { background: #dff1ff; border-color: #6aaed6; }
+        .slot small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
 
         .slot {
             width: 64px;
@@ -315,6 +320,9 @@
                 top: 64px;
                 transform: none;
                 flex-direction: column;
+                flex-wrap: nowrap;
+                max-height: calc(100vh - 260px);
+                overflow-y: auto;
             }
 
             .slot { width: 52px; height: 52px; font-size: 22px; }
@@ -415,11 +423,7 @@
             <p style="margin:0;text-align:center">Peternakan mungilmu sudah menunggu. Siapkan petanimu dulu.</p>
             <div class="sect">
                 <b>Petanimu</b>
-                <input class="namein" id="nameIn" maxlength="14" placeholder="Nama petani">
-                <div class="pick" id="genderPick">
-                    <button class="btn" data-g="m">👨‍🌾 Laki-laki</button>
-                    <button class="btn" data-g="f">👩‍🌾 Perempuan</button>
-                </div>
+                <p class="saveinfo" id="whoami" style="margin:0"></p>
                 <div class="shirts" id="shirtPick" aria-label="Warna baju"></div>
             </div>
             <div class="sect">
@@ -429,7 +433,7 @@
             </div>
             <div class="sect">
                 <b>Main berdua online 👫</b>
-                <p class="small-note">Satu orang membuat farm online, temannya bergabung dengan kode. Kalian bermain di farm milik pembuat, dan progresnya tersimpan di perangkat pembuat.</p>
+                <p class="small-note">Untuk adindayn dan wawantn. Satu orang membuat farm online, yang lain bergabung dengan kode. Kalian bermain di farm milik pembuat, dan progresnya tersimpan di perangkat pembuat.</p>
                 <div id="onlineBox"></div>
             </div>
             <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
@@ -450,6 +454,8 @@
                 <tr><td>🍼 Susu Kambing</td><td>225 G</td></tr>
                 <tr><td>🧶 Wol</td><td>340 G</td></tr>
             </table>
+            <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
+            <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -897,29 +903,8 @@
             addCircleCollider(POND.x, POND.z, POND.r + 0.1);
         }
 
-        // Crop field (decorative)
+        // Field with the scarecrow (its beds hold watermelon, melon, strawberries and pineapples)
         {
-            for (let z = FIELD.minZ + 0.5; z < FIELD.maxZ; z += 1.4) {
-                box(FIELD.maxX - FIELD.minX, 0.14, 0.9, C.tilled, (FIELD.minX + FIELD.maxX) / 2, 0.07, z, scene);
-                const type = Math.floor(srand() * 4);
-                for (let x = FIELD.minX + 0.6; x < FIELD.maxX; x += 1) {
-                    if (type === 0) { // cabbage
-                        const m = mesh(ICO, mat(0x8ccf5a), scene); m.scale.setScalar(0.32); m.position.set(x, 0.38, z);
-                    } else if (type === 1) { // carrot tops
-                        for (let k = -1; k <= 1; k++) box(0.06, 0.4, 0.06, 0x4fa83a, x + k * 0.08, 0.35, z, scene).rotation.z = k * 0.4;
-                        box(0.18, 0.1, 0.18, 0xf08a2c, x, 0.17, z, scene);
-                    } else if (type === 2) { // tomato
-                        box(0.05, 0.9, 0.05, C.darkWood, x, 0.55, z, scene);
-                        const bush = mesh(ICO, mat(C.leaf2), scene); bush.scale.setScalar(0.28); bush.position.set(x, 0.6, z);
-                        for (const [ox, oy] of [[0.18, 0.55], [-0.15, 0.7], [0.05, 0.42]]) {
-                            const t = mesh(ICO, mat(0xe8413a), scene); t.scale.setScalar(0.09); t.position.set(x + ox, oy, z + 0.15);
-                        }
-                    } else { // sprout
-                        box(0.05, 0.25, 0.05, 0x5fbf3a, x, 0.26, z, scene);
-                        box(0.2, 0.04, 0.1, 0x6fd04a, x, 0.4, z, scene).rotation.z = 0.3;
-                    }
-                }
-            }
             // Scarecrow
             const g = new THREE.Group();
             g.position.set(3.6, 0, 13.5);
@@ -967,10 +952,234 @@
             if (Math.abs(x) < 25 && Math.abs(z) < 24) continue;
             (srand() < 0.5 ? pineTree : roundTree)(x, z, srange(0.9, 1.5));
         }
-        for (const [x, z, s] of [[-2, -17, 1.1], [4, -16, 1.3], [-20.5, -16, 1], [-21, 16, 1.2], [-13, 19, 1], [21, 18.5, 1.1], [21.5, -17, 1], [6, 19.5, 0.9], [-21.5, 13, 0.9]]) {
+        for (const [x, z, s] of [[-20.5, -16, 1], [21, 18.5, 1.1], [6, 19.5, 0.9]]) {
             roundTree(x, z, s);
             addCircleCollider(x, z, 0.45 * s);
         }
+
+        // ---------- Orchard: 20 Indonesian fruit plants ----------
+        // cycle = nights of watering until the next harvest, yield = fruit per harvest, roughly following how each plant bears
+        const FRUIT_DEFS = [
+            // West orchard
+            { key: 'pisang', label: 'Pisang', icon: '🍌', price: 120, cycle: 4, yield: [1, 2], kind: 'banana', at: [-21, 13.5] },
+            { key: 'kelapa', label: 'Kelapa', icon: '🥥', price: 85, cycle: 3, yield: [2, 3], kind: 'palm', at: [-17.5, 13.5] },
+            { key: 'pepaya', label: 'Pepaya', icon: '🍈', price: 100, cycle: 2, yield: [1, 2], kind: 'papaya', at: [-14, 13.5] },
+            { key: 'salak', label: 'Salak', icon: '🥝', price: 40, cycle: 3, yield: [3, 5], kind: 'salak', at: [-10.5, 13.5] },
+            { key: 'jambu', label: 'Jambu biji', icon: '🍉', price: 35, cycle: 2, yield: [2, 4], kind: 'tree', at: [-21, 19], tree: { r: 1.05, y: 2.0, trunk: 0.85, leaf: 0x78b64a, bark: 0xb59a74, shape: 'spread' }, fruit: 'jambu' },
+            { key: 'jeruk', label: 'Jeruk', icon: '🍊', price: 45, cycle: 3, yield: [3, 5], kind: 'tree', at: [-17.5, 19], tree: { r: 0.95, y: 1.9, trunk: 0.8, leaf: 0x3f9f45, shape: 'round' }, fruit: 'jeruk' },
+            { key: 'apel', label: 'Apel', icon: '🍎', price: 70, cycle: 4, yield: [2, 4], kind: 'tree', at: [-14, 19], tree: { r: 1.05, y: 2.0, trunk: 0.9, leaf: 0x5aa33f, shape: 'round' }, fruit: 'apel' },
+            { key: 'pir', label: 'Pir', icon: '🍐', price: 65, cycle: 4, yield: [2, 4], kind: 'tree', at: [-10.5, 19], tree: { r: 0.95, y: 2.2, trunk: 0.95, leaf: 0x6aaa45, shape: 'cone' }, fruit: 'pir' },
+            // North orchard
+            { key: 'mangga', label: 'Mangga', icon: '🥭', price: 90, cycle: 4, yield: [2, 4], kind: 'tree', at: [0, -16.5], tree: { r: 1.55, y: 2.6, trunk: 1.1, leaf: 0x2f7a35, shape: 'round' }, fruit: 'mangga' },
+            { key: 'durian', label: 'Durian', icon: '🥭', price: 550, cycle: 5, yield: [1, 2], kind: 'tree', at: [6, -16.5], tree: { r: 1.3, y: 3.3, trunk: 1.5, leaf: 0x3e7d3a, shape: 'oval' }, fruit: 'durian' },
+            { key: 'alpukat', label: 'Alpukat', icon: '🥑', price: 110, cycle: 4, yield: [2, 3], kind: 'tree', at: [12, -16.5], tree: { r: 1.2, y: 3.0, trunk: 1.3, leaf: 0x3d7a33, shape: 'oval' }, fruit: 'alpukat' },
+            { key: 'anggur', label: 'Anggur', icon: '🍇', price: 140, cycle: 3, yield: [2, 3], kind: 'vine', at: [18, -16.5] },
+            { key: 'rambutan', label: 'Rambutan', icon: '🟡', price: 30, cycle: 4, yield: [4, 6], kind: 'tree', at: [0, -20.5], tree: { r: 1.6, y: 2.4, trunk: 1.0, leaf: 0x4a8f3a, shape: 'spread' }, fruit: 'rambutan' },
+            { key: 'manggis', label: 'Manggis', icon: '🟣', price: 75, cycle: 5, yield: [3, 5], kind: 'tree', at: [6, -20.5], tree: { r: 1.15, y: 2.6, trunk: 1.0, leaf: 0x2c5e2e, shape: 'cone' }, fruit: 'manggis' },
+            { key: 'duku', label: 'Duku / Langsat', icon: '🟠', price: 35, cycle: 5, yield: [4, 6], kind: 'tree', at: [12, -20.5], tree: { r: 1.25, y: 2.6, trunk: 1.15, leaf: 0x4c8a3c, shape: 'round' }, fruit: 'duku' },
+            { key: 'sawo', label: 'Sawo', icon: '🟤', price: 45, cycle: 3, yield: [2, 4], kind: 'tree', at: [18, -20.5], tree: { r: 1.25, y: 2.4, trunk: 1.0, leaf: 0x557d36, shape: 'round' }, fruit: 'sawo' },
+            // Beds in the field
+            { key: 'semangka', label: 'Semangka', icon: '🍉', price: 240, cycle: 4, yield: [1, 2], kind: 'bed', at: [-4, 12.6], fruit: 'semangka' },
+            { key: 'melon', label: 'Melon', icon: '🍈', price: 200, cycle: 4, yield: [1, 2], kind: 'bed', at: [0, 12.6], fruit: 'melon' },
+            { key: 'stroberi', label: 'Stroberi', icon: '🍓', price: 25, cycle: 1, yield: [3, 6], kind: 'berry', at: [-4, 16.4] },
+            { key: 'nanas', label: 'Nanas', icon: '🍍', price: 180, cycle: 5, yield: [1, 2], kind: 'pineapple', at: [0, 16.4] },
+        ];
+        const WELLS = [new THREE.Vector3(-8, 0, 10.4), new THREE.Vector3(-3.5, 0, -18.5)];
+
+        const stripeMat = (() => {
+            const c = document.createElement('canvas'); c.width = 64; c.height = 8;
+            const g = c.getContext('2d');
+            for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#3f8a35' : '#1f5a24'; g.fillRect(i * 8, 0, 8, 8); }
+            const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+            return new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 });
+        })();
+
+        // One fruit, built small around its own origin
+        function fruitModel(kind) {
+            const g = new THREE.Group();
+            const b = (rx, ry, rz, c, x = 0, y = 0, z = 0, rough = 0.45) => { const m = mesh(SPH, mat(c, rough), g); m.scale.set(rx, ry, rz); m.position.set(x, y, z); return m; };
+            const spike = (c, n, r, s) => { for (let i = 0; i < n; i++) { const u = i / n * Math.PI * 2, v = (i % 3 - 1) * 0.6; const k = mesh(CONE, mat(c), g); k.scale.set(s, s * 2.2, s); k.position.set(Math.cos(u) * Math.cos(v) * r, Math.sin(v) * r, Math.sin(u) * Math.cos(v) * r); k.lookAt(k.position.clone().multiplyScalar(3)); k.rotateX(Math.PI / 2); } };
+            switch (kind) {
+                case 'mangga': b(0.1, 0.13, 0.09, 0xf2b134); b(0.05, 0.05, 0.03, 0xe0603a, 0.04, 0.02, 0.06); break;
+                case 'jeruk': b(0.09, 0.09, 0.09, 0xf5911e, 0, 0, 0, 0.6); break;
+                case 'apel': b(0.09, 0.085, 0.09, 0xd8322a, 0, 0, 0, 0.3); cap(0.008, 0.04, 0x5b3a1e, 0, 0.1, 0, g); break;
+                case 'pir': b(0.085, 0.085, 0.085, 0xc9d45a); b(0.055, 0.065, 0.055, 0xc9d45a, 0, 0.1, 0); break;
+                case 'alpukat': b(0.075, 0.11, 0.075, 0x3f6b2a, 0, 0, 0, 0.35); break;
+                case 'durian': b(0.15, 0.17, 0.15, 0x9aa83a, 0, 0, 0, 0.7); spike(0x7d8a2a, 18, 0.15, 0.03); break;
+                case 'manggis': b(0.08, 0.075, 0.08, 0x5b1e4a, 0, 0, 0, 0.3); b(0.05, 0.02, 0.05, 0x5a8a3a, 0, 0.07, 0); break;
+                case 'jambu': b(0.085, 0.09, 0.085, 0xb8d86a); break;
+                case 'rambutan': b(0.065, 0.075, 0.065, 0xd8322a, 0, 0, 0, 0.6); spike(0x7fbf3a, 12, 0.065, 0.014); break;
+                case 'duku': for (const [x, y] of [[0, 0], [0.06, -0.04], [-0.06, -0.04], [0, -0.08], [0.03, -0.12]]) b(0.045, 0.045, 0.045, 0xd9c27a, x, y, 0, 0.6); break;
+                case 'sawo': b(0.07, 0.08, 0.07, 0x8a6a45, 0, 0, 0, 0.8); break;
+                case 'semangka': { const m = mesh(SPH, stripeMat, g); m.scale.set(0.3, 0.25, 0.4); m.rotation.z = Math.PI / 2; m.position.y = 0.2; break; }
+                case 'melon': b(0.24, 0.22, 0.24, 0xd5d58a, 0, 0.2, 0, 0.75); break;
+                default: b(0.08, 0.08, 0.08, 0xf2b134);
+            }
+            return g;
+        }
+
+        function plantMaterial(c) { return new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 }); }
+
+        // Returns { group, sway, slots[], leafMats[], top }
+        function buildPlant(f) {
+            const g = new THREE.Group();
+            g.position.set(f.at[0], 0, f.at[1]);
+            const sway = new THREE.Group(); g.add(sway);
+            const slots = [], leafMats = [];
+            const leaf = c => { const m = plantMaterial(c); leafMats.push(m); return m; };
+            let top = 3;
+            // fruit is drawn a little larger than life so it reads from the farm camera
+            const fscale = { tree: 1.8, palm: 1.4, papaya: 1.4, bed: 1.1 }[f.kind] || 1;
+            const slot = (parent, x, y, z) => { const fm = fruitModel(f.fruit || f.key); fm.position.set(x, y, z); fm.scale.setScalar(fscale); parent.add(fm); fm.visible = false; slots.push(fm); };
+            if (f.kind === 'tree') {
+                const t = f.tree, lm = leaf(t.leaf), darker = leaf(new THREE.Color(t.leaf).offsetHSL(0, 0, -0.05).getHex());
+                const trunk = mesh(TRUNK, mat(t.bark || C.darkBrown), g); trunk.scale.set(t.trunk, t.trunk * (t.y / 2.1), t.trunk); trunk.position.y = 0.9 * t.trunk * (t.y / 2.1);
+                for (const s of [1, -1]) { const br = cap(0.06 * t.trunk, 0.7 * t.r, t.bark || C.darkBrown, 0.35 * s * t.r, t.y - 0.25, 0, sway); br.rotation.z = -0.9 * s; }
+                const parts = t.shape === 'cone' ? [[0, t.y, 0, 1], [0, t.y + t.r * 0.8, 0, 0.75], [0, t.y + t.r * 1.45, 0, 0.45]]
+                    : t.shape === 'oval' ? [[0, t.y, 0, 1], [0, t.y + t.r * 0.9, 0, 0.85], [0.35, t.y + 0.4, 0.3, 0.7], [-0.35, t.y + 0.5, -0.3, 0.7]]
+                        : t.shape === 'spread' ? [[0, t.y, 0, 0.9], [t.r * 0.6, t.y - 0.1, 0.2, 0.7], [-t.r * 0.6, t.y - 0.05, -0.2, 0.72], [0.1, t.y + 0.35, -t.r * 0.5, 0.65], [-0.1, t.y + 0.3, t.r * 0.5, 0.66]]
+                            : [[0, t.y, 0, 1], [t.r * 0.45, t.y - 0.15, t.r * 0.25, 0.7], [-t.r * 0.45, t.y - 0.1, -t.r * 0.2, 0.72], [0.1, t.y + t.r * 0.55, 0, 0.7]];
+                parts.forEach(([x, y, z, k], i) => { const m = mesh(ICO, i % 2 ? darker : lm, sway); m.scale.set(t.r * k, t.r * k * (t.shape === 'oval' ? 1.15 : 0.9), t.r * k); m.position.set(x, y, z); });
+                const n = Math.max(...f.yield) + (f.fruit === 'rambutan' || f.fruit === 'duku' ? 0 : 1);
+                for (let i = 0; i < n; i++) {
+                    // sit on the outside of the canopy, alternating heights, so fruit shows from above
+                    const a = i / n * Math.PI * 2 + 0.4;
+                    const hk = f.fruit === 'durian' || f.fruit === 'duku' ? -0.35 : (i % 2 ? 0.3 : -0.05);
+                    const rr = t.r * Math.sqrt(1 - hk * hk) * (t.shape === 'cone' ? 0.95 : 1.04) + 0.04;
+                    slot(sway, Math.cos(a) * rr, t.y + t.r * hk * (t.shape === 'oval' ? 1.1 : 0.9), Math.sin(a) * rr);
+                }
+                top = t.y + t.r * 1.6;
+                addCircleCollider(f.at[0], f.at[1], 0.35 * t.trunk);
+            } else if (f.kind === 'palm') {
+                // a gently leaning coconut palm
+                let x = 0, y = 0, lean = 0;
+                for (let i = 0; i < 7; i++) {
+                    const seg = cap(0.15 - i * 0.008, 0.45, 0x8a6a45, x, y + 0.27, 0, g);
+                    seg.rotation.z = -lean;
+                    lean += 0.035; x += Math.sin(lean) * 0.5; y += Math.cos(lean) * 0.5;
+                }
+                sway.position.set(x, y + 0.1, 0);
+                const lm = leaf(0x4f9a3a);
+                for (let i = 0; i < 10; i++) {
+                    const a = i / 10 * Math.PI * 2, fr = new THREE.Group(); fr.rotation.y = a; sway.add(fr);
+                    const fl = mesh(SPH, lm, fr); fl.scale.set(0.16, 0.03, 0.95); fl.position.set(0, -0.15, 0.8); fl.rotation.x = 0.45;
+                    cap(0.02, 1.4, 0x6f8f3a, 0, -0.12, 0.75, fr).rotation.x = Math.PI / 2 + 0.45;
+                }
+                for (let i = 0; i < Math.max(...f.yield) + 1; i++) { const a = i * 2.2; slot(sway, Math.cos(a) * 0.17, -0.3 - (i % 2) * 0.12, Math.sin(a) * 0.17); }
+                top = y + 1.1;
+                addCircleCollider(f.at[0], f.at[1], 0.3);
+            } else if (f.kind === 'banana') {
+                cap(0.17, 1.6, 0x6f8a3a, 0, 1.0, 0, g);
+                const lm = leaf(0x6fbf4a);
+                sway.position.y = 1.9;
+                for (let i = 0; i < 8; i++) {
+                    const a = i / 8 * Math.PI * 2, fr = new THREE.Group(); fr.rotation.y = a; sway.add(fr);
+                    cap(0.02, 0.5, 0x5f8a32, 0, 0.15, 0.15, fr).rotation.x = 0.6;
+                    const l = mesh(SPH, lm, fr); l.scale.set(0.32, 0.025, 0.85); l.position.set(0, 0.35 + (i % 2) * 0.1, 0.85); l.rotation.x = -0.25 + (i % 3) * 0.15;
+                }
+                // bunch hanging from the top on its stalk
+                const stalk = cap(0.025, 0.5, 0x5f8a32, 0.25, -0.05, 0, sway); stalk.rotation.z = 0.6;
+                const bunchAt = [0.4, -0.35, 0];
+                for (let i = 0; i < Math.max(...f.yield); i++) {
+                    const bunch = new THREE.Group(); bunch.position.set(bunchAt[0], bunchAt[1] - i * 0.22, 0); sway.add(bunch);
+                    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; const fi = cap(0.03, 0.16, 0xf2d34a, Math.cos(a) * 0.09, 0, Math.sin(a) * 0.09, bunch); fi.rotation.z = Math.cos(a) * 0.9; fi.rotation.x = Math.sin(a) * 0.9; }
+                    bunch.scale.setScalar(1.35); bunch.visible = false; slots.push(bunch);
+                }
+                const heart = mesh(SPH, mat(0x7a2a4a, 0.4), sway); heart.scale.set(0.08, 0.13, 0.08); heart.position.set(0.42, -0.85, 0);
+                top = 3.3;
+                addCircleCollider(f.at[0], f.at[1], 0.25);
+            } else if (f.kind === 'papaya') {
+                cap(0.1, 2.3, 0x9a9a7a, 0, 1.25, 0, g);
+                sway.position.y = 2.45;
+                const lm = leaf(0x5fae45);
+                for (let i = 0; i < 8; i++) {
+                    const a = i / 8 * Math.PI * 2, fr = new THREE.Group(); fr.rotation.y = a; sway.add(fr);
+                    cap(0.015, 0.6, 0x8fbf5a, 0, 0.12, 0.28, fr).rotation.x = 0.9;
+                    const l = mesh(ICO, lm, fr); l.scale.set(0.42, 0.05, 0.36); l.position.set(0, 0.32, 0.62); l.rotation.x = 0.25;
+                }
+                for (let i = 0; i < Math.max(...f.yield) + 1; i++) { const a = i * 2.1; slot(sway, Math.cos(a) * 0.15, -0.15 - (i % 2) * 0.22, Math.sin(a) * 0.15); }
+                top = 3.4;
+                addCircleCollider(f.at[0], f.at[1], 0.2);
+            } else if (f.kind === 'salak') {
+                const lm = leaf(0x3f6f35);
+                for (let i = 0; i < 9; i++) {
+                    const a = i / 9 * Math.PI * 2, fr = new THREE.Group(); fr.rotation.y = a; sway.add(fr);
+                    const l = mesh(SPH, lm, fr); l.scale.set(0.18, 0.03, 1.0); l.position.set(0, 0.85, 0.55); l.rotation.x = -0.95;
+                    for (let k = 0; k < 3; k++) { const sp = mesh(CONE, mat(0x2f4a28), fr); sp.scale.set(0.012, 0.08, 0.012); sp.position.set(0, 0.35 + k * 0.25, 0.2 + k * 0.17); }
+                }
+                for (let i = 0; i < Math.max(...f.yield); i++) {
+                    const a = i * 1.3, cl = new THREE.Group(); cl.position.set(Math.cos(a) * 0.25, 0.12, Math.sin(a) * 0.25); g.add(cl);
+                    for (const [x, y] of [[0, 0], [0.07, 0.02], [-0.06, 0.03]]) { const s = mesh(SPH, mat(0x5a3322, 0.8), cl); s.scale.set(0.055, 0.07, 0.055); s.position.set(x, y, 0); }
+                    cl.scale.setScalar(1.5); cl.visible = false; slots.push(cl);
+                }
+                top = 2.0;
+                addCircleCollider(f.at[0], f.at[1], 0.5);
+            } else if (f.kind === 'vine') {
+                // grape vine on a pergola
+                for (const [x, z] of [[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]]) { box(0.14, 2.2, 0.14, C.darkWood, x, 1.1, z, g); addCircleCollider(f.at[0] + x, f.at[1] + z, 0.15); }
+                for (const z of [-1.1, 0, 1.1]) box(2.5, 0.1, 0.1, C.wood, 0, 2.2, z, g);
+                for (const x of [-1.1, 0, 1.1]) box(0.08, 0.08, 2.5, C.wood, x, 2.25, 0, g);
+                cap(0.07, 2.0, 0x6b4a2a, 0, 1.0, 0, g).rotation.z = 0.08;
+                const lm = leaf(0x5fa83c);
+                for (let i = 0; i < 9; i++) { const m = mesh(ICO, lm, sway); m.scale.set(0.6, 0.22, 0.6); m.position.set((i % 3 - 1) * 0.75, 2.35, (Math.floor(i / 3) - 1) * 0.75); }
+                for (let i = 0; i < Math.max(...f.yield) + 2; i++) {
+                    const cl = new THREE.Group(); cl.position.set((i % 3 - 1) * 0.7, 2.05, (i % 2 ? 0.5 : -0.5)); sway.add(cl);
+                    for (let k = 0; k < 10; k++) { const r = 0.045, row = Math.floor(k / 4); const s = mesh(SPH, mat(0x6a2a7a, 0.3), cl); s.scale.setScalar(r); s.position.set(((k % 4) - 1.5) * 0.06 * (1 - row * 0.3), -row * 0.07, ((k % 2) - 0.5) * 0.05); }
+                    cl.scale.setScalar(1.5); cl.visible = false; slots.push(cl);
+                }
+                top = 3.1;
+            } else {
+                // beds: watermelon, melon, strawberries, pineapples
+                box(3.4, 0.16, 3.0, C.tilled, 0, 0.08, 0, g);
+                const lm = leaf(f.kind === 'pineapple' ? 0x5f8f4a : f.kind === 'berry' ? 0x3f9a3a : 0x4f9f3a);
+                if (f.kind === 'bed') {
+                    for (let i = 0; i < 14; i++) { const l = mesh(ICO, lm, sway); l.scale.set(0.28, 0.07, 0.24); l.position.set(((i * 7) % 11) / 11 * 2.8 - 1.4, 0.22, ((i * 5) % 9) / 9 * 2.4 - 1.2); }
+                    cap(0.02, 2.6, 0x4f8f3a, 0, 0.2, 0, sway).rotation.z = Math.PI / 2;
+                    [[-0.9, -0.6], [0.8, 0.5], [-0.2, 0.9], [0.6, -0.8]].slice(0, Math.max(...f.yield) + 1).forEach(([x, z]) => slot(sway, x, 0.0, z));
+                } else if (f.kind === 'berry') {
+                    for (let i = 0; i < 6; i++) {
+                        const x = (i % 3 - 1) * 1.0, z = (Math.floor(i / 3) - 0.5) * 1.3;
+                        const bush = mesh(ICO, lm, sway); bush.scale.set(0.35, 0.2, 0.35); bush.position.set(x, 0.3, z);
+                        const fl = mesh(SPH, mat(0xffffff), sway); fl.scale.set(0.04, 0.02, 0.04); fl.position.set(x + 0.15, 0.48, z - 0.1);
+                        const berry = new THREE.Group(); berry.position.set(x + 0.28, 0.26, z + 0.2); sway.add(berry);
+                        const c = mesh(CONE, mat(0xe83a3a, 0.35), berry); c.scale.set(0.06, 0.1, 0.06); c.rotation.x = Math.PI;
+                        const capm = mesh(SPH, mat(0x3f9a3a), berry); capm.scale.set(0.05, 0.015, 0.05); capm.position.y = 0.05;
+                        berry.scale.setScalar(1.6); berry.visible = false; slots.push(berry);
+                    }
+                } else {
+                    for (let i = 0; i < 4; i++) {
+                        const ro = new THREE.Group(); ro.position.set((i % 2 - 0.5) * 1.5, 0.16, (Math.floor(i / 2) - 0.5) * 1.3); sway.add(ro);
+                        for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; const l = mesh(CONE, lm, ro); l.scale.set(0.05, 0.55, 0.02); l.position.set(Math.cos(a) * 0.12, 0.25, Math.sin(a) * 0.12); l.rotation.set(Math.sin(a) * 0.7, 0, -Math.cos(a) * 0.7); }
+                        const fr = new THREE.Group(); fr.position.y = 0.42; ro.add(fr);
+                        const body = mesh(SPH, mat(0xe0a030, 0.6), fr); body.scale.set(0.12, 0.18, 0.12);
+                        for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; const c = mesh(CONE, mat(0x4f8f3a), fr); c.scale.set(0.025, 0.16, 0.012); c.position.set(Math.cos(a) * 0.03, 0.24, Math.sin(a) * 0.03); c.rotation.set(Math.sin(a) * 0.4, 0, -Math.cos(a) * 0.4); }
+                        fr.scale.setScalar(1.6); fr.visible = false; slots.push(fr);
+                    }
+                }
+                top = 1.2;
+            }
+            const bubble = bubbleSprite('💧'); bubble.visible = false; bubble.position.set(0, top + 0.4, 0); g.add(bubble);
+            scene.add(g);
+            return { group: g, sway, slots, leafMats, base: leafMats.map(m => m.color.clone()), bubble, top };
+        }
+
+        // Wells for refilling the watering can
+        for (const w of WELLS) {
+            const g = new THREE.Group(); g.position.copy(w);
+            mesh(new THREE.CylinderGeometry(0.75, 0.8, 0.8, 24), mat(C.stone), g).position.y = 0.4;
+            const water = new THREE.Mesh(new THREE.CircleGeometry(0.6, 24), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 }));
+            water.rotation.x = -Math.PI / 2; water.position.y = 0.72; g.add(water);
+            for (const s of [-1, 1]) box(0.1, 1.4, 0.1, C.darkWood, 0.7 * s, 1.3, 0, g);
+            box(1.6, 0.1, 0.1, C.darkWood, 0, 2.0, 0, g);
+            const roof = gableRoof(1.9, 1.3, 0.6, 0x9c5b45); roof.position.y = 2.0; g.add(roof);
+            const bucket = mesh(new THREE.CylinderGeometry(0.13, 0.1, 0.2, 14), mat(0x8a8f99, 0.4), g); bucket.position.set(0, 1.45, 0);
+            cap(0.01, 0.45, 0xd9c08a, 0, 1.75, 0, g);
+            scene.add(g);
+            addCircleCollider(w.x, w.z, 0.85);
+        }
+        const PLANTS = FRUIT_DEFS.map(f => ({ def: f, ...buildPlant(f) }));
+        const sign2 = [[-15.75, 10.6, 'Kebun Barat'], [9, -14.0, 'Kebun Utara']];
+        for (const [x, z, t] of sign2) sign(x, z, t);
 
         // Flowers, grass tufts and rocks
         {
@@ -1325,6 +1534,8 @@
             goatMilk: { label: 'Susu Kambing', icon: '🍼', price: 225 },
             wool: { label: 'Wol', icon: '🧶', price: 340 },
         };
+        for (const f of FRUIT_DEFS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
+        const WATER_MAX = 10;
 
         const KIND_INFO = {
             chicken: { product: 'egg', verb: 'Ambil telur', speed: 1.2, radius: 0.3, reach: 1.6, idle: [1, 4], species: 'Ayam' },
@@ -1430,8 +1641,10 @@
             return sp;
         }
 
+        // Each account plays its own farmer: adindayn is the girl, wawantn the boy; only the shirt color is chosen
+        const CHARACTERS = { adindayn: { g: 'f', c: 5 }, wawantn: { g: 'm', c: 1 } };
         const LOOK_KEY = 'farmora.look@' + USER;
-        let look = (() => { try { return { n: USER, g: 'm', c: 0, ...JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') }; } catch (e) { return { n: USER, g: 'm', c: 0 }; } })();
+        let look = (() => { let saved = {}; try { saved = JSON.parse(localStorage.getItem(LOOK_KEY) || '{}'); } catch (e) { } const ch = CHARACTERS[USER] || { g: 'm', c: 0 }; return { c: Number.isInteger(saved.c) ? saved.c : ch.c, n: USER, g: ch.g }; })();
         const player = makeFarmer(look);
         player.pos.set(-10, 0, -8);
 
@@ -1464,14 +1677,19 @@
         function freshState() {
             const animals = {};
             for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !!productOf(d) };
-            return { day: 1, minutes: 6 * 60, gold: 0, inv: { egg: 0, milk: 0, goatMilk: 0, wool: 0 }, animals };
+            const inv = {};
+            for (const k of Object.keys(PRODUCTS)) inv[k] = 0;
+            // plants start part-way through their cycle; the quickest ones already carry fruit
+            const trees = {};
+            for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
+            return { day: 1, minutes: 6 * 60, gold: 0, inv, animals, trees, water: WATER_MAX, gwater: WATER_MAX };
         }
         let state = freshState();
         try {
             const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
             if (saved && saved.animals) {
                 const base = freshState();
-                state = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals } };
+                state = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) } };
             }
         } catch (e) { /* storage unavailable */ }
         // Older saves may hold animals that no longer exist or males marked as producing.
@@ -1617,14 +1835,16 @@
             return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
         }
         function updateHud() {
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}`;
+            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}|${state.water}`;
             if (key === lastHud) return;
             lastHud = key;
             hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
             hud.time.textContent = fmtTime(state.minutes);
             hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
-            hud.inv.innerHTML = Object.entries(PRODUCTS).map(([k, p]) =>
-                `<div class="slot ${state.inv[k] ? '' : 'empty'}" title="${p.label} (${p.price} G)">${p.icon}<small>${p.label}</small><b>${state.inv[k] || ''}</b></div>`).join('');
+            const held = Object.entries(PRODUCTS).filter(([k]) => state.inv[k] > 0);
+            hud.inv.innerHTML = `<div class="slot water" title="Ember air">🪣<small>Air ${state.water}/${WATER_MAX}</small></div>` +
+                (held.length ? held.map(([k, p]) => `<div class="slot" title="${p.label} (${p.price} G)">${p.icon}<small>${p.label}</small><b>${state.inv[k]}</b></div>`).join('')
+                    : '<div class="slot empty bagempty">🎒<small>Tas kosong</small></div>');
         }
 
         function toast(text) {
@@ -1687,6 +1907,43 @@
                     }
                 },
             }));
+            for (const pl of PLANTS) {
+                const f = pl.def, at = () => [pl.group.position.x, pl.top * 0.7, pl.group.position.z];
+                const left = t => Math.max(1, f.cycle - t.p);
+                list.push({
+                    id: 'tr:' + f.key, pos: pl.group.position, reach: f.kind === 'tree' ? 2.3 : f.kind === 'vine' ? 2.4 : 2.1,
+                    label() {
+                        const t = state.trees[f.key];
+                        if (t.r > 0) return `Panen ${f.icon} ${f.label} (${t.r})`;
+                        if (!t.w) return `Siram ${f.icon} ${f.label}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${state.water}/${WATER_MAX}`;
+                        return `${f.icon} ${f.label} · berbuah ${left(t)} hari lagi`;
+                    },
+                    act(who) {
+                        const t = state.trees[f.key];
+                        if (t.r > 0) {
+                            state.inv[f.key] += t.r;
+                            emitEvent(`Panen ${t.r} ${f.icon} ${f.label}!`, 'icon:' + f.icon, at(), who);
+                            t.r = 0; t.p = 0;
+                            save();
+                            return;
+                        }
+                        if (t.w) { emitEvent(`${f.label} sudah disiram hari ini. Berbuah ${left(t)} hari lagi.`, 'none', null, who); return; }
+                        const wk = who === 'guest' ? 'gwater' : 'water';
+                        if (state[wk] <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
+                        state[wk]--;
+                        t.w = true; t.dry = 0;
+                        emitEvent(`Menyiram ${f.icon} ${f.label} 💧`, 'water', at(), who);
+                    },
+                });
+            }
+            WELLS.forEach((w, i) => list.push({
+                id: 'well:' + i, pos: w, reach: 1.9,
+                label: () => `Isi ember air 🪣 (💧${state.water}/${WATER_MAX})`,
+                act(who) {
+                    state[who === 'guest' ? 'gwater' : 'water'] = WATER_MAX;
+                    emitEvent('Ember terisi penuh 🪣💧', 'water', [w.x, 1.2, w.z], who);
+                },
+            }));
             list.push({
                 id: 'bin', pos: BIN, reach: 2.0,
                 label: () => 'Jual barang di kotak pengiriman',
@@ -1745,6 +2002,7 @@
             else if (e.f === 'heart1' && at) spawnHearts(at, 1);
             else if (typeof e.f === 'string' && e.f.startsWith('icon:') && at) { spawnIcon(at, e.f.slice(5)); chime([523, 784]); }
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
+            else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); chime([880, 1046], 0.06, 'sine', 0.05); }
             const mine = net.mode === 'solo' || e.w === net.mode;
             toast(mine ? e.t : `${partnerName()}: ${e.t}`);
         }
@@ -1866,7 +2124,11 @@
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
-                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv: state.inv, an };
+                const tr = {};
+                for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
+                const inv = {};
+                for (const [k, v] of Object.entries(state.inv)) if (v) inv[k] = v;
+                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv, an, tr, gw: state.gwater };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -1878,6 +2140,8 @@
 
         function onPartner(o) {
             const was = net.connected;
+            // only the two registered farmers can share a farm
+            if (o && !(o.look && CHARACTERS[clean(o.look.n).toLowerCase()])) { if (!net.warned) { net.warned = 1; toast('Ada pemain tak terdaftar mencoba bergabung. Diabaikan.'); } o = null; }
             if (!o || o.app !== 'farmora' || o.v !== 1) {
                 net.connected = false;
                 if (was) toast(`${partnerName()} keluar dari farm`);
@@ -1922,7 +2186,9 @@
             if (Number.isInteger(w.day)) state.day = w.day;
             if (Number.isFinite(w.min)) state.minutes = w.min;
             if (Number.isFinite(w.gold)) state.gold = w.gold;
-            if (w.inv) for (const k of Object.keys(state.inv)) if (Number.isFinite(w.inv[k])) state.inv[k] = w.inv[k];
+            if (w.inv) for (const k of Object.keys(state.inv)) state.inv[k] = Number.isFinite(w.inv[k]) ? w.inv[k] : 0;
+            if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
+            if (Number.isFinite(w.gw)) state.water = w.gw;
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
             if (Array.isArray(o.a)) o.a.forEach((v, i) => { if (animals[i] && Array.isArray(v)) animals[i].netT = v.map(Number); });
             if (Array.isArray(o.ev)) for (const e of o.ev) { if (e && e.n > net.seenEv) { net.seenEv = e.n; showEvent(e); } }
@@ -1930,7 +2196,8 @@
 
         let remote = null;
         function ensureRemote(lk) {
-            const l = { n: clean(lk && lk.n) || 'Teman', g: lk && lk.g === 'f' ? 'f' : 'm', c: Number.isInteger(lk && lk.c) && lk.c >= 0 && lk.c < SHIRTS.length ? lk.c : 1 };
+            const nm = clean(lk && lk.n).toLowerCase();
+            const l = { n: nm, g: CHARACTERS[nm].g, c: Number.isInteger(lk && lk.c) && lk.c >= 0 && lk.c < SHIRTS.length ? lk.c : CHARACTERS[nm].c };
             const key = l.n + l.g + l.c;
             if (!remote) { remote = makeFarmer(l); remote.blinkSeed = 1.3; remote.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8); }
             if (remote.key !== key) {
@@ -1966,6 +2233,20 @@
             else toast('Kode farm: ' + net.code);
         });
 
+        // ---------- Plant visuals: fruit count, water bubble, wilting ----------
+        const DRY = new THREE.Color(0xa38f45);
+        function updatePlants(t) {
+            for (const pl of PLANTS) {
+                const d = state.trees[pl.def.key];
+                if (!d) continue;
+                pl.slots.forEach((s, i) => { s.visible = i < d.r; });
+                pl.bubble.visible = !d.w && d.r === 0;
+                const k = Math.min(1, d.dry / 3);
+                if (pl.k !== k) { pl.k = k; pl.leafMats.forEach((m, i) => m.color.copy(pl.base[i]).lerp(DRY, k * 0.75)); }
+                pl.sway.rotation.z = Math.sin(t * 1.1 + pl.group.position.x) * 0.02;
+            }
+        }
+
         // ---------- Day cycle ----------
         let sleeping = false;
         function sleep(passedOut) {
@@ -1980,6 +2261,12 @@
                     if (!a.pet && !d.petted) d.friend = Math.max(0, d.friend - 10);
                     d.petted = false;
                     d.product = !!a.product;
+                }
+                for (const f of FRUIT_DEFS) {
+                    const t = state.trees[f.key];
+                    if (t.w) { t.dry = 0; if (t.r === 0) { t.p++; if (t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; } } }
+                    else t.dry++;
+                    t.w = false;
                 }
                 state.day++;
                 state.minutes = 6 * 60;
@@ -2075,8 +2362,7 @@
         });
         // ---------- Title screen: character creator, save slot, online ----------
         function renderTitle() {
-            $('nameIn').value = look.n;
-            for (const b of $('genderPick').querySelectorAll('button')) b.classList.toggle('on', b.dataset.g === look.g);
+            $('whoami').textContent = `Kamu bermain sebagai ${look.n} · ${look.g === 'f' ? '👩‍🌾 Petani perempuan' : '👨‍🌾 Petani laki-laki'}`;
             $('shirtPick').replaceChildren(...SHIRTS.map((c, i) => {
                 const b = document.createElement('button');
                 b.style.background = '#' + c.toString(16).padStart(6, '0');
@@ -2104,13 +2390,10 @@
             renderOnlineBox();
         }
         function applyLook() {
-            look.n = ($('nameIn').value || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 14);
-            try { localStorage.setItem(LOOK_KEY, JSON.stringify(look)); } catch (e) { }
+            try { localStorage.setItem(LOOK_KEY, JSON.stringify({ c: look.c })); } catch (e) { }
             buildFarmer(player, look);
             renderTitle();
         }
-        $('nameIn').addEventListener('change', applyLook);
-        for (const b of $('genderPick').querySelectorAll('button')) b.addEventListener('click', () => { look.g = b.dataset.g; applyLook(); });
 
         function resetFarm() {
             try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
@@ -2123,7 +2406,6 @@
 
         function startGame(mode) {
             applyLook();
-            if (!look.n) look.n = look.g === 'f' ? 'Petani' : 'Petani';
             $('startScreen').classList.add('hidden');
             started = true;
             chime([523, 659, 784]);
@@ -2192,6 +2474,7 @@
             updatePlayer(dt);
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
+            updatePlants(elapsed);
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
@@ -2234,7 +2517,8 @@
             requestAnimationFrame(tick);
         }
         camTarget.copy(player.pos);
-        window.kebun = { state, player, animals, camera, net }; // handy for debugging in the console
+        $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
+        window.kebun = { state, player, animals, camera, net, PLANTS }; // handy for debugging in the console
         renderTitle();
         updateHud();
         tick();

@@ -27,10 +27,18 @@ Game peternakan mungil 3D bergaya lembut dan membulat, terinspirasi dari Stardew
   - 🐑 Domba: Wolly (jantan) dan Kapas (betina)
 - 🐱 🐶 Hewan peliharaan: Oyen si kucing oren dan Bruno si anjing yang suka mengikutimu
 
+## Kebun buah 🌳
+Ada 20 tanaman buah khas Indonesia di **Kebun Barat**, **Kebun Utara**, dan bedengan ladang:
+🍌 Pisang · 🍉 Semangka · 🍊 Jeruk · 🥭 Mangga · 🍎 Apel · 🍈 Melon · 🥑 Alpukat · 🍍 Nanas · 🥥 Kelapa · 🍈 Pepaya · 🍇 Anggur · 🍓 Stroberi · 🥭 Durian · 🥝 Salak · 🟣 Manggis · 🍐 Pir · 🍉 Jambu biji · 🟡 Rambutan · 🟠 Duku/Langsat · 🟤 Sawo.
+
+- Setiap tanaman dibuat mirip aslinya: pohon berkanopi, palem kelapa yang condong, pisang dengan tandan dan jantungnya, pepaya, rumpun salak berduri, anggur di para-para, serta bedengan semangka, melon, stroberi, dan nanas.
+- **Siram sekali sehari.** Ember berisi 10 siraman dan bisa diisi ulang di dua sumur 🪣. Tanaman yang disiram tumbuh setiap malam dan berbuah sesuai sifatnya, dari stroberi (setiap hari) sampai durian, manggis, duku, dan nanas (setiap 5 hari). Tanaman yang tidak disiram berhenti tumbuh, dan daunnya pelan-pelan menguning.
+- Buah yang siap panen terlihat di tanaman, dan ikon 💧 menandai tanaman yang belum disiram. Hasil panen masuk tas dan bisa dijual di kotak pengiriman.
+
 ## Karakter, simpan, dan main berdua
-- **Pilih petani** sebelum main: nama, laki-laki atau perempuan, dan warna baju.
+- **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih.
 - **Progres tersimpan otomatis** setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga. Layar awal menawarkan **Lanjutkan Hari X** atau **Farm baru**.
-- **Main berdua online:** satu orang memilih *Buat farm online* dan mendapat kode 4 huruf, temannya memilih *Gabung*. Kalian bermain bersama di farm milik pembuat: hewan, waktu, inventori, dan uang dipakai bersama. Aksi teman (mengelus, memerah, menjual) tampil di kedua layar, dan saat salah satu tidur, hari berganti untuk berdua. Progres disimpan di perangkat pembuat farm.
+- **Main berdua online:** satu orang memilih *Buat farm online* dan mendapat kode 4 huruf, temannya memilih *Gabung*. Hanya kedua akun terdaftar yang bisa bergabung. Kalian bermain bersama di farm milik pembuat: hewan, waktu, inventori, dan uang dipakai bersama. Aksi teman (mengelus, memerah, menjual) tampil di kedua layar, dan saat salah satu tidur, hari berganti untuk berdua. Progres disimpan di perangkat pembuat farm.
   - Di link claude.ai: memakai fitur ruangan real-time milik artifact. Keduanya harus login, dan link harus sudah dibagikan ke teman.
   - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Ketuk badge kode untuk menyalin link undangan.
 
