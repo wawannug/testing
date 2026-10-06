@@ -7,7 +7,7 @@
     <title>Farmora</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --wood: #8b5a2b;
@@ -265,6 +265,34 @@
         #saveFlag.show { opacity: 1; }
         .btn.danger { background: #ffd2c8; font-size: 14px; }
 
+        #fade.quick { transition: opacity .3s; }
+        #fade.soft { background: rgba(13, 16, 34, .55); transition: opacity .6s; font-size: 54px; }
+        #clock .loc { font-size: 12.5px; font-weight: 600; margin-top: 2px; opacity: .85; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @media (max-width: 480px) {
+            #clock { min-width: 0; max-width: 150px; padding: 6px 10px; }
+            #clock .time { font-size: 22px; }
+            #clock .loc { max-width: 128px; }
+        }
+        #dlg { z-index: 20; }
+        #dlg .card { max-width: 520px; max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+        #dlg h2 { margin: 0; font-size: 24px; color: var(--green); text-shadow: 0 2px 0 #2f6b1d; }
+        #dlg p { margin: 0; }
+        .tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .tabs .btn { font-size: 14px; padding: 5px 10px; }
+        .tabs .btn.on { background: #ffe08a; }
+        .shoplist { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow: auto; text-align: left; padding: 2px; }
+        .shopitem { display: flex; align-items: center; gap: 10px; background: var(--paper-2); border: 2px solid #c79a5b; border-radius: 10px; padding: 6px 8px; }
+        .shopitem .ic { font-size: 26px; width: 34px; text-align: center; }
+        .shopitem .nm { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+        .shopitem small { font-size: 12px; opacity: .8; }
+        .shopitem .btn { font-size: 14px; padding: 5px 10px; white-space: nowrap; }
+        .seedgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+        .seedgrid .btn { font-size: 14px; text-align: left; }
+        .seedgrid small { font-weight: 600; opacity: .7; }
+        .ayat { font-family: 'Amiri', 'Traditional Arabic', serif; font-size: 30px; line-height: 1.9; color: #1f5a3a; }
+        .arti { font-size: 16px; font-style: italic; }
+        .pintar { font-size: 20px; font-weight: 700; color: #a86a00; }
+
         /* Touch controls */
         #joy, #actBtn { display: none; }
 
@@ -395,6 +423,7 @@
         <div class="season">🌸 Musim Semi</div>
         <div class="time" id="timeLabel">06:00</div>
         <div class="gold" id="goldLabel">💰 0 G</div>
+        <div class="loc" id="locLabel">🌾 Farm</div>
     </div>
 
     <div id="topRight">
@@ -434,6 +463,8 @@
         </div>
     </div>
 
+    <div id="dlg" class="overlay hidden"><div class="card panel" id="dlgCard"></div></div>
+
     <div id="helpScreen" class="overlay hidden">
         <div class="card panel">
             <h1 style="font-size:30px">Bantuan</h1>
@@ -451,6 +482,7 @@
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua: progres tersimpan otomatis setiap 15 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.</p>
+            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (komputer toko online 🖥️), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
                 <button class="btn danger" id="resetBtn">Mulai ulang</button>
@@ -708,25 +740,44 @@
             return g;
         }
 
-        // House
+        // House: two floors with a front balcony and a rooftop garden
         const HOUSE = { x: -10, z: -14, w: 8, d: 6 };
         {
-            const g = building({ ...HOUSE, h: 3.2, wall: 0xf3e2c0, roof: 0xc0503c, roofH: 2.4, ridgeAlongX: true });
-            const front = HOUSE.d / 2 + 0.05;
-            box(1.3, 2.2, 0.12, 0x8b4f2a, 0, 1.1, front, g);            // door
-            box(0.12, 0.12, 0.08, 0xf2c94c, 0.4, 1.1, front + 0.08, g);  // knob
+            const g = new THREE.Group(); g.position.set(HOUSE.x, 0, HOUSE.z); scene.add(g);
+            const W = HOUSE.w, D = HOUSE.d, front = D / 2 + 0.05, wall2 = 0xead6ae;
+            box(W, 3.0, D, 0xf3e2c0, 0, 1.5, 0, g);
+            box(W + 0.1, 0.25, D + 0.1, C.white, 0, 0.12, 0, g);
+            box(W + 0.24, 0.2, D + 0.24, C.white, 0, 3.05, 0, g);
+            box(W - 0.3, 2.6, D - 1.2, wall2, 0, 4.45, -0.6, g);
+            box(W, 0.22, D - 0.9, 0xd8c7a6, 0, 5.82, -0.45, g);
+            const back = -0.45 - (D - 0.9) / 2, fr2 = -0.45 + (D - 0.9) / 2;
+            for (const [w, d, x, z] of [[W, 0.14, 0, back], [W, 0.14, 0, fr2], [0.14, D - 0.9, -W / 2, -0.45], [0.14, D - 0.9, W / 2, -0.45]]) box(w, 0.5, d, C.white, x, 6.15, z, g);
+            // rooftop: stair hut, pergola and plants peeking over the parapet
+            box(1.8, 1.3, 1.5, wall2, -2.7, 6.6, -1.8, g); box(2.0, 0.14, 1.7, 0xc0503c, -2.7, 7.3, -1.8, g);
+            for (const [x, z] of [[1.2, 0.6], [3.4, 0.6], [1.2, -1.6], [3.4, -1.6]]) box(0.1, 1.5, 0.1, 0x8a5a3a, x, 6.7, z, g);
+            for (const z of [0.6, -1.6]) box(2.4, 0.1, 0.12, 0x8a5a3a, 2.3, 7.45, z, g);
+            box(2.4, 0.12, 2.4, 0x5aa83c, 2.3, 7.55, -0.5, g);
+            for (let i = 0; i < 7; i++) ball(0.28, 0.24, 0.28, [0x4f9a3f, 0x6fb84a, 0x3f8a35][i % 3], -3.2 + i * 1.05, 6.45, fr2 - 0.25, g);
+            for (let i = 0; i < 4; i++) ball(0.09, 0.09, 0.09, [0xff6b8a, 0xffd34d, 0xb07cff, 0xff8f3d][i], -2.6 + i * 1.6, 6.66, fr2 - 0.1, g);
+            // front balcony on the upper floor
+            for (let x = -W / 2 + 0.2; x <= W / 2 - 0.2; x += 0.4) box(0.06, 0.6, 0.06, C.white, x, 3.45, front - 0.08, g);
+            box(W, 0.08, 0.1, C.white, 0, 3.78, front - 0.08, g);
+            box(1.3, 2.1, 0.08, windowMat, 0, 4.25, fr2 + 0.03, g);
+            box(0.1, 2.1, 0.12, C.white, 0, 4.25, fr2 + 0.05, g);
+            for (const wx of [-2.5, 2.5]) { box(1.2, 1.0, 0.08, windowMat, wx, 4.55, fr2 + 0.03, g); box(1.36, 0.12, 0.16, C.white, wx, 4.0, fr2 + 0.06, g); }
+            for (const wx of [-3.3, 3.3]) ball(0.22, 0.26, 0.22, 0x4f9a3f, wx, 3.42, front - 0.5, g);
+            // ground floor
+            box(1.3, 2.2, 0.12, 0x8b4f2a, 0, 1.1, front, g);
+            box(0.12, 0.12, 0.08, 0xf2c94c, 0.4, 1.1, front + 0.08, g);
             for (const wx of [-2.4, 2.4]) {
                 box(1.3, 1.1, 0.1, windowMat, wx, 1.9, front, g);
                 box(1.5, 0.15, 0.2, C.white, wx, 1.28, front + 0.05, g);
                 box(0.1, 1.1, 0.12, C.white, wx, 1.9, front + 0.02, g);
-            }
-            box(0.8, 1.8, 0.8, 0x9c5b45, 2.3, 4.4, -1, g);                // chimney
-            box(2.4, 0.15, 1.2, 0x9c7a55, 0, 0.08, front + 0.6, g);       // porch step
-            // flower boxes
-            for (const wx of [-2.4, 2.4]) {
                 box(1.4, 0.3, 0.35, C.darkWood, wx, 1.15, front + 0.2, g);
                 for (let i = 0; i < 4; i++) box(0.18, 0.18, 0.18, [0xff6b8a, 0xffd34d, 0xb07cff, 0xff8f3d][i], wx - 0.5 + i * 0.33, 1.38, front + 0.2, g);
             }
+            box(2.4, 0.15, 1.2, 0x9c7a55, 0, 0.08, front + 0.6, g);
+            addBoxCollider(HOUSE.x - W / 2 - 0.05, HOUSE.x + W / 2 + 0.05, HOUSE.z - D / 2 - 0.05, HOUSE.z + D / 2 + 0.05);
         }
         const HOUSE_DOOR = new THREE.Vector3(HOUSE.x, 0, HOUSE.z + HOUSE.d / 2 + 0.3);
 
@@ -1285,16 +1336,18 @@
             for (let i = 0; i < count; i++) {
                 const s = heartTexSprite();
                 s.position.set(pos.x + rand(-0.4, 0.4), pos.y + rand(0, 0.3), pos.z + rand(-0.4, 0.4));
-                scene.add(s);
+                sceneOf(pos).add(s);
                 particles.push({ s, life: 1.2 + i * 0.15, max: 1.2 + i * 0.15, vy: rand(1, 1.6) });
             }
         }
         function spawnIcon(pos, emoji) {
             const s = bubbleSprite(emoji);
             s.position.copy(pos);
-            scene.add(s);
+            sceneOf(pos).add(s);
             particles.push({ s, life: 1.1, max: 1.1, vy: 1.4 });
         }
+        // the inside of the house is its own scene (see "The house inside")
+        function sceneOf(pos) { return pos.x > 150 && homeScene ? homeScene : scene; }
 
         // ---------- Animal models (all face +Z) ----------
         // Soft, rounded shapes: ellipsoids, capsules and tori instead of boxes.
@@ -1529,6 +1582,76 @@
             wool: { label: 'Wol', icon: '🧶', price: 340 },
         };
         for (const f of FRUIT_DEFS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
+        // ---------- Rooftop garden, shop and kitchen data ----------
+        // days = nights of watering until ready, roughly following each plant's real growing time
+        const GARDEN = [
+            { key: 'kangkung', label: 'Kangkung', icon: '🥬', type: 'veg', days: 3, seed: 20, price: 85, yield: 1, m: { t: 'leafy', c: 0x4f9a3a, n: 9, len: 0.42, wid: 0.06, tilt: 0.95 } },
+            { key: 'bayam', label: 'Bayam', icon: '🍃', type: 'veg', days: 3, seed: 20, price: 85, yield: 1, m: { t: 'leafy', c: 0x3f8a32, n: 8, len: 0.3, wid: 0.13, tilt: 0.8 } },
+            { key: 'selada', label: 'Selada', icon: '🥗', type: 'veg', days: 4, seed: 30, price: 120, yield: 1, m: { t: 'leafy', c: 0x9fd65a, n: 11, len: 0.27, wid: 0.17, tilt: 0.55, inner: 0xc5ea7e } },
+            { key: 'sawi', label: 'Sawi', icon: '🥬', type: 'veg', days: 4, seed: 25, price: 115, yield: 1, m: { t: 'leafy', c: 0x5fae3c, n: 7, len: 0.38, wid: 0.14, tilt: 1.05 } },
+            { key: 'pakcoy', label: 'Pakcoy', icon: '🥬', type: 'veg', days: 4, seed: 30, price: 120, yield: 1, m: { t: 'leafy', c: 0x2f7a2c, n: 6, len: 0.3, wid: 0.14, tilt: 1.15, stem: 0xeef5df } },
+            { key: 'kailan', label: 'Kailan', icon: '🥬', type: 'veg', days: 5, seed: 35, price: 150, yield: 1, m: { t: 'leafy', c: 0x3e7f5a, n: 7, len: 0.36, wid: 0.15, tilt: 1.0, stem: 0x7fae7a } },
+            { key: 'kol', label: 'Kol', icon: '🥬', type: 'veg', days: 9, seed: 50, price: 260, yield: 1, m: { t: 'head', c: 0x8fbf6a, head: 0xcfe7a0, hr: 0.2 } },
+            { key: 'brokoli', label: 'Brokoli', icon: '🥦', type: 'veg', days: 8, seed: 55, price: 250, yield: 1, m: { t: 'head', c: 0x4a7f4a, head: 0x3d6e33, hr: 0.07, florets: 7 } },
+            { key: 'wortel', label: 'Wortel', icon: '🥕', type: 'veg', days: 9, seed: 45, price: 255, yield: 1, m: { t: 'root', c: 0x5aa53c, root: 0xf08a24 } },
+            { key: 'tomat', label: 'Tomat', icon: '🍅', type: 'veg', days: 7, seed: 40, price: 70, yield: 3, m: { t: 'fruiting', c: 0x4a8f3a, fruit: 'tomat' } },
+            { key: 'cabai', label: 'Cabai', icon: '🌶️', type: 'veg', days: 8, seed: 45, price: 60, yield: 4, m: { t: 'fruiting', c: 0x3f8535, fruit: 'cabai' } },
+            { key: 'terong', label: 'Terong', icon: '🍆', type: 'veg', days: 7, seed: 40, price: 100, yield: 2, m: { t: 'fruiting', c: 0x4f8a45, fruit: 'terong' } },
+            { key: 'timun', label: 'Timun', icon: '🥒', type: 'veg', days: 5, seed: 35, price: 75, yield: 2, m: { t: 'fruiting', c: 0x5a9a3a, fruit: 'timun' } },
+            { key: 'daunbawang', label: 'Daun bawang', icon: '🧅', type: 'veg', days: 6, seed: 30, price: 160, yield: 1, m: { t: 'stalk', c: 0x3f8f3a, base: 0xf2f5e6, n: 7, h: 0.55 } },
+            { key: 'seledri', label: 'Seledri', icon: '🌿', type: 'veg', days: 7, seed: 35, price: 190, yield: 1, m: { t: 'stalk', c: 0x6fae4a, n: 10, h: 0.42, tuft: 0x4f9a35 } },
+            { key: 'mawar', label: 'Mawar', icon: '🌹', type: 'hias', days: 6, seed: 90, price: 370, yield: 1, m: { t: 'flower', c: 0x2f6b2f, fc: 0xd8263a, n: 5, fr: 0.07 } },
+            { key: 'melati', label: 'Melati', icon: '🌼', type: 'hias', days: 5, seed: 70, price: 310, yield: 1, m: { t: 'flower', c: 0x3d7a33, fc: 0xffffff, n: 12, fr: 0.035 } },
+            { key: 'bougenville', label: 'Bougenville', icon: '🌺', type: 'hias', days: 7, seed: 95, price: 400, yield: 1, m: { t: 'flower', c: 0x4a7f35, fc: 0xd63b9a, n: 16, fr: 0.05 } },
+            { key: 'anggrek', label: 'Anggrek', icon: '🌸', type: 'hias', days: 10, seed: 160, price: 580, yield: 1, m: { t: 'orchid', c: 0x3f7f3a, fc: 0xb05fc9 } },
+            { key: 'lavender', label: 'Lavender', icon: '🪻', type: 'hias', days: 6, seed: 85, price: 360, yield: 1, m: { t: 'spike', c: 0x7f9f6a, fc: 0x8a6fd1 } },
+            { key: 'kamboja', label: 'Kamboja', icon: '🏵️', type: 'hias', days: 9, seed: 120, price: 500, yield: 1, m: { t: 'frangipani', c: 0x3f8a3a, fc: 0xfff3d6 } },
+            { key: 'lidahmertua', label: 'Lidah mertua', icon: '🪴', type: 'hias', days: 6, seed: 70, price: 340, yield: 1, m: { t: 'sword', c: 0x3f7f3a, edge: 0xd8c84a } },
+            { key: 'monstera', label: 'Monstera', icon: '🪴', type: 'hias', days: 8, seed: 130, price: 480, yield: 1, m: { t: 'bigleaf', c: 0x2f7a35, n: 4, len: 0.34, wid: 0.27, tilt: 0.55 } },
+            { key: 'aglaonema', label: 'Aglaonema', icon: '🪴', type: 'hias', days: 7, seed: 110, price: 420, yield: 1, m: { t: 'bigleaf', c: 0x5fa86a, c2: 0xe58aa6, n: 7, len: 0.28, wid: 0.11, tilt: 0.75 } },
+            { key: 'sirihgading', label: 'Sirih gading', icon: '🍃', type: 'hias', days: 4, seed: 60, price: 260, yield: 1, m: { t: 'trail', c: 0x8fc04a } },
+            { key: 'pucukmerah', label: 'Pucuk merah', icon: '🌳', type: 'hias', days: 5, seed: 65, price: 300, yield: 1, m: { t: 'flower', c: 0x3f7f35, fc: 0xc8323a, n: 9, fr: 0.08, top: true } },
+            { key: 'palem', label: 'Palem', icon: '🌴', type: 'hias', days: 9, seed: 110, price: 480, yield: 1, m: { t: 'palm', c: 0x4f9a3f } },
+            { key: 'kaktus', label: 'Kaktus', icon: '🌵', type: 'hias', days: 10, seed: 50, price: 440, yield: 1, m: { t: 'cactus', c: 0x4f9a5a, fc: 0xff6fa5 } },
+            { key: 'sukulen', label: 'Sukulen', icon: '🌱', type: 'hias', days: 8, seed: 60, price: 360, yield: 1, m: { t: 'rosette', c: 0x8fc7a0 } },
+            { key: 'peacelily', label: 'Peace lily', icon: '💮', type: 'hias', days: 6, seed: 90, price: 370, yield: 1, m: { t: 'bigleaf', c: 0x245a2c, n: 7, len: 0.33, wid: 0.11, tilt: 0.9, spathe: 0xfafafa } },
+        ];
+        const GDEF = Object.fromEntries(GARDEN.map(g => [g.key, g]));
+        const SUPPLIES = {
+            pot: { label: 'Pot', icon: '🪴', price: 60, note: 'Taruh di rak taman atap' },
+            pupuk: { label: 'Pupuk', icon: '🧪', price: 25, note: 'Tanaman tumbuh 1,5× lebih cepat' },
+        };
+        for (const g of GARDEN) SUPPLIES['b_' + g.key] = { label: (g.type === 'veg' ? 'Benih ' : 'Bibit ') + g.label, icon: '🌱', price: g.seed, plant: g.key };
+        // Plants sell from the shipping bin; ornamental plants are sold together with their pot
+        for (const g of GARDEN) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
+        const RECIPES = [
+            { key: 'dadar', label: 'Telur dadar', icon: '🍳', price: 160, need: { egg: 2 } },
+            { key: 'puding', label: 'Puding susu', icon: '🍮', price: 260, need: { milk: 1, egg: 1 } },
+            { key: 'tumis', label: 'Tumis kangkung', icon: '🥘', price: 320, need: { kangkung: 2, cabai: 1 } },
+            { key: 'salad', label: 'Salad segar', icon: '🥗', price: 380, need: { selada: 1, tomat: 1, apel: 1 } },
+            { key: 'jus', label: 'Jus mangga susu', icon: '🥤', price: 420, need: { mangga: 2, milk: 1 } },
+            { key: 'sambal', label: 'Sambal tomat', icon: '🌶️', price: 450, need: { cabai: 3, tomat: 2 } },
+            { key: 'sop', label: 'Sayur sop', icon: '🍲', price: 950, need: { wortel: 1, kol: 1, seledri: 1 } },
+        ];
+        for (const r of RECIPES) PRODUCTS[r.key] = { label: r.label, icon: r.icon, price: r.price };
+        // One verse a day in the musholla, in turn
+        const AYAT = [
+            { ar: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا', id: 'Maka sesungguhnya bersama kesulitan ada kemudahan. Sesungguhnya bersama kesulitan ada kemudahan.', ref: 'QS. Al-Insyirah: 5–6' },
+            { ar: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ', id: 'Ingatlah, hanya dengan mengingat Allah hati menjadi tenteram.', ref: "QS. Ar-Ra'd: 28" },
+            { ar: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً', id: 'Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.', ref: 'QS. Ar-Rum: 21' },
+            { ar: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا', id: 'Allah tidak membebani seseorang melainkan sesuai dengan kesanggupannya.', ref: 'QS. Al-Baqarah: 286' },
+            { ar: 'فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ', id: 'Maka ingatlah kepada-Ku, Aku pun akan ingat kepadamu. Bersyukurlah kepada-Ku, dan janganlah kamu ingkar kepada-Ku.', ref: 'QS. Al-Baqarah: 152' },
+            { ar: 'لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ', id: 'Sesungguhnya jika kamu bersyukur, niscaya Aku akan menambah (nikmat) kepadamu.', ref: 'QS. Ibrahim: 7' },
+            { ar: 'يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ', id: 'Wahai orang-orang yang beriman, mohonlah pertolongan dengan sabar dan salat. Sesungguhnya Allah beserta orang-orang yang sabar.', ref: 'QS. Al-Baqarah: 153' },
+            { ar: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ', id: 'Ya Tuhan kami, anugerahkanlah kepada kami pasangan dan keturunan kami sebagai penyenang hati (kami).', ref: 'QS. Al-Furqan: 74' },
+            { ar: 'وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ', id: 'Dan apabila hamba-hamba-Ku bertanya kepadamu tentang Aku, maka sesungguhnya Aku dekat.', ref: 'QS. Al-Baqarah: 186' },
+            { ar: 'وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ', id: 'Dan barang siapa bertawakal kepada Allah, niscaya Allah akan mencukupkan (keperluan)nya.', ref: 'QS. At-Talaq: 3' },
+            { ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', id: 'Ya Tuhan kami, berilah kami kebaikan di dunia dan kebaikan di akhirat, dan lindungilah kami dari azab neraka.', ref: 'QS. Al-Baqarah: 201' },
+            { ar: 'إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ', id: 'Sesungguhnya salat itu mencegah dari (perbuatan) keji dan mungkar.', ref: "QS. Al-'Ankabut: 45" },
+            { ar: 'لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ', id: 'Janganlah kamu berputus asa dari rahmat Allah.', ref: 'QS. Az-Zumar: 53' },
+            { ar: 'مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ', id: 'Tuhanmu tidak meninggalkan engkau dan tidak (pula) membencimu.', ref: 'QS. Ad-Duha: 3' },
+        ];
+        const POT_SLOTS = 24;
         const WATER_MAX = 10;
 
         const KIND_INFO = {
@@ -1680,11 +1803,15 @@
             const animals = {};
             for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !!productOf(d) };
             const inv = {};
-            for (const k of Object.keys(PRODUCTS)) inv[k] = 0;
+            for (const k of [...Object.keys(PRODUCTS), ...Object.keys(SUPPLIES)]) inv[k] = 0;
+            // a housewarming gift for the rooftop garden
+            Object.assign(inv, { pot: 2, pupuk: 2, b_kangkung: 2, b_bayam: 2, b_tomat: 1, b_mawar: 1 });
+            const pots = Array(POT_SLOTS).fill(null);
+            for (let i = 0; i < 4; i++) pots[i] = {};
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            return { day: 1, minutes: 6 * 60, gold: 0, inv, animals, trees, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
+            return { day: 1, minutes: 6 * 60, gold: 0, inv, animals, trees, pots, orders: [], pkg: {}, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
         }
         // Accept a saved farm from any version, filling in what it lacks
         function normalize(saved) {
@@ -1692,6 +1819,11 @@
             if (!saved || !saved.animals) return base;
             const st = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, looks: { ...(saved.looks || {}) } };
             delete st.water; delete st.gwater;
+            if (!Array.isArray(st.pots) || st.pots.length !== POT_SLOTS) st.pots = base.pots;
+            st.pots = st.pots.map(p => p && (!p.s || GDEF[p.s]) ? p : null);
+            if (!Array.isArray(st.orders)) st.orders = [];
+            st.orders = st.orders.filter(o => o && SUPPLIES[o.k]);
+            st.pkg = { ...(saved.pkg || {}) }; st.ib = { ...(saved.ib || {}) };
             for (const d of ANIMAL_DEFS) st.animals[d.name].product &&= !!productOf(d);
             for (const name of Object.keys(st.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete st.animals[name];
             return st;
@@ -1851,14 +1983,21 @@
             return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
         }
         function updateHud() {
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}|${myWater()}`;
+            const place = placeName(player.pos);
+            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}|${myWater()}|${place}`;
             if (key === lastHud) return;
             lastHud = key;
             hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
             hud.time.textContent = fmtTime(state.minutes);
             hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
+            $('locLabel').textContent = place;
             const held = Object.entries(PRODUCTS).filter(([k]) => state.inv[k] > 0);
+            const seeds = GARDEN.filter(g => state.inv['b_' + g.key] > 0);
+            const nSeeds = seeds.reduce((s, g) => s + state.inv['b_' + g.key], 0);
+            const tool = (icon, label, n, title) => n > 0 ? `<div class="slot" title="${title || label}">${icon}<small>${label}</small><b>${n}</b></div>` : '';
             hud.inv.innerHTML = `<div class="slot water" title="Ember air">🪣<small>Air ${myWater()}/${WATER_MAX}</small></div>` +
+                tool('🪴', 'Pot', state.inv.pot) + tool('🧪', 'Pupuk', state.inv.pupuk) +
+                tool('🌱', 'Benih', nSeeds, seeds.map(g => `${g.label} ×${state.inv['b_' + g.key]}`).join(', ')) +
                 (held.length ? held.map(([k, p]) => `<div class="slot" title="${p.label} (${p.price} G)">${p.icon}<small>${p.label}</small><b>${state.inv[k]}</b></div>`).join('')
                     : '<div class="slot empty bagempty">🎒<small>Tas kosong</small></div>');
         }
@@ -1891,6 +2030,817 @@
                 });
             } catch (e) { }
         }
+
+        // The porch bench by the door: your partner dozes here while offline (turu), and you can sit too
+        const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
+        const TURU_SEAT = new THREE.Vector3(TURU_SPOT.x - 0.4, 0, TURU_SPOT.z);
+        const PORCH_SEAT = { x: TURU_SPOT.x + 0.45, z: TURU_SPOT.z, h: 0, sx: TURU_SPOT.x + 0.45, sz: TURU_SPOT.z + 0.9, k: 1 };
+        // parcels from the online shop are left here
+        const PKG_POS = new THREE.Vector3(HOUSE_DOOR.x - 1.3, 0, HOUSE_DOOR.z + 0.7);
+        const pkgMesh = new THREE.Group();
+        {
+            box(0.6, 0.45, 0.5, 0xc8955a, 0, 0.23, 0, pkgMesh); box(0.62, 0.06, 0.12, 0xe8d7a8, 0, 0.46, 0, pkgMesh); box(0.12, 0.06, 0.52, 0xe8d7a8, 0, 0.46, 0, pkgMesh);
+            box(0.45, 0.35, 0.4, 0xb98250, 0.15, 0.62, -0.02, pkgMesh).rotation.y = 0.4;
+            pkgMesh.position.copy(PKG_POS); pkgMesh.visible = false; scene.add(pkgMesh);
+        }
+        // ---------- The house inside: two floors and a rooftop garden ----------
+        // Like Stardew Valley or Coral Island, the inside is its own small scene. It is built the first time
+        // you walk in and only drawn while you are inside, so the farm and the house are never drawn together.
+        // Each floor sits far away from the farm on the same map, so positions stay unique for online play.
+        const F1 = 200, F2 = 260, RF = 320;
+        const inHome = p => p.x > 150;
+        const floorOf = p => p.x > RF - 30 ? RF : p.x > F2 - 30 ? F2 : F1;
+        const HV = (f, x, z) => new THREE.Vector3(f + x, 0, z);
+        const HOME_HALF = { x: 8.6, z: 6.6 };
+        const ROOMS = [
+            { f: F1, n: '🚿 Kamar mandi', x: [-9, -3], z: [-7, -2] },
+            { f: F1, n: '🛋️ Ruang keluarga', x: [-9, -3], z: [-2, 7] },
+            { f: F1, n: '🕌 Mushola', x: [-3, 3], z: [-7, -1] },
+            { f: F1, n: '🚪 Ruang tamu', x: [-3, 3], z: [-1, 7] },
+            { f: F1, n: '🍳 Dapur', x: [3, 9], z: [-7, 0] },
+            { f: F1, n: '🍽️ Ruang makan', x: [3, 9], z: [0, 7] },
+            { f: F2, n: '🛏️ Kamar utama', x: [-9, -2], z: [-7, 3] },
+            { f: F2, n: '🪜 Lorong', x: [-2, 2], z: [-7, 3] },
+            { f: F2, n: '🧸 Kamar anak 1', x: [2, 9], z: [-7, -2] },
+            { f: F2, n: '🧸 Kamar anak 2', x: [2, 9], z: [-2, 3] },
+            { f: F2, n: '🌇 Balkon', x: [-9, 9], z: [3, 7] },
+            { f: RF, n: '🌿 Taman atap', x: [-9, 9], z: [-7, 7] },
+        ];
+        function placeName(p) {
+            if (!inHome(p)) return '🌾 Farm';
+            const f = floorOf(p), x = p.x - f;
+            const r = ROOMS.find(r => r.f === f && x >= r.x[0] && x <= r.x[1] && p.z >= r.z[0] && p.z <= r.z[1]);
+            return `${r ? r.n : '🏠 Rumah'} · ${f === F1 ? 'Lantai 1' : f === F2 ? 'Lantai 2' : 'Rooftop'}`;
+        }
+        // Rooftop pot racks: 4 rows of 6
+        const POT_POS = [];
+        for (const z of [-2.6, -0.6, 1.4, 3.4]) for (const x of [-2.6, -1.1, 0.4, 1.9, 3.4, 4.9]) POT_POS.push(HV(RF, x, z));
+        // Places to sit: h = facing, s = where you stand up, k = 1 sit / 2 kneel
+        const seat = (f, x, z, h, sx, sz, k = 1) => ({ x: f + x, z, h, sx: f + sx, sz, k });
+        const SEATS = {
+            sofaFamily: seat(F1, -5.55, 4.6, -Math.PI / 2, -6.5, 4.6),
+            sofaGuest: seat(F1, 0, 2.05, 0, 0, 2.9),
+            armL: seat(F1, -1.6, 3.4, Math.PI / 2, -1.6, 4.3),
+            armR: seat(F1, 1.6, 3.4, -Math.PI / 2, 1.6, 4.3),
+            sajadah0: seat(F1, -0.9, -5.0, -Math.PI / 2, 0.2, -5.0, 2),
+            sajadah1: seat(F1, -0.9, -3.2, -Math.PI / 2, 0.2, -3.2, 2),
+            balc0: seat(F2, -5.9, 5.3, 0, -5.9, 4.3),
+            balc1: seat(F2, -4.1, 5.3, 0, -4.1, 4.3),
+            balcBench: seat(F2, 4.5, 5.6, 0, 4.5, 4.5),
+            roofBench: seat(RF, -6.3, 5.4, 0, -6.3, 4.3),
+            lounge: seat(RF, 7.0, 4.8, 0, 7.0, 3.7),
+        };
+        const WAKE = { host: HV(F2, -3.6, -4.6), guest: HV(F2, -5.5, -2.6) };
+
+        let homeScene = null, homeKey = null, homeHemi = null, homeGlass = null;
+        const potVis = [];
+        const INTERIOR_BG = new THREE.Color(0x2a1f17);
+
+        function buildHome() {
+            if (homeScene) return;
+            homeScene = new THREE.Scene();
+            homeScene.background = INTERIOR_BG.clone();
+            homeHemi = new THREE.HemisphereLight(0xfff3df, 0x6a5240, 1.05);
+            homeKey = new THREE.DirectionalLight(0xfff0d6, 1.45);
+            homeKey.castShadow = true;
+            homeKey.shadow.mapSize.set(1024, 1024);
+            Object.assign(homeKey.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 1, far: 50 });
+            homeKey.shadow.bias = -0.0005; homeKey.shadow.normalBias = 0.03;
+            homeScene.add(homeHemi, homeKey, homeKey.target);
+            homeGlass = new THREE.MeshStandardMaterial({ color: 0xbfe6ff, roughness: 0.2, emissive: 0x6fb6e8, emissiveIntensity: 0.35 });
+            buildFloor1(); buildFloor2(); buildRoof();
+        }
+
+        // --- small building blocks, in each floor's own coordinates ---
+        const WALL = 0xf4e6cc, WALL_TOP = 0x9a6a3a;
+        function floorGroup(f) { const g = new THREE.Group(); g.position.x = f; homeScene.add(g); return g; }
+        function col(f, minX, maxX, minZ, maxZ) { addBoxCollider(f + minX, f + maxX, minZ, maxZ); }
+        function tiles(g, x0, x1, z0, z1, color, color2) {
+            box(x1 - x0, 0.1, z1 - z0, color, (x0 + x1) / 2, -0.05, (z0 + z1) / 2, g).castShadow = false;
+            if (color2) for (let x = x0 + 0.5; x < x1; x += 1) for (let z = z0 + 0.5; z < z1; z += 1)
+                if ((Math.floor(x) + Math.floor(z)) % 2 === 0) box(0.98, 0.02, 0.98, color2, x, 0.01, z, g).castShadow = false;
+        }
+        function planks(g, x0, x1, z0, z1, c1, c2) {
+            box(x1 - x0, 0.1, z1 - z0, c1, (x0 + x1) / 2, -0.05, (z0 + z1) / 2, g).castShadow = false;
+            let i = 0;
+            for (let z = z0 + 0.25; z < z1; z += 0.5, i++) if (i % 2) box(x1 - x0 - 0.04, 0.02, 0.46, c2, (x0 + x1) / 2, 0.01, z, g).castShadow = false;
+        }
+        // a wall along x (at z) or along z (at x), with gaps [centre, width] for doorways
+        function wall(g, f, axis, at, a, b, h, gaps = [], color = WALL) {
+            const cuts = gaps.map(([c, w]) => [c - w / 2, c + w / 2]).sort((p, q) => p[0] - q[0]);
+            let s = a; const segs = [];
+            for (const [c0, c1] of cuts) { if (c0 > s) segs.push([s, c0]); s = Math.max(s, c1); }
+            if (b > s) segs.push([s, b]);
+            const t = 0.2;
+            for (const [s0, s1] of segs) {
+                const len = s1 - s0, mid = (s0 + s1) / 2;
+                if (axis === 'x') { box(len, h, t, color, mid, h / 2, at, g); box(len + 0.02, 0.07, t + 0.06, WALL_TOP, mid, h, at, g); col(f, s0, s1, at - t / 2, at + t / 2); }
+                else { box(t, h, len, color, at, h / 2, mid, g); box(t + 0.06, 0.07, len + 0.02, WALL_TOP, at, h, mid, g); col(f, at - t / 2, at + t / 2, s0, s1); }
+            }
+        }
+        function windowOn(g, x, y, z, w, h, axis = 'x') {
+            const pane = axis === 'x' ? box(w, h, 0.06, homeGlass, x, y, z, g) : box(0.06, h, w, homeGlass, x, y, z, g);
+            pane.castShadow = false;
+            if (axis === 'x') { box(w + 0.16, 0.1, 0.14, C.white, x, y - h / 2, z, g); box(w + 0.16, 0.1, 0.14, C.white, x, y + h / 2, z, g); box(0.08, h, 0.12, C.white, x, y, z, g); }
+            else { box(0.14, 0.1, w + 0.16, C.white, x, y - h / 2, z, g); box(0.14, 0.1, w + 0.16, C.white, x, y + h / 2, z, g); box(0.12, h, 0.08, C.white, x, y, z, g); }
+        }
+        function rug(g, x, z, w, d, c, c2) {
+            box(w, 0.03, d, c, x, 0.02, z, g).castShadow = false;
+            if (c2) box(w - 0.3, 0.035, d - 0.3, c2, x, 0.025, z, g).castShadow = false;
+        }
+        function sofa(g, x, z, rot, color, w = 2.0) {
+            const s = new THREE.Group(); s.position.set(x, 0, z); s.rotation.y = rot; g.add(s);
+            box(w, 0.38, 0.85, color, 0, 0.24, 0, s);
+            box(w, 0.6, 0.22, color, 0, 0.62, -0.34, s);
+            for (const sx of [-1, 1]) box(0.2, 0.55, 0.85, color, sx * (w / 2 - 0.1), 0.38, 0, s);
+            const n = Math.max(1, Math.round(w / 0.9));
+            for (let i = 0; i < n; i++) box((w - 0.45) / n - 0.04, 0.12, 0.62, 0xfff6e8, -((w - 0.45) / 2) + ((w - 0.45) / n) * (i + 0.5), 0.47, 0.06, s);
+            return s;
+        }
+        function table(g, x, z, w, d, h, top = 0xb07a45, leg = 0x6e4723) {
+            box(w, 0.08, d, top, x, h, z, g);
+            for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.08, h, 0.08, leg, x + sx * (w / 2 - 0.1), h / 2, z + sz * (d / 2 - 0.1), g);
+        }
+        function chair(g, x, z, rot, c = 0xb07a45) {
+            const s = new THREE.Group(); s.position.set(x, 0, z); s.rotation.y = rot; g.add(s);
+            box(0.46, 0.06, 0.46, c, 0, 0.46, 0, s);
+            box(0.46, 0.5, 0.06, c, 0, 0.74, -0.2, s);
+            for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.05, 0.46, 0.05, 0x6e4723, sx * 0.18, 0.23, sz * 0.18, s);
+            return s;
+        }
+        function pottedPlant(g, x, z, s = 1, leaf = 0x3f8f45, pot = 0xc4673a) {
+            const p = mesh(POT_GEO, mat(pot), g); p.position.set(x, 0.21 * s, z); p.scale.setScalar(s);
+            ball(0.3 * s, 0.38 * s, 0.3 * s, leaf, x, 0.72 * s, z, g);
+            ball(0.22 * s, 0.28 * s, 0.22 * s, leaf, x + 0.12 * s, 0.98 * s, z - 0.05 * s, g);
+        }
+        function lamp(g, x, z, h = 1.5) {
+            box(0.3, 0.05, 0.3, 0x5b4636, x, 0.03, z, g);
+            const p = mesh(CYL, mat(0x5b4636), g); p.scale.set(0.03, h, 0.03); p.position.set(x, h / 2, z);
+            const shade = mesh(new THREE.CylinderGeometry(0.16, 0.26, 0.3, 18), new THREE.MeshStandardMaterial({ color: 0xfff1c9, emissive: 0xffc46b, emissiveIntensity: 0.6 }), g);
+            shade.position.set(x, h + 0.1, z);
+        }
+        function stairs(g, x0, x1, z0, z1, up, steps = 7) {
+            // treads climb toward -z; "up" stairs rise, "down" stairs sink into an opening
+            const len = (z1 - z0) / steps;
+            for (let i = 0; i < steps; i++) {
+                const hgt = up ? 0.18 * (i + 1) : 0.12;
+                const y = up ? hgt / 2 : -0.04 - i * 0.12;
+                box(x1 - x0, up ? hgt : 0.08, len - 0.02, i % 2 ? 0xa8744a : 0xb98557, (x0 + x1) / 2, y, z1 - len * (i + 0.5), g);
+            }
+            if (!up) box(x1 - x0 + 0.1, 0.02, z1 - z0, 0x3b2a1e, (x0 + x1) / 2, -0.9, (z0 + z1) / 2, g).castShadow = false;
+            for (const xx of [x0 - 0.05, x1 + 0.05]) { box(0.07, 0.07, z1 - z0, 0x6e4723, xx, up ? 0.9 + 0.3 : 0.9, (z0 + z1) / 2, g); for (let z = z0 + 0.2; z < z1; z += 0.6) box(0.04, 0.9, 0.04, 0xf4ead4, xx, 0.45, z, g); }
+        }
+        function frame(g, x, y, z, w, h, c, axis = 'x') {
+            if (axis === 'x') { box(w + 0.1, h + 0.1, 0.05, 0x6e4723, x, y, z, g); box(w, h, 0.06, c, x, y, z + 0.01, g).castShadow = false; }
+            else { box(0.05, h + 0.1, w + 0.1, 0x6e4723, x, y, z, g); box(0.06, h, w, c, x + 0.01, y, z, g).castShadow = false; }
+        }
+        function stringLights(g, x0, x1, z, y) {
+            const m = new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffd36b, emissiveIntensity: 1.2 });
+            const cord = mesh(CYL, mat(0x333333), g); cord.scale.set(0.01, x1 - x0, 0.01); cord.rotation.z = Math.PI / 2; cord.position.set((x0 + x1) / 2, y + 0.05, z);
+            for (let x = x0 + 0.3; x < x1; x += 0.6) { const b = mesh(SPH, m, g); b.scale.setScalar(0.06); b.position.set(x, y - 0.05 * Math.sin((x - x0) / (x1 - x0) * Math.PI) - 0.05, z); b.castShadow = false; }
+        }
+        function textPlate(g, text, x, y, z, w = 1.6, rotY = 0) {
+            const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+            const t = c.getContext('2d');
+            t.fillStyle = '#fbefd0'; t.fillRect(0, 0, 256, 64); t.strokeStyle = '#8b5a2b'; t.lineWidth = 8; t.strokeRect(4, 4, 248, 56);
+            t.fillStyle = '#4a2f14'; t.font = '700 30px Fredoka, sans-serif'; t.textAlign = 'center'; t.textBaseline = 'middle'; t.fillText(text, 128, 34);
+            const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+            const m = new THREE.Mesh(PLANE, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+            m.scale.set(w, w / 4, 1); m.position.set(x, y, z); m.rotation.y = rotY; g.add(m);
+        }
+
+        function buildFloor1() {
+            const f = F1, g = floorGroup(f);
+            // floors: wood living areas, tiled bathroom and kitchen, soft green carpet in the musholla
+            planks(g, -9, 9, -7, 7, 0xc99a66, 0xbd8e5c);
+            tiles(g, -9, -3, -7, -2, 0xd9eef2, 0xbfdde4);
+            tiles(g, 3, 9, -7, 0, 0xf2eadb, 0xe3d6bf);
+            rug(g, 0, -4, 5.6, 5.6, 0x3f8a5a, 0x4f9a68);
+            // outer walls; the front wall stays low so the camera sees in
+            wall(g, f, 'x', -7, -9, 9, 2.6);
+            wall(g, f, 'z', -9, -7, 7, 2.6);
+            wall(g, f, 'z', 9, -7, 7, 2.6);
+            wall(g, f, 'x', 7, -9, 9, 0.45, [[0, 1.8]]);
+            // inner walls with doorways
+            wall(g, f, 'z', -3, -7, 7, 1.2, [[5.4, 1.6]]);
+            wall(g, f, 'x', -2, -9, -3, 1.2, [[-6, 1.4]]);
+            wall(g, f, 'x', -1, -3, 3, 1.2, [[0, 1.6]]);
+            wall(g, f, 'z', 3, -7, 7, 1.2, [[5.4, 1.6]]);
+            wall(g, f, 'x', 0, 3, 9, 1.2, [[6, 3]]);
+            for (const x of [-6, 6]) windowOn(g, x, 1.6, -6.88, 1.6, 1.0);
+            windowOn(g, -8.88, 1.6, 4.6, 1.4, 0.9, 'z');
+            windowOn(g, 8.88, 1.6, 3.8, 1.4, 0.9, 'z');
+            // front door mat and frame
+            rug(g, 0, 6.4, 1.6, 0.9, 0x8a5a3a, 0xb98557);
+            for (const sx of [-1, 1]) box(0.15, 0.7, 0.25, 0x6e4723, sx * 0.95, 0.35, 7, g);
+            textPlate(g, 'Selamat datang', 0, 0.35, 7.15, 1.4);
+
+            // 🛋️ family room: sofa facing the TV, rug, computer desk, stairs up
+            rug(g, -7.1, 4.6, 2.2, 2.6, 0xd9774f, 0xf0a86f);
+            sofa(g, -5.4, 4.6, -Math.PI / 2, 0x5b8fd6, 2.2); col(f, -5.85, -4.95, 3.45, 5.75);
+            box(0.5, 0.5, 1.9, 0x8a5a3a, -8.6, 0.25, 4.6, g); col(f, -8.9, -8.3, 3.6, 5.6);
+            box(0.08, 0.85, 1.5, 0x1d232b, -8.55, 1.05, 4.6, g);
+            const screen = box(0.02, 0.72, 1.36, new THREE.MeshStandardMaterial({ color: 0x2b6aa8, emissive: 0x3d8fd6, emissiveIntensity: 0.6 }), -8.5, 1.05, 4.6, g); screen.castShadow = false;
+            pottedPlant(g, -3.6, 6.4, 1.1); lamp(g, -8.4, 6.4);
+            table(g, -4.3, -1.5, 1.4, 0.6, 0.75); col(f, -5.0, -3.6, -1.85, -1.2);
+            box(0.7, 0.45, 0.05, 0x1d232b, -4.3, 1.08, -1.65, g);
+            box(0.64, 0.38, 0.02, new THREE.MeshStandardMaterial({ color: 0x3aa37a, emissive: 0x3aa37a, emissiveIntensity: 0.5 }), -4.3, 1.08, -1.62, g).castShadow = false;
+            box(0.1, 0.25, 0.1, 0x1d232b, -4.3, 0.85, -1.68, g);
+            box(0.5, 0.03, 0.18, 0xe8e8e8, -4.3, 0.8, -1.35, g);
+            chair(g, -4.3, -0.75, Math.PI, 0x3d4a5c);
+            frame(g, -6.0, 1.75, -1.86, 0.9, 0.6, 0xf2c94c);
+            stairs(g, -8.7, -7.1, -1.8, 1.4, true); col(f, -8.9, -6.95, -1.9, 1.4);
+            textPlate(g, 'Lantai 2 ⬆', -7.9, 2.0, -1.85, 1.2);
+
+            // 🚿 bathroom: shower, toilet, sink with mirror
+            box(1.5, 0.08, 1.5, 0xffffff, -8.1, 0.04, -6.1, g);
+            for (const [x, z, w, d] of [[-7.35, -6.1, 0.04, 1.5], [-8.1, -5.35, 1.5, 0.04]]) { const p = box(w, 2.0, d, new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.1 }), x, 1.0, z, g); p.castShadow = false; }
+            const head = mesh(CYL, mat(0xb8c2cc), g); head.scale.set(0.12, 0.04, 0.12); head.position.set(-8.6, 2.1, -6.6);
+            col(f, -8.9, -7.3, -6.9, -5.3);
+            box(0.45, 0.4, 0.6, 0xffffff, -4.0, 0.2, -6.5, g); box(0.48, 0.5, 0.18, 0xffffff, -4.0, 0.55, -6.82, g); box(0.42, 0.05, 0.5, 0xf2f2f2, -4.0, 0.43, -6.45, g); col(f, -4.3, -3.7, -6.9, -6.15);
+            box(0.8, 0.8, 0.45, 0xffffff, -6.0, 0.4, -6.7, g); box(0.5, 0.06, 0.3, 0xcfe6ee, -6.0, 0.82, -6.65, g); col(f, -6.45, -5.55, -6.95, -6.45);
+            box(0.7, 0.9, 0.04, new THREE.MeshStandardMaterial({ color: 0xe6f6ff, roughness: 0.05, metalness: 0.3 }), -6.0, 1.6, -6.86, g);
+            rug(g, -6.0, -5.9, 0.9, 0.6, 0x7fb8d6);
+            box(0.6, 0.06, 0.3, 0xffffff, -8.5, 1.2, -3.0, g); box(0.5, 0.2, 0.25, 0x9fd4ef, -8.5, 1.32, -3.0, g);
+
+            // 🕌 musholla: two prayer mats facing qibla (west), a mihrab arch, the Qur'an shelf and calligraphy
+            for (const z of [-5.0, -3.2]) {
+                box(1.6, 0.03, 0.9, 0x8f1f2f, -0.7, 0.03, z, g).castShadow = false;
+                box(1.4, 0.035, 0.7, 0xc8a04a, -0.7, 0.035, z, g).castShadow = false;
+                box(1.25, 0.04, 0.55, 0x9f2a3a, -0.7, 0.04, z, g).castShadow = false;
+                box(0.25, 0.045, 0.4, 0xe9c46a, -1.35, 0.045, z, g).castShadow = false;
+            }
+            box(0.12, 2.0, 1.6, 0xe8f2e4, -2.84, 1.0, -4.1, g);
+            const arch = mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.13, 24, 1, false, 0, Math.PI), mat(0xe8f2e4), g); arch.rotation.set(0, 0, Math.PI / 2); arch.rotation.order = 'ZYX'; arch.position.set(-2.84, 2.0, -4.1);
+            box(0.13, 1.7, 1.2, 0x2f7a55, -2.82, 0.95, -4.1, g);
+            box(1.6, 1.0, 0.35, 0x8a5a3a, 1.6, 0.5, -6.7, g); col(f, 0.75, 2.45, -6.9, -6.5);
+            for (let i = 0; i < 6; i++) box(0.12, 0.32, 0.24, [0x2f7a55, 0x8f1f2f, 0xc8a04a][i % 3], 1.05 + i * 0.22, 1.16, -6.7, g);
+            box(0.5, 0.06, 0.36, 0x6e4723, 0.4, 0.3, -6.5, g);
+            frame(g, -1.0, 1.9, -6.86, 1.6, 0.55, 0x1f5a3a);
+            textPlate(g, 'بِسْمِ اللَّهِ', -1.0, 1.9, -6.8, 1.4);
+            lamp(g, 2.5, -1.6, 1.3);
+
+            // 🚪 guest room: a sofa set around a coffee table
+            rug(g, 0, 3.0, 4.0, 2.6, 0xc9b28a, 0xe7d3a6);
+            sofa(g, 0, 1.75, 0, 0xc0504c, 2.1); col(f, -1.05, 1.05, 1.3, 2.2);
+            sofa(g, -1.6, 3.4, Math.PI / 2, 0xd9a14a, 0.95); col(f, -2.05, -1.15, 2.9, 3.9);
+            sofa(g, 1.6, 3.4, -Math.PI / 2, 0xd9a14a, 0.95); col(f, 1.15, 2.05, 2.9, 3.9);
+            table(g, 0, 3.3, 1.1, 0.6, 0.4, 0x6e4723); col(f, -0.55, 0.55, 3.0, 3.6);
+            ball(0.12, 0.08, 0.12, 0xf2c94c, 0.15, 0.5, 3.3, g); box(0.18, 0.12, 0.12, 0xffffff, -0.25, 0.5, 3.3, g);
+            pottedPlant(g, -2.5, 6.3, 1.0, 0x2f7a35); pottedPlant(g, 2.5, 6.3, 1.0, 0x4f9a3f, 0xf2ead8);
+            frame(g, 0, 1.8, -0.86, 1.2, 0.7, 0x8fc0e6);
+
+            // 🍳 kitchen: counter with stove and sink, wall cabinets, fridge
+            box(5.2, 0.9, 0.62, 0xf6f1e7, 6.0, 0.45, -6.6, g); box(5.3, 0.06, 0.68, 0x8a5a3a, 6.0, 0.93, -6.6, g); col(f, 3.4, 8.6, -6.95, -6.25);
+            box(0.9, 0.04, 0.5, 0x2b2b2b, 5.6, 0.97, -6.6, g);
+            for (const [dx, dz] of [[-0.22, -0.1], [0.22, -0.1], [-0.22, 0.12], [0.22, 0.12]]) { const r = mesh(CYL, mat(0x555555), g); r.scale.set(0.1, 0.02, 0.1); r.position.set(5.6 + dx, 1.0, -6.6 + dz); }
+            const pan = mesh(CYL, mat(0x3a3a3a), g); pan.scale.set(0.17, 0.08, 0.17); pan.position.set(5.38, 1.06, -6.5);
+            box(0.7, 0.05, 0.45, 0xbfd3dc, 4.2, 0.95, -6.6, g);
+            const tap = mesh(CYL, mat(0xb8c2cc), g); tap.scale.set(0.03, 0.3, 0.03); tap.position.set(4.2, 1.1, -6.82);
+            for (let x = 3.9; x < 8.4; x += 1.1) box(1.0, 0.7, 0.35, 0xe9d8b8, x + 0.45, 2.0, -6.78, g);
+            box(0.75, 1.9, 0.7, 0xe6eef2, 8.5, 0.95, -4.6, g); box(0.04, 0.5, 0.04, 0x9aa5ad, 8.1, 1.3, -4.3, g); col(f, 8.1, 8.9, -4.95, -4.25);
+            ball(0.12, 0.12, 0.12, 0xe8402e, 7.2, 1.02, -6.55, g); ball(0.1, 0.1, 0.1, 0xf2c94c, 7.45, 1.0, -6.6, g);
+
+            // 🍽️ dining room: table for four under a pendant lamp
+            rug(g, 6, 3.8, 3.2, 2.4, 0x9cc4a4, 0xb8d8be);
+            table(g, 6, 3.8, 2.0, 1.1, 0.75); col(f, 4.95, 7.05, 3.2, 4.4);
+            for (const [x, z, r] of [[5.4, 2.95, 0], [6.6, 2.95, 0], [5.4, 4.65, Math.PI], [6.6, 4.65, Math.PI]]) chair(g, x, z, r);
+            const pend = mesh(new THREE.CylinderGeometry(0.15, 0.35, 0.3, 18), new THREE.MeshStandardMaterial({ color: 0xf2c94c, emissive: 0xffc46b, emissiveIntensity: 0.6 }), g); pend.position.set(6, 2.3, 3.8);
+            for (const x of [5.5, 6.0, 6.5]) ball(0.12, 0.05, 0.12, 0xffffff, x, 0.82, 3.8, g);
+            ball(0.1, 0.08, 0.1, 0xe8402e, 6.0, 0.9, 3.8, g);
+            pottedPlant(g, 8.4, 6.4, 1.1);
+        }
+
+        function buildFloor2() {
+            const f = F2, g = floorGroup(f);
+            planks(g, -9, 9, -7, 3, 0xd0a674, 0xc49a68);
+            planks(g, -9, 9, 3, 7, 0xa8774c, 0x9a6b42);
+            wall(g, f, 'x', -7, -9, 9, 2.6);
+            wall(g, f, 'z', -9, -7, 3, 2.6);
+            wall(g, f, 'z', 9, -7, 3, 2.6);
+            wall(g, f, 'z', -2, -7, 3, 1.2, [[-1, 1.4]]);
+            wall(g, f, 'z', 2, -7, 3, 1.2, [[-4.5, 1.4], [0.5, 1.4]]);
+            wall(g, f, 'x', -2, 2, 9, 1.2);
+            wall(g, f, 'x', 3, -9, 9, 1.2, [[-5.5, 1.6], [0, 1.6]], 0xeedcbc);
+            for (const x of [-5.5, 5.5]) windowOn(g, x, 1.6, -6.88, 1.6, 1.0);
+            // balcony railing
+            for (const [axis, at, a, b] of [['x', 6.9, -9, 9], ['z', -8.9, 3, 7], ['z', 8.9, 3, 7]]) {
+                if (axis === 'x') { box(b - a, 0.08, 0.1, 0xffffff, (a + b) / 2, 0.95, at, g); col(f, a, b, at - 0.1, at + 0.1); for (let x = a + 0.3; x < b; x += 0.45) box(0.05, 0.9, 0.05, 0xffffff, x, 0.45, at, g); }
+                else { box(0.1, 0.08, b - a, 0xffffff, at, 0.95, (a + b) / 2, g); col(f, at - 0.1, at + 0.1, a, b); for (let z = a + 0.3; z < b; z += 0.45) box(0.05, 0.9, 0.05, 0xffffff, at, 0.45, z, g); }
+            }
+
+            // 🛏️ main bedroom: double bed (sleep here), nightstands, wardrobe
+            rug(g, -5.5, -2.6, 3.2, 1.8, 0xe8a6b8, 0xf4c6d2);
+            box(2.2, 0.35, 2.5, 0x8a5a3a, -5.5, 0.18, -5.5, g);
+            box(2.1, 0.25, 2.35, 0xfffaf0, -5.5, 0.46, -5.5, g);
+            box(2.12, 0.27, 1.5, 0xf27ba5, -5.5, 0.49, -4.95, g);
+            for (const x of [-6.0, -5.0]) box(0.75, 0.16, 0.45, 0xffffff, x, 0.66, -6.35, g);
+            box(2.3, 1.0, 0.12, 0x6e4723, -5.5, 0.6, -6.75, g);
+            col(f, -6.65, -4.35, -6.9, -4.2);
+            for (const x of [-7.1, -3.9]) { box(0.5, 0.5, 0.45, 0xb07a45, x, 0.25, -6.6, g); lamp(g, x, -6.6, 0.55); }
+            box(0.65, 2.1, 1.7, 0xb07a45, -8.55, 1.05, -1.2, g); box(0.02, 1.9, 0.02, 0x6e4723, -8.21, 1.05, -1.2, g); col(f, -8.9, -8.2, -2.1, -0.3);
+            frame(g, -5.5, 1.85, -6.86, 1.2, 0.7, 0xf6d3a8);
+            pottedPlant(g, -2.6, 2.4, 0.9);
+            textPlate(g, 'adindayn ♥ wawantn', -5.5, 2.35, -6.8, 1.9);
+
+            // 🪜 hall with the stairs down and up to the rooftop
+            stairs(g, -1.8, -0.4, -6.8, -4.2, false);
+            stairs(g, 0.4, 1.8, -6.8, -4.2, true); col(f, 0.25, 1.95, -6.9, -4.2);
+            textPlate(g, '⬇ Lantai 1', -1.1, 1.3, -6.85, 1.1);
+            textPlate(g, 'Rooftop ⬆', 1.1, 2.0, -6.85, 1.1);
+            pottedPlant(g, 1.5, 2.4, 0.9, 0x4f9a3f, 0xf2ead8);
+            frame(g, -1.94, 1.6, -1.6, 0.8, 0.6, 0x9fd4ef, 'z');
+
+            // 🧸 two rooms kept ready for children one day
+            rug(g, 5.5, -4.4, 2.4, 1.6, 0xa8d8ff, 0xcbe8ff);
+            box(1.4, 0.5, 0.8, 0xffffff, 5.5, 0.55, -6.2, g);
+            for (let x = 4.9; x <= 6.1; x += 0.2) box(0.04, 0.5, 0.04, 0xffffff, x, 0.85, -5.82, g);
+            box(1.3, 0.12, 0.7, 0xbfe3ff, 5.5, 0.66, -6.2, g);
+            for (const sx of [-1, 1]) box(0.06, 0.8, 0.06, 0xffffff, 5.5 + sx * 0.68, 0.4, -6.2, g);
+            col(f, 4.75, 6.25, -6.7, -5.75);
+            for (const [c, a] of [[0xf2c94c, 0], [0xf27ba5, 2.1], [0x5aa83c, 4.2]]) ball(0.08, 0.08, 0.08, c, 5.5 + Math.cos(a) * 0.3, 1.6, -6.2 + Math.sin(a) * 0.3, g);
+            box(0.7, 0.45, 0.45, 0xf2c94c, 8.4, 0.23, -3.0, g);
+            ball(0.18, 0.2, 0.15, 0xb98557, 7.6, 0.2, -6.5, g); ball(0.12, 0.12, 0.11, 0xb98557, 7.6, 0.48, -6.5, g);
+            textPlate(g, 'Kamar anak 1', 5.5, 1.6, -6.85, 1.3);
+            rug(g, 6.0, 0.8, 2.6, 1.4, 0xc9f0c0, 0xe2f8dc);
+            box(2.0, 0.4, 1.0, 0x8fc7e6, 6.6, 0.2, -1.2, g); box(1.9, 0.18, 0.9, 0xfffaf0, 6.6, 0.48, -1.2, g); box(0.4, 0.14, 0.7, 0xffffff, 7.4, 0.62, -1.2, g); col(f, 5.55, 7.65, -1.75, -0.65);
+            table(g, 3.0, -1.4, 0.9, 0.5, 0.6, 0xffffff, 0x8fc7e6); col(f, 2.5, 3.5, -1.7, -1.1);
+            textPlate(g, 'Kamar anak 2', 6.0, 1.6, -1.85, 1.3);
+
+            // 🌇 balcony: two chairs and a little table, plants, a bench, string lights
+            chair(g, -5.9, 5.3, 0, 0xffffff); chair(g, -4.1, 5.3, 0, 0xffffff);
+            table(g, -5.0, 5.6, 0.6, 0.6, 0.5, 0xffffff, 0xdddddd);
+            box(1.6, 0.12, 0.5, 0xb07a45, 4.5, 0.45, 5.6, g); for (const sx of [-1, 1]) box(0.1, 0.45, 0.45, 0x6e4723, 4.5 + sx * 0.7, 0.22, 5.6, g); box(1.6, 0.4, 0.08, 0xb07a45, 4.5, 0.75, 5.82, g);
+            col(f, 3.65, 5.35, 5.35, 5.9);
+            for (const [x, z] of [[-8.4, 6.4], [8.4, 6.4], [-8.4, 3.6], [8.4, 3.6], [0, 6.4]]) pottedPlant(g, x, z, 0.9, 0x4f9a3f);
+            stringLights(g, -8.6, 8.6, 3.35, 2.0);
+        }
+
+        function buildRoof() {
+            const f = RF, g = floorGroup(f);
+            // deck, tiled edging and a low parapet with planters
+            planks(g, -9, 9, -7, 7, 0xb98557, 0xab7a4d);
+            box(18, 0.11, 0.6, 0xd7c6a6, 0, -0.04, 6.7, g); box(18, 0.11, 0.6, 0xd7c6a6, 0, -0.04, -6.7, g);
+            for (const [axis, at, a, b, h] of [['x', -7, -9, 9, 0.8], ['x', 7, -9, 9, 0.6], ['z', -9, -7, 7, 0.8], ['z', 9, -7, 7, 0.8]]) wall(g, f, axis, at, a, b, h, [], 0xece0c8);
+            for (let x = -7.5; x <= 7.5; x += 3) { box(1.4, 0.3, 0.4, 0x8a5a3a, x, 0.75, 6.95, g); for (let i = 0; i < 4; i++) ball(0.14, 0.14, 0.14, [0xff6b8a, 0xffd34d, 0xb07cff, 0xff8f3d][(i + x) & 3 & 3], x - 0.45 + i * 0.3, 0.98, 6.95, g); }
+            // stair hut
+            box(4, 2.6, 2.8, 0xeedcbc, -7, 1.3, -5.6, g); box(4.3, 0.18, 3.1, 0xc0503c, -7, 2.68, -5.6, g); col(f, -9, -5, -7, -4.2);
+            box(1.1, 2.0, 0.08, 0x8b4f2a, -7, 1.0, -4.18, g); textPlate(g, '⬇ Lantai 2', -7, 2.25, -4.13, 1.2);
+            // water tank and tap
+            const tank = mesh(CYL, mat(0x3f7fb5), g); tank.scale.set(0.8, 1.5, 0.8); tank.position.set(7.6, 1.35, -5.9);
+            box(1.8, 0.6, 1.8, 0x8a8a8a, 7.6, 0.3, -5.9, g); col(f, 6.7, 8.5, -6.8, -5.0);
+            const pipe = mesh(CYL, mat(0xb8c2cc), g); pipe.scale.set(0.05, 0.9, 0.05); pipe.position.set(6.4, 0.45, -6.55);
+            box(0.25, 0.08, 0.08, 0xb8c2cc, 6.4, 0.85, -6.45, g);
+            const bucket = mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.3, 16), mat(0x5aa0d6), g); bucket.position.set(6.4, 0.15, -6.2);
+            textPlate(g, 'Keran air 💧', 6.4, 1.3, -6.85, 1.2);
+            // pergola with vines over a bench
+            for (const [x, z] of [[-8.4, 2.2], [-4.2, 2.2], [-8.4, 6.4], [-4.2, 6.4]]) { box(0.16, 2.5, 0.16, 0x8a5a3a, x, 1.25, z, g); addCircleCollider(f + x, z, 0.15); }
+            for (const z of [2.2, 6.4]) box(4.5, 0.14, 0.16, 0x8a5a3a, -6.3, 2.5, z, g);
+            for (let x = -8.2; x <= -4.3; x += 0.55) box(0.08, 0.1, 4.4, 0xa06b3a, x, 2.6, 4.3, g);
+            // vines along the back beam and climbing the posts, leaving the view over the bench open
+            for (let i = 0; i < 8; i++) ball(0.28, 0.12, 0.26, i % 3 ? 0x4f9a3f : 0x6fb84a, -8.2 + i * 0.55, 2.7, 2.35, g);
+            for (const [x, z] of [[-8.4, 2.2], [-4.2, 2.2], [-8.4, 6.4], [-4.2, 6.4]]) for (let k = 0; k < 4; k++) ball(0.13, 0.11, 0.13, k % 2 ? 0x4f9a3f : 0x6fb84a, x + (k % 2 ? 0.08 : -0.08), 0.5 + k * 0.5, z + 0.1, g);
+            for (let i = 0; i < 6; i++) ball(0.1, 0.1, 0.1, 0xff8fb8, -7.9 + i * 0.6, 2.62, 2.45, g);
+            stringLights(g, -8.4, -4.2, 4.3, 2.45);
+            box(2.0, 0.12, 0.55, 0xb07a45, -6.3, 0.45, 5.6, g); for (const sx of [-1, 1]) box(0.1, 0.45, 0.5, 0x6e4723, -6.3 + sx * 0.9, 0.22, 5.6, g); box(2.0, 0.45, 0.08, 0xb07a45, -6.3, 0.75, 5.86, g);
+            col(f, -7.35, -5.25, 5.35, 5.9);
+            table(g, -6.3, 4.3, 0.8, 0.6, 0.45, 0xffffff, 0xdddddd);
+            rug(g, -6.3, 4.6, 3.4, 3.0, 0xe7d3a6, 0xf2e2bd);
+            // sun lounger under an umbrella
+            box(0.7, 0.2, 1.8, 0xffffff, 7.0, 0.3, 5.0, g); box(0.7, 0.5, 0.1, 0xffffff, 7.0, 0.55, 5.85, g).rotation.x = 0.4; col(f, 6.6, 7.4, 4.1, 5.9);
+            const pole = mesh(CYL, mat(0xffffff), g); pole.scale.set(0.04, 2.4, 0.04); pole.position.set(8.0, 1.2, 4.2);
+            const umb = mesh(new THREE.ConeGeometry(1.3, 0.5, 12), mat(0xe85d4a), g); umb.position.set(8.0, 2.45, 4.2);
+            // pot racks: low wooden pallets with a marked place for each pot
+            for (const z of [-2.6, -0.6, 1.4, 3.4]) {
+                box(8.8, 0.12, 0.8, 0x9a6b42, 1.15, 0.06, z, g);
+                col(f, -3.25, 5.55, z - 0.36, z + 0.36);
+            }
+            textPlate(g, 'Kebun Atap Farmora', 1.15, 0.9, -6.85, 2.2);
+            for (let i = 0; i < POT_SLOTS; i++) {
+                const p = POT_POS[i];
+                const mark = mesh(SLOT_GEO, mat(0x7a5233), g); mark.position.set(p.x - f, 0.125, p.z); mark.castShadow = false;
+                const pg = new THREE.Group(); pg.position.set(p.x - f, 0.12, p.z); g.add(pg);
+                const potMesh = mesh(POT_GEO, mat(0xc4673a), pg); potMesh.position.y = 0.21;
+                const soil = mesh(SOIL_GEO, mat(0x5a3b22), pg); soil.position.y = 0.42;
+                const plantRoot = new THREE.Group(); plantRoot.position.y = 0.43; pg.add(plantRoot);
+                const water = new THREE.Sprite(bubbleMat('💧')); water.scale.set(0.5, 0.5, 1); water.position.y = 1.35; pg.add(water);
+                const ready = new THREE.Sprite(bubbleMat('✨')); ready.scale.set(0.5, 0.5, 1); ready.position.y = 1.45; pg.add(ready);
+                potVis[i] = { pg, potMesh, soil, plantRoot, water, ready, sig: '', key: null, model: null };
+            }
+            updatePots(true);
+        }
+        const POT_GEO = new THREE.CylinderGeometry(0.3, 0.22, 0.42, 20);
+        const SOIL_GEO = new THREE.CylinderGeometry(0.27, 0.27, 0.04, 20);
+        const SLOT_GEO = new THREE.CylinderGeometry(0.33, 0.33, 0.01, 20);
+        const bubbleMats = {};
+        function bubbleMat(e) { return bubbleMats[e] ||= bubbleSprite(e).material; }
+
+        // --- the 30 rooftop plants, built from a few simple shapes ---
+        function blade(g, len, wid, color, ang, tilt, y = 0.02, r = 0) {
+            const yaw = new THREE.Group(); yaw.position.y = y; yaw.rotation.y = ang; g.add(yaw);
+            const pitch = new THREE.Group(); pitch.position.z = r; pitch.rotation.x = -tilt; yaw.add(pitch);
+            ball(wid, Math.max(0.012, wid * 0.14), len / 2, color, 0, 0, len / 2, pitch);
+            return pitch;
+        }
+        function bush(g, c, r = 0.22, h = 0.3) {
+            ball(r, r * 0.9, r, c, 0, h, 0, g);
+            ball(r * 0.75, r * 0.7, r * 0.75, c, r * 0.5, h + r * 0.4, -r * 0.2, g);
+            ball(r * 0.7, r * 0.65, r * 0.7, c, -r * 0.55, h + r * 0.3, r * 0.2, g);
+        }
+        function sprinkle(g, n, r, y0, y1, make) {
+            for (let i = 0; i < n; i++) { const a = i * 2.39996, rr = r * (0.55 + 0.45 * ((i * 37) % 10) / 10); make(Math.cos(a) * rr, y0 + (y1 - y0) * ((i * 53) % 10) / 10, Math.sin(a) * rr, i); }
+        }
+        function gardenModel(def) {
+            const m = def.m, g = new THREE.Group(), ripe = new THREE.Group(); g.add(ripe);
+            const t = m.t;
+            if (t === 'leafy') {
+                for (let i = 0; i < m.n; i++) {
+                    const a = i / m.n * Math.PI * 2 + (i % 2) * 0.3;
+                    if (m.stem) { const p = blade(g, m.len * 0.55, m.wid * 0.45, m.stem, a, m.tilt); blade(p, m.len, m.wid, m.c, 0, 0.15, 0, m.len * 0.4); }
+                    else blade(g, m.len * (0.8 + (i % 3) * 0.12), m.wid, m.c, a, m.tilt - (i % 2) * 0.15);
+                }
+                if (m.inner) for (let i = 0; i < 5; i++) blade(g, m.len * 0.6, m.wid * 0.9, m.inner, i * 1.26, 0.9);
+            } else if (t === 'stalk') {
+                sprinkle(g, m.n, 0.09, 0, 0, (x, y, z, i) => {
+                    const h = m.h * (0.8 + (i % 3) * 0.12);
+                    cap(0.022, h, m.c, x, h / 2 + 0.02, z, g).rotation.set(x * 0.8, 0, -z * 0.8);
+                    if (m.base) cap(0.028, 0.1, m.base, x, 0.07, z, g);
+                    if (m.tuft) ball(0.07, 0.05, 0.07, m.tuft, x * 1.5, h + 0.03, z * 1.5, g);
+                });
+            } else if (t === 'head') {
+                for (let i = 0; i < 6; i++) blade(g, 0.3, 0.16, m.c, i * 1.05, 0.55);
+                if (m.florets) { ball(0.05, 0.14, 0.05, 0x8fbf6a, 0, 0.12, 0, g); sprinkle(g, m.florets, 0.1, 0.24, 0.3, (x, y, z) => ball(m.hr, m.hr, m.hr, m.head, x, y, z, g)); }
+                else ball(m.hr, m.hr * 0.92, m.hr, m.head, 0, m.hr * 0.85, 0, g);
+            } else if (t === 'root') {
+                for (let i = 0; i < 7; i++) blade(g, 0.4, 0.05, m.c, i * 0.9, 1.2);
+                const r = mesh(CONE, mat(m.root), g); r.scale.set(0.08, 0.12, 0.08); r.position.y = 0.02;
+                const r2 = mesh(CONE, mat(m.root), ripe); r2.scale.set(0.11, -0.2, 0.11); r2.position.set(0.18, 0.1, 0.1); r2.rotation.z = 1.2;
+            } else if (t === 'fruiting') {
+                const stake = mesh(CYL, mat(0xa07a4a), g); stake.scale.set(0.015, 0.8, 0.015); stake.position.y = 0.4;
+                bush(g, m.c, 0.2, 0.32);
+                const fr = { tomat: [0xe8402e, 0.065, 0.065, 5], cabai: [0xd62818, 0.025, 0.08, 8], terong: [0x5b2a6e, 0.05, 0.12, 3], timun: [0x3f7f2f, 0.045, 0.13, 3] }[m.fruit];
+                sprinkle(ripe, fr[3], 0.22, 0.22, 0.5, (x, y, z) => ball(fr[1], fr[2], fr[1], fr[0], x, y, z, ripe));
+            } else if (t === 'flower') {
+                bush(g, m.c, 0.2, 0.3);
+                if (m.top) for (let i = 0; i < m.n; i++) ball(m.fr, m.fr * 0.7, m.fr, m.fc, Math.cos(i * 2.4) * 0.14, 0.55 + (i % 3) * 0.04, Math.sin(i * 2.4) * 0.14, ripe);
+                else sprinkle(ripe, m.n, 0.24, 0.25, 0.58, (x, y, z) => { ball(m.fr, m.fr, m.fr, m.fc, x, y, z, ripe); if (m.fr > 0.06) ball(m.fr * 0.5, m.fr * 0.5, m.fr * 0.5, 0xffd1d8, x, y + m.fr * 0.5, z, ripe); });
+            } else if (t === 'orchid') {
+                for (const a of [0, Math.PI]) blade(g, 0.28, 0.08, m.c, a, 0.3);
+                const stick = mesh(CYL, mat(0x6e4723), g); stick.scale.set(0.012, 0.7, 0.012); stick.position.y = 0.35;
+                for (let i = 0; i < 5; i++) { ball(0.06, 0.05, 0.03, m.fc, 0.05 + i * 0.05, 0.68 - i * 0.07, 0.03, ripe); ball(0.02, 0.02, 0.02, 0xffffff, 0.05 + i * 0.05, 0.68 - i * 0.07, 0.06, ripe); }
+            } else if (t === 'spike') {
+                sprinkle(g, 12, 0.12, 0, 0, (x, y, z, i) => {
+                    const h = 0.38 + (i % 3) * 0.05;
+                    cap(0.012, h, m.c, x, h / 2, z, g).rotation.set(z * 1.2, 0, -x * 1.2);
+                    cap(0.03, 0.1, m.fc, x * 1.6, h + 0.03, z * 1.6, ripe);
+                });
+            } else if (t === 'frangipani') {
+                const trunk = mesh(CYL, mat(0x8a6a50), g); trunk.scale.set(0.04, 0.5, 0.04); trunk.position.y = 0.25;
+                for (let i = 0; i < 6; i++) blade(g, 0.28, 0.08, m.c, i * 1.05, 0.35, 0.5);
+                for (let i = 0; i < 5; i++) { ball(0.05, 0.025, 0.05, m.fc, Math.cos(i * 1.3) * 0.12, 0.6, Math.sin(i * 1.3) * 0.12, ripe); ball(0.018, 0.018, 0.018, 0xffcc33, Math.cos(i * 1.3) * 0.12, 0.62, Math.sin(i * 1.3) * 0.12, ripe); }
+            } else if (t === 'sword') {
+                for (let i = 0; i < 6; i++) {
+                    const a = i * 1.05, h = 0.5 + (i % 3) * 0.1, x = Math.cos(a) * 0.07, z = Math.sin(a) * 0.07;
+                    const l = ball(0.06, h / 2, 0.018, m.c, x, h / 2, z, g); l.rotation.set(z * 1.5, a, -x * 1.5);
+                    const e = ball(0.066, h / 2 - 0.01, 0.012, m.edge, x, h / 2, z, g); e.rotation.copy(l.rotation);
+                }
+            } else if (t === 'bigleaf') {
+                for (let i = 0; i < m.n; i++) {
+                    const a = i / m.n * Math.PI * 2;
+                    const st = blade(g, 0.18, 0.015, m.c, a, 1.0);
+                    blade(st, m.len, m.wid, m.c2 && i % 2 ? m.c2 : m.c, 0, -0.45 + m.tilt * 0.3, 0, 0.16);
+                }
+                if (m.spathe) for (let i = 0; i < 3; i++) { const a = i * 2.1; cap(0.008, 0.45, 0x5a8a4a, Math.cos(a) * 0.05, 0.25, Math.sin(a) * 0.05, ripe); ball(0.045, 0.1, 0.02, m.spathe, Math.cos(a) * 0.06, 0.55, Math.sin(a) * 0.06, ripe); }
+            } else if (t === 'trail') {
+                for (let i = 0; i < 8; i++) blade(g, 0.22, 0.09, m.c, i * 0.8, i < 4 ? 0.7 : -0.6, 0.02, i < 4 ? 0 : 0.2);
+                for (let i = 0; i < 4; i++) ball(0.08, 0.02, 0.07, i % 2 ? 0x6fa83a : m.c, Math.cos(i * 1.6) * 0.32, -0.15 - i * 0.04, Math.sin(i * 1.6) * 0.32, g);
+            } else if (t === 'palm') {
+                const trunk = mesh(CYL, mat(0x9a7a50), g); trunk.scale.set(0.035, 0.35, 0.035); trunk.position.y = 0.17;
+                for (let i = 0; i < 7; i++) blade(g, 0.5, 0.07, m.c, i * 0.9, 0.35 - (i % 2) * 0.2, 0.33);
+            } else if (t === 'cactus') {
+                cap(0.11, 0.3, m.c, 0, 0.26, 0, g);
+                cap(0.05, 0.12, m.c, 0.13, 0.32, 0, g).rotation.z = -0.3;
+                cap(0.045, 0.1, m.c, -0.12, 0.26, 0.02, g).rotation.z = 0.3;
+                ball(0.06, 0.04, 0.06, m.fc, 0, 0.53, 0, ripe);
+            } else if (t === 'rosette') {
+                [[0.13, 0.35, 8], [0.1, 0.75, 6], [0.07, 1.15, 5]].forEach(([len, tilt, n], k) => { for (let i = 0; i < n; i++) blade(g, len, 0.045, k === 2 ? 0xa8d8b4 : m.c, i / n * Math.PI * 2 + k * 0.4, tilt); });
+                for (let i = 0; i < 3; i++) ball(0.025, 0.02, 0.025, 0xf08fa0, Math.cos(i * 2.1) * 0.1, 0.06, Math.sin(i * 2.1) * 0.1, ripe);
+            }
+            return { g, ripe };
+        }
+
+        // Pot visuals follow the shared garden state
+        function updatePots(force) {
+            if (!homeScene) return;
+            for (let i = 0; i < POT_SLOTS; i++) {
+                const v = potVis[i], p = state.pots[i];
+                const def = p && p.s ? GDEF[p.s] : null;
+                const grow = def ? Math.min(1, p.p / def.days) : 0, isReady = def && p.p >= def.days;
+                const sig = `${p ? 1 : 0}|${p && p.s || ''}|${grow.toFixed(2)}|${p && p.w ? 1 : 0}|${p && p.dry >= 2 ? 1 : 0}`;
+                if (!force && sig === v.sig) continue;
+                v.sig = sig;
+                v.potMesh.visible = v.soil.visible = !!p;
+                v.potMesh.material = mat(def && def.type === 'hias' ? 0xf2ead8 : 0xc4673a);
+                if ((p && p.s) !== v.key) {
+                    if (v.model) v.plantRoot.remove(v.model.g);
+                    v.model = def ? gardenModel(def) : null;
+                    if (v.model) v.plantRoot.add(v.model.g);
+                    v.key = p && p.s || null;
+                }
+                if (v.model) {
+                    v.model.g.scale.setScalar(0.3 + 0.7 * grow);
+                    v.model.ripe.visible = !!isReady;
+                    v.model.g.rotation.z = p.dry >= 2 && !isReady ? 0.25 : 0;
+                }
+                v.water.visible = !!(def && !p.w && !isReady);
+                v.ready.visible = !!isReady;
+            }
+        }
+
+        // Moving between the farm and the floors of the house
+        let travelling = false;
+        function travel(to, heading, text) {
+            if (travelling) return;
+            travelling = true;
+            standUp();
+            $('fadeText').textContent = text || '';
+            $('fade').classList.add('show', 'quick');
+            setTimeout(() => {
+                if (inHome(to)) buildHome();
+                player.pos.set(to.x, 0, to.z);
+                player.heading = player.targetHeading = heading;
+                camTarget.copy(player.pos);
+                $('fade').classList.remove('show');
+                setTimeout(() => { $('fade').classList.remove('quick'); travelling = false; }, 250);
+            }, 330);
+        }
+
+        // Sitting and kneeling
+        function sitOn(s) {
+            player.sit = s;
+            player.pos.set(s.x, 0, s.z);
+            player.heading = player.targetHeading = s.h;
+        }
+        function standUp() {
+            const s = player.sit;
+            if (!s) return;
+            player.sit = null;
+            player.pos.set(s.sx, 0, s.sz);
+        }
+        function sitPose(f, k) {
+            f.pos.y = k === 2 ? -0.52 : -0.3;
+            f.legs.forEach(l => { l.rotation.x = k === 2 ? 1.5 : -1.4; });
+        }
+        const seatAct = (s, label) => ({
+            local: true,
+            label: () => player.sit === s ? 'Berdiri' : label,
+            act: () => { if (player.sit === s) standUp(); else sitOn(s); },
+        });
+
+        // --- small dialogs (shop, kitchen, seeds, musholla, wardrobe) ---
+        function el(tag, props = {}, ...kids) {
+            const e = document.createElement(tag);
+            for (const [k, v] of Object.entries(props)) { if (k === 'onclick') e.onclick = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+            for (const k of kids.flat()) if (k != null && k !== false) e.append(k);
+            return e;
+        }
+        const dlgOpen = () => !$('dlg').classList.contains('hidden');
+        function openDlg(title, body, buttons = [{ t: 'Tutup' }]) {
+            const card = $('dlgCard');
+            card.replaceChildren(el('h2', { text: title }), ...[].concat(body),
+                el('div', { class: 'row' }, buttons.map(b => el('button', { class: 'btn' + (b.big ? ' big' : ''), onclick: () => { if (!b.keep) closeDlg(); if (b.f) b.f(); } }, b.t))));
+            $('dlg').classList.remove('hidden');
+            keys.clear();
+        }
+        function closeDlg() { $('dlg').classList.add('hidden'); }
+        $('dlg').addEventListener('click', e => { if (e.target === $('dlg')) closeDlg(); });
+
+        const absMin = () => state.day * 1440 + state.minutes;
+        const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
+        let shopTab = 'alat';
+        function openShop() {
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias']];
+            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'alat' ? !s.plant : !!s.plant && GDEF[s.plant].type === shopTab);
+            const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
+            const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
+                const g = s.plant && GDEF[s.plant];
+                const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.note;
+                return el('div', { class: 'shopitem' },
+                    el('span', { class: 'ic', text: g ? g.icon : s.icon }),
+                    el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${sub} · punya ${state.inv[k] || 0}` })),
+                    el('button', { class: 'btn', onclick: () => buy(k) }, `${s.price} G`));
+            }));
+            openDlg('🖥️ Toko Online Farmora', [
+                el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pesanan diantar kurir ke depan rumah sekitar 2 jam (waktu game) setelah dibeli.` }),
+                state.orders.length ? el('p', { class: 'saveinfo', text: `📦 Dalam perjalanan: ${pendingCount()} barang, tiba sekitar pukul ${fmtTime(next % 1440)}${Math.floor(next / 1440) > state.day ? ' besok' : ''}` }) : null,
+                el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === shopTab ? ' on' : ''), onclick: () => { shopTab = k; openShop(); } }, t))),
+                list,
+            ].filter(Boolean));
+        }
+        function buy(k) {
+            const s = SUPPLIES[k];
+            if (state.gold < s.price) { toast(`Uangnya belum cukup untuk ${s.label} (${s.price} G) 💸`); return; }
+            sendAct('buy', k);
+            setTimeout(() => { if (dlgOpen()) openShop(); }, 350);
+        }
+        function openKitchen() {
+            const have = k => state.inv[k] || 0;
+            openDlg('🍳 Dapur', [
+                el('p', { class: 'small-note', text: 'Masak hasil kebun dan peternakan jadi makanan yang lebih mahal saat dijual.' }),
+                el('div', { class: 'shoplist' }, RECIPES.map(r => {
+                    const ok = Object.entries(r.need).every(([k, n]) => have(k) >= n);
+                    const need = Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label} ${have(k)}/${n}`).join(' · ');
+                    const b = el('button', { class: 'btn', onclick: () => { sendAct('cook', r.key); setTimeout(() => { if (dlgOpen()) openKitchen(); }, 350); } }, 'Masak');
+                    if (!ok) b.disabled = true;
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: r.icon }), el('span', { class: 'nm' }, el('b', { text: `${r.label} · ${r.price} G` }), el('small', { text: need })), b);
+                })),
+            ]);
+        }
+        function chooseSeed(cb) {
+            const seeds = GARDEN.filter(g => (state.inv['b_' + g.key] || 0) > 0);
+            if (!seeds.length) { toast('Belum punya benih atau bibit. Beli lewat komputer di ruang keluarga 🖥️'); return; }
+            openDlg('🌱 Tanam apa?', [el('div', { class: 'seedgrid' }, seeds.map(g => el('button', { class: 'btn', onclick: () => { closeDlg(); cb(g.key); } }, `${g.icon} ${g.label}`, el('small', { text: ` ×${state.inv['b_' + g.key]} · ${g.days} hari` }))))]);
+        }
+        function openWardrobe() {
+            openDlg('👚 Lemari baju', [el('p', { text: 'Pilih warna bajumu hari ini.' }), el('div', { class: 'shirts', style: 'justify-content:center' }, SHIRTS.map((c, i) => {
+                const b = el('button', { 'aria-label': 'Warna baju ' + (i + 1), class: look.c === i ? 'on' : '' });
+                b.style.background = '#' + c.toString(16).padStart(6, '0');
+                b.onclick = () => { look.c = i; applyLook(); openWardrobe(); };
+                return b;
+            }))]);
+        }
+        function pray(s) {
+            const done = state.ib[USER] === state.day;
+            openDlg('🕌 Mushola', [el('p', { text: done ? 'Kamu sudah beribadah hari ini. Mau beribadah lagi?' : 'Mau melaksanakan ibadah sekarang?' })], [
+                { t: 'Ya, ibadah 🤲', big: true, f: () => {
+                    sitOn(s);
+                    $('fadeText').textContent = '🤲';
+                    $('fade').classList.add('show', 'soft');
+                    setTimeout(() => {
+                        $('fade').classList.remove('show');
+                        setTimeout(() => $('fade').classList.remove('soft'), 900);
+                        const a = AYAT[(state.day - 1) % AYAT.length];
+                        openDlg(`📖 Ayat harian · Hari ${state.day}`, [el('p', { class: 'ayat', dir: 'rtl', lang: 'ar', text: a.ar }), el('p', { class: 'arti', text: `"${a.id}"` }), el('p', { class: 'small-note', text: a.ref })], [
+                            { t: 'Aamiin 🤲', big: true, f: () => {
+                                sendAct('ibadah');
+                                const other = state.ib[OTHER] === state.day;
+                                openDlg('⭐ Masya Allah', [el('p', { class: 'pintar', text: 'Kamu anak pintar! Kamu sudah melaksanakan ibadah hari ini.' }), other ? el('p', { class: 'small-note', text: `${OTHER} juga sudah beribadah hari ini 🤍` }) : null].filter(Boolean), [{ t: 'Alhamdulillah', big: true }]);
+                                chime([523, 659, 784, 1046], 0.12, 'sine', 0.05);
+                            } }]);
+                    }, 2200);
+                } },
+                { t: 'Nanti saja' },
+            ]);
+        }
+
+        // Actions the farm's host carries out for either player
+        const ACTIONS = {
+            buy(who, k) {
+                const s = SUPPLIES[k];
+                if (!s || state.gold < s.price) return;
+                state.gold -= s.price;
+                const due = Math.ceil((absMin() + 120) / 10) * 10;
+                const o = state.orders.find(o => o.k === k && Math.abs(o.due - due) <= 20);
+                if (o) o.n++; else if (state.orders.length < 20) state.orders.push({ k, n: 1, due }); else { state.gold += s.price; return; }
+                emitEvent(`Memesan ${s.label} 🛒. Kurir datang sekitar pukul ${fmtTime(due % 1440)}.`, 'none', null, who);
+                save();
+            },
+            cook(who, k) {
+                const r = RECIPES.find(r => r.key === k);
+                if (!r || !Object.entries(r.need).every(([i, n]) => (state.inv[i] || 0) >= n)) return;
+                for (const [i, n] of Object.entries(r.need)) state.inv[i] -= n;
+                state.inv[r.key]++;
+                emitEvent(`Memasak ${r.icon} ${r.label}! Siap dijual ${r.price} G.`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
+                save();
+            },
+            ibadah(who) {
+                state.ib[who] = state.day;
+                emitEvent('Alhamdulillah, sudah melaksanakan ibadah hari ini 🤲✨', 'none', null, who);
+            },
+        };
+        function deliverOrders() {
+            if (net.mode !== 'host' || !state.orders.length) return;
+            const now = absMin();
+            const due = state.orders.filter(o => o.due <= now);
+            if (!due.length) return;
+            state.orders = state.orders.filter(o => o.due > now);
+            for (const o of due) state.pkg[o.k] = (state.pkg[o.k] || 0) + o.n;
+            emitEvent('📦 Paket dari toko online sudah datang di depan rumah!', 'sell', null, '');
+            save();
+        }
+        const pkgCount = () => Object.values(state.pkg).reduce((s, n) => s + n, 0);
+
+        function homeInteractables() {
+            const L = [];
+            const add = (id, pos, reach, o) => L.push({ id, pos, reach, ...o });
+            const info = (text, fx) => ({ local: true, act: () => { toast(text); if (fx) fx(); } });
+            // outside
+            add('door', HOUSE_DOOR, 1.8, { local: true, label: () => 'Masuk rumah 🏠', act: () => travel(HV(F1, 0, 5.6), Math.PI, '') });
+            add('pkg', PKG_POS, 1.5, {
+                when: () => pkgCount() > 0, label: () => `Ambil paket 📦 (${pkgCount()} barang)`,
+                act(who) {
+                    const n = pkgCount();
+                    if (!n) return;
+                    for (const [k, c] of Object.entries(state.pkg)) state.inv[k] = (state.inv[k] || 0) + c;
+                    state.pkg = {};
+                    emitEvent(`Membuka paket: ${n} barang masuk tas 🎁`, 'icon:📦', [PKG_POS.x, 1, PKG_POS.z], who);
+                    save();
+                },
+            });
+            add('bench', new THREE.Vector3(TURU_SEAT.x + 0.85, 0, TURU_SEAT.z), 1.2, seatAct(PORCH_SEAT, 'Santai di teras 🌿'));
+            // floor 1
+            add('h:exit', HV(F1, 0, 6.4), 1.3, { local: true, label: () => 'Keluar rumah 🚪', act: () => travel(new THREE.Vector3(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.4), 0, '') });
+            add('h:up1', HV(F1, -7.9, 2.0), 1.2, { local: true, label: () => 'Naik ke lantai 2 🪜', act: () => travel(HV(F2, -1.1, -3.0), 0, '') });
+            add('h:pc', HV(F1, -4.3, -0.75), 1.1, { local: true, label: () => 'Buka komputer · toko online 🖥️', act: openShop });
+            add('h:tv', HV(F1, -7.8, 4.6), 1.0, info('📺 ' + ['Acara masak sore ini: sayur sop hangat.', 'Ramalan cuaca: cerah, cocok menyiram kebun.', 'Kartun favorit lagi tayang, seru!', 'Berita panen: harga cabai naik minggu ini.'][Math.floor(Math.random() * 4)]));
+            add('h:sofa1', new THREE.Vector3(SEATS.sofaFamily.x, 0, SEATS.sofaFamily.z), 1.2, seatAct(SEATS.sofaFamily, 'Santai di sofa 🛋️'));
+            add('h:sofa2', new THREE.Vector3(SEATS.sofaGuest.x, 0, SEATS.sofaGuest.z + 0.3), 1.0, seatAct(SEATS.sofaGuest, 'Duduk di ruang tamu 🛋️'));
+            add('h:armL', new THREE.Vector3(SEATS.armL.x, 0, SEATS.armL.z), 0.9, seatAct(SEATS.armL, 'Duduk di kursi tamu'));
+            add('h:armR', new THREE.Vector3(SEATS.armR.x, 0, SEATS.armR.z), 0.9, seatAct(SEATS.armR, 'Duduk di kursi tamu'));
+            for (const [i, s] of [SEATS.sajadah0, SEATS.sajadah1].entries()) add('h:sajadah' + i, new THREE.Vector3(s.x + 0.4, 0, s.z), 1.0, { local: true, label: () => player.sit === s ? 'Selesai, berdiri' : 'Beribadah di sajadah 🤲', act: () => { if (player.sit === s) standUp(); else pray(s); } });
+            add('h:stove', HV(F1, 5.6, -5.8), 1.1, { local: true, label: () => 'Masak di kompor 🍳', act: openKitchen });
+            add('h:fridge', HV(F1, 7.8, -4.6), 1.0, { local: true, label: () => 'Buka kulkas 🧊', act: () => { const food = Object.entries(PRODUCTS).filter(([k]) => state.inv[k] > 0).map(([k, p]) => `${p.icon}${state.inv[k]}`).join(' '); toast(food ? 'Isi kulkas & tas: ' + food : 'Kulkasnya masih kosong. Panen dulu yuk!'); } });
+            add('h:sink', HV(F1, 4.2, -5.8), 1.0, info('Cuci piring sampai kinclong 🍽️✨'));
+            add('h:dine', HV(F1, 6, 2.4), 1.4, { local: true, label: () => 'Makan di meja makan 🍽️', act: () => { const near = net.connected && partnerF.live && partnerF.pos.distanceTo(player.pos) < 4; toast(near ? `Makan bersama ${OTHER}, nikmat sekali 😋❤` : 'Makan dulu biar kuat bertani 😋'); if (near) spawnHearts(new THREE.Vector3(F1 + 6, 1.2, 3.8)); } });
+            add('h:shower', HV(F1, -7.6, -5.0), 1.1, info('Byur! Mandi dulu, segar sekali 🚿'));
+            add('h:toilet', HV(F1, -4.0, -5.7), 1.0, info('Lega... jangan lupa disiram ya 🚽'));
+            add('h:wcsink', HV(F1, -6.0, -5.9), 0.9, info('Cuci muka dan gosok gigi 🪥'));
+            // floor 2
+            add('h:down2', HV(F2, -1.1, -3.6), 1.1, { local: true, label: () => 'Turun ke lantai 1 🪜', act: () => travel(HV(F1, -7.9, 2.6), 0, '') });
+            add('h:up2', HV(F2, 1.1, -3.6), 1.1, { local: true, label: () => 'Naik ke rooftop 🌿', act: () => travel(HV(RF, -7, -3.4), 0, '') });
+            add('bed', HV(F2, -5.5, -3.7), 1.5, { label: () => state.minutes < 18 * 60 ? 'Tidur (lewati sisa hari) 🛏️' : 'Tidur 🛏️', act: () => sleep(false) });
+            add('h:wardrobe', HV(F2, -7.9, -1.2), 1.0, { local: true, label: () => 'Buka lemari baju 👚', act: openWardrobe });
+            add('h:kid1', HV(F2, 5.5, -5.1), 1.2, info('🧸 Kamar anak 1 sudah disiapkan untuk anak kalian nanti. Semoga jadi keluarga sakinah 🤍'));
+            add('h:kid2', HV(F2, 6.6, -0.2), 1.3, info('🚀 Kamar anak 2 menunggu penghuni kecilnya suatu hari nanti 🤍'));
+            add('h:balc0', new THREE.Vector3(SEATS.balc0.x, 0, SEATS.balc0.z), 0.9, seatAct(SEATS.balc0, 'Santai di balkon 🌇'));
+            add('h:balc1', new THREE.Vector3(SEATS.balc1.x, 0, SEATS.balc1.z), 0.9, seatAct(SEATS.balc1, 'Santai di balkon 🌇'));
+            add('h:balcB', new THREE.Vector3(SEATS.balcBench.x, 0, SEATS.balcBench.z), 1.0, seatAct(SEATS.balcBench, 'Duduk di bangku balkon'));
+            // rooftop
+            add('h:down3', HV(RF, -7, -3.6), 1.1, { local: true, label: () => 'Turun ke lantai 2 🪜', act: () => travel(HV(F2, 1.1, -3.0), 0, '') });
+            add('roofTap', HV(RF, 6.4, -5.8), 1.3, { label: () => `Isi ember di keran 🪣 (💧${myWater()}/${WATER_MAX})`, act(who) { state.wb[who] = WATER_MAX; emitEvent('Ember terisi penuh 🪣💧', 'water', [RF + 6.4, 1.2, -6.2], who); } });
+            add('h:roofBench', new THREE.Vector3(SEATS.roofBench.x, 0, SEATS.roofBench.z), 1.0, seatAct(SEATS.roofBench, 'Santai di bawah pergola 🌿'));
+            add('h:lounge', new THREE.Vector3(SEATS.lounge.x, 0, SEATS.lounge.z), 1.0, seatAct(SEATS.lounge, 'Berjemur di kursi santai ☀️'));
+            POT_POS.forEach((pos, i) => add('pot:' + i, pos, 1.2, {
+                label() {
+                    const p = state.pots[i];
+                    if (!p) return state.inv.pot > 0 ? `Taruh pot di sini 🪴 (punya ${state.inv.pot})` : 'Tempat pot kosong · beli pot di komputer 🖥️';
+                    if (!p.s) return 'Tanam benih di pot 🌱';
+                    const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
+                    if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
+                    if (!p.w) return `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}`;
+                    if (!p.f && state.inv.pupuk > 0) return `Beri pupuk ${d.label} 🧪 (punya ${state.inv.pupuk})`;
+                    return `${d.icon} ${d.label} · siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
+                },
+                choose(cb) { const p = state.pots[i]; if (p && !p.s) chooseSeed(cb); else cb(); },
+                act(who, _pos, x) {
+                    const p = state.pots[i], at = [pos.x, 1.0, pos.z];
+                    if (!p) {
+                        if (!(state.inv.pot > 0)) { emitEvent('Belum punya pot. Beli dulu lewat komputer 🖥️', 'none', null, who); return; }
+                        state.inv.pot--; state.pots[i] = {};
+                        emitEvent('Menaruh pot baru 🪴', 'icon:🪴', at, who); save(); return;
+                    }
+                    if (!p.s) {
+                        const d = GDEF[x];
+                        if (!d || !(state.inv['b_' + x] > 0)) return;
+                        state.inv['b_' + x]--;
+                        state.pots[i] = { s: x, w: false, p: 0, f: false, dry: 0 };
+                        emitEvent(`Menanam ${d.icon} ${d.label}. Siram tiap hari ya!`, 'icon:🌱', at, who); save(); return;
+                    }
+                    const d = GDEF[p.s];
+                    if (p.p >= d.days) {
+                        state.inv[d.key] = (state.inv[d.key] || 0) + d.yield;
+                        state.pots[i] = d.type === 'hias' ? null : {};
+                        emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); save(); return;
+                    }
+                    if (!p.w) {
+                        if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi di keran rooftop 🪣', 'none', null, who); return; }
+                        state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
+                        p.w = true; p.dry = 0;
+                        emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
+                    }
+                    if (!p.f && state.inv.pupuk > 0) {
+                        state.inv.pupuk--; p.f = true;
+                        emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); save(); return;
+                    }
+                    emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
+                },
+            }));
+            return L;
+        }
+        // nightly growth in the rooftop pots
+        function growPots() {
+            for (const p of state.pots) {
+                if (!p || !p.s) continue;
+                const d = GDEF[p.s];
+                if (p.w) { p.dry = 0; if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1)); }
+                else if (p.p < d.days) p.dry = (p.dry || 0) + 1;
+                p.w = false;
+            }
+        }
+        // compact form of the pots for online play
+        const GKEYS = GARDEN.map(g => g.key);
+        const encPot = p => !p ? 0 : !p.s ? 1 : [GKEYS.indexOf(p.s), p.w ? 1 : 0, Math.round(p.p * 2), p.f ? 1 : 0, p.dry || 0];
+        const decPot = v => v === 1 ? {} : Array.isArray(v) && GARDEN[v[0]] ? { s: GARDEN[v[0]].key, w: !!v[1], p: (+v[2] || 0) / 2, f: !!v[3], dry: +v[4] || 0 } : null;
 
         // ---------- Interactions ----------
         function interactables() {
@@ -1971,11 +2921,7 @@
                     save(true);
                 },
             });
-            list.push({
-                id: 'door', pos: HOUSE_DOOR, reach: 1.8,
-                label: () => state.minutes < 18 * 60 ? 'Tidur (lewati sisa hari)' : 'Tidur',
-                act: () => sleep(false),
-            });
+            list.push(...homeInteractables());
             return list;
         }
         const INTERACTABLES = interactables();
@@ -1984,6 +2930,7 @@
         function findFocus() {
             let best = null, bestD = Infinity;
             for (const it of INTERACTABLES) {
+                if (it.when && !it.when()) continue;
                 const d = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
                 if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
@@ -1991,17 +2938,23 @@
         }
 
         function interact() {
-            if (!started || sleeping || !focus) return;
-            player.targetHeading = Math.atan2(focus.pos.x - player.pos.x, focus.pos.z - player.pos.z);
+            if (!started || sleeping || travelling || dlgOpen() || !focus) return;
+            const it = focus;
+            if (!it.local) player.targetHeading = Math.atan2(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
+            // moving, sitting and menus happen on this device; farm changes go through the host
+            if (it.local) it.act(USER, player.pos);
+            else if (it.choose) it.choose(x => sendAct(it.id, x));
+            else sendAct(it.id);
+            lastPrompt = '';
+        }
+        function sendAct(id, x) {
             if (net.mode === 'guest') {
                 // the host applies the action on its farm and tells both of us how it went
                 net.myQ++;
-                net.acts.push({ q: net.myQ, id: focus.id });
-                if (net.acts.length > 5) net.acts.shift();
-            } else {
-                focus.act(USER, player.pos);
-            }
-            lastPrompt = '';
+                net.acts.push(x === undefined ? { q: net.myQ, id } : { q: net.myQ, id, x });
+                if (net.acts.length > 8) net.acts.shift();
+            } else if (ACTIONS[id]) ACTIONS[id](USER, x);
+            else { const it = INTERACTABLES.find(i => i.id === id); if (it && !it.local) it.act(USER, player.pos, x); }
         }
 
         // Something happened on the farm: shown on both screens, with the actor's name for the other player
@@ -2019,7 +2972,7 @@
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); chime([880, 1046], 0.06, 'sine', 0.05); }
             const mine = e.w === USER;
-            toast(mine ? e.t : `${partnerName()}: ${e.t}`);
+            toast(mine || !e.w ? e.t : `${partnerName()}: ${e.t}`);
         }
 
         // ---------- Online for two ----------
@@ -2027,7 +2980,7 @@
         // time, animals and the save; the other mirrors it. Inside claude.ai a lease in the shared store
         // decides the host; on the open web the newest save hosts. A friend who is offline is "turu" 💤.
         const IN_CLAUDE = !!(window.claude && window.claude.use);
-        const net = { mode: 'host', connected: false, partner: null, backend: null, db: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, tab: Math.random().toString(36).slice(2, 8), leaseHeld: false, status: 'Menyambung…' };
+        const net = { mode: 'host', connected: false, partner: null, backend: null, db: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, tab: Math.random().toString(36).slice(2, 8), hostSince: Date.now(), lostAt: 0, leaseHeld: false, status: 'Menyambung…' };
         const PEER_OPTS = (() => {
             const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
             const q = new URLSearchParams(location.search).get('peerhost');
@@ -2061,7 +3014,6 @@
 
         function replaceState(st) {
             state = st;
-            window.kebun.state = state;
             lastHud = '';
             if (partnerF) refreshPartnerLook();
             updateHud();
@@ -2076,8 +3028,10 @@
             if (net.leaseHeld && net.mode !== 'host') becomeHost();
             else if (!net.leaseHeld && net.mode === 'host') becomeGuest();
         }
+        const olderHost = o => (o.hs || 0) < net.hostSince || ((o.hs || 0) === net.hostSince && OTHER < USER);
         function becomeHost() {
             if (net.mode === 'host') return;
+            net.hostSince = Date.now();
             // taking over from a farm still running elsewhere: start from its latest world
             if (net.connected && net.partner && net.partner.role === 'host' && net.partner.w) { try { applyWorld(net.partner); } catch (e) { } }
             net.mode = 'host';
@@ -2142,7 +3096,7 @@
 
         function sendMine() {
             if (!net.backend) return;
-            const o = { app: 'farmora', v: 2, user: USER, role: net.mode, at: state.savedAt || 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 2, user: USER, role: net.mode, at: state.savedAt || 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0], here: started ? 1 : 0 };
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
@@ -2150,10 +3104,11 @@
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 const inv = {};
                 for (const [k, v] of Object.entries(state.inv)) if (v) inv[k] = v;
-                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv, an, tr, wb: state.wb };
+                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv, an, tr, wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due]), pkg: state.pkg, ib: state.ib };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
+                o.hs = net.hostSince;
             } else {
                 o.acts = net.acts;
             }
@@ -2165,6 +3120,7 @@
             if (o && (o.app !== 'farmora' || o.v !== 2 || clean(o.user) !== OTHER)) o = null;
             if (!o) {
                 net.connected = false; net.partner = null;
+                if (was) net.lostAt = Date.now();
                 if (was) toast(`${OTHER} pamit, sekarang lagi turu 💤`);
                 // without a shared lease, a guest left alone takes over the farm
                 if (!net.db && net.mode === 'guest') becomeHost();
@@ -2177,17 +3133,19 @@
             if (Number.isInteger(o.look && o.look.c) && o.look.c >= 0 && o.look.c < SHIRTS.length && (!state.looks[OTHER] || state.looks[OTHER].c !== o.look.c)) { state.looks[OTHER] = { c: o.look.c }; refreshPartnerLook(); }
             if (!was) {
                 toast(`${OTHER} bangun dan datang ke farm 👋`);
-                // without a lease, two hosts settle it: the newest save keeps the farm
+                // without a lease, two hosts settle it. Back after a short drop-out: whoever ran the farm
+                // longest keeps it. Meeting for the first time: the newest save keeps the farm.
                 if (!net.db && net.mode === 'host' && o.role === 'host') {
-                    const theirsNewer = (o.at || 0) > (state.savedAt || 0) || ((o.at || 0) === (state.savedAt || 0) && OTHER < USER);
-                    if (theirsNewer) becomeGuest();
+                    const glitch = net.lostAt && Date.now() - net.lostAt < 120000;
+                    const theirs = glitch ? olderHost(o) : (o.at || 0) > (state.savedAt || 0) || ((o.at || 0) === (state.savedAt || 0) && OTHER < USER);
+                    if (theirs) becomeGuest();
                 }
                 if (net.mode === 'guest') { net.myQ = Math.max(net.myQ, o.ack || 0); net.seenEv = Math.max(net.seenEv, ...(o.ev || []).map(e => e.n)); }
                 renderTitle();
             }
-            if (!net.db && net.mode === 'host' && o.role === 'host' && was) {
-                const theirsNewer = (o.at || 0) > (state.savedAt || 0) + 2000;
-                if (theirsNewer) becomeGuest();
+            if (!net.db && was && o.role === net.mode) {
+                if (net.mode === 'host' && olderHost(o)) becomeGuest();
+                else if (net.mode === 'guest' && USER < OTHER) becomeHost(); // nobody runs the farm: one of us takes it
             }
             partnerF.live = !!o.here;
             if (Array.isArray(o.p)) partnerF.netT = o.p.map(Number);
@@ -2195,10 +3153,12 @@
                 for (const a of o.acts) {
                     if (!a || !Number.isInteger(a.q) || a.q <= net.lastQ) continue;
                     net.lastQ = a.q;
-                    const it = INTERACTABLES.find(x => x.id === a.id);
+                    const x = typeof a.x === 'string' && a.x.length <= 24 ? a.x : undefined;
+                    if (typeof a.id === 'string' && Object.hasOwn(ACTIONS, a.id)) { ACTIONS[a.id](OTHER, x); continue; }
+                    const it = INTERACTABLES.find(i => i.id === a.id && !i.local);
                     // check reach against where the guest says they are, not the smoothed avatar
                     const gx = partnerF.netT ? partnerF.netT[0] : partnerF.pos.x, gz = partnerF.netT ? partnerF.netT[1] : partnerF.pos.z;
-                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act(OTHER, new THREE.Vector3(gx, 0, gz));
+                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act(OTHER, new THREE.Vector3(gx, 0, gz), x);
                 }
             }
             if (net.mode === 'guest' && o.w && o.role === 'host') applyWorld(o);
@@ -2212,7 +3172,8 @@
                 $('fadeText').textContent = 'Zzz...';
                 $('fade').classList.add('show');
                 setTimeout(() => {
-                    player.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8);
+                    standUp(); buildHome();
+                    player.pos.copy(WAKE.guest); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
                     $('fade').classList.remove('show');
                     toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
                 }, 1200);
@@ -2224,6 +3185,10 @@
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
             if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
             if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
+            if (Array.isArray(w.pots) && w.pots.length === POT_SLOTS) state.pots = w.pots.map(decPot);
+            if (Array.isArray(w.ord)) state.orders = w.ord.filter(v => Array.isArray(v) && SUPPLIES[v[0]]).map(v => ({ k: v[0], n: +v[1] || 1, due: +v[2] || 0 }));
+            if (w.pkg && typeof w.pkg === 'object') { state.pkg = {}; for (const k of Object.keys(w.pkg)) if (SUPPLIES[k] && Number.isFinite(w.pkg[k])) state.pkg[k] = w.pkg[k]; }
+            if (w.ib && typeof w.ib === 'object') for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.ib[u])) state.ib[u] = w.ib[u];
             state.savedAt = o.at || state.savedAt;
             if (Array.isArray(o.a)) o.a.forEach((v, i) => { if (animals[i] && Array.isArray(v)) animals[i].netT = v.map(Number); });
             if (Array.isArray(o.ev)) for (const e of o.ev) { if (e && e.n > net.seenEv) { net.seenEv = e.n; showEvent(e); } }
@@ -2232,7 +3197,6 @@
         }
 
         // The other farmer: walks around when online, sleeps on the porch (turu) when not
-        const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
         // a porch bench to doze on
         {
             const g = new THREE.Group();
@@ -2245,7 +3209,7 @@
         }
         const partnerF = makeFarmer(lookOf(OTHER));
         partnerF.blinkSeed = 1.3;
-        partnerF.pos.copy(TURU_SPOT);
+        partnerF.pos.copy(TURU_SEAT);
         const zzz = bubbleSprite('💤'); zzz.position.y = 2.6; partnerF.group.add(zzz);
         function refreshPartnerLook() {
             buildFarmer(partnerF, lookOf(OTHER));
@@ -2267,15 +3231,19 @@
             setPartnerTag();
             zzz.visible = !awake;
             if (awake) {
-                const [x, z, hh, m] = partnerF.netT, k = Math.min(1, dt * 10);
+                const [x, z, hh, m, sit] = partnerF.netT, k = Math.min(1, dt * 10);
+                if (Math.hypot(partnerF.pos.x - x, partnerF.pos.z - z) > 15) partnerF.pos.set(x, 0, z); // walked through a door
                 partnerF.pos.x = lerp(partnerF.pos.x, x, k); partnerF.pos.z = lerp(partnerF.pos.z, z, k);
                 partnerF.heading = lerpAngle(partnerF.heading, hh, Math.min(1, dt * 12));
                 partnerF.group.rotation.set(0, partnerF.heading, 0);
                 partnerF.pos.y = 0;
+                partnerF.head.rotation.x = 0;
                 if (m) partnerF.phase += dt * 12;
                 animateFarmer(partnerF, !!m, dt);
+                if (sit) sitPose(partnerF, sit);
             } else {
-                partnerF.pos.lerp(TURU_SPOT, Math.min(1, dt * 3));
+                if (partnerF.pos.distanceTo(TURU_SEAT) > 15) partnerF.pos.copy(TURU_SEAT);
+                partnerF.pos.lerp(TURU_SEAT, Math.min(1, dt * 3));
                 partnerF.pos.y = -0.3;
                 partnerF.group.rotation.set(-0.08, 0, 0.14);
                 animateFarmer(partnerF, false, dt);
@@ -2292,7 +3260,7 @@
             b.style.display = 'block';
             b.replaceChildren();
             const line = t => { const d = document.createElement('div'); d.textContent = t; b.append(d); };
-            line(net.connected && partnerF.live ? `🟢 ${OTHER} lagi di farm` : `💤 ${OTHER} lagi turu`);
+            line(net.connected && partnerF.live ? `🟢 ${OTHER} di ${placeName(partnerF.netT ? { x: partnerF.netT[0], z: partnerF.netT[1] } : partnerF.pos).replace(/ · .*/, '')}` : `💤 ${OTHER} lagi turu`);
             if (net.backend) line(net.mode === 'host' ? '🏡 Farm berjalan di perangkatmu' : '🔗 Ikut farm yang sedang berjalan');
             else if (net.status) line('📴 ' + net.status);
         }
@@ -2333,10 +3301,13 @@
                     else t.dry++;
                     t.w = false;
                 }
+                growPots();
                 state.day++;
                 state.minutes = 6 * 60;
-                player.pos.set(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.5);
-                player.heading = 0;
+                standUp(); buildHome();
+                player.pos.copy(WAKE.host);
+                player.heading = player.targetHeading = 0;
+                camTarget.copy(player.pos);
                 save(true);
                 updateHud();
                 $('fade').classList.remove('show');
@@ -2346,6 +3317,7 @@
         }
 
         const SKY_DAY = new THREE.Color(0x8fd3ff), SKY_DUSK = new THREE.Color(0xf4a261), SKY_NIGHT = new THREE.Color(0x16203d);
+        let lightDay = 1;
         function updateLighting() {
             const h = state.minutes / 60;
             // 0 = night, 1 = full day
@@ -2364,6 +3336,16 @@
             hemi.color.setHSL(lerp(0.63, 0.57, day), 0.6, lerp(0.55, 0.95, day));
             const night = 1 - day;
             windowMat.emissiveIntensity = night * 0.9;
+            lightDay = day;
+            if (homeScene) {
+                homeGlass.color.copy(SKY_NIGHT).lerp(SKY_DAY, day);
+                homeGlass.emissiveIntensity = 0.15 + 0.3 * day;
+                const roof = floorOf(player.pos) === RF;
+                homeScene.background = roof ? skyColor : INTERIOR_BG;
+                homeKey.intensity = roof ? sun.intensity : 0.9 + 0.55 * day;
+                homeHemi.intensity = roof ? hemi.intensity + 0.15 : 0.85 + 0.25 * day;
+                homeKey.color.copy(roof ? sun.color : new THREE.Color(0xfff0d6));
+            }
             for (const l of lamps) { l.light.intensity = night * 14; l.lantern.material.emissiveIntensity = night * 1.2; }
         }
 
@@ -2371,6 +3353,7 @@
         const keys = new Set();
         let started = false;
         window.addEventListener('keydown', e => {
+            if (dlgOpen()) { if (e.code === 'Escape') closeDlg(); return; }
             if (e.code === 'KeyH') { toggleHelp(); return; }
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
             keys.add(e.code);
@@ -2494,7 +3477,8 @@
             ix += joy.x; iz += joy.y;
             const len = Math.hypot(ix, iz);
             const helpOpen = !$('helpScreen').classList.contains('hidden');
-            const moving = started && !sleeping && !helpOpen && len > 0.1;
+            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1;
+            if (moving && player.sit) standUp();
             if (moving) {
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null;
                 const sp = (run ? 7.5 : 4.5) * Math.min(1, len);
@@ -2503,14 +3487,24 @@
                 player.targetHeading = Math.atan2(ix, iz);
                 player.phase += dt * sp * 2.6;
             }
-            resolveCollisions(player.pos, 0.35);
-            player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
-            player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+            if (!player.sit) {
+                resolveCollisions(player.pos, 0.35);
+                if (inHome(player.pos)) {
+                    const f = floorOf(player.pos);
+                    player.pos.x = clamp(player.pos.x, f - HOME_HALF.x, f + HOME_HALF.x);
+                    player.pos.z = clamp(player.pos.z, -HOME_HALF.z, HOME_HALF.z);
+                } else {
+                    player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
+                    player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+                }
+            }
             if (!started) player.targetHeading = Math.sin(elapsed * 0.7) * 0.6;
             if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
             player.group.rotation.y = player.heading;
             player.moving = moving;
             animateFarmer(player, moving, dt);
+            if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k); }
+            else player.pos.y = 0;
         }
 
         function tick() {
@@ -2522,6 +3516,11 @@
                 state.minutes += dt * (10 / 7); // 10 in-game minutes per 7 seconds
                 if (state.minutes >= 26 * 60) sleep(true);
             }
+            if (net.mode === 'host') deliverOrders();
+            pkgMesh.visible = pkgCount() > 0;
+            updatePots();
+            // each farmer lives in the scene of where they are
+            for (const fm of [player, partnerF]) { const want = sceneOf(fm.pos); if (fm.group.parent !== want) want.add(fm.group); }
 
             grassTime.value = elapsed;
             updatePlayer(dt);
@@ -2535,14 +3534,14 @@
                 p.s.position.y += p.vy * dt;
                 p.s.material.opacity = Math.min(1, p.life / p.max * 2);
                 if (p.life <= 0) {
-                    scene.remove(p.s);
+                    if (p.s.parent) p.s.parent.remove(p.s);
                     p.s.material.map.dispose();
                     p.s.material.dispose();
                     particles.splice(i, 1);
                 }
             }
 
-            focus = started && !sleeping ? findFocus() : null;
+            focus = started && !sleeping && !travelling && !dlgOpen() ? findFocus() : null;
             const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
             if (html !== lastPrompt) {
                 lastPrompt = html;
@@ -2554,24 +3553,38 @@
             updateHud();
 
             camTarget.lerp(player.pos, Math.min(1, dt * 5));
+            camTarget.y = 0;
+            const indoors = started && inHome(player.pos) && !!homeScene;
             if (!started) {
                 // close-up of your farmer while you choose the look
                 const wide = innerWidth > 760;
                 camera.position.set(player.pos.x + (wide ? 1.3 : 0), 2.1, player.pos.z + 4.4);
                 camera.lookAt(player.pos.x + (wide ? 1.3 : 0), wide ? 1.05 : 0.55, player.pos.z);
+            } else if (indoors) {
+                // closer camera inside, like looking into a doll's house
+                const far = camera.aspect < 1 ? 1.5 : 1; // portrait phones see less from side to side
+                camera.position.set(camTarget.x, 11 * zoom * far, camTarget.z + 9.5 * zoom * far);
+                camera.lookAt(camTarget.x, 0.6, camTarget.z - 0.4);
             } else {
                 camera.position.set(camTarget.x, camTarget.y + 15 * zoom, camTarget.z + 13.5 * zoom);
                 camera.lookAt(camTarget.x, camTarget.y + 0.8, camTarget.z);
             }
-            sun.position.set(camTarget.x + 14, 24, camTarget.z + 9);
-            sun.target.position.copy(camTarget);
+            if (indoors) {
+                const f = floorOf(player.pos);
+                homeKey.position.set(f + 5, 16, 9);
+                homeKey.target.position.set(f, 0, 0);
+            } else {
+                sun.position.set(camTarget.x + 14, 24, camTarget.z + 9);
+                sun.target.position.copy(camTarget);
+            }
 
-            renderer.render(scene, camera);
+            // only the place you are in is drawn
+            renderer.render(indoors ? homeScene : scene, camera);
             requestAnimationFrame(tick);
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { state, player, animals, camera, net, PLANTS, partnerF }; // handy for debugging in the console
+        window.kebun = { get state() { return state; }, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         renderTitle();
         renderBadge();
         startNetwork();

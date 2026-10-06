@@ -35,6 +35,15 @@ Ada 20 tanaman buah khas Indonesia di **Kebun Barat**, **Kebun Utara**, dan bede
 - **Siram sekali sehari.** Ember berisi 10 siraman dan bisa diisi ulang di dua sumur 🪣. Tanaman yang disiram tumbuh setiap malam dan berbuah sesuai sifatnya, dari stroberi (setiap hari) sampai durian, manggis, duku, dan nanas (setiap 5 hari). Tanaman yang tidak disiram berhenti tumbuh, dan daunnya pelan-pelan menguning.
 - Buah yang siap panen terlihat di tanaman, dan ikon 💧 menandai tanaman yang belum disiram. Hasil panen masuk tas dan bisa dijual di kotak pengiriman.
 
+## Rumah 🏠
+Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Valley atau Coral Island). Bagian dalam adalah scene tersendiri yang baru dibangun saat pertama kali masuk dan hanya digambar ketika kamu di dalam, jadi farm luar tidak digambar bersamaan dan memori tetap hemat.
+
+- **Lantai 1:** 🚪 ruang tamu, 🛋️ ruang keluarga (sofa, TV, dan **komputer toko online** 🖥️), 🍳 dapur (masak 7 resep dari hasil kebun & ternak) dan 🍽️ ruang makan, 🚿 kamar mandi/WC, serta 🕌 **mushola** dengan 2 sajadah. Di mushola kamu ditanya mau beribadah atau tidak; kalau ya, muncul ayat harian (bergiliran tiap hari) lalu pesan *"Kamu anak pintar! Kamu sudah melaksanakan ibadah hari ini."*
+- **Lantai 2:** 🛏️ kamar utama (tidur di sini untuk ganti hari, ada lemari baju untuk ganti warna), 🧸 2 kamar anak yang disiapkan untuk nanti, dan 🌇 balkon untuk bersantai.
+- **Rooftop (lantai 3):** taman atap dengan pergola, kursi santai, keran air, dan rak untuk 24 pot. Ada 15 sayuran dan 15 tanaman hias; siram setiap hari dan tanaman siap dijual dalam 3–10 hari sesuai jenisnya. Pupuk 🧪 mempercepat tumbuh 1,5×. Tanaman hias dijual bersama potnya.
+- **Toko online:** beli pot, pupuk, benih, dan bibit lewat komputer. Kurir mengantar paket 📦 ke depan rumah sekitar 2 jam (waktu game) kemudian. Rumah baru juga datang dengan hadiah: 4 pot terpasang, 2 pot cadangan, pupuk, dan beberapa benih.
+- 🌿 Teras depan punya bangku untuk duduk santai.
+
 ## Karakter, farm bersama, dan turu 💤
 - **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih.
 - **Satu farm untuk berdua, selalu online.** Tidak ada mode main sendiri dan tidak perlu kode: cukup tekan **Masuk ke farm**. Hewan, waktu, kebun, inventori, dan uang dipakai bersama; ember air dimiliki masing-masing.
@@ -48,7 +57,7 @@ Ada 20 tanaman buah khas Indonesia di **Kebun Barat**, **Kebun Utara**, dan bede
 | Kontrol | Aksi |
 | --- | --- |
 | WASD / panah | Berjalan (tahan Shift untuk lari) |
-| E / Spasi | Elus hewan, ambil hasil ternak, jual, tidur |
+| E / Spasi | Interaksi: elus hewan, siram, jual, masuk rumah, duduk, tidur di kasur |
 | Scroll | Zoom kamera |
 | H | Bantuan |
 
