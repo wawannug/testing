@@ -26,6 +26,7 @@
             height: 100%;
             overflow: hidden;
             background: #8fd3ff;
+            color-scheme: light;
             font-family: 'Fredoka', system-ui, sans-serif;
             color: var(--ink);
             user-select: none;
@@ -1360,8 +1361,17 @@
         }
         $('helpBtn').addEventListener('click', () => toggleHelp(true));
         $('closeHelp').addEventListener('click', () => toggleHelp(false));
+        let resetArmed = 0;
         $('resetBtn').addEventListener('click', () => {
-            if (!confirm('Hapus semua progres dan mulai dari Hari 1?')) return;
+            const btn = $('resetBtn');
+            if (Date.now() - resetArmed > 3000) {
+                resetArmed = Date.now();
+                btn.textContent = 'Yakin? Klik lagi';
+                setTimeout(() => { btn.textContent = 'Mulai ulang'; }, 3000);
+                return;
+            }
+            resetArmed = 0;
+            btn.textContent = 'Mulai ulang';
             try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
             state = freshState();
             player.pos.set(-10, 0, -8);
