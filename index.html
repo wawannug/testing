@@ -281,7 +281,7 @@
         }
     </style>
     <script type="importmap">
-        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
     </script>
 </head>
 
@@ -302,7 +302,7 @@
                     <div class="info">
                         <h2 id="farmoraTitle">Farmora</h2>
                         <ul class="chips" aria-label="Info game">
-                            <li>3D low-poly</li>
+                            <li>3D</li>
                             <li>Simulasi peternakan</li>
                             <li>Santai</li>
                             <li>Keyboard &amp; layar sentuh</li>
@@ -363,6 +363,7 @@
     <script type="module">
         // Live diorama: a small floating farm island that slowly turns.
         import * as THREE from 'three';
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
         const stage = document.getElementById('stage');
         const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -372,6 +373,8 @@
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
         stage.appendChild(renderer.domElement);
         stage.classList.add('ready');
 
@@ -389,11 +392,21 @@
         scene.add(sun);
 
         const mats = {};
-        const mat = c => mats[c] ||= new THREE.MeshLambertMaterial({ color: c });
-        const BOX = new THREE.BoxGeometry(1, 1, 1);
+        const mat = c => mats[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.82 });
+        const geos = {};
+        const SPH = new THREE.SphereGeometry(1, 24, 16);
+        function ball(rx, ry, rz, c, x, y, z, parent) {
+            const m = new THREE.Mesh(SPH, mat(c));
+            m.scale.set(rx, ry, rz);
+            m.position.set(x, y, z);
+            m.castShadow = m.receiveShadow = true;
+            parent.add(m);
+            return m;
+        }
         function box(w, h, d, c, x, y, z, parent) {
-            const m = new THREE.Mesh(BOX, mat(c));
-            m.scale.set(w, h, d);
+            const key = [w, h, d].join('|');
+            const geo = geos[key] ||= new RoundedBoxGeometry(w, h, d, 2, Math.min(0.08, Math.min(w, h, d) * 0.3));
+            const m = new THREE.Mesh(geo, mat(c));
             m.position.set(x, y, z);
             m.castShadow = m.receiveShadow = true;
             parent.add(m);
@@ -404,11 +417,11 @@
         scene.add(island);
 
         // Ground: grass top over a dirt cliff
-        const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 8), mat(0x7cc35a));
+        const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 40), mat(0x7cc35a));
         top.position.y = -0.25; top.receiveShadow = true; island.add(top);
-        const cliff = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 3.2, 2.2, 8), mat(0x9a6b42));
+        const cliff = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 3.2, 2.2, 40), mat(0x9a6b42));
         cliff.position.y = -1.6; island.add(cliff);
-        const rock = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.6, 8), mat(0x7a5233));
+        const rock = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.6, 40), mat(0x7a5233));
         rock.position.y = -3.4; rock.rotation.x = Math.PI; island.add(rock);
 
         // Barn
@@ -416,7 +429,7 @@
         box(2.6, 1.8, 2, 0xb8382f, 0, 0.9, 0, barn);
         const roofShape = new THREE.Shape();
         roofShape.moveTo(-1.6, 0); roofShape.lineTo(1.6, 0); roofShape.lineTo(0, 1.2); roofShape.closePath();
-        const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 2.4, bevelEnabled: false });
+        const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 2.4, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 3 });
         roofGeo.translate(0, 0, -1.2);
         const roof = new THREE.Mesh(roofGeo, mat(0x5a4a42)); roof.position.y = 1.8; roof.castShadow = true; barn.add(roof);
         box(1, 1.2, 0.08, 0x8f2a23, 0, 0.6, 1.02, barn);
@@ -424,10 +437,12 @@
         box(0.08, 1.5, 0.1, 0xfafafa, 0, 0.6, 1.06, barn).rotation.z = -0.7;
 
         // Tree
-        const ico = new THREE.IcosahedronGeometry(1, 0);
+        const ico = new THREE.IcosahedronGeometry(1, 2);
         const tree = new THREE.Group(); tree.position.set(2.6, 0, -1.6); island.add(tree);
         box(0.3, 1.2, 0.3, 0x5b3a1e, 0, 0.6, 0, tree);
-        const leaves = new THREE.Mesh(ico, mat(0x5fae45)); leaves.scale.setScalar(0.95); leaves.position.y = 1.7; leaves.castShadow = true; tree.add(leaves);
+        for (const [lx, ly, lz, r] of [[0, 1.7, 0, 0.85], [0.45, 1.5, 0.2, 0.55], [-0.4, 1.55, -0.1, 0.6], [0.1, 2.25, 0, 0.55]]) {
+            const leaves = new THREE.Mesh(ico, mat(0x5fae45)); leaves.scale.setScalar(r); leaves.position.set(lx, ly, lz); leaves.castShadow = true; tree.add(leaves);
+        }
         for (const [x, y, z] of [[0.6, 1.5, 0.5], [-0.5, 1.9, 0.6], [0.2, 1.4, -0.8]]) {
             const f = new THREE.Mesh(ico, mat(0xe8413a)); f.scale.setScalar(0.11); f.position.set(x, y, z); tree.add(f);
         }
@@ -442,12 +457,13 @@
 
         // Cow
         const cow = new THREE.Group(); cow.position.set(0.9, 0, 0.8); cow.rotation.y = -0.6; island.add(cow);
-        box(0.6, 0.55, 1.1, 0xfafafa, 0, 0.75, 0, cow);
-        box(0.62, 0.28, 0.35, 0x2b2b2b, 0, 0.82, 0.15, cow);
-        box(0.62, 0.25, 0.3, 0x2b2b2b, 0, 0.7, -0.35, cow);
+        ball(0.32, 0.3, 0.58, 0xfafafa, 0, 0.78, 0, cow);
+        ball(0.1, 0.16, 0.2, 0x2b2b2b, 0.25, 0.82, 0.12, cow);
+        ball(0.1, 0.14, 0.16, 0x2b2b2b, -0.25, 0.74, -0.3, cow);
+        ball(0.16, 0.08, 0.2, 0x2b2b2b, 0, 1.06, -0.1, cow);
         const head = new THREE.Group(); head.position.set(0, 0.98, 0.66); cow.add(head);
-        box(0.38, 0.38, 0.35, 0xfafafa, 0, 0, 0, head);
-        box(0.32, 0.18, 0.12, 0xf4a6b0, 0, -0.1, 0.22, head);
+        ball(0.2, 0.19, 0.19, 0xfafafa, 0, 0, 0, head);
+        ball(0.16, 0.1, 0.09, 0xf4a6b0, 0, -0.08, 0.16, head);
         box(0.06, 0.15, 0.06, 0xf1e3c4, 0.13, 0.25, 0, head);
         box(0.06, 0.15, 0.06, 0xf1e3c4, -0.13, 0.25, 0, head);
         for (const [x, z] of [[0.2, 0.38], [-0.2, 0.38], [0.2, -0.38], [-0.2, -0.38]]) box(0.14, 0.5, 0.14, 0xfafafa, x, 0.25, z, cow);
@@ -456,9 +472,9 @@
         const chickens = [];
         for (const [x, z, c] of [[-0.8, 1.6, 0xfafafa], [-1.5, 1.1, 0xc0783c]]) {
             const ch = new THREE.Group(); ch.position.set(x, 0, z); island.add(ch);
-            box(0.3, 0.26, 0.36, c, 0, 0.3, 0, ch);
+            ball(0.16, 0.15, 0.19, c, 0, 0.32, 0, ch);
             const h = new THREE.Group(); h.position.set(0, 0.48, 0.14); ch.add(h);
-            box(0.18, 0.2, 0.18, c, 0, 0, 0, h);
+            ball(0.1, 0.11, 0.1, c, 0, 0, 0, h);
             box(0.05, 0.08, 0.12, 0xd9443a, 0, 0.13, 0, h);
             box(0.08, 0.05, 0.08, 0xf2a33a, 0, 0, 0.12, h);
             box(0.04, 0.17, 0.04, 0xf2a33a, 0.06, 0.08, 0, ch);

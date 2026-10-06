@@ -284,7 +284,7 @@
         }
     </style>
     <script type="importmap">
-        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
     </script>
 </head>
 
@@ -352,6 +352,7 @@
 
     <script type="module">
         import * as THREE from 'three';
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
         // ---------- Utilities ----------
         const rand = (a, b) => a + Math.random() * (b - a);
@@ -373,11 +374,15 @@
         const srange = (a, b) => a + srand() * (b - a);
 
         // ---------- Renderer / scene ----------
+        // Phones and tablets get a lighter render: lower resolution and less grass.
+        const LITE = matchMedia('(pointer: coarse)').matches;
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, LITE ? 1.5 : 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
         document.body.prepend(renderer.domElement);
 
         const scene = new THREE.Scene();
@@ -392,18 +397,21 @@
         scene.add(hemi);
         const sun = new THREE.DirectionalLight(0xfff3dd, 1.6);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(2048, 2048);
+        sun.shadow.mapSize.set(LITE ? 1024 : 2048, LITE ? 1024 : 2048);
         Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 80 });
-        sun.shadow.bias = -0.0006;
+        sun.shadow.bias = -0.0004;
+        sun.shadow.normalBias = 0.03;
         scene.add(sun, sun.target);
 
         // ---------- Materials & primitive helpers ----------
-        const matCache = {};
-        const mat = c => matCache[c] ||= new THREE.MeshLambertMaterial({ color: c });
+        const matCache = {}, geoCache = {};
+        const mat = c => matCache[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.82, metalness: 0 });
+        const glossy = c => matCache['g' + c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.18, metalness: 0 });
         const BOX = new THREE.BoxGeometry(1, 1, 1);
-        const ICO = new THREE.IcosahedronGeometry(1, 0);
-        const CONE = new THREE.ConeGeometry(1, 1, 7);
-        const CYL = new THREE.CylinderGeometry(1, 1, 1, 12);
+        const ICO = new THREE.IcosahedronGeometry(1, 2);   // smooth, slightly lumpy sphere
+        const SPH = new THREE.SphereGeometry(1, 24, 16);
+        const CONE = new THREE.ConeGeometry(1, 1, 16);
+        const CYL = new THREE.CylinderGeometry(1, 1, 1, 24);
 
         function mesh(geo, material, parent) {
             const m = new THREE.Mesh(geo, material);
@@ -412,17 +420,71 @@
             if (parent) parent.add(m);
             return m;
         }
+        // Box with softly rounded edges; geometry is cached per size
+        function roundedBox(w, h, d) {
+            const r = Math.min(0.08, Math.min(w, h, d) * 0.3);
+            const key = `b${w.toFixed(3)}|${h.toFixed(3)}|${d.toFixed(3)}`;
+            return geoCache[key] ||= new RoundedBoxGeometry(w, h, d, 2, r);
+        }
         function box(w, h, d, color, x = 0, y = 0, z = 0, parent) {
-            const m = mesh(BOX, typeof color === 'number' ? mat(color) : color, parent);
-            m.scale.set(w, h, d);
+            const m = mesh(roundedBox(w, h, d), typeof color === 'number' ? mat(color) : color, parent);
             m.position.set(x, y, z);
+            return m;
+        }
+        // Ellipsoid with radii rx, ry, rz
+        function ball(rx, ry, rz, color, x = 0, y = 0, z = 0, parent) {
+            const m = mesh(SPH, mat(color), parent);
+            m.scale.set(rx, ry, rz);
+            m.position.set(x, y, z);
+            return m;
+        }
+        // Capsule; axis 'y' (default) or 'z' for a horizontal body
+        function cap(r, len, color, x = 0, y = 0, z = 0, parent, axis = 'y') {
+            const key = `c${r}|${len}`;
+            const geo = geoCache[key] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
+            const m = mesh(geo, mat(color), parent);
+            if (axis === 'z') m.rotation.x = Math.PI / 2;
+            m.position.set(x, y, z);
+            return m;
+        }
+        // Glossy eye with a little highlight; scale.y is animated for blinking
+        function eye(parent, x, y, z, r, color = 0x1e1a18) {
+            const e = mesh(SPH, glossy(color), parent);
+            e.scale.setScalar(r);
+            e.position.set(x, y, z);
+            e.castShadow = false;
+            if (color !== 0x1e1a18) { const pupil = mesh(SPH, glossy(0x1e1a18), e); pupil.scale.set(0.35, 0.8, 0.5); pupil.position.z = 0.6; }
+            const hl = mesh(SPH, mat(0xffffff), e);
+            hl.scale.setScalar(0.32);
+            hl.position.set(0.3 * Math.sign(x || 1), 0.35, 0.75);
+            hl.castShadow = false;
+            return e;
+        }
+        // Soft round contact shadow under a character
+        const blobTex = (() => {
+            const c = document.createElement('canvas'); c.width = c.height = 64;
+            const ctx = c.getContext('2d');
+            const gr = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gr.addColorStop(0, 'rgba(20,30,10,0.55)'); gr.addColorStop(1, 'rgba(20,30,10,0)');
+            ctx.fillStyle = gr; ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(c);
+        })();
+        const blobMat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
+        const PLANE = new THREE.PlaneGeometry(1, 1);
+        function blob(parent, w, l) {
+            const m = new THREE.Mesh(PLANE, blobMat);
+            m.rotation.x = -Math.PI / 2;
+            m.scale.set(w, l, 1);
+            m.position.y = 0.025;
+            m.renderOrder = -1;
+            parent.add(m);
             return m;
         }
         // A limb pivoting at its top so rotation.x swings it
         function limb(parent, x, y, z, w, h, color) {
             const pivot = new THREE.Group();
             pivot.position.set(x, y, z);
-            box(w, h, w, color, 0, -h / 2, 0, pivot);
+            cap(w / 2, Math.max(0.01, h - w), color, 0, -h / 2, 0, pivot);
             parent.add(pivot);
             return pivot;
         }
@@ -492,7 +554,7 @@
                 colors.push(tmp.r, tmp.g, tmp.b);
             }
             geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-            const ground = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
+            const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
             ground.receiveShadow = true;
             scene.add(ground);
         }
@@ -513,12 +575,12 @@
         PATHS.forEach(p => pathStrip(...p));
 
         // Window material glows at night
-        const windowMat = new THREE.MeshLambertMaterial({ color: 0x9fd8ff, emissive: 0xffc35c, emissiveIntensity: 0 });
+        const windowMat = new THREE.MeshStandardMaterial({ color: 0x9fd8ff, roughness: 0.25, emissive: 0xffc35c, emissiveIntensity: 0 });
 
         function gableRoof(span, length, height, color) {
             const s = new THREE.Shape();
             s.moveTo(-span / 2, 0); s.lineTo(span / 2, 0); s.lineTo(0, height); s.closePath();
-            const geo = new THREE.ExtrudeGeometry(s, { depth: length, bevelEnabled: false });
+            const geo = new THREE.ExtrudeGeometry(s, { depth: length, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 3 });
             geo.translate(0, 0, -length / 2);
             return mesh(geo, mat(color));
         }
@@ -685,8 +747,8 @@
         // Lamp posts (light up at night)
         const lamps = [];
         function lampPost(x, z) {
-            box(0.16, 2.6, 0.16, 0x3d3d3d, x, 1.3, z, scene);
-            const lantern = box(0.4, 0.45, 0.4, new THREE.MeshLambertMaterial({ color: 0xfff1c1, emissive: 0xffb84d, emissiveIntensity: 0 }), x, 2.75, z, scene);
+            const post = mesh(CYL, mat(0x3d3d3d), scene); post.scale.set(0.07, 2.6, 0.07); post.position.set(x, 1.3, z);
+            const lantern = box(0.4, 0.45, 0.4, new THREE.MeshStandardMaterial({ color: 0xfff1c1, roughness: 0.4, emissive: 0xffb84d, emissiveIntensity: 0 }), x, 2.75, z, scene);
             const light = new THREE.PointLight(0xffb85c, 0, 12, 1.6);
             light.position.set(x, 2.6, z);
             scene.add(light);
@@ -700,7 +762,7 @@
 
         // Pond
         {
-            const water = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 24), new THREE.MeshLambertMaterial({ color: 0x4fb3e8, transparent: true, opacity: 0.9 }));
+            const water = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 48), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.88 }));
             water.rotation.x = -Math.PI / 2;
             water.position.set(POND.x, 0.05, POND.z);
             water.receiveShadow = true;
@@ -708,16 +770,21 @@
             for (let i = 0; i < 22; i++) {
                 const a = i / 22 * Math.PI * 2;
                 const s = srange(0.4, 0.7);
-                const st = box(s, s * 0.5, s, C.stone, POND.x + Math.cos(a) * (POND.r + 0.15), 0.12, POND.z + Math.sin(a) * (POND.r + 0.15), scene);
+                const st = mesh(ICO, mat(C.stone), scene); st.scale.set(s * 0.6, s * 0.3, s * 0.55);
+                st.position.set(POND.x + Math.cos(a) * (POND.r + 0.15), 0.08, POND.z + Math.sin(a) * (POND.r + 0.15));
                 st.rotation.y = srand() * 3;
             }
             for (const [lx, lz] of [[-1, 0.5], [1.2, -0.8], [0.3, 1.6]]) {
-                const pad = new THREE.Mesh(new THREE.CircleGeometry(0.35, 8), mat(0x3e9b4a));
+                const pad = new THREE.Mesh(new THREE.CircleGeometry(0.35, 20, 0.3, Math.PI * 1.8), mat(0x3e9b4a));
                 pad.rotation.x = -Math.PI / 2;
                 pad.position.set(POND.x + lx, 0.07, POND.z + lz);
                 scene.add(pad);
             }
-            for (let i = 0; i < 6; i++) box(0.06, srange(0.6, 1.1), 0.06, 0x4a7f2c, POND.x + POND.r + 0.3 + srand() * 0.3, 0.4, POND.z - 1 + i * 0.35, scene);
+            for (let i = 0; i < 6; i++) {
+                const hgt = srange(0.6, 1.1), rx = POND.x + POND.r + 0.3 + srand() * 0.3, rz = POND.z - 1 + i * 0.35;
+                cap(0.025, hgt, 0x4a7f2c, rx, hgt / 2, rz, scene);
+                if (i % 2 === 0) cap(0.045, 0.18, 0x7a4b25, rx, hgt + 0.05, rz, scene);
+            }
             addCircleCollider(POND.x, POND.z, POND.r + 0.1);
         }
 
@@ -751,31 +818,34 @@
             box(1.6, 0.12, 0.12, C.darkWood, 0, 1.5, 0, g);
             box(0.6, 0.7, 0.3, 0x5c7fbf, 0, 1.45, 0, g);
             box(0.42, 0.42, 0.42, 0xe8d6a0, 0, 2.05, 0, g);
-            const brim = mesh(CYL, mat(C.straw), g); brim.scale.set(0.45, 0.04, 0.45); brim.position.y = 2.28;
+            const brim = mesh(CYL, mat(C.straw), g); brim.scale.set(0.45, 0.04, 0.45); brim.position.y = 2.3;
             const crown = mesh(CYL, mat(C.straw), g); crown.scale.set(0.25, 0.25, 0.25); crown.position.y = 2.42;
             scene.add(g);
             addCircleCollider(3.6, 13.5, 0.3);
         }
 
         // Trees
+        const TRUNK = new THREE.CylinderGeometry(0.16, 0.26, 1.8, 12);
         function roundTree(x, z, s = 1) {
             const g = new THREE.Group();
             g.position.set(x, 0, z);
-            box(0.4 * s, 1.6 * s, 0.4 * s, C.darkBrown, 0, 0.8 * s, 0, g);
+            const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.setScalar(s); trunk.position.y = 0.9 * s;
             const c = [C.leaf1, C.leaf2, C.leaf3][Math.floor(srand() * 3)];
-            const a = mesh(ICO, mat(c), g); a.scale.setScalar(1.2 * s); a.position.y = 2.3 * s; a.rotation.y = srand() * 3;
-            const b = mesh(ICO, mat(c), g); b.scale.setScalar(0.8 * s); b.position.set(0.5 * s, 3.1 * s, 0.2 * s);
+            const lighter = new THREE.Color(c).offsetHSL(0, 0, 0.06).getHex();
+            for (const [px, py, pz, r, cc] of [[0, 2.3, 0, 1.15, c], [0.65, 2.0, 0.3, 0.75, c], [-0.6, 2.1, -0.2, 0.8, c], [0.2, 3.0, -0.1, 0.8, lighter], [-0.15, 2.4, 0.7, 0.65, lighter]]) {
+                const f = mesh(ICO, mat(cc), g); f.scale.setScalar(r * s); f.position.set(px * s, py * s, pz * s); f.rotation.y = srand() * 3;
+            }
             if (srand() < 0.35) for (let i = 0; i < 4; i++) {
-                const f = mesh(ICO, mat(0xe8413a), g); f.scale.setScalar(0.12 * s);
+                const f = mesh(SPH, glossy(0xe8413a), g); f.scale.setScalar(0.12 * s);
                 const ang = srand() * Math.PI * 2;
-                f.position.set(Math.cos(ang) * 1.05 * s, 2.1 * s + srand() * 0.6, Math.sin(ang) * 1.05 * s);
+                f.position.set(Math.cos(ang) * 1.12 * s, 2.0 * s + srand() * 0.6, Math.sin(ang) * 1.12 * s);
             }
             scene.add(g);
         }
         function pineTree(x, z, s = 1) {
             const g = new THREE.Group();
             g.position.set(x, 0, z);
-            box(0.35 * s, 1.2 * s, 0.35 * s, C.darkBrown, 0, 0.6 * s, 0, g);
+            const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.set(0.85 * s, 0.7 * s, 0.85 * s); trunk.position.y = 0.6 * s;
             for (let i = 0; i < 3; i++) {
                 const c = mesh(CONE, mat(0x3f8a4a), g);
                 c.scale.set((1.4 - i * 0.35) * s, 1.5 * s, (1.4 - i * 0.35) * s);
@@ -804,16 +874,61 @@
                 const x = srange(-23, 23), z = srange(-22, 22);
                 if (blocked(x, z)) continue;
                 const r = srand();
-                if (r < 0.45) {
-                    box(0.05, 0.3, 0.05, 0x4fa83a, x, 0.15, z, scene);
-                    box(0.18, 0.12, 0.18, flowerColors[Math.floor(srand() * flowerColors.length)], x, 0.32, z, scene);
-                } else if (r < 0.9) {
-                    for (let k = 0; k < 3; k++) box(0.06, 0.3, 0.06, 0x5fae45, x + k * 0.08 - 0.08, 0.13, z, scene).rotation.z = (k - 1) * 0.35;
+                if (r < 0.55) {
+                    cap(0.015, 0.26, 0x4fa83a, x, 0.15, z, scene);
+                    const fc = flowerColors[Math.floor(srand() * flowerColors.length)];
+                    for (let k = 0; k < 5; k++) {
+                        const a = k / 5 * Math.PI * 2;
+                        ball(0.06, 0.025, 0.06, fc, x + Math.cos(a) * 0.065, 0.33, z + Math.sin(a) * 0.065, scene).castShadow = false;
+                    }
+                    ball(0.04, 0.03, 0.04, 0xffc53d, x, 0.345, z, scene).castShadow = false;
+                } else if (r < 0.8) {
+                    const s = srange(0.25, 0.45);
+                    const m = mesh(ICO, mat(C.leaf2), scene); m.scale.set(s, s * 0.7, s); m.position.set(x, s * 0.35, z);
                 } else {
-                    const s = srange(0.3, 0.6);
-                    const m = mesh(ICO, mat(C.stone), scene); m.scale.set(s, s * 0.6, s); m.position.set(x, s * 0.2, z);
+                    const s = srange(0.18, 0.4);
+                    const m = mesh(ICO, mat(C.stone), scene); m.scale.set(s, s * 0.55, s * 0.85); m.position.set(x, s * 0.18, z); m.rotation.y = srand() * 3;
                 }
             }
+        }
+
+        // Swaying grass blades (one instanced mesh, animated in the vertex shader)
+        const grassTime = { value: 0 };
+        {
+            const inRect = (x, z, r, m) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
+            const blade = new THREE.ConeGeometry(0.035, 0.34, 3);
+            blade.translate(0, 0.17, 0);
+            const grassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+            grassMat.onBeforeCompile = sh => {
+                sh.uniforms.uTime = grassTime;
+                sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vec4 gp = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+                    float sway = sin(uTime * 1.8 + gp.x * 0.45 + gp.z * 0.35);
+                    transformed.x += (sway * 0.5 + 0.2) * 0.5 * position.y;
+                    transformed.z += sin(uTime * 1.3 + gp.z * 0.5) * 0.2 * position.y;`);
+            };
+            const COUNT = LITE ? 4000 : 9000;
+            const grass = new THREE.InstancedMesh(blade, grassMat, COUNT);
+            grass.receiveShadow = true;
+            const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), pos = new THREE.Vector3(), col = new THREE.Color();
+            const shades = [0x5fae45, 0x6fbe4f, 0x7ccb59, 0x8bd462, 0x58a03f];
+            let n = 0;
+            for (let tries = 0; tries < COUNT * 3 && n < COUNT; tries++) {
+                const x = srange(-26, 26), z = srange(-25, 25);
+                if (inRect(x, z, FIELD, 0.3) || Math.hypot(x - POND.x, z - POND.z) < POND.r + 0.5) continue;
+                if (PATHS.some(([a, b, c, d]) => inRect(x, z, { minX: a, maxX: b, minZ: c, maxZ: d }, 0.05))) continue;
+                if (colliders.some(c => c.t === 'b' && c.maxX - c.minX > 1 && c.maxZ - c.minZ > 1 && inRect(x, z, c, 0.1))) continue;
+                q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), srand() * Math.PI * 2);
+                const s = srange(0.6, 1.4);
+                sc.set(s, s * srange(0.8, 1.3), s);
+                pos.set(x, 0, z);
+                m4.compose(pos, q, sc);
+                grass.setMatrixAt(n, m4);
+                grass.setColorAt(n, col.setHex(shades[Math.floor(srand() * shades.length)]));
+                n++;
+            }
+            grass.count = n;
+            scene.add(grass);
         }
 
         // ---------- Sprites (icons, hearts) ----------
@@ -823,7 +938,7 @@
             draw(c.getContext('2d'));
             const tex = new THREE.CanvasTexture(c);
             tex.colorSpace = THREE.SRGBColorSpace;
-            const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+            const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, toneMapped: false }));
             s.scale.set(scale, scale, 1);
             return s;
         }
@@ -870,179 +985,227 @@
         }
 
         // ---------- Animal models (all face +Z) ----------
+        // Soft, rounded shapes: ellipsoids, capsules and tori instead of boxes.
+        function hornArc(parent, r, tube, arc, color, x, y, z, side) {
+            const key = `t${r}|${tube}|${arc}`;
+            const geo = geoCache[key] ||= new THREE.TorusGeometry(r, tube, 8, 18, arc);
+            const m = mesh(geo, mat(color), parent);
+            m.rotation.y = -Math.PI / 2;
+            m.position.set(x, y, z - r);
+            if (side) m.rotation.z = side * 0.25;
+            return m;
+        }
+        function cone(parent, r, h, color, x, y, z) {
+            const m = mesh(CONE, mat(color), parent);
+            m.scale.set(r, h, r);
+            m.position.set(x, y, z);
+            return m;
+        }
+        function hoof(pivot, h, r, color) { ball(r, r * 0.6, r * 1.1, color, 0, -h + r * 0.3, 0.01, pivot); }
+
         function makeChicken(variant, sex) {
-            const col = variant === 'brown' ? 0xc0783c : variant === 'rooster' ? 0xd9772b : C.white;
+            const rooster = sex === 'm';
+            const col = rooster ? 0xe0823a : variant === 'brown' ? 0xc0783c : C.white;
+            const wingCol = rooster ? 0xb5562a : 0xece8e0;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.45, 0.4, 0.55, col, 0, 0.45, 0, body);
-            box(0.32, 0.32, 0.16, col, 0, 0.62, -0.3, body);
-            box(0.08, 0.26, 0.34, variant === 'brown' ? 0xa5652f : 0xeeeeee, 0.25, 0.47, 0, body);
-            box(0.08, 0.26, 0.34, variant === 'brown' ? 0xa5652f : 0xeeeeee, -0.25, 0.47, 0, body);
-            const head = new THREE.Group(); head.position.set(0, 0.72, 0.2); body.add(head);
-            box(0.28, 0.3, 0.28, col, 0, 0.08, 0, head);
-            box(0.07, 0.12, 0.2, C.red, 0, 0.29, 0, head);
-            box(0.12, 0.08, 0.13, C.orange, 0, 0.06, 0.2, head);
-            box(0.06, 0.09, 0.05, C.red, 0, -0.04, 0.16, head);
-            box(0.05, 0.05, 0.05, C.black, 0.14, 0.14, 0.07, head);
-            box(0.05, 0.05, 0.05, C.black, -0.14, 0.14, 0.07, head);
-            if (sex === 'm') {
-                box(0.08, 0.22, 0.3, C.red, 0, 0.36, -0.02, head);
-                box(0.07, 0.16, 0.08, C.red, 0, -0.1, 0.16, head);
-                box(0.3, 0.22, 0.3, 0xf2c14e, 0, 0.6, 0.12, body); // golden neck feathers
-                const tailCols = [0x1f4d3a, 0x2b2b2b, 0x1f4d3a, 0xa83226];
-                tailCols.forEach((c, i) => {
-                    const f = box(0.08, 0.5 - i * 0.05, 0.12, c, (i - 1.5) * 0.07, 0.85 - i * 0.04, -0.38 - i * 0.03, body);
-                    f.rotation.x = -0.5 - i * 0.18;
+            blob(g, 0.55, 0.65);
+            ball(0.26, 0.24, 0.3, col, 0, 0.48, 0, body);
+            ball(0.2, 0.2, 0.18, col, 0, 0.58, -0.2, body);
+            ball(0.06, 0.16, 0.22, wingCol, 0.24, 0.5, -0.02, body).rotation.x = -0.15;
+            ball(0.06, 0.16, 0.22, wingCol, -0.24, 0.5, -0.02, body).rotation.x = -0.15;
+            const head = new THREE.Group(); head.position.set(0, 0.8, 0.2); body.add(head);
+            ball(0.16, 0.17, 0.16, col, 0, 0.02, 0, head);
+            const beak = cone(head, 0.05, 0.12, C.orange, 0, 0, 0.19); beak.rotation.x = Math.PI / 2;
+            const combR = rooster ? 0.065 : 0.045;
+            for (let i = 0; i < (rooster ? 4 : 3); i++) ball(combR, combR * 1.2, combR, C.red, 0, 0.17 + Math.sin(i * 1.3) * 0.02, 0.08 - i * 0.065, head);
+            ball(0.035, rooster ? 0.08 : 0.055, 0.035, C.red, 0, -0.11, 0.13, head);
+            const eyes = [eye(head, 0.11, 0.05, 0.1, 0.03), eye(head, -0.11, 0.05, 0.1, 0.03)];
+            if (rooster) {
+                ball(0.19, 0.16, 0.17, 0xf2c14e, 0, 0.68, 0.12, body);
+                [[0.32, 0x1f4d3a, 0.03], [0.26, 0x2b2b2b, -0.03], [0.22, 0x1f4d3a, 0.06], [0.2, 0xa83226, -0.06]].forEach(([r, c, x]) => {
+                    hornArc(body, r, 0.035, Math.PI * 0.85, c, x, 0.62, -0.18);
                 });
-                g.scale.setScalar(1.18);
+                g.scale.setScalar(1.15);
+            } else {
+                ball(0.13, 0.15, 0.08, col, 0, 0.7, -0.33, body).rotation.x = -0.5;
             }
-            const legs = [limb(g, 0.1, 0.26, 0, 0.06, 0.26, C.orange), limb(g, -0.1, 0.26, 0, 0.06, 0.26, C.orange)];
-            return { group: g, body, head, legs, height: sex === 'm' ? 1.3 : 1.05 };
+            const legs = [limb(g, 0.09, 0.28, 0, 0.05, 0.28, C.orange), limb(g, -0.09, 0.28, 0, 0.05, 0.28, C.orange)];
+            for (const l of legs) ball(0.06, 0.02, 0.08, C.orange, 0, -0.27, 0.03, l);
+            return { group: g, body, head, legs, eyes, height: rooster ? 1.3 : 1.05 };
         }
 
         function makeCow(variant, sex) {
+            const bull = sex === 'm';
             const jersey = variant === 'jersey';
-            const col = jersey ? 0xb5793f : C.white, spot = jersey ? 0xf3e6cf : C.black;
+            const col = jersey ? 0xb5793f : C.white, spot = jersey ? 0xf3e6cf : 0x2f2a28;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.9, 0.8, 1.6, col, 0, 1.1, 0, body);
-            box(0.92, 0.4, 0.5, spot, 0, 1.2, 0.2, body);
-            box(0.92, 0.35, 0.4, spot, 0, 1.0, -0.5, body);
-            box(0.5, 0.82, 0.3, spot, 0.1, 1.1, -0.1, body);
-            if (sex !== 'm') box(0.32, 0.16, 0.32, C.pink, 0, 0.64, -0.35, body);
-            const tail = new THREE.Group(); tail.position.set(0, 1.4, -0.8); body.add(tail);
-            box(0.07, 0.6, 0.07, col, 0, -0.3, -0.02, tail);
-            box(0.12, 0.15, 0.12, C.black, 0, -0.62, -0.02, tail);
-            const head = new THREE.Group(); head.position.set(0, 1.4, 0.95); body.add(head);
-            box(0.55, 0.55, 0.5, col, 0, 0, 0, head);
-            box(0.47, 0.28, 0.2, C.pink, 0, -0.14, 0.32, head);
-            box(0.06, 0.06, 0.04, 0x7a3b3b, 0.12, -0.12, 0.43, head);
-            box(0.06, 0.06, 0.04, 0x7a3b3b, -0.12, -0.12, 0.43, head);
-            box(0.07, 0.07, 0.04, C.black, 0.2, 0.1, 0.26, head);
-            box(0.07, 0.07, 0.04, C.black, -0.2, 0.1, 0.26, head);
-            if (sex === 'm') {
-                box(0.34, 0.1, 0.1, C.cream, 0.4, 0.3, -0.05, head);
-                box(0.34, 0.1, 0.1, C.cream, -0.4, 0.3, -0.05, head);
-                box(0.1, 0.22, 0.1, C.cream, 0.55, 0.42, -0.05, head);
-                box(0.1, 0.22, 0.1, C.cream, -0.55, 0.42, -0.05, head);
-                box(0.2, 0.05, 0.05, 0xf2c94c, 0, -0.27, 0.44, head); // nose ring
-                box(0.6, 0.25, 0.6, col, 0, 1.55, 0.45, body); // shoulder hump
-            } else {
-                box(0.08, 0.22, 0.08, C.cream, 0.2, 0.36, -0.05, head);
-                box(0.08, 0.22, 0.08, C.cream, -0.2, 0.36, -0.05, head);
+            blob(g, 1.2, 2.0);
+            cap(0.43, 0.75, col, 0, 1.12, 0, body, 'z');
+            for (const [x, y, z, rx, ry, rz] of [[0.31, 1.2, 0.2, 0.14, 0.24, 0.3], [-0.31, 1.08, -0.35, 0.14, 0.22, 0.26], [0.28, 1.0, -0.5, 0.15, 0.18, 0.2], [0, 1.45, -0.1, 0.24, 0.12, 0.28], [-0.3, 1.25, 0.35, 0.14, 0.16, 0.16]]) {
+                ball(rx, ry, rz, spot, x, y, z, body);
             }
-            box(0.25, 0.1, 0.14, col, 0.38, 0.14, -0.05, head);
-            box(0.25, 0.1, 0.14, col, -0.38, 0.14, -0.05, head);
-            const legs = [
-                limb(g, 0.3, 0.72, 0.55, 0.2, 0.72, col), limb(g, -0.3, 0.72, 0.55, 0.2, 0.72, col),
-                limb(g, 0.3, 0.72, -0.55, 0.2, 0.72, col), limb(g, -0.3, 0.72, -0.55, 0.2, 0.72, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 2.0 };
+            if (!bull) {
+                ball(0.18, 0.12, 0.18, C.pink, 0, 0.68, -0.3, body);
+                for (const [x, z] of [[0.06, -0.24], [-0.06, -0.24], [0.06, -0.36], [-0.06, -0.36]]) cap(0.02, 0.05, C.pink, x, 0.56, z, body);
+            } else {
+                ball(0.32, 0.2, 0.32, col, 0, 1.5, 0.42, body);
+            }
+            const tail = new THREE.Group(); tail.position.set(0, 1.42, -0.82); body.add(tail);
+            cap(0.035, 0.5, col, 0, -0.28, -0.02, tail);
+            ball(0.07, 0.11, 0.07, spot === 0xf3e6cf ? 0x6b4422 : spot, 0, -0.6, -0.02, tail);
+            const head = new THREE.Group(); head.position.set(0, 1.44, 0.95); body.add(head);
+            ball(0.27, 0.26, 0.27, col, 0, 0, 0, head);
+            ball(0.23, 0.15, 0.14, C.pink, 0, -0.11, 0.22, head);
+            ball(0.03, 0.025, 0.02, 0x7a3b3b, 0.08, -0.1, 0.35, head);
+            ball(0.03, 0.025, 0.02, 0x7a3b3b, -0.08, -0.1, 0.35, head);
+            const eyes = [eye(head, 0.15, 0.08, 0.18, 0.045), eye(head, -0.15, 0.08, 0.18, 0.045)];
+            ball(0.15, 0.05, 0.09, col, 0.32, 0.08, -0.04, head).rotation.z = -0.35;
+            ball(0.15, 0.05, 0.09, col, -0.32, 0.08, -0.04, head).rotation.z = 0.35;
+            if (bull) {
+                for (const sx of [1, -1]) {
+                    const h = cone(head, 0.07, 0.38, C.cream, 0.36 * sx, 0.24, -0.04);
+                    h.rotation.z = -sx * 1.05;
+                }
+                const ring = mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 16), mat(0xf2c94c), head);
+                ring.position.set(0, -0.2, 0.34);
+            } else {
+                for (const sx of [1, -1]) cone(head, 0.04, 0.14, C.cream, 0.14 * sx, 0.28, -0.04).rotation.z = -sx * 0.35;
+            }
+            const legs = [];
+            for (const [x, z] of [[0.24, 0.5], [-0.24, 0.5], [0.24, -0.5], [-0.24, -0.5]]) {
+                const l = limb(g, x, 0.78, z, 0.19, 0.78, col);
+                hoof(l, 0.78, 0.11, 0x4a3a2e);
+                legs.push(l);
+            }
+            return { group: g, body, head, tail, legs, eyes, height: 2.0 };
         }
 
         function makeGoat(variant, sex) {
-            const col = variant === 'brown' ? 0x9b6b43 : 0xe9e1d2, dark = variant === 'brown' ? 0x5e3d22 : 0xb7a993;
+            const billy = sex === 'm';
+            const col = variant === 'brown' ? 0x9b6b43 : 0xece5d8, dark = variant === 'brown' ? 0x5e3d22 : 0xb7a993;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.55, 0.55, 1.0, col, 0, 0.85, 0, body);
-            box(0.57, 0.15, 0.6, dark, 0, 1.08, -0.1, body);
-            const tail = new THREE.Group(); tail.position.set(0, 1.05, -0.5); body.add(tail);
-            box(0.08, 0.25, 0.08, col, 0, 0.1, -0.03, tail).rotation.x = -0.5;
-            const head = new THREE.Group(); head.position.set(0, 1.18, 0.6); body.add(head);
-            box(0.34, 0.38, 0.45, col, 0, 0, 0.05, head);
-            box(0.26, 0.2, 0.15, dark, 0, -0.1, 0.32, head);
-            if (sex === 'm') box(0.1, 0.34, 0.08, C.white, 0, -0.36, 0.2, head);
-            box(0.06, 0.06, 0.04, C.black, 0.15, 0.06, 0.22, head);
-            box(0.06, 0.06, 0.04, C.black, -0.15, 0.06, 0.22, head);
-            box(0.24, 0.07, 0.11, col, 0.27, 0.08, -0.05, head).rotation.z = -0.3;
-            box(0.24, 0.07, 0.11, col, -0.27, 0.08, -0.05, head).rotation.z = 0.3;
-            const hornLen = sex === 'm' ? 0.55 : 0.2;
-            for (const sx of [1, -1]) {
-                const h = box(0.07, hornLen, 0.07, 0x8a7a66, 0.09 * sx, 0.2 + hornLen / 2, -0.12 - hornLen * 0.3, head);
-                h.rotation.x = sex === 'm' ? -0.9 : -0.5;
-                h.rotation.z = sex === 'm' ? -0.25 * sx : 0;
+            blob(g, 0.8, 1.25);
+            cap(0.27, 0.5, col, 0, 0.88, 0, body, 'z');
+            ball(0.16, 0.06, 0.38, dark, 0, 1.13, -0.05, body);
+            const tail = new THREE.Group(); tail.position.set(0, 1.06, -0.48); body.add(tail);
+            cap(0.04, 0.1, col, 0, 0.06, -0.02, tail).rotation.x = -0.6;
+            const head = new THREE.Group(); head.position.set(0, 1.22, 0.58); body.add(head);
+            ball(0.17, 0.19, 0.21, col, 0, 0, 0.04, head);
+            ball(0.12, 0.1, 0.11, dark, 0, -0.09, 0.2, head);
+            ball(0.022, 0.018, 0.015, 0x3a2a20, 0.05, -0.07, 0.31, head);
+            ball(0.022, 0.018, 0.015, 0x3a2a20, -0.05, -0.07, 0.31, head);
+            const eyes = [eye(head, 0.11, 0.06, 0.15, 0.035), eye(head, -0.11, 0.06, 0.15, 0.035)];
+            ball(0.13, 0.04, 0.07, col, 0.2, 0.02, 0, head).rotation.z = -0.6;
+            ball(0.13, 0.04, 0.07, col, -0.2, 0.02, 0, head).rotation.z = 0.6;
+            if (billy) {
+                for (const sx of [1, -1]) hornArc(head, 0.2, 0.045, Math.PI * 0.75, 0x8a7a66, 0.08 * sx, 0.15, -0.02, sx);
+                const beard = cone(head, 0.05, 0.2, C.white, 0, -0.24, 0.17); beard.rotation.x = Math.PI;
+            } else {
+                for (const sx of [1, -1]) cone(head, 0.035, 0.14, 0x8a7a66, 0.07 * sx, 0.22, -0.04).rotation.x = -0.5;
+                const beard = cone(head, 0.025, 0.08, C.white, 0, -0.17, 0.16); beard.rotation.x = Math.PI;
             }
-            const legs = [
-                limb(g, 0.18, 0.6, 0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, 0.35, 0.12, 0.6, col),
-                limb(g, 0.18, 0.6, -0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, -0.35, 0.12, 0.6, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 1.6 };
+            const legs = [];
+            for (const [x, z] of [[0.15, 0.32], [-0.15, 0.32], [0.15, -0.32], [-0.15, -0.32]]) {
+                const l = limb(g, x, 0.62, z, 0.11, 0.62, col);
+                hoof(l, 0.62, 0.065, 0x3a2a20);
+                legs.push(l);
+            }
+            return { group: g, body, head, tail, legs, eyes, height: 1.6 };
         }
 
         function makeSheep(variant, sex) {
             const dark = 0x3a3330;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            const wool = new THREE.Group(); wool.position.set(0, 0.9, 0); body.add(wool);
-            box(0.85, 0.7, 1.1, C.wool, 0, 0, 0, wool);
-            for (const [x, y, z] of [[0.3, 0.35, 0.3], [-0.3, 0.35, -0.2], [0, 0.4, -0.35], [0.1, 0.38, 0.05], [0.42, 0.05, -0.3], [-0.42, 0.08, 0.25], [0.42, -0.05, 0.3], [-0.42, -0.02, -0.3], [0, 0.1, -0.55]]) {
-                box(0.4, 0.3, 0.4, 0xfffcf4, x, y, z, wool);
+            blob(g, 1.1, 1.35);
+            const wool = new THREE.Group(); wool.position.set(0, 0.92, 0); body.add(wool);
+            ball(0.42, 0.36, 0.55, C.wool, 0, 0, 0, wool);
+            // Fluffy puffs scattered over the fleece
+            for (let i = 0; i < 16; i++) {
+                const a = i * 2.39996, yN = 1 - (i / 15) * 1.4;
+                const ring = Math.sqrt(Math.max(0, 1 - yN * yN));
+                const r = 0.17 + (i % 3) * 0.03;
+                ball(r, r * 0.9, r, 0xfffcf4, Math.cos(a) * ring * 0.36, Math.max(-0.12, yN * 0.3), Math.sin(a) * ring * 0.5, wool);
             }
-            box(0.5, 0.45, 0.8, 0xd9d2c2, 0, 0.85, 0, body); // sheared core
-            const head = new THREE.Group(); head.position.set(0, 1.05, 0.65); body.add(head);
-            box(0.34, 0.38, 0.4, dark, 0, 0, 0.05, head);
-            box(0.38, 0.14, 0.3, C.wool, 0, 0.22, -0.02, head);
-            box(0.06, 0.06, 0.04, C.white, 0.12, 0.05, 0.25, head);
-            box(0.06, 0.06, 0.04, C.white, -0.12, 0.05, 0.25, head);
-            box(0.22, 0.08, 0.12, dark, 0.26, 0.06, 0, head).rotation.z = -0.4;
-            box(0.22, 0.08, 0.12, dark, -0.26, 0.06, 0, head).rotation.z = 0.4;
-            const legs = [
-                limb(g, 0.24, 0.56, 0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, 0.33, 0.13, 0.56, dark),
-                limb(g, 0.24, 0.56, -0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, -0.33, 0.13, 0.56, dark),
-            ];
+            ball(0.3, 0.26, 0.42, 0xe3dccd, 0, 0.88, 0, body); // sheared core
+            const head = new THREE.Group(); head.position.set(0, 1.08, 0.64); body.add(head);
+            ball(0.16, 0.18, 0.2, dark, 0, 0, 0.04, head);
+            ball(0.18, 0.11, 0.16, C.wool, 0, 0.14, -0.03, head);
+            ball(0.11, 0.04, 0.06, dark, 0.19, 0.02, 0, head).rotation.z = -0.4;
+            ball(0.11, 0.04, 0.06, dark, -0.19, 0.02, 0, head).rotation.z = 0.4;
+            for (const sx of [1, -1]) ball(0.045, 0.045, 0.02, 0xf5efe2, 0.09 * sx, 0.04, 0.19, head);
+            const eyes = [eye(head, 0.09, 0.04, 0.2, 0.028), eye(head, -0.09, 0.04, 0.2, 0.028)];
             if (sex === 'm') {
-                const horn = 0xc9b28a;
                 for (const sx of [1, -1]) {
-                    box(0.12, 0.3, 0.3, horn, 0.24 * sx, 0.1, -0.05, head);
-                    box(0.12, 0.14, 0.2, horn, 0.26 * sx, -0.08, 0.1, head);
-                    box(0.12, 0.12, 0.12, horn, 0.26 * sx, -0.02, 0.2, head);
+                    const h = mesh(new THREE.TorusGeometry(0.11, 0.045, 8, 20, Math.PI * 1.6), mat(0xc9b28a), head);
+                    h.rotation.y = Math.PI / 2;
+                    h.position.set(0.17 * sx, 0.06, -0.04);
                 }
             }
-            return { group: g, body, head, legs, wool, height: 1.6 };
+            const legs = [];
+            for (const [x, z] of [[0.2, 0.3], [-0.2, 0.3], [0.2, -0.3], [-0.2, -0.3]]) {
+                const l = limb(g, x, 0.58, z, 0.11, 0.58, dark);
+                legs.push(l);
+            }
+            return { group: g, body, head, legs, wool, eyes, height: 1.6 };
         }
 
         function makeCat() {
-            const col = 0xf09a3e, stripe = 0xc96f1f;
+            const col = 0xf09a3e, stripe = 0xcf7424, cream = 0xfff1dd;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.3, 0.28, 0.62, col, 0, 0.38, 0, body);
-            for (const z of [-0.15, 0.05]) box(0.32, 0.08, 0.08, stripe, 0, 0.47, z, body);
-            const tail = new THREE.Group(); tail.position.set(0, 0.46, -0.3); body.add(tail);
-            const t = box(0.07, 0.07, 0.5, col, 0, 0.18, -0.18, tail); t.rotation.x = -0.9;
-            box(0.08, 0.08, 0.1, stripe, 0, 0.37, -0.3, tail);
-            const head = new THREE.Group(); head.position.set(0, 0.6, 0.36); body.add(head);
-            box(0.36, 0.3, 0.3, col, 0, 0, 0, head);
-            box(0.37, 0.06, 0.2, stripe, 0, 0.13, -0.02, head);
-            box(0.1, 0.12, 0.06, col, 0.11, 0.2, -0.02, head).rotation.z = -0.3;
-            box(0.1, 0.12, 0.06, col, -0.11, 0.2, -0.02, head).rotation.z = 0.3;
-            box(0.16, 0.08, 0.06, 0xfff1dd, 0, -0.07, 0.16, head);
-            box(0.05, 0.04, 0.03, C.pink, 0, -0.02, 0.18, head);
-            box(0.06, 0.07, 0.03, 0x3ca34a, 0.09, 0.04, 0.16, head);
-            box(0.06, 0.07, 0.03, 0x3ca34a, -0.09, 0.04, 0.16, head);
-            const legs = [
-                limb(g, 0.1, 0.25, 0.2, 0.08, 0.25, col), limb(g, -0.1, 0.25, 0.2, 0.08, 0.25, col),
-                limb(g, 0.1, 0.25, -0.2, 0.08, 0.25, col), limb(g, -0.1, 0.25, -0.2, 0.08, 0.25, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 0.95 };
+            blob(g, 0.45, 0.75);
+            cap(0.15, 0.32, col, 0, 0.38, 0, body, 'z');
+            for (const z of [-0.14, 0, 0.13]) ball(0.153, 0.153, 0.035, stripe, 0, 0.385, z, body);
+            ball(0.1, 0.1, 0.08, cream, 0, 0.36, 0.2, body);
+            const tail = new THREE.Group(); tail.position.set(0, 0.42, -0.28); body.add(tail);
+            const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.12, -0.12), new THREE.Vector3(0, 0.3, -0.17), new THREE.Vector3(0, 0.42, -0.1)]);
+            mesh(new THREE.TubeGeometry(curve, 16, 0.035, 8), mat(col), tail);
+            ball(0.04, 0.05, 0.04, stripe, 0, 0.42, -0.1, tail);
+            const head = new THREE.Group(); head.position.set(0, 0.6, 0.3); body.add(head);
+            ball(0.17, 0.15, 0.15, col, 0, 0, 0, head);
+            ball(0.1, 0.03, 0.08, stripe, 0, 0.12, -0.02, head);
+            ball(0.09, 0.055, 0.06, cream, 0, -0.05, 0.11, head);
+            ball(0.02, 0.015, 0.015, C.pink, 0, -0.02, 0.165, head);
+            for (const sx of [1, -1]) {
+                const ear = cone(head, 0.065, 0.12, col, 0.1 * sx, 0.15, -0.01); ear.rotation.z = -0.3 * sx;
+                const inner = cone(head, 0.035, 0.08, C.pink, 0.1 * sx, 0.145, 0.02); inner.rotation.z = -0.3 * sx;
+            }
+            const eyes = [eye(head, 0.07, 0.03, 0.12, 0.032, 0x5fbf4a), eye(head, -0.07, 0.03, 0.12, 0.032, 0x5fbf4a)];
+            const legs = [];
+            for (const [x, z] of [[0.08, 0.18], [-0.08, 0.18], [0.08, -0.18], [-0.08, -0.18]]) {
+                const l = limb(g, x, 0.26, z, 0.075, 0.26, col);
+                ball(0.045, 0.03, 0.055, cream, 0, -0.25, 0.01, l);
+                legs.push(l);
+            }
+            return { group: g, body, head, tail, legs, eyes, height: 0.95 };
         }
 
         function makeDog() {
             const col = 0xb07a45, light = 0xf1dcbc, dark = 0x6b4422;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            box(0.4, 0.38, 0.8, col, 0, 0.56, 0, body);
-            box(0.3, 0.2, 0.5, light, 0, 0.42, 0.05, body);
-            const tail = new THREE.Group(); tail.position.set(0, 0.68, -0.4); body.add(tail);
-            box(0.08, 0.08, 0.36, col, 0, 0.12, -0.12, tail).rotation.x = -0.8;
-            const head = new THREE.Group(); head.position.set(0, 0.86, 0.45); body.add(head);
-            box(0.38, 0.36, 0.36, col, 0, 0, 0, head);
-            box(0.24, 0.18, 0.24, light, 0, -0.07, 0.27, head);
-            box(0.1, 0.08, 0.06, C.black, 0, -0.01, 0.4, head);
-            box(0.06, 0.06, 0.03, C.black, 0.1, 0.07, 0.19, head);
-            box(0.06, 0.06, 0.03, C.black, -0.1, 0.07, 0.19, head);
-            box(0.08, 0.26, 0.16, dark, 0.22, 0.0, -0.02, head);
-            box(0.08, 0.26, 0.16, dark, -0.22, 0.0, -0.02, head);
-            box(0.42, 0.08, 0.1, C.red, 0, -0.2, -0.08, head);
-            box(0.08, 0.08, 0.04, 0xf2c94c, 0, -0.26, 0.0, head);
-            const legs = [
-                limb(g, 0.13, 0.38, 0.28, 0.12, 0.38, col), limb(g, -0.13, 0.38, 0.28, 0.12, 0.38, col),
-                limb(g, 0.13, 0.38, -0.28, 0.12, 0.38, col), limb(g, -0.13, 0.38, -0.28, 0.12, 0.38, col),
-            ];
-            return { group: g, body, head, tail, legs, height: 1.25 };
+            blob(g, 0.6, 1.0);
+            cap(0.19, 0.42, col, 0, 0.57, 0, body, 'z');
+            ball(0.15, 0.12, 0.3, light, 0, 0.47, 0.05, body);
+            const tail = new THREE.Group(); tail.position.set(0, 0.68, -0.38); body.add(tail);
+            cap(0.04, 0.22, col, 0, 0.1, -0.06, tail).rotation.x = -0.6;
+            ball(0.045, 0.05, 0.045, light, 0, 0.2, -0.13, tail);
+            const head = new THREE.Group(); head.position.set(0, 0.88, 0.42); body.add(head);
+            ball(0.19, 0.18, 0.18, col, 0, 0, 0, head);
+            ball(0.11, 0.09, 0.12, light, 0, -0.06, 0.15, head);
+            ball(0.045, 0.035, 0.035, 0x1e1a18, 0, -0.02, 0.27, head).material = glossy(0x1e1a18);
+            ball(0.04, 0.02, 0.05, 0xe8737a, 0, -0.13, 0.2, head);
+            ball(0.06, 0.14, 0.09, dark, 0.18, -0.03, -0.02, head).rotation.z = 0.2;
+            ball(0.06, 0.14, 0.09, dark, -0.18, -0.03, -0.02, head).rotation.z = -0.2;
+            const eyes = [eye(head, 0.09, 0.05, 0.15, 0.035), eye(head, -0.09, 0.05, 0.15, 0.035)];
+            const collar = mesh(new THREE.TorusGeometry(0.15, 0.025, 8, 20), mat(C.red), head);
+            collar.rotation.x = Math.PI / 2; collar.position.set(0, -0.16, -0.04);
+            ball(0.035, 0.035, 0.015, 0xf2c94c, 0, -0.21, 0.1, head).material = glossy(0xf2c94c);
+            const legs = [];
+            for (const [x, z] of [[0.11, 0.26], [-0.11, 0.26], [0.11, -0.26], [-0.11, -0.26]]) {
+                const l = limb(g, x, 0.4, z, 0.1, 0.4, col);
+                ball(0.06, 0.035, 0.07, light, 0, -0.39, 0.015, l);
+                legs.push(l);
+            }
+            return { group: g, body, head, tail, legs, eyes, height: 1.25 };
         }
 
         const BUILDERS = { chicken: makeChicken, cow: makeCow, goat: makeGoat, sheep: makeSheep, cat: makeCat, dog: makeDog };
@@ -1075,28 +1238,34 @@
         // ---------- Player ----------
         const player = (() => {
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            const overalls = 0x3f6fb5, shirt = 0xd9534a;
-            const legs = [limb(g, 0.13, 0.75, 0, 0.2, 0.75, overalls), limb(g, -0.13, 0.75, 0, 0.2, 0.75, overalls)];
-            for (const l of legs) box(0.22, 0.12, 0.3, 0x5b3a1e, 0, -0.72, 0.04, l);
-            box(0.52, 0.6, 0.32, shirt, 0, 1.05, 0, body);
-            box(0.44, 0.38, 0.05, overalls, 0, 0.95, 0.17, body);
-            box(0.08, 0.3, 0.05, overalls, 0.16, 1.2, 0.17, body);
-            box(0.08, 0.3, 0.05, overalls, -0.16, 1.2, 0.17, body);
-            const arms = [limb(body, 0.34, 1.32, 0, 0.15, 0.55, shirt), limb(body, -0.34, 1.32, 0, 0.15, 0.55, shirt)];
-            for (const a of arms) box(0.14, 0.12, 0.14, C.skin, 0, -0.6, 0, a);
-            const head = new THREE.Group(); head.position.set(0, 1.58, 0); body.add(head);
-            box(0.42, 0.42, 0.42, C.skin, 0, 0, 0, head);
-            box(0.44, 0.2, 0.2, 0x5b3a1e, 0, 0.05, -0.13, head);
-            box(0.06, 0.08, 0.03, C.black, 0.1, 0.02, 0.215, head);
-            box(0.06, 0.08, 0.03, C.black, -0.1, 0.02, 0.215, head);
-            box(0.1, 0.04, 0.03, 0xe58b7a, 0.15, -0.08, 0.215, head);
-            box(0.1, 0.04, 0.03, 0xe58b7a, -0.15, -0.08, 0.215, head);
-            const brim = mesh(CYL, mat(C.straw), head); brim.scale.set(0.45, 0.04, 0.45); brim.position.y = 0.23;
-            const crown = mesh(CYL, mat(C.straw), head); crown.scale.set(0.26, 0.22, 0.26); crown.position.y = 0.35;
-            const band = mesh(CYL, mat(C.red), head); band.scale.set(0.265, 0.06, 0.265); band.position.y = 0.28;
+            const overalls = 0x3f6fb5, shirt = 0xd9534a, hair = 0x5b3a1e;
+            blob(g, 0.8, 0.8);
+            const legs = [limb(g, 0.12, 0.76, 0, 0.19, 0.76, overalls), limb(g, -0.12, 0.76, 0, 0.19, 0.76, overalls)];
+            for (const l of legs) ball(0.11, 0.07, 0.16, 0x5b3a1e, 0, -0.72, 0.04, l);
+            ball(0.27, 0.34, 0.2, shirt, 0, 1.1, 0, body);
+            ball(0.255, 0.22, 0.19, overalls, 0, 0.95, 0.012, body);
+            box(0.3, 0.2, 0.05, overalls, 0, 1.16, 0.17, body);
+            for (const sx of [1, -1]) {
+                box(0.06, 0.32, 0.05, overalls, 0.14 * sx, 1.28, 0.15, body).rotation.x = -0.2;
+                ball(0.025, 0.025, 0.012, 0xf2c94c, 0.14 * sx, 1.18, 0.2, body).material = glossy(0xf2c94c);
+            }
+            const arms = [limb(body, 0.31, 1.36, 0, 0.13, 0.55, shirt), limb(body, -0.31, 1.36, 0, 0.13, 0.55, shirt)];
+            for (const a of arms) ball(0.075, 0.075, 0.075, C.skin, 0, -0.57, 0, a);
+            const head = new THREE.Group(); head.position.set(0, 1.66, 0); body.add(head);
+            ball(0.23, 0.23, 0.22, C.skin, 0, 0, 0, head);
+            ball(0.245, 0.17, 0.23, hair, 0, 0.07, -0.05, head);
+            ball(0.05, 0.05, 0.05, C.skin, 0.225, -0.01, 0, head);
+            ball(0.05, 0.05, 0.05, C.skin, -0.225, -0.01, 0, head);
+            const eyes = [eye(head, 0.08, 0.0, 0.195, 0.032), eye(head, -0.08, 0.0, 0.195, 0.032)];
+            ball(0.05, 0.025, 0.02, 0xf08f80, 0.14, -0.07, 0.18, head).castShadow = false;
+            ball(0.05, 0.025, 0.02, 0xf08f80, -0.14, -0.07, 0.18, head).castShadow = false;
+            ball(0.025, 0.02, 0.02, 0xe8a882, 0, -0.04, 0.22, head);
+            const brim = mesh(new THREE.CylinderGeometry(0.43, 0.45, 0.04, 32), mat(C.straw), head); brim.position.y = 0.17;
+            const crown = mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.2, 32), mat(C.straw), head); crown.position.y = 0.28;
+            const band = mesh(new THREE.CylinderGeometry(0.245, 0.25, 0.05, 32), mat(C.red), head); band.position.y = 0.21;
             g.position.set(-10, 0, -8);
             scene.add(g);
-            return { group: g, body, legs, arms, head, pos: g.position, heading: Math.PI, phase: 0 };
+            return { group: g, body, legs, arms, head, eyes, pos: g.position, heading: Math.PI, phase: 0 };
         })();
 
         // ---------- Game state ----------
@@ -1235,6 +1404,10 @@
                     this.tail.rotation.y = Math.sin(t * 1.8 + this.seed) * 0.45;
                     this.head.rotation.y = Math.sin(t * 0.6 + this.seed) * 0.3;
                 }
+                // Blink every few seconds and breathe gently
+                const blink = ((t + this.seed) % 4.2) < 0.12 ? 0.12 : 1;
+                for (const e of this.eyes) e.scale.y = e.scale.x * blink;
+                this.body.scale.y = 1 + Math.sin(t * 2.2 + this.seed) * 0.012;
                 if (this.wool) {
                     const s = this.data.product ? 1 : 0.62;
                     this.wool.scale.setScalar(lerp(this.wool.scale.x, s, Math.min(1, dt * 4)));
@@ -1528,6 +1701,8 @@
             player.arms[0].rotation.x = lerp(player.arms[0].rotation.x, -swing * 0.8, k);
             player.arms[1].rotation.x = lerp(player.arms[1].rotation.x, swing * 0.8, k);
             player.body.position.y = moving ? Math.abs(Math.sin(player.phase)) * 0.06 : 0;
+            const pb = (elapsed % 3.7) < 0.12 ? 0.12 : 1;
+            for (const e of player.eyes) e.scale.y = e.scale.x * pb;
         }
 
         function tick() {
@@ -1540,6 +1715,7 @@
                 if (state.minutes >= 26 * 60) sleep(true);
             }
 
+            grassTime.value = elapsed;
             updatePlayer(dt);
             for (const a of animals) a.update(dt, elapsed);
 
@@ -1577,7 +1753,7 @@
             requestAnimationFrame(tick);
         }
         camTarget.copy(player.pos);
-        window.kebun = { state, player, animals }; // handy for debugging in the console
+        window.kebun = { state, player, animals, camera }; // handy for debugging in the console
         updateHud();
         tick();
     </script>

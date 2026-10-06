@@ -12,7 +12,7 @@ Untuk menambah game baru, buat folder `games/<nama-game>/index.html`, lalu tamba
 
 # Farmora 🌾
 
-Game peternakan mungil 3D low-poly, terinspirasi dari Stardew Valley, Coral Island, dan Story of Seasons. Dibuat dengan [Three.js](https://threejs.org/) dalam satu file `games/farmora/index.html`, tanpa proses build.
+Game peternakan mungil 3D bergaya lembut dan membulat, terinspirasi dari Stardew Valley, Coral Island, dan Story of Seasons. Dibuat dengan [Three.js](https://threejs.org/) dalam satu file `games/farmora/index.html`, tanpa proses build.
 
 ## Isi peternakan
 - 🏠 Rumah, kotak pengiriman, ladang sayur, kolam, dan orang-orangan sawah
