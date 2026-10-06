@@ -2,6 +2,8 @@
 
 Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` untuk menu awal, lalu pilih game.
 
+**Masuk dengan nama:** sebelum menu dan setiap game terbuka, pemain harus mengetik nama yang terdaftar (2 akun). Nama diingat selama sesi tab browser itu; tab baru akan bertanya lagi. Setiap akun punya save file sendiri (kunci `…@nama` di localStorage): farm Farmora, Cerita Kita Ladago, dan galeri Fotoin. Catatan: ini gerbang sederhana di sisi browser, bukan pengamanan sungguhan, karena kodenya bisa dibaca siapa pun yang membuka sumber halaman.
+
 | Game | Folder | Status |
 | --- | --- | --- |
 | Farmora | `games/farmora/` | Bisa dimainkan |

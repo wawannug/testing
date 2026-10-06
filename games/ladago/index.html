@@ -356,6 +356,61 @@
 </head>
 
 <body>
+    <!-- Name gate: only the two registered players continue; the name is kept for this browser tab's session -->
+    <style>
+        .wp-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: #eaf1e6; color: #1e2b22; font-family: 'Nunito', 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif; color-scheme: light; }
+        .wp-gate form { width: 100%; max-width: 380px; background: #fff; border-radius: 22px; padding: 26px 24px; box-shadow: 0 12px 34px rgba(30, 60, 35, .18); display: flex; flex-direction: column; gap: 12px; text-align: center; }
+        .wp-gate .wp-logo { font-weight: 800; font-size: 28px; line-height: 1.1; margin: 0; color: #1e2b22; }
+        .wp-gate .wp-logo span { color: #2f8a3e; }
+        .wp-gate p { margin: 0; color: #5d6f62; font-size: 15px; }
+        .wp-gate input { font: inherit; font-size: 18px; font-weight: 700; text-align: center; padding: 12px; border: 2px solid #c9d8c6; border-radius: 14px; background: #fff; color: #1e2b22; }
+        .wp-gate input:focus-visible { outline: 3px solid #ffc93c; outline-offset: 2px; border-color: #2f8a3e; }
+        .wp-gate button { font: inherit; font-size: 18px; font-weight: 800; border: 0; border-radius: 14px; padding: 12px; background: #2f8a3e; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #1f5e29; }
+        .wp-gate button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1f5e29; }
+        .wp-gate .wp-err { color: #b3261e; font-weight: 700; min-height: 22px; }
+        .wp-gate.shake form { animation: wpShake .35s; }
+        @keyframes wpShake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @media (prefers-reduced-motion: reduce) { .wp-gate.shake form { animation: none; } }
+    </style>
+    <script>
+        window.__gate = (function () {
+            // Hashed so the names are not spelled out here; this keeps casual visitors out, it is not real security
+            const ALLOWED = ['1khxzme', '1156dba'];
+            const SALT = 'wadimar-playground:', KEY = 'wp.user';
+            const fnv = s => { let h = 0x811c9dc5; for (const c of new TextEncoder().encode(s)) { h ^= c; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
+            const ok = n => ALLOWED.includes(fnv(SALT + fnv(SALT + n)));
+            const norm = s => String(s || '').trim().toLowerCase();
+            let saved = '';
+            try { saved = norm(sessionStorage.getItem(KEY)); } catch (e) { }
+            if (saved && ok(saved)) { window.WP_USER = saved; return Promise.resolve(saved); }
+            return new Promise(resolve => {
+                const show = () => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'wp-gate';
+                    wrap.innerHTML = '<form autocomplete="off"><p class="wp-logo">Wadimar <span>Playground</span></p><p>Ketik namamu untuk masuk.</p><input id="wpName" type="text" maxlength="24" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Nama" placeholder="namamu"><button type="submit">Masuk</button><p class="wp-err" role="alert"></p></form>';
+                    document.body.append(wrap);
+                    const form = wrap.querySelector('form'), input = wrap.querySelector('input'), err = wrap.querySelector('.wp-err');
+                    input.focus();
+                    form.addEventListener('submit', e => {
+                        e.preventDefault();
+                        const n = norm(input.value);
+                        if (!ok(n)) {
+                            err.textContent = n ? 'Nama itu belum terdaftar.' : 'Isi namamu dulu ya.';
+                            wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake');
+                            return;
+                        }
+                        try { sessionStorage.setItem(KEY, n); } catch (x) { }
+                        window.WP_USER = n;
+                        wrap.remove();
+                        resolve(n);
+                    });
+                };
+                if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+            });
+        })();
+        window.__gateLogout = () => { try { sessionStorage.removeItem('wp.user'); } catch (e) { } location.reload(); };
+    </script>
+
     <!-- Lobby -->
     <main id="lobby">
         <div class="sky" aria-hidden="true">
@@ -440,6 +495,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+        const USER = await window.__gate;
 
         // ---------- Content ----------
         const CHAPTERS = [
@@ -601,10 +657,12 @@
         }
         // Text that travels to the other player: no control or invisible characters, bounded length
         const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁤﻿]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+        // Every key belongs to the signed-in player
+        const own = k => k + '@' + USER;
         const store = {
-            get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
-            del(k) { try { localStorage.removeItem(k); } catch (e) { } },
+            get(k, d) { try { const v = localStorage.getItem(own(k)); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+            set(k, v) { try { localStorage.setItem(own(k), JSON.stringify(v)); } catch (e) { } },
+            del(k) { try { localStorage.removeItem(own(k)); } catch (e) { } },
         };
         function toast(text) {
             document.querySelectorAll('.toast').forEach(t => t.remove());
@@ -877,10 +935,10 @@
             }
             let keys = [];
             try { keys = Object.keys(localStorage); } catch (e) { }
-            const saved = keys.filter(k => k.startsWith('ladago.host.')).map(k => [k.slice(12), store.get(k)]).filter(([, v]) => v && Date.now() - v.at < 86400000);
+            const saved = keys.filter(k => k.startsWith('ladago.host.') && k.endsWith('@' + USER)).map(k => k.slice(12, -(USER.length + 1))).map(c => [c, store.get('ladago.host.' + c)]).filter(([, v]) => v && Date.now() - v.at < 86400000);
             const lastGuest = store.get('ladago.guestCode', null);
             box.append(...[
-                h('label', {}, 'Namamu', h('input', { type: 'text', id: 'myName', maxlength: 16, placeholder: 'contoh: Wadimar', value: store.get('ladago.name', '') })),
+                h('label', {}, 'Namamu', h('input', { type: 'text', id: 'myName', maxlength: 16, placeholder: 'contoh: Wadimar', value: store.get('ladago.name', USER) })),
                 h('div', { class: 'row' }, h('button', { class: 'btn primary', id: 'createBtn', onclick: createRoom }, 'Buat ruangan')),
                 h('label', {}, 'Punya kode dari pasangan?', h('div', { class: 'row' },
                     h('input', { type: 'text', id: 'joinCode', maxlength: 4, placeholder: 'ABCD', autocapitalize: 'characters', style: 'text-transform:uppercase;letter-spacing:3px;flex:1 1 90px', value: new URLSearchParams(location.search).get('join') || '' }),

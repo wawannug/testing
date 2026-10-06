@@ -94,6 +94,8 @@
         }
 
         main { display: flex; flex-direction: column; gap: 36px; }
+        .who { margin: 0; font-weight: 700; color: var(--muted); width: 100%; }
+        .linkbtn { font: inherit; font-weight: 800; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
 
         header {
             display: flex;
@@ -310,10 +312,66 @@
 </head>
 
 <body>
+    <!-- Name gate: only the two registered players continue; the name is kept for this browser tab's session -->
+    <style>
+        .wp-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: #eaf1e6; color: #1e2b22; font-family: 'Nunito', 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif; color-scheme: light; }
+        .wp-gate form { width: 100%; max-width: 380px; background: #fff; border-radius: 22px; padding: 26px 24px; box-shadow: 0 12px 34px rgba(30, 60, 35, .18); display: flex; flex-direction: column; gap: 12px; text-align: center; }
+        .wp-gate .wp-logo { font-weight: 800; font-size: 28px; line-height: 1.1; margin: 0; color: #1e2b22; }
+        .wp-gate .wp-logo span { color: #2f8a3e; }
+        .wp-gate p { margin: 0; color: #5d6f62; font-size: 15px; }
+        .wp-gate input { font: inherit; font-size: 18px; font-weight: 700; text-align: center; padding: 12px; border: 2px solid #c9d8c6; border-radius: 14px; background: #fff; color: #1e2b22; }
+        .wp-gate input:focus-visible { outline: 3px solid #ffc93c; outline-offset: 2px; border-color: #2f8a3e; }
+        .wp-gate button { font: inherit; font-size: 18px; font-weight: 800; border: 0; border-radius: 14px; padding: 12px; background: #2f8a3e; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #1f5e29; }
+        .wp-gate button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1f5e29; }
+        .wp-gate .wp-err { color: #b3261e; font-weight: 700; min-height: 22px; }
+        .wp-gate.shake form { animation: wpShake .35s; }
+        @keyframes wpShake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @media (prefers-reduced-motion: reduce) { .wp-gate.shake form { animation: none; } }
+    </style>
+    <script>
+        window.__gate = (function () {
+            // Hashed so the names are not spelled out here; this keeps casual visitors out, it is not real security
+            const ALLOWED = ['1khxzme', '1156dba'];
+            const SALT = 'wadimar-playground:', KEY = 'wp.user';
+            const fnv = s => { let h = 0x811c9dc5; for (const c of new TextEncoder().encode(s)) { h ^= c; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
+            const ok = n => ALLOWED.includes(fnv(SALT + fnv(SALT + n)));
+            const norm = s => String(s || '').trim().toLowerCase();
+            let saved = '';
+            try { saved = norm(sessionStorage.getItem(KEY)); } catch (e) { }
+            if (saved && ok(saved)) { window.WP_USER = saved; return Promise.resolve(saved); }
+            return new Promise(resolve => {
+                const show = () => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'wp-gate';
+                    wrap.innerHTML = '<form autocomplete="off"><p class="wp-logo">Wadimar <span>Playground</span></p><p>Ketik namamu untuk masuk.</p><input id="wpName" type="text" maxlength="24" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Nama" placeholder="namamu"><button type="submit">Masuk</button><p class="wp-err" role="alert"></p></form>';
+                    document.body.append(wrap);
+                    const form = wrap.querySelector('form'), input = wrap.querySelector('input'), err = wrap.querySelector('.wp-err');
+                    input.focus();
+                    form.addEventListener('submit', e => {
+                        e.preventDefault();
+                        const n = norm(input.value);
+                        if (!ok(n)) {
+                            err.textContent = n ? 'Nama itu belum terdaftar.' : 'Isi namamu dulu ya.';
+                            wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake');
+                            return;
+                        }
+                        try { sessionStorage.setItem(KEY, n); } catch (x) { }
+                        window.WP_USER = n;
+                        wrap.remove();
+                        resolve(n);
+                    });
+                };
+                if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+            });
+        })();
+        window.__gateLogout = () => { try { sessionStorage.removeItem('wp.user'); } catch (e) { } location.reload(); };
+    </script>
+
     <div class="wrap">
         <header>
             <h1 class="brand">Wadimar <span>Playground</span></h1>
             <p class="tagline">Koleksi game kecil yang bisa langsung dimainkan di browser.</p>
+            <p class="who" id="who" hidden></p>
         </header>
 
         <main>
@@ -422,26 +480,35 @@
 
     <script>
         // Show Farmora save progress if one exists in this browser.
-        (function () {
+        window.__gate.then(function (USER) {
             let save = null;
-            try { save = JSON.parse(localStorage.getItem('farmora.v1') || localStorage.getItem('kebunKecil.v1')); } catch (e) { }
+            try { save = JSON.parse(localStorage.getItem('farmora.v1@' + USER)); } catch (e) { }
             if (!save || !save.day) return;
             const gold = (save.gold || 0).toLocaleString('id-ID');
             document.getElementById('saveInfo').innerHTML = `Tersimpan: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
             document.getElementById('playBtn').textContent = 'Lanjutkan';
-        })();
+        });
+
+        window.__gate.then(USER => {
+            const who = document.getElementById('who');
+            who.textContent = '👤 ' + USER + ' · ';
+            const out = document.createElement('button');
+            out.className = 'linkbtn'; out.textContent = 'Ganti akun'; out.onclick = window.__gateLogout;
+            who.append(out);
+            who.hidden = false;
+        });
 
         // Fotoin: how many strips are in this browser's gallery.
-        (function () {
+        window.__gate.then(function (USER) {
             let g = [];
-            try { g = JSON.parse(localStorage.getItem('fotoin.gallery') || '[]'); } catch (e) { }
+            try { g = JSON.parse(localStorage.getItem('fotoin.gallery@' + USER) || '[]'); } catch (e) { }
             if (g.length) document.getElementById('fotoinInfo').textContent = `${g.length} strip di galeri`;
-        })();
+        });
 
         // Ladago: finished journeys and a small drawing of the board.
-        (function () {
+        window.__gate.then(function (USER) {
             let story = [];
-            try { story = JSON.parse(localStorage.getItem('ladago.story') || '[]'); } catch (e) { }
+            try { story = JSON.parse(localStorage.getItem('ladago.story@' + USER) || '[]'); } catch (e) { }
             if (story.length) {
                 const last = story[story.length - 1];
                 const info = document.getElementById('ladagoInfo');
@@ -478,7 +545,7 @@
             svg.append(el('circle', { cx: tx - 4, cy: ty - 6, r: 6.5, fill: '#ef4f76', stroke: '#fff', 'stroke-width': 2 }));
             svg.append(el('circle', { cx: tx + 5, cy: ty - 6, r: 6.5, fill: '#4a7fe0', stroke: '#fff', 'stroke-width': 2 }));
             document.getElementById('ladagoStage').append(svg);
-        })();
+        });
     </script>
 
     <script type="module">
