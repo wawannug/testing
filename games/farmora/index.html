@@ -289,9 +289,25 @@
         .seedgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
         .seedgrid .btn { font-size: 14px; text-align: left; }
         .seedgrid small { font-weight: 600; opacity: .7; }
-        .slot.tool { cursor: pointer; }
-        .slot.tool.on { background: #ffe08a; border-color: var(--green); box-shadow: 0 0 0 2px var(--green) inset; }
-        .slot.bagcount { background: transparent; border-style: dashed; }
+        .slot.hot, .slot.bagbtn { cursor: pointer; }
+        .slot.hot.on { background: #ffe08a; border-color: var(--green); box-shadow: 0 0 0 2px var(--green) inset; }
+        .slot.hot.empty { opacity: .55; }
+        .slot.bagbtn { background: #f7d9a8; border-style: dashed; }
+        #inventory { flex-wrap: nowrap; }
+        #itemName { position: fixed; left: 50%; bottom: 160px; transform: translateX(-50%); padding: 4px 12px; font-weight: 700; font-size: 15px; opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; }
+        #itemName.show { opacity: 1; }
+        .bagrowwrap { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+        .bagrowwrap > small { font-weight: 700; font-size: 11px; opacity: .7; }
+        .bagrowwrap.top .bagrow { background: #ffe9b0; }
+        .bagrow { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: var(--paper-2); }
+        .bslot { position: relative; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font: inherit; color: var(--ink); background: var(--paper); border: 2px solid #c79a5b; border-radius: 8px; padding: 0; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+        .bslot span { font-size: 22px; line-height: 1; pointer-events: none; }
+        .bslot b { position: absolute; top: 0; right: 3px; font-size: 11px; pointer-events: none; }
+        .bslot small { font-size: 8.5px; font-weight: 600; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; pointer-events: none; }
+        .bslot.sel { border-color: var(--green); }
+        .bslot.pick { background: #ffe08a; box-shadow: 0 0 0 3px var(--accent) inset; }
+        .dragghost { position: fixed; z-index: 50; font-size: 34px; transform: translate(-50%, -60%); pointer-events: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+        @media (max-width: 520px) { .bslot small { display: none; } .bslot span { font-size: 18px; } }
         .stor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
         .storcol { display: flex; flex-direction: column; gap: 6px; background: var(--paper-2); border: 2px solid #c79a5b; border-radius: 10px; padding: 8px; min-height: 120px; }
         .storcol > b { font-size: 13px; }
@@ -363,7 +379,8 @@
                 overflow-y: auto;
             }
 
-            .slot { width: 52px; height: 52px; font-size: 22px; }
+            .slot { width: 44px; height: 44px; font-size: 20px; }
+            #itemName { left: auto; right: 72px; top: 70px; bottom: auto; transform: none; }
             .slot small { display: none; }
             #prompt { bottom: 150px; font-size: 15px; }
             #prompt kbd { display: none; }
@@ -447,6 +464,7 @@
 
     <div id="inventory" class="panel"></div>
     <div id="prompt" class="panel"></div>
+    <div id="itemName" class="panel"></div>
     <div id="toasts"></div>
     <div id="fade"><span id="fadeText"></span></div>
 
@@ -470,7 +488,7 @@
                 <span class="saveinfo" id="saveInfo"></span>
                 <span class="saveinfo" id="partnerInfo"></span>
                 <div class="row2" id="soloBtns"></div>
-                <p class="small-note">Satu farm untuk adindayn dan wawantn. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di teras dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur (10 slot).</p>
+                <p class="small-note">Satu farm untuk adindayn dan wawantn. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di kamar dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur (10 slot).</p>
             </div>
             <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
         </div>
@@ -494,7 +512,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain muat 30 barang; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Pilih alat dengan tombol 1–4: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Telur ada di tanah kandang ayam.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00. Telur ada di tanah kandang ayam.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (komputer toko online 🖥️), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -1678,15 +1696,18 @@
         const POT_SLOTS = 24;
         // Everything a bag or a box can hold, and the tools in your hands
         const ITEMS = { ...PRODUCTS, ...SUPPLIES };
-        const ITEM_KEYS = Object.keys(ITEMS);
-        const BAG_MAX = 30;
+        const BAG_MAX = 30, HOTBAR = 10, STACK = 99;
         const TOOLS = {
             tangan: { icon: '✋', label: 'Tangan' },
             penyiram: { icon: '🪣', label: 'Penyiram' },
             pemeras: { icon: '🫙', label: 'Pemeras susu' },
             gunting: { icon: '✂️', label: 'Gunting bulu' },
         };
-        let tool = 'penyiram';
+        for (const [k, t] of Object.entries(TOOLS)) ITEMS['t_' + k] = { ...t, tool: true };
+        const ITEM_KEYS = Object.keys(ITEMS);
+        const isTool = k => k.startsWith('t_');
+        // the toolbar is the top row of the bag; the selected slot decides what is in your hands
+        let selSlot = 1, tool = 'penyiram';
         const toolHint = k => `pilih ${TOOLS[k].icon} ${TOOLS[k].label}`;
         // hens lay their eggs on the ground somewhere in the chicken run
         const EGG_MAX = 6;
@@ -1695,7 +1716,7 @@
             for (const d of ANIMAL_DEFS) if (d.kind === 'chicken' && d.sex === 'f' && st.eggs.length < EGG_MAX)
                 st.eggs.push([Math.round(rand(AREA_CHICKEN.minX + 0.4, AREA_CHICKEN.maxX - 0.4) * 100) / 100, Math.round(rand(AREA_CHICKEN.minZ + 0.4, AREA_CHICKEN.maxZ - 0.4) * 100) / 100]);
         }
-        const FULL_MSG = `Tas penuh (${BAG_MAX}/${BAG_MAX}). Simpan dulu di kulkas atau kotak penyimpanan, atau taruh di kotak pengiriman.`;
+        const FULL_MSG = `Tas penuh (${BAG_MAX} slot terisi). Simpan dulu di kulkas atau kotak penyimpanan, atau taruh di kotak pengiriman.`;
         const WATER_MAX = 10;
 
         const KIND_INFO = {
@@ -1847,7 +1868,7 @@
             const animals = {};
             for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: d.kind !== 'chicken' && !!productOf(d) };
             // a housewarming gift for the rooftop garden, split between both bags
-            const bags = { adindayn: { pot: 1, pupuk: 1, b_kangkung: 2, b_bayam: 2 }, wawantn: { pot: 1, pupuk: 1, b_tomat: 1, b_mawar: 1 } };
+            const bags = { adindayn: toSlots({ pot: 1, pupuk: 1, b_kangkung: 2, b_bayam: 2 }), wawantn: toSlots({ pot: 1, pupuk: 1, b_tomat: 1, b_mawar: 1 }) };
             const pots = Array(POT_SLOTS).fill(null);
             for (let i = 0; i < 4; i++) pots[i] = {};
             // plants start part-way through their cycle; the quickest ones already carry fruit
@@ -1864,7 +1885,7 @@
             const st = { ...base, ...saved, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, looks: { ...(saved.looks || {}) } };
             delete st.water; delete st.gwater;
             // bags and boxes; older saves had one shared inventory, which goes into the storage chest
-            st.bags = saved.bags ? { adindayn: cleanItems(saved.bags.adindayn), wawantn: cleanItems(saved.bags.wawantn) } : base.bags;
+            st.bags = saved.bags ? { adindayn: toSlots(saved.bags.adindayn), wawantn: toSlots(saved.bags.wawantn) } : base.bags;
             const sv = saved.store || {};
             st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin) };
             if (saved.inv && !saved.bags) for (const [k, n] of Object.entries(cleanItems(saved.inv))) st.store.chest[k] = (st.store.chest[k] || 0) + n;
@@ -1882,16 +1903,46 @@
         }
         let state = freshState();
         const myWater = () => state.wb[USER] ?? WATER_MAX;
-        // each player carries their own bag (30 items); boxes are shared
-        const bagOf = u => state.bags[u] ||= {};
-        const bagCount = u => Object.values(bagOf(u)).reduce((s, n) => s + n, 0);
-        const bagRoom = u => Math.max(0, BAG_MAX - bagCount(u));
-        const have = (u, k) => bagOf(u)[k] || 0;
-        function addBag(u, k, n) { const m = Math.min(n, bagRoom(u)); if (m > 0) bagOf(u)[k] = (bagOf(u)[k] || 0) + m; return m; }
-        function takeBag(u, k, n = 1) { const b = bagOf(u); if ((b[k] || 0) < n) return false; b[k] -= n; if (!b[k]) delete b[k]; return true; }
+        // each player carries their own bag: 30 slots (3 rows of 10), stacks up to 99; boxes are shared
+        function toSlots(src) {
+            const b = Array(BAG_MAX).fill(null);
+            if (Array.isArray(src)) src.slice(0, BAG_MAX).forEach((x, i) => { if (Array.isArray(x) && ITEMS[x[0]] && Number.isFinite(x[1]) && x[1] > 0) b[i] = [x[0], Math.min(STACK, Math.floor(x[1]))]; });
+            else {
+                // an older bag kept as {item: count}
+                let i = Object.keys(TOOLS).length;
+                for (const [k, n] of Object.entries(src || {})) if (ITEMS[k] && !isTool(k) && n > 0 && i < BAG_MAX) b[i++] = [k, Math.min(STACK, Math.floor(n))];
+            }
+            // every bag keeps its four tools
+            Object.keys(TOOLS).forEach((k, i) => {
+                if (b.some(x => x && x[0] === 't_' + k)) return;
+                const at = b[i] ? b.indexOf(null) : i;
+                if (at >= 0) b[at] = ['t_' + k, 1];
+            });
+            return b;
+        }
+        const bagOf = u => { if (!Array.isArray(state.bags[u])) state.bags[u] = toSlots(state.bags[u]); return state.bags[u]; };
+        const bagCount = u => bagOf(u).filter(Boolean).length;
+        const have = (u, k) => bagOf(u).reduce((s, x) => s + (x && x[0] === k ? x[1] : 0), 0);
+        const bagRoom = (u, k) => bagOf(u).reduce((s, x) => s + (!x ? STACK : x[0] === k ? STACK - x[1] : 0), 0);
+        function addBag(u, k, n) {
+            const b = bagOf(u);
+            let left = n;
+            for (const x of b) if (left && x && x[0] === k) { const m = Math.min(left, STACK - x[1]); x[1] += m; left -= m; }
+            for (let i = 0; i < b.length && left; i++) if (!b[i]) { const m = Math.min(left, STACK); b[i] = [k, m]; left -= m; }
+            return n - left;
+        }
+        function takeBag(u, k, n = 1) {
+            if (have(u, k) < n) return false;
+            const b = bagOf(u);
+            for (let i = b.length - 1; i >= 0 && n; i--) { const x = b[i]; if (x && x[0] === k) { const m = Math.min(n, x[1]); x[1] -= m; n -= m; if (!x[1]) b[i] = null; } }
+            return true;
+        }
+        const bagItems = u => { const o = {}; for (const x of bagOf(u)) if (x && !isTool(x[0])) o[x[0]] = (o[x[0]] || 0) + x[1]; return o; };
+        const encBag = b => { const a = []; (b || []).forEach((x, i) => { if (x) a.push(i, ITEM_KEYS.indexOf(x[0]), x[1]); }); return a; };
+        const decBag = a => { const b = Array(BAG_MAX).fill(null); if (Array.isArray(a)) for (let i = 0; i + 2 < a.length; i += 3) { const k = ITEM_KEYS[a[i + 1]]; if (k && a[i] >= 0 && a[i] < BAG_MAX && a[i + 2] > 0) b[a[i]] = [k, a[i + 2]]; } return b; };
         const encItems = o => { const a = []; for (const [k, n] of Object.entries(o || {})) { const i = ITEM_KEYS.indexOf(k); if (i >= 0 && n > 0) a.push(i, n); } return a; };
         const decItems = a => { const o = {}; if (Array.isArray(a)) for (let i = 0; i + 1 < a.length; i += 2) { const k = ITEM_KEYS[a[i]]; if (k && Number.isFinite(a[i + 1]) && a[i + 1] > 0) o[k] = a[i + 1]; } return o; };
-        const cleanItems = o => { const r = {}; for (const [k, n] of Object.entries(o || {})) if (ITEMS[k] && Number.isFinite(n) && n > 0) r[k] = Math.floor(n); return r; };
+        const cleanItems = o => { const r = {}; for (const [k, n] of Object.entries(o || {})) if (ITEMS[k] && !isTool(k) && Number.isFinite(n) && n > 0) r[k] = Math.floor(n); return r; };
 
         // ---------- Animals ----------
         class Animal {
@@ -1914,6 +1965,7 @@
                     this.icon.visible = false;
                     scene.add(this.icon);
                 }
+                this.zzz = bubbleSprite('💤'); this.zzz.scale.set(0.55, 0.55, 1); this.zzz.visible = false; scene.add(this.zzz);
                 scene.add(this.group);
             }
             get data() { return state.animals[this.name]; }
@@ -1931,6 +1983,8 @@
             }
             update(dt, t) {
                 let moving = false, sp = this.speed;
+                // bedtime on the farm: from 20:00 until morning everyone sleeps where they are
+                const asleep = state.minutes >= 20 * 60;
                 if (net.mode === 'guest') {
                     // the host runs the animals; follow its positions smoothly
                     if (this.netT) {
@@ -1939,20 +1993,13 @@
                         this.targetHeading = hh; moving = !!m;
                     }
                 } else {
-                if (this.kind === 'dog' && this.mode !== 'paused') {
-                    let near = player.pos;
-                    if (net.connected && partnerF.live && partnerF.pos.distanceTo(this.pos) < player.pos.distanceTo(this.pos)) near = partnerF.pos;
-                    const d = Math.hypot(near.x - this.pos.x, near.z - this.pos.z);
-                    if (d < 14 && d > 2.4) { this.mode = 'follow'; this.target.copy(near); }
-                    else if (this.mode === 'follow') { this.mode = 'idle'; this.timer = rand(1, 3); }
-                }
-                if (this.mode === 'idle') {
+                if (asleep) { this.mode = 'idle'; this.timer = rand(0.5, 2); }
+                else if (this.mode === 'idle') {
                     this.timer -= dt;
                     if (this.timer <= 0) this.pickTarget();
                 } else {
                     const dx = this.target.x - this.pos.x, dz = this.target.z - this.pos.z, d = Math.hypot(dx, dz);
                     this.walkTime += dt;
-                    if (this.mode === 'follow') sp = d > 6 ? 5.6 : 3.6;
                     if ((this.mode === 'walk' && (d < 0.15 || this.walkTime > 10))) {
                         this.mode = 'idle';
                         this.timer = rand(...this.idle);
@@ -1999,8 +2046,13 @@
                     this.tail.rotation.y = Math.sin(t * 1.8 + this.seed) * 0.45;
                     this.head.rotation.y = Math.sin(t * 0.6 + this.seed) * 0.3;
                 }
-                // Blink every few seconds and breathe gently
-                const blink = ((t + this.seed) % 4.2) < 0.12 ? 0.12 : 1;
+                // Blink every few seconds and breathe gently; asleep: settle down, eyes shut, 💤
+                if (asleep) moving = false;
+                this.pos.y = lerp(this.pos.y, asleep ? -this.height * 0.16 : 0, Math.min(1, dt * 3));
+                if (asleep && this.head) this.head.rotation.x = lerp(this.head.rotation.x, 0.45, Math.min(1, dt * 3));
+                this.zzz.visible = asleep;
+                if (asleep) this.zzz.position.set(this.pos.x + 0.3, this.height + 0.35 + Math.sin(t * 2 + this.seed) * 0.08, this.pos.z);
+                const blink = asleep ? 0.1 : ((t + this.seed) % 4.2) < 0.12 ? 0.12 : 1;
                 for (const e of this.eyes) e.scale.y = e.scale.x * blink;
                 this.body.scale.y = 1 + Math.sin(t * 2.2 + this.seed) * 0.012;
                 if (this.wool) {
@@ -2008,7 +2060,7 @@
                     this.wool.scale.setScalar(lerp(this.wool.scale.x, s, Math.min(1, dt * 4)));
                 }
                 if (this.icon) {
-                    this.icon.visible = this.data.product;
+                    this.icon.visible = this.data.product && !asleep;
                     this.icon.position.set(this.pos.x, this.height + 0.45 + Math.sin(t * 3 + this.seed) * 0.06, this.pos.z);
                 }
             }
@@ -2027,26 +2079,44 @@
         function updateHud() {
             const place = placeName(player.pos);
             const bag = bagOf(USER);
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${tool}`;
+            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${selSlot}`;
             if (key === lastHud) return;
             lastHud = key;
             hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
             hud.time.textContent = fmtTime(state.minutes);
             hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
             $('locLabel').textContent = place;
-            const tools = Object.entries(TOOLS).map(([k, t], i) => `<div class="slot tool${k === tool ? ' on' : ''}" data-tool="${k}" title="${t.label} (${i + 1})">${t.icon}<small>${k === 'penyiram' ? `Air ${myWater()}/${WATER_MAX}` : t.label}</small></div>`).join('');
-            const seeds = Object.entries(bag).filter(([k]) => SUPPLIES[k] && SUPPLIES[k].plant);
-            const nSeeds = seeds.reduce((s, [, n]) => s + n, 0);
-            const items = Object.entries(bag).filter(([k]) => !(SUPPLIES[k] && SUPPLIES[k].plant));
-            hud.inv.innerHTML = tools + `<div class="slot bagcount" title="Isi tas">🎒<small>${bagCount(USER)}/${BAG_MAX}</small></div>` +
-                items.map(([k, n]) => `<div class="slot" title="${ITEMS[k].label}">${ITEMS[k].icon}<small>${ITEMS[k].label}</small><b>${n}</b></div>`).join('') +
-                (nSeeds ? `<div class="slot" title="${seeds.map(([k, n]) => `${ITEMS[k].label} ×${n}`).join(', ')}">🌱<small>Benih</small><b>${nSeeds}</b></div>` : '');
+            const cells = [];
+            for (let i = 0; i < HOTBAR; i++) {
+                const x = bag[i], it = x && ITEMS[x[0]];
+                const sub = !it ? '' : x[0] === 't_penyiram' ? `Air ${myWater()}/${WATER_MAX}` : it.label;
+                cells.push(`<div class="slot hot${i === selSlot ? ' on' : ''}${it ? '' : ' empty'}" data-hot="${i}" title="${it ? it.label : 'Kosong'} (${(i + 1) % 10})">${it ? it.icon : ''}<small>${sub}</small>${it && x[1] > 1 ? `<b>${x[1]}</b>` : ''}</div>`);
+            }
+            hud.inv.innerHTML = cells.join('') + `<div class="slot bagbtn" data-bag="1" title="Buka tas">🎒<small>${bagCount(USER)}/${BAG_MAX}</small></div>`;
             // keep the prompt just above the toolbar, however tall it gets
             if (!LITE) hud.prompt.style.bottom = (hud.inv.offsetHeight + 22) + 'px';
             if (liveDlg && dlgOpen()) liveDlg();
         }
-        $('inventory').addEventListener('click', e => { const t = e.target.closest('[data-tool]'); if (t) pickTool(t.dataset.tool); });
-        function pickTool(k) { if (!TOOLS[k]) return; tool = k; lastPrompt = null; updateHud(); }
+        $('inventory').addEventListener('click', e => {
+            const h = e.target.closest('[data-hot]');
+            if (h) selectSlot(+h.dataset.hot);
+            else if (e.target.closest('[data-bag]')) openBag();
+        });
+        function syncTool() { const x = bagOf(USER)[selSlot]; tool = x && isTool(x[0]) ? x[0].slice(2) : 'tangan'; }
+        function selectSlot(i) {
+            selSlot = i; syncTool(); lastPrompt = null; lastHud = ''; updateHud();
+            const x = bagOf(USER)[i];
+            flashName(x ? `${ITEMS[x[0]].icon} ${ITEMS[x[0]].label}${x[1] > 1 ? ' ×' + x[1] : ''}` : 'Slot kosong · tangan kosong');
+        }
+        function pickTool(k) { const i = bagOf(USER).findIndex(x => x && x[0] === 't_' + k); if (i >= 0 && i < HOTBAR) selectSlot(i); }
+        // the name of what you just picked shows for a moment
+        function flashName(text) {
+            const n = $('itemName');
+            n.textContent = text;
+            n.style.bottom = LITE ? '' : (hud.inv.offsetHeight + 64) + 'px';
+            n.classList.add('show');
+            clearTimeout(flashName.t); flashName.t = setTimeout(() => n.classList.remove('show'), 1300);
+        }
 
         function toast(text) {
             const el = document.createElement('div');
@@ -2077,10 +2147,9 @@
             } catch (e) { }
         }
 
-        // The porch bench by the door: your partner dozes here while offline (turu), and you can sit too
+        // The porch bench by the door: room for two
         const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
-        const TURU_SEAT = new THREE.Vector3(TURU_SPOT.x - 0.4, 0, TURU_SPOT.z);
-        const PORCH_SEAT = { x: TURU_SPOT.x + 0.45, z: TURU_SPOT.z, h: 0, sx: TURU_SPOT.x + 0.45, sz: TURU_SPOT.z + 0.9, k: 1 };
+        const PORCH_SEATS = [-0.42, 0.42].map(dx => ({ x: TURU_SPOT.x + dx, z: TURU_SPOT.z, h: 0, sx: TURU_SPOT.x + dx, sz: TURU_SPOT.z + 0.9, k: 1 }));
         // parcels from the online shop are left here
         const PKG_POS = new THREE.Vector3(HOUSE_DOOR.x - 1.3, 0, HOUSE_DOOR.z + 0.7);
         const pkgMesh = new THREE.Group();
@@ -2122,23 +2191,39 @@
         const POT_POS = [];
         for (const z of [-2.6, -0.6, 1.4, 3.4]) for (const x of [-2.6, -1.1, 0.4, 1.9, 3.4, 4.9]) POT_POS.push(HV(RF, x, z));
         // Places to sit: h = facing, s = where you stand up, k = 1 sit / 2 kneel
-        const seat = (f, x, z, h, sx, sz, k = 1) => ({ x: f + x, z, h, sx: f + sx, sz, k });
+        const seat = (f, x, z, h, sx, sz, k = 1, y) => ({ x: f + x, z, h, sx: f + sx, sz, k, y });
+        // lying down (k 3): head toward the back (north), face up
+        const BED = { adindayn: seat(F2, -2.25, -4.5, 0, -3.25, -3.8, 3, 0.8), wawantn: seat(F2, -1.25, -4.5, 0, -0.25, -3.8, 3, 0.8) };
         const SEATS = {
-            sofaFamily: seat(F1, -5.55, 4.6, -Math.PI / 2, -6.5, 4.6),
-            sofaGuest: seat(F1, 0, 2.05, 0, 0, 2.9),
+            sofaFamily: [seat(F1, -5.55, 4.05, -Math.PI / 2, -6.5, 4.05), seat(F1, -5.55, 5.15, -Math.PI / 2, -6.5, 5.15)],
+            sofaGuest: [seat(F1, -0.5, 2.05, 0, -0.5, 2.85), seat(F1, 0.5, 2.05, 0, 0.5, 2.85)],
+            dining: [seat(F1, 5.4, 2.95, 0, 5.4, 2.2), seat(F1, 6.6, 2.95, 0, 6.6, 2.2), seat(F1, 5.4, 4.65, Math.PI, 5.4, 5.4), seat(F1, 6.6, 4.65, Math.PI, 6.6, 5.4)],
             armL: seat(F1, -1.6, 3.4, Math.PI / 2, -1.6, 4.3),
             armR: seat(F1, 1.6, 3.4, -Math.PI / 2, 1.6, 4.3),
             sajadah0: seat(F1, -0.9, -5.0, -Math.PI / 2, 0.2, -5.0, 2),
             sajadah1: seat(F1, -0.9, -3.2, -Math.PI / 2, 0.2, -3.2, 2),
             balc0: seat(F2, -5.9, 5.3, 0, -5.9, 4.3),
             balc1: seat(F2, -4.1, 5.3, 0, -4.1, 4.3),
-            balcBench: seat(F2, 4.5, 5.65, 0, 4.5, 4.6),
-            roofBench: seat(RF, -6.3, 5.65, 0, -6.3, 4.6),
-            lounge: seat(RF, 7.0, 5.0, 0, 7.0, 6.3),
+            balcBench: [seat(F2, 4.1, 5.65, 0, 4.1, 4.6), seat(F2, 4.9, 5.65, 0, 4.9, 4.6)],
+            roofBench: [seat(RF, -6.8, 5.65, 0, -6.8, 4.6), seat(RF, -5.8, 5.65, 0, -5.8, 4.6)],
+            lounge: [seat(RF, 6.3, 5.8, 0, 5.4, 5.6, 3, 0.62), seat(RF, 7.7, 5.8, 0, 8.6, 5.6, 3, 0.62)],
         };
-        const WAKE = { host: HV(F2, 0.2, -4.4), guest: HV(F2, -1.75, -2.9) };
+        const WAKE = { wawantn: HV(F2, 0.2, -4.2), adindayn: HV(F2, -3.4, -3.4) };
 
-        let homeScene = null, homeKey = null, homeHemi = null, homeGlass = null;
+        let homeScene = null, homeKey = null, homeHemi = null, homeGlass = null, tvScreen = null;
+        const TV_SHOWS = ['Acara masak sore ini: sayur sop hangat.', 'Ramalan cuaca: cerah, cocok menyiram kebun.', 'Kartun favorit lagi tayang, seru!', 'Berita panen: harga cabai naik minggu ini.', 'Film keluarga yang bikin senyum-senyum 🥰'];
+        SEATS.sofaFamily.forEach(s => { s.onSit = () => toast('📺 TV menyala · ' + TV_SHOWS[Math.floor(Math.random() * TV_SHOWS.length)]); });
+        SEATS.dining.forEach(s => { s.onSit = () => {
+            const near = net.connected && partnerF.live && partnerF.pos.distanceTo(player.pos) < 3;
+            toast(near ? `Makan bersama ${OTHER}, nikmat sekali 😋❤` : 'Makan dulu biar kuat bertani 😋');
+            if (near) spawnHearts(new THREE.Vector3(F1 + 6, 1.2, 3.8));
+        }; });
+        function updateTv() {
+            if (!tvScreen) return;
+            const on = [player, partnerF].some(fm => fm === player ? SEATS.sofaFamily.includes(player.sit) : net.connected && partnerF.live && partnerF.netT && partnerF.netT[4] === 1 && Math.hypot(partnerF.netT[0] - (F1 - 5.55), partnerF.netT[1] - 4.6) < 1);
+            tvScreen.material.color.setHex(on ? 0x2b6aa8 : 0x15191f);
+            tvScreen.material.emissiveIntensity = on ? 0.7 + Math.sin(elapsed * 9) * 0.06 : 0;
+        }
         const potVis = [];
         const INTERIOR_BG = new THREE.Color(0x2a1f17);
 
@@ -2284,10 +2369,10 @@
 
             // 🛋️ family room: sofa facing the TV, rug, computer desk, stairs up
             rug(g, -7.1, 4.6, 2.2, 2.6, 0xd9774f, 0xf0a86f);
-            sofa(g, -5.4, 4.6, -Math.PI / 2, 0x5b8fd6, 2.2); col(f, -5.85, -4.95, 3.45, 5.75);
+            sofa(g, -5.4, 4.6, -Math.PI / 2, 0x5b8fd6, 2.4); col(f, -5.85, -4.95, 3.35, 5.85);
             box(0.5, 0.5, 1.9, 0x8a5a3a, -8.6, 0.25, 4.6, g); col(f, -8.9, -8.3, 3.6, 5.6);
             box(0.08, 0.85, 1.5, 0x1d232b, -8.55, 1.05, 4.6, g);
-            const screen = box(0.02, 0.72, 1.36, new THREE.MeshStandardMaterial({ color: 0x2b6aa8, emissive: 0x3d8fd6, emissiveIntensity: 0.6 }), -8.5, 1.05, 4.6, g); screen.castShadow = false;
+            tvScreen = box(0.02, 0.72, 1.36, new THREE.MeshStandardMaterial({ color: 0x15191f, emissive: 0x3d8fd6, emissiveIntensity: 0 }), -8.5, 1.05, 4.6, g); tvScreen.castShadow = false;
             pottedPlant(g, -3.6, 6.4, 1.1); lamp(g, -8.4, 6.4);
             table(g, -4.3, -1.5, 1.4, 0.6, 0.75); col(f, -5.0, -3.6, -1.85, -1.2);
             box(0.7, 0.45, 0.05, 0x1d232b, -4.3, 1.08, -1.65, g);
@@ -2475,9 +2560,16 @@
             table(g, -6.3, 4.3, 0.8, 0.6, 0.45, 0xffffff, 0xdddddd);
             rug(g, -6.3, 4.6, 3.4, 3.0, 0xe7d3a6, 0xf2e2bd);
             // sun lounger under an umbrella
-            box(0.7, 0.2, 1.8, 0xffffff, 7.0, 0.3, 5.0, g); box(0.7, 0.6, 0.1, 0xffffff, 7.0, 0.6, 4.2, g).rotation.x = -0.35; col(f, 6.6, 7.4, 4.1, 5.9);
-            const pole = mesh(CYL, mat(0xffffff), g); pole.scale.set(0.04, 2.4, 0.04); pole.position.set(8.0, 1.2, 4.2);
-            const umb = mesh(new THREE.ConeGeometry(1.3, 0.5, 12), mat(0xe85d4a), g); umb.position.set(8.0, 2.45, 4.2);
+            for (const x of [6.3, 7.7]) {
+                box(0.7, 0.2, 1.8, 0xffffff, x, 0.3, 5.0, g); box(0.62, 0.05, 1.7, 0x7fc4e8, x, 0.42, 5.0, g);
+                box(0.7, 0.6, 0.1, 0xffffff, x, 0.6, 4.2, g).rotation.x = -0.35;
+                for (const z of [4.3, 5.7]) box(0.6, 0.2, 0.06, 0xdddddd, x, 0.1, z, g);
+            }
+            col(f, 5.9, 8.1, 4.1, 5.9);
+            // the umbrella stands behind the heads so it never hides whoever lies down
+            const pole = mesh(CYL, mat(0xffffff), g); pole.scale.set(0.04, 2.4, 0.04); pole.position.set(7.0, 1.2, 3.5);
+            const umb = mesh(new THREE.ConeGeometry(1.2, 0.45, 12), mat(0xe85d4a), g); umb.position.set(7.0, 2.45, 3.2);
+            table(g, 7.0, 3.75, 0.45, 0.4, 0.45, 0xffffff, 0xdddddd);
             // pot racks: low wooden pallets with a marked place for each pot
             for (const z of [-2.6, -0.6, 1.4, 3.4]) {
                 box(8.8, 0.12, 0.8, 0x9a6b42, 1.15, 0.06, z, g);
@@ -2648,6 +2740,7 @@
             player.sit = s;
             player.pos.set(s.x, 0, s.z);
             player.heading = player.targetHeading = s.h;
+            if (s.onSit) s.onSit();
         }
         function standUp() {
             const s = player.sit;
@@ -2655,10 +2748,29 @@
             player.sit = null;
             player.pos.set(s.sx, 0, s.sz);
         }
-        function sitPose(f, k) {
+        function sitPose(f, k, y) {
+            if (k === 3) {
+                f.group.rotation.set(-Math.PI / 2, 0, 0);
+                f.pos.y = y || 0.8;
+                f.legs.forEach(l => { l.rotation.x = 0; });
+                f.arms.forEach(a => { a.rotation.x = 0; });
+                return;
+            }
             f.pos.y = k === 2 ? -0.52 : -0.3;
             f.legs.forEach(l => { l.rotation.x = k === 2 ? 1.5 : -1.4; });
         }
+        // a bench or sofa for two: take the free place nearest to you
+        const seatTaken = s => net.connected && partnerF.live && partnerF.netT && partnerF.netT[4] && Math.hypot(partnerF.netT[0] - s.x, partnerF.netT[1] - s.z) < 0.4;
+        const seatsAct = (list, label) => ({
+            local: true,
+            label: () => list.includes(player.sit) ? 'Berdiri' : label,
+            act() {
+                if (list.includes(player.sit)) { standUp(); return; }
+                const free = list.filter(s => !seatTaken(s)).sort((a, b) => Math.hypot(a.x - player.pos.x, a.z - player.pos.z) - Math.hypot(b.x - player.pos.x, b.z - player.pos.z));
+                if (!free.length) { toast('Tempatnya sudah penuh 😊'); return; }
+                sitOn(free[0]);
+            },
+        });
         const seatAct = (s, label) => ({
             local: true,
             label: () => player.sit === s ? 'Berdiri' : label,
@@ -2713,7 +2825,7 @@
             setTimeout(() => { if (dlgOpen()) openShop(); }, 350);
         }
         function openKitchen() {
-            const have = k => (bagOf(USER)[k] || 0) + (state.store.fridge[k] || 0);
+            const have = k => haveAll(k);
             openDlg('🍳 Dapur', [
                 el('p', { class: 'small-note', text: 'Masak hasil kebun dan peternakan jadi makanan yang lebih mahal. Bahan diambil dari tas dan kulkas.' }),
                 el('div', { class: 'shoplist' }, RECIPES.map(r => {
@@ -2725,6 +2837,7 @@
                 })),
             ]);
         }
+        const haveAll = k => have(USER, k) + (state.store.fridge[k] || 0);
         function chooseSeed(cb) {
             const seeds = GARDEN.filter(g => have(USER, 'b_' + g.key) > 0);
             if (!seeds.length) { toast('Tidak ada benih di tasmu. Ambil dari kotak penyimpanan, atau beli lewat komputer 🖥️'); return; }
@@ -2770,7 +2883,7 @@
             bin: { title: '🧺 Kotak pengiriman', name: 'Akan dijual', note: 'Barang di sini terjual saat kalian tidur.' },
         };
         function openStorage(c) {
-            const box = state.store[c], bag = bagOf(USER);
+            const box = state.store[c], bag = bagItems(USER);
             const grid = (items, dir) => el('div', { class: 'itemgrid' }, Object.keys(items).length
                 ? Object.entries(items).map(([k, n]) => el('button', { class: 'item', title: ITEMS[k].label, onclick: () => move(c, dir, k, moveOne ? 1 : n) }, el('span', { text: ITEMS[k].icon }), el('b', { text: String(n) }), el('small', { text: ITEMS[k].label })))
                 : el('p', { class: 'small-note', text: dir === 'out' ? 'Masih kosong' : 'Tas kosong' }));
@@ -2780,13 +2893,80 @@
                 el('div', { class: 'tabs' }, [['Pindah semua', false], ['Pindah 1', true]].map(([t, v]) => el('button', { class: 'btn' + (moveOne === v ? ' on' : ''), onclick: () => { moveOne = v; openStorage(c); } }, t))),
                 el('div', { class: 'stor' },
                     el('div', { class: 'storcol' }, el('b', { text: `${CONT[c].name} · ketuk untuk ambil` }), grid(box, 'out')),
-                    el('div', { class: 'storcol' }, el('b', { text: `🎒 Tas ${bagCount(USER)}/${BAG_MAX} · ketuk untuk ${c === 'bin' ? 'jual' : 'simpan'}` }), grid(bag, 'in'))),
+                    el('div', { class: 'storcol' }, el('b', { text: `🎒 Tas ${bagCount(USER)}/${BAG_MAX} slot · ketuk untuk ${c === 'bin' ? 'jual' : 'simpan'}` }), grid(bag, 'in'))),
             ]);
             liveDlg = () => openStorage(c);
         }
+        let bagPick = -1;
+        function openBag() {
+            const b = bagOf(USER);
+            const cell = i => {
+                const x = b[i], it = x && ITEMS[x[0]];
+                return el('button', { class: 'bslot' + (i === bagPick ? ' pick' : '') + (i === selSlot ? ' sel' : ''), 'data-slot': String(i), title: it ? it.label : 'Kosong' },
+                    it ? el('span', { text: it.icon }) : null, it && x[1] > 1 ? el('b', { text: String(x[1]) }) : null, el('small', { text: it ? it.label : '' }));
+            };
+            openDlg(`🎒 Tas · ${bagCount(USER)}/${BAG_MAX} slot`, [
+                el('p', { class: 'small-note', text: 'Baris paling atas adalah toolbar yang terlihat saat main. Tahan lalu geser barang ke slot lain, atau ketuk dua slot, untuk menukar tempatnya.' }),
+                ...[0, 1, 2].map(r => el('div', { class: 'bagrowwrap' + (r === 0 ? ' top' : '') }, el('small', { text: r === 0 ? 'Toolbar' : `Baris ${r + 1}` }),
+                    el('div', { class: 'bagrow' }, Array.from({ length: HOTBAR }, (_, c) => cell(r * HOTBAR + c))))),
+            ]);
+            liveDlg = openBag;
+        }
+        function swapSlots(i, j) {
+            if (i === j) return;
+            if (net.mode === 'guest') { const b = bagOf(USER); [b[i], b[j]] = [b[j], b[i]]; } // show it right away; the host confirms
+            sendAct('swap', `${i}|${j}`);
+            lastHud = ''; updateHud();
+            if (dlgOpen()) openBag();
+        }
+        function tapSlot(i) {
+            const b = bagOf(USER);
+            if (bagPick < 0) { if (b[i]) bagPick = i; }
+            else if (bagPick === i) bagPick = -1;
+            else { const from = bagPick; bagPick = -1; swapSlots(from, i); return; }
+            const x = b[i];
+            if (x) flashName(`${ITEMS[x[0]].icon} ${ITEMS[x[0]].label}${x[1] > 1 ? ' ×' + x[1] : ''}`);
+            openBag();
+        }
+        // press and hold to pick an item up, then drop it on another slot
+        let bagDrag = null, dragGhost = null;
+        const slotAt = (x, y) => { const e = document.elementFromPoint(x, y), sl = e && e.closest('#dlgCard [data-slot]'); return sl ? +sl.dataset.slot : -1; };
+        function beginDrag() {
+            if (!bagDrag || bagDrag.on) return;
+            const x = bagOf(USER)[bagDrag.from];
+            if (!x) return;
+            bagDrag.on = true;
+            dragGhost = el('div', { class: 'dragghost', text: ITEMS[x[0]].icon });
+            dragGhost.style.left = bagDrag.x + 'px'; dragGhost.style.top = bagDrag.y + 'px';
+            document.body.append(dragGhost);
+            flashName(ITEMS[x[0]].icon + ' ' + ITEMS[x[0]].label);
+        }
+        document.addEventListener('pointerdown', e => {
+            const sl = e.target.closest && e.target.closest('#dlgCard [data-slot]');
+            if (!sl) return;
+            e.preventDefault();
+            bagDrag = { from: +sl.dataset.slot, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, on: false };
+            bagDrag.t = setTimeout(beginDrag, 280);
+        });
+        document.addEventListener('pointermove', e => {
+            if (!bagDrag) return;
+            bagDrag.x = e.clientX; bagDrag.y = e.clientY;
+            if (!bagDrag.on && Math.hypot(e.clientX - bagDrag.x0, e.clientY - bagDrag.y0) > 10) beginDrag();
+            if (dragGhost) { dragGhost.style.left = e.clientX + 'px'; dragGhost.style.top = e.clientY + 'px'; }
+        });
+        document.addEventListener('pointerup', e => {
+            if (!bagDrag) return;
+            clearTimeout(bagDrag.t);
+            const d = bagDrag; bagDrag = null;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            if (d.on) { const to = slotAt(e.clientX, e.clientY); bagPick = -1; if (to >= 0) swapSlots(d.from, to); }
+            else tapSlot(d.from);
+        });
+        document.addEventListener('pointercancel', () => { if (bagDrag) clearTimeout(bagDrag.t); bagDrag = null; if (dragGhost) { dragGhost.remove(); dragGhost = null; } });
         function move(c, dir, k, n) {
             if (dir === 'in' && c === 'bin' && !PRODUCTS[k]) { toast('Barang ini tidak bisa dijual.'); return; }
-            if (dir === 'out' && bagRoom(USER) <= 0) { toast(FULL_MSG); return; }
+            if (dir === 'in' && isTool(k)) { toast('Alat tetap di tas.'); return; }
+            if (dir === 'out' && bagRoom(USER, k) <= 0) { toast(FULL_MSG); return; }
             sendAct('move', `${c}|${dir}|${k}|${n}`);
         }
 
@@ -2845,9 +3025,11 @@
         // sleeping: with or without saving; the save is written once the new morning starts
         let pendingSlot = -1;
         function askSleep() {
-            openDlg('🛏️ Tidur', [el('p', { text: `Tidur sekarang? Hari berganti untuk kalian berdua${state.minutes < 18 * 60 ? ', sisa hari ini dilewati' : ''}.` })], [
-                { t: '💾 Tidur dan simpan progres', big: true, f: () => openSaveDialog(i => { pendingSlot = i; sendAct('sleep'); }) },
-                { t: 'Tidur tanpa menyimpan', f: () => { pendingSlot = -1; sendAct('sleep'); } },
+            const lie = () => sitOn(BED[USER]);
+            openDlg('🛏️ Tempat tidur', [el('p', { text: `Mau tidur sekarang? Hari berganti untuk kalian berdua${state.minutes < 18 * 60 ? ', sisa hari ini dilewati' : ''}. Atau rebahan dulu sebentar.` })], [
+                { t: '💾 Tidur dan simpan progres', big: true, f: () => openSaveDialog(i => { lie(); pendingSlot = i; sendAct('sleep'); }) },
+                { t: 'Tidur tanpa menyimpan', f: () => { lie(); pendingSlot = -1; sendAct('sleep'); } },
+                { t: '🛌 Rebahan saja', f: lie },
                 { t: 'Batal' },
             ]);
         }
@@ -2856,10 +3038,16 @@
         // Actions the farm's host carries out for either player
         const ACTIONS = {
             sleep() { sleep(false); },
+            swap(who, x) {
+                const [i, j] = String(x).split('|').map(n => parseInt(n, 10));
+                const b = bagOf(who);
+                if (!(i >= 0 && i < BAG_MAX && j >= 0 && j < BAG_MAX) || i === j) return;
+                [b[i], b[j]] = [b[j], b[i]];
+            },
             move(who, x) {
                 const [c, dir, k, ns] = String(x).split('|');
                 const box = state.store[c], n = Math.max(1, Math.min(999, parseInt(ns, 10) || 1));
-                if (!box || !ITEMS[k]) return;
+                if (!box || !ITEMS[k] || isTool(k)) return;
                 if (dir === 'in') {
                     if (c === 'bin' && !PRODUCTS[k]) return;
                     const m = Math.min(n, have(who, k));
@@ -2926,38 +3114,37 @@
                     emitEvent(`Membuka paket: ${got} barang masuk tas 🎁${got < n ? ' (tas penuh, sisanya masih di paket)' : ''}`, 'icon:📦', [PKG_POS.x, 1, PKG_POS.z], who);
                 },
             });
-            add('bench', new THREE.Vector3(TURU_SEAT.x + 0.85, 0, TURU_SEAT.z), 1.2, seatAct(PORCH_SEAT, 'Santai di teras 🌿'));
+            add('bench', new THREE.Vector3(TURU_SPOT.x, 0, TURU_SPOT.z + 0.3), 1.3, seatsAct(PORCH_SEATS, 'Santai di teras 🌿'));
             // floor 1
             add('h:exit', HV(F1, 0, 6.4), 1.3, { local: true, label: () => 'Keluar rumah 🚪', act: () => travel(new THREE.Vector3(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.4), 0, '') });
             add('h:up1', HV(F1, -7.9, 2.0), 1.2, { local: true, label: () => 'Naik ke lantai 2 🪜', act: () => travel(HV(F2, -6.3, -2.4), 0, '') });
             add('h:pc', HV(F1, -4.3, -0.75), 1.1, { local: true, label: () => 'Buka komputer · toko online 🖥️', act: openShop });
-            add('h:tv', HV(F1, -7.8, 4.6), 1.0, info('Nonton TV 📺', () => '📺 ' + ['Acara masak sore ini: sayur sop hangat.', 'Ramalan cuaca: cerah, cocok menyiram kebun.', 'Kartun favorit lagi tayang, seru!', 'Berita panen: harga cabai naik minggu ini.'][Math.floor(Math.random() * 4)]));
-            add('h:sofa1', new THREE.Vector3(SEATS.sofaFamily.x, 0, SEATS.sofaFamily.z), 1.2, seatAct(SEATS.sofaFamily, 'Santai di sofa 🛋️'));
-            add('h:sofa2', new THREE.Vector3(SEATS.sofaGuest.x, 0, SEATS.sofaGuest.z + 0.3), 1.0, seatAct(SEATS.sofaGuest, 'Duduk di ruang tamu 🛋️'));
+            add('h:sofa1', HV(F1, -5.7, 4.6), 1.5, seatsAct(SEATS.sofaFamily, 'Nonton TV di sofa 🛋️📺'));
+            add('h:sofa2', HV(F1, 0, 2.3), 1.2, seatsAct(SEATS.sofaGuest, 'Duduk di ruang tamu 🛋️'));
             add('h:armL', new THREE.Vector3(SEATS.armL.x, 0, SEATS.armL.z), 0.9, seatAct(SEATS.armL, 'Duduk di kursi tamu'));
             add('h:armR', new THREE.Vector3(SEATS.armR.x, 0, SEATS.armR.z), 0.9, seatAct(SEATS.armR, 'Duduk di kursi tamu'));
             for (const [i, s] of [SEATS.sajadah0, SEATS.sajadah1].entries()) add('h:sajadah' + i, new THREE.Vector3(s.x + 0.4, 0, s.z), 1.0, { local: true, label: () => player.sit === s ? 'Selesai, berdiri' : 'Beribadah di sajadah 🤲', act: () => { if (player.sit === s) standUp(); else pray(s); } });
             add('h:stove', HV(F1, 5.6, -5.8), 1.1, { local: true, label: () => 'Masak di kompor 🍳', act: openKitchen });
             add('h:fridge', HV(F1, 7.8, -4.6), 1.0, { local: true, label: () => 'Buka kulkas 🧊', act: () => openStorage('fridge') });
-            add('h:dine', HV(F1, 6, 2.4), 1.4, { local: true, label: () => 'Makan di meja makan 🍽️', act: () => { const near = net.connected && partnerF.live && partnerF.pos.distanceTo(player.pos) < 4; toast(near ? `Makan bersama ${OTHER}, nikmat sekali 😋❤` : 'Makan dulu biar kuat bertani 😋'); if (near) spawnHearts(new THREE.Vector3(F1 + 6, 1.2, 3.8)); } });
+            add('h:dine', HV(F1, 6, 3.8), 1.9, seatsAct(SEATS.dining, 'Duduk di meja makan 🍽️'));
             add('h:shower', HV(F1, -7.6, -5.0), 1.1, info('Mandi 🚿', 'Byur! Mandi dulu, segar sekali 🚿'));
             add('h:toilet', HV(F1, -4.0, -5.7), 1.0, info('Pakai WC 🚽', 'Lega... jangan lupa disiram ya 🚽'));
             add('h:wcsink', HV(F1, -6.0, -5.9), 0.9, info('Cuci muka 🪥', 'Cuci muka dan gosok gigi 🪥'));
             // floor 2
             add('h:down2', HV(F2, -7.9, -2.3), 0.9, { local: true, label: () => 'Turun ke lantai 1 🪜', act: () => travel(HV(F1, -6.4, 2.6), 0, '') });
             add('h:up2', HV(F2, -7.9, -3.9), 0.9, { local: true, label: () => 'Naik ke rooftop 🌿', act: () => travel(HV(RF, -7, -3.4), 0, '') });
-            add('bed', HV(F2, -1.75, -3.7), 1.5, { local: true, label: () => state.minutes < 18 * 60 ? 'Tidur (lewati sisa hari) 🛏️' : 'Tidur 🛏️', act: askSleep });
+            add('bed', HV(F2, -1.75, -3.9), 1.7, { local: true, label: () => player.sit === BED[USER] ? 'Tidur / bangun 🛏️' : 'Tempat tidur 🛏️', act: askSleep });
             add('h:wardrobe', HV(F2, -4.4, -2.2), 1.0, { local: true, label: () => 'Buka lemari baju 👚', act: openWardrobe });
             add('h:kid1', HV(F2, 3.75, -5.1), 1.2, info('Lihat kamar anak 1 🧸', '🧸 Kamar anak 1 sudah disiapkan untuk anak kalian nanti. Semoga jadi keluarga sakinah 🤍'));
             add('h:kid2', HV(F2, 7.25, -4.2), 1.2, info('Lihat kamar anak 2 🚀', '🚀 Kamar anak 2 menunggu penghuni kecilnya suatu hari nanti 🤍'));
             add('h:balc0', new THREE.Vector3(SEATS.balc0.x, 0, SEATS.balc0.z), 0.9, seatAct(SEATS.balc0, 'Santai di balkon 🌇'));
             add('h:balc1', new THREE.Vector3(SEATS.balc1.x, 0, SEATS.balc1.z), 0.9, seatAct(SEATS.balc1, 'Santai di balkon 🌇'));
-            add('h:balcB', new THREE.Vector3(SEATS.balcBench.x, 0, SEATS.balcBench.z), 1.3, seatAct(SEATS.balcBench, 'Duduk di bangku balkon'));
+            add('h:balcB', HV(F2, 4.5, 5.4), 1.3, seatsAct(SEATS.balcBench, 'Duduk di bangku balkon'));
             // rooftop
             add('h:down3', HV(RF, -7, -3.6), 1.1, { local: true, label: () => 'Turun ke lantai 2 🪜', act: () => travel(HV(F2, -6.3, -3.9), 0, '') });
             add('roofTap', HV(RF, 6.4, -5.8), 1.3, { label: () => `Isi ember di keran 🪣 (💧${myWater()}/${WATER_MAX})`, act(who) { state.wb[who] = WATER_MAX; emitEvent('Ember terisi penuh 🪣💧', 'water', [RF + 6.4, 1.2, -6.2], who); } });
-            add('h:roofBench', new THREE.Vector3(SEATS.roofBench.x, 0, SEATS.roofBench.z), 1.3, seatAct(SEATS.roofBench, 'Santai di bawah pergola 🌿'));
-            add('h:lounge', new THREE.Vector3(SEATS.lounge.x, 0, SEATS.lounge.z), 1.4, seatAct(SEATS.lounge, 'Berjemur di kursi santai ☀️'));
+            add('h:roofBench', HV(RF, -6.3, 5.4), 1.4, seatsAct(SEATS.roofBench, 'Santai di bawah pergola 🌿'));
+            add('h:lounge', HV(RF, 7.0, 5.0), 1.6, seatsAct(SEATS.lounge, 'Rebahan di kursi santai ☀️'));
             POT_POS.forEach((pos, i) => add('pot:' + i, pos, 1.2, {
                 label() {
                     const p = state.pots[i];
@@ -2985,7 +3172,7 @@
                     }
                     const d = GDEF[p.s];
                     if (p.p >= d.days) {
-                        if (bagRoom(who) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                        if (bagRoom(who, d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
                         addBag(who, d.key, d.yield);
                         state.pots[i] = d.type === 'hias' ? null : {};
                         emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
@@ -3028,6 +3215,7 @@
                 label() {
                     const d = a.data;
                     const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
+                    if (state.minutes >= 20 * 60) return `${a.name} sedang tidur 💤 ${d.petted ? '' : '· elus pelan-pelan'}${hearts}`;
                     if (!d.petted) return `Elus ${a.name}${hearts}`;
                     if (d.product) { const need = a.product === 'wool' ? 'gunting' : 'pemeras'; return tool === need ? `${a.verb} ${a.name}${hearts}` : `${a.name} siap: ${toolHint(need)}${hearts}`; }
                     const sex = a.sex === 'm' ? ' jantan ♂' : a.sex === 'f' ? ' betina ♀' : '';
@@ -3274,7 +3462,7 @@
 
         function sendMine() {
             if (!net.backend) return;
-            const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
@@ -3282,7 +3470,7 @@
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 state.looks[USER] = { c: look.c };
                 o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, an, tr,
-                    bg: { adindayn: encItems(state.bags.adindayn), wawantn: encItems(state.bags.wawantn) },
+                    bg: { adindayn: encBag(bagOf('adindayn')), wawantn: encBag(bagOf('wawantn')) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due]), pkg: state.pkg, ib: state.ib };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
@@ -3353,7 +3541,7 @@
                 $('fade').classList.add('show');
                 setTimeout(() => {
                     standUp(); buildHome();
-                    player.pos.copy(WAKE.guest); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
+                    player.pos.copy(WAKE[USER]); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
                     $('fade').classList.remove('show');
                     toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
                 }, 1200);
@@ -3361,7 +3549,7 @@
             if (Number.isInteger(w.day)) state.day = w.day;
             if (Number.isFinite(w.min)) state.minutes = w.min;
             if (Number.isFinite(w.gold)) state.gold = w.gold;
-            if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = decItems(w.bg[u]);
+            if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
             if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]) };
             if (Array.isArray(w.eg)) state.eggs = w.eg.slice(0, EGG_MAX).map(e => Array.isArray(e) && e.every(Number.isFinite) ? e : null);
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
@@ -3389,7 +3577,7 @@
         }
         const partnerF = makeFarmer(lookOf(OTHER));
         partnerF.blinkSeed = 1.3;
-        partnerF.pos.copy(TURU_SEAT);
+        partnerF.pos.set(BED[OTHER].x, 0, BED[OTHER].z);
         const zzz = bubbleSprite('💤'); zzz.position.y = 2.6; partnerF.group.add(zzz);
         function refreshPartnerLook() {
             buildFarmer(partnerF, lookOf(OTHER));
@@ -3411,7 +3599,7 @@
             setPartnerTag();
             zzz.visible = !awake;
             if (awake) {
-                const [x, z, hh, m, sit] = partnerF.netT, k = Math.min(1, dt * 10);
+                const [x, z, hh, m, sit, sy] = partnerF.netT, k = Math.min(1, dt * 10);
                 if (Math.hypot(partnerF.pos.x - x, partnerF.pos.z - z) > 15) partnerF.pos.set(x, 0, z); // walked through a door
                 partnerF.pos.x = lerp(partnerF.pos.x, x, k); partnerF.pos.z = lerp(partnerF.pos.z, z, k);
                 partnerF.heading = lerpAngle(partnerF.heading, hh, Math.min(1, dt * 12));
@@ -3420,18 +3608,24 @@
                 partnerF.head.rotation.x = 0;
                 if (m) partnerF.phase += dt * 12;
                 animateFarmer(partnerF, !!m, dt);
-                if (sit) sitPose(partnerF, sit);
+                if (sit) sitPose(partnerF, sit, sy);
+                overhead(sit === 3);
             } else {
-                if (partnerF.pos.distanceTo(TURU_SEAT) > 15) partnerF.pos.copy(TURU_SEAT);
-                partnerF.pos.lerp(TURU_SEAT, Math.min(1, dt * 3));
-                partnerF.pos.y = -0.3;
-                partnerF.group.rotation.set(-0.08, 0, 0.14);
+                // offline: asleep on their side of the big bed
+                const b = BED[OTHER];
+                partnerF.pos.set(b.x, 0, b.z);
                 animateFarmer(partnerF, false, dt);
-                partnerF.legs.forEach(l => { l.rotation.x = -1.3; });
-                partnerF.head.rotation.x = 0.35;
-                zzz.position.set(0.45, 2.55 + Math.sin(elapsed * 2) * 0.08, 0);
+                sitPose(partnerF, 3, b.y);
+                partnerF.head.rotation.x = 0;
+                overhead(true);
+                zzz.position.set(0.35, 1.5, 0.9 + Math.sin(elapsed * 2) * 0.08);
                 for (const e of partnerF.eyes) e.scale.y = e.scale.x * 0.1;
             }
+        }
+        // the name tag and 💤 above the head, whether standing or lying down
+        function overhead(lying) {
+            if (partnerF.tag) partnerF.tag.position.set(0, lying ? 0.85 : 2.15, lying ? 1.25 : 0);
+            if (!lying) zzz.position.set(0.45, 2.55, 0);
         }
         const remote = { get pos() { return partnerF.pos; } };
 
@@ -3491,7 +3685,7 @@
                 state.day++;
                 state.minutes = 6 * 60;
                 standUp(); buildHome();
-                player.pos.copy(WAKE.host);
+                player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
                 camTarget.copy(player.pos);
                 updateHud();
@@ -3542,8 +3736,8 @@
         window.addEventListener('keydown', e => {
             if (dlgOpen()) { if (e.code === 'Escape') closeDlg(); return; }
             if (e.code === 'KeyH') { toggleHelp(); return; }
-            const ti = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code);
-            if (ti >= 0) { pickTool(Object.keys(TOOLS)[ti]); return; }
+            const ti = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'].indexOf(e.code);
+            if (ti >= 0) { selectSlot(ti); return; }
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
             keys.add(e.code);
             if (!e.repeat && ['KeyE', 'Space', 'Enter'].includes(e.code)) interact();
@@ -3678,10 +3872,10 @@
             }
             if (!started) player.targetHeading = Math.sin(elapsed * 0.7) * 0.6;
             if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
-            player.group.rotation.y = player.heading;
+            player.group.rotation.set(0, player.heading, 0);
             player.moving = moving;
             animateFarmer(player, moving, dt);
-            if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k); }
+            if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y); }
             else player.pos.y = 0;
         }
 
@@ -3699,6 +3893,7 @@
             pkgMesh.visible = pkgCount() > 0;
             EGG_POS.forEach((v, i) => { const e = state.eggs[i]; eggMeshes[i].visible = !!e; if (e) { v.set(e[0], 0, e[1]); eggMeshes[i].position.set(e[0], 0.14, e[1]); } else v.set(0, 0, -999); });
             updatePots();
+            updateTv();
             // each farmer lives in the scene of where they are
             for (const fm of [player, partnerF]) { const want = sceneOf(fm.pos); if (fm.group.parent !== want) want.add(fm.group); }
 
@@ -3721,6 +3916,7 @@
                 }
             }
 
+            syncTool();
             focus = started && !sleeping && !travelling && !dlgOpen() ? findFocus() : null;
             const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
             if (html !== lastPrompt) {

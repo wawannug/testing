@@ -43,18 +43,21 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Rooftop (lantai 3):** taman atap dengan pergola, kursi santai, keran air, dan rak untuk 24 pot. Ada 15 sayuran dan 15 tanaman hias; siram setiap hari dan tanaman siap dijual dalam 3–10 hari sesuai jenisnya. Pupuk 🧪 mempercepat tumbuh 1,5×. Tanaman hias dijual bersama potnya.
 - **Toko online:** beli pot, pupuk, benih, dan bibit lewat komputer. Kurir mengantar paket 📦 ke depan rumah sekitar 2 jam (waktu game) kemudian. Rumah baru juga datang dengan hadiah: 4 pot terpasang, dan pot, pupuk, serta benih di tas masing-masing.
 - 🌿 Teras depan punya bangku untuk duduk santai.
+- **Duduk & rebahan:** sofa depan TV, bangku teras, bangku balkon, dan bangku pergola muat 2 orang berjejer; kursi ruang makan bisa diduduki (sekalian makan). Duduk di sofa ruang keluarga otomatis menyalakan TV. Di rooftop ada 2 kursi santai untuk rebahan. Di kasur ada pilihan **Rebahan saja**; bergerak berarti bangun.
+- **Hewan tidur** mulai pukul 20:00 sampai pagi: diam di tempat dengan 💤. Anjing tidak lagi terus mengikuti pemain.
 
 ## Karakter, farm bersama, dan turu 💤
 - **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih (juga di lemari kamar).
 - **Satu farm untuk berdua.** Di layar awal pilih **Buat farm baru** atau **lanjutkan salah satu save game**. Kalau pasanganmu sudah main, tombolnya jadi **Gabung ke farm** dia. Hewan, waktu, kebun, kotak penyimpanan, dan uang dipakai bersama.
-- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di bangku teras.
+- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (adindayn di kiri, wawantn di kanan).
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
 ## Tas, alat, dan penyimpanan
-- **Tas pribadi berisi maksimal 30 barang.** Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.
+- **Tas pribadi 30 slot (3 baris × 10).** Baris paling atas adalah toolbar yang terlihat saat main (tombol 1–0); ketuk 🎒 untuk membuka semua isi tas, lalu tahan-geser (atau ketuk dua slot) untuk menukar tempat barang. Nama alat/barang muncul sebentar saat dipilih. Satu slot menumpuk sampai 99 barang yang sama.
+- Isi tas: Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.
 - Membuka kulkas/kotak menampilkan isi kotak dan isi tas berdampingan seperti Stardew Valley: ketuk barang untuk memindahkannya (semua atau 1 buah).
 - **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur.
-- **Alat** (tombol 1–4 atau ketuk di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
+- **Alat** (ada di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di tanah kandang ayam.
 
 ## Menyimpan progres
