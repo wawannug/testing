@@ -2,7 +2,7 @@
 
 Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` untuk menu awal, lalu pilih game.
 
-**Masuk dengan nama:** sebelum menu dan setiap game terbuka, pemain harus mengetik nama yang terdaftar (2 akun). Nama diingat selama sesi tab browser itu; tab baru akan bertanya lagi. Setiap akun punya save file sendiri (kunci `…@nama` di localStorage): farm Farmora, Cerita Kita Ladago, dan galeri Fotoin. Catatan: ini gerbang sederhana di sisi browser, bukan pengamanan sungguhan, karena kodenya bisa dibaca siapa pun yang membuka sumber halaman.
+**Masuk dengan nama:** sebelum menu dan setiap game terbuka, pemain harus mengetik nama yang terdaftar (2 akun). Nama diingat selama sesi tab browser itu; tab baru akan bertanya lagi. Karena hanya 2 akun itu yang bisa main, game tidak lagi meminta nama: nama diambil dari akun yang masuk. Cerita Kita Ladago dan galeri Fotoin tersimpan per akun (kunci `…@nama` di localStorage), sedangkan Farmora memakai satu farm bersama untuk berdua. Catatan: ini gerbang sederhana di sisi browser, bukan pengamanan sungguhan, karena kodenya bisa dibaca siapa pun yang membuka sumber halaman.
 
 | Game | Folder | Status |
 | --- | --- | --- |
@@ -35,12 +35,14 @@ Ada 20 tanaman buah khas Indonesia di **Kebun Barat**, **Kebun Utara**, dan bede
 - **Siram sekali sehari.** Ember berisi 10 siraman dan bisa diisi ulang di dua sumur 🪣. Tanaman yang disiram tumbuh setiap malam dan berbuah sesuai sifatnya, dari stroberi (setiap hari) sampai durian, manggis, duku, dan nanas (setiap 5 hari). Tanaman yang tidak disiram berhenti tumbuh, dan daunnya pelan-pelan menguning.
 - Buah yang siap panen terlihat di tanaman, dan ikon 💧 menandai tanaman yang belum disiram. Hasil panen masuk tas dan bisa dijual di kotak pengiriman.
 
-## Karakter, simpan, dan main berdua
+## Karakter, farm bersama, dan turu 💤
 - **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih.
-- **Progres tersimpan otomatis** setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga. Layar awal menawarkan **Lanjutkan Hari X** atau **Farm baru**.
-- **Main berdua online:** satu orang memilih *Buat farm online* dan mendapat kode 4 huruf, temannya memilih *Gabung*. Hanya kedua akun terdaftar yang bisa bergabung. Kalian bermain bersama di farm milik pembuat: hewan, waktu, inventori, dan uang dipakai bersama. Aksi teman (mengelus, memerah, menjual) tampil di kedua layar, dan saat salah satu tidur, hari berganti untuk berdua. Progres disimpan di perangkat pembuat farm.
-  - Di link claude.ai: memakai fitur ruangan real-time milik artifact. Keduanya harus login, dan link harus sudah dibagikan ke teman.
-  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Ketuk badge kode untuk menyalin link undangan.
+- **Satu farm untuk berdua, selalu online.** Tidak ada mode main sendiri dan tidak perlu kode: cukup tekan **Masuk ke farm**. Hewan, waktu, kebun, inventori, dan uang dipakai bersama; ember air dimiliki masing-masing.
+- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di bangku teras. Begitu dia masuk, dia bangun dan langsung bergabung ke farm yang sedang berjalan.
+- Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu, hewan, dan menyimpan progres; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
+- **Progres tersimpan otomatis** setiap 15 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.
+  - Di link claude.ai: memakai ruangan real-time dan penyimpanan bersama artifact, jadi farm tersimpan untuk berdua. Keduanya harus login, dan pasangan perlu diundang lewat email dengan akses yang bisa menulis (Editor).
+  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Tiap perangkat menyimpan salinan farm; saat kalian bertemu online, salinan yang paling baru yang dipakai.
 
 ## Cara main
 | Kontrol | Aksi |

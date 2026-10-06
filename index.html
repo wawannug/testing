@@ -390,7 +390,7 @@
                             <li>Online berdua</li>
                             <li>Keyboard &amp; layar sentuh</li>
                         </ul>
-                        <p>Rawat peternakan dan kebun buah mungilmu, sendiri atau berdua online. Elus hewan, siram 20 tanaman buah khas Indonesia setiap hari, panen hasilnya, lalu jual di kotak pengiriman. Progres tersimpan otomatis.</p>
+                        <p>Satu farm bersama untuk kalian berdua, online. Kalau pasanganmu tidak sedang main, dia lagi turu 💤 di teras dan bisa menyusul kapan saja. Elus hewan, siram 20 tanaman buah khas Indonesia setiap hari, panen hasilnya, lalu jual di kotak pengiriman. Progres tersimpan otomatis.</p>
                         <ul class="cast" aria-label="Penghuni peternakan">
                             <li>🐔 2 ayam</li>
                             <li>🐄 2 sapi</li>
@@ -480,13 +480,13 @@
     </div>
 
     <script>
-        // Show Farmora save progress if one exists in this browser.
-        window.__gate.then(function (USER) {
+        // Show the shared Farmora save if this browser has a copy.
+        window.__gate.then(function () {
             let save = null;
-            try { save = JSON.parse(localStorage.getItem('farmora.v1@' + USER)); } catch (e) { }
+            try { save = JSON.parse(localStorage.getItem('farmora.shared.v2')); } catch (e) { }
             if (!save || !save.day) return;
             const gold = (save.gold || 0).toLocaleString('id-ID');
-            document.getElementById('saveInfo').innerHTML = `Tersimpan: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
+            document.getElementById('saveInfo').innerHTML = `Farm kalian: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
             document.getElementById('playBtn').textContent = 'Lanjutkan';
         });
 

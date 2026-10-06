@@ -238,9 +238,6 @@
         #startScreen .card h1 { text-align: center; }
         .sect { display: flex; flex-direction: column; gap: 8px; border-top: 2px dashed #e1c99a; padding-top: 10px; }
         .sect > b { font-size: 14px; letter-spacing: .04em; }
-        .pick { display: flex; gap: 8px; }
-        .pick .btn { flex: 1; font-size: 16px; }
-        .pick .btn.on { background: #ffe08a; box-shadow: 0 3px 0 var(--wood-dark), 0 0 0 3px var(--green) inset; }
         .shirts { display: flex; gap: 8px; flex-wrap: wrap; }
         .shirts button { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--wood); cursor: pointer; padding: 0; }
         .shirts button.on { box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--green); }
@@ -414,7 +411,7 @@
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
 
-    <div id="netBadge" class="panel" title="Ketuk untuk menyalin kode"></div>
+    <div id="netBadge" class="panel" title="Ketuk untuk melihat status pasanganmu"></div>
     <div id="saveFlag">💾 Tersimpan</div>
 
     <div id="startScreen" class="overlay">
@@ -427,14 +424,11 @@
                 <div class="shirts" id="shirtPick" aria-label="Warna baju"></div>
             </div>
             <div class="sect">
-                <b>Main sendiri</b>
+                <b>Farm kalian berdua 👫</b>
                 <span class="saveinfo" id="saveInfo"></span>
+                <span class="saveinfo" id="partnerInfo"></span>
                 <div class="row2" id="soloBtns"></div>
-            </div>
-            <div class="sect">
-                <b>Main berdua online 👫</b>
-                <p class="small-note">Untuk adindayn dan wawantn. Satu orang membuat farm online, yang lain bergabung dengan kode. Kalian bermain di farm milik pembuat, dan progresnya tersimpan di perangkat pembuat.</p>
-                <div id="onlineBox"></div>
+                <p class="small-note">Satu farm untuk adindayn dan wawantn. Masuk kapan saja; kalau pasanganmu sedang tidak main, dia lagi turu 💤 di teras dan bisa menyusul kapan pun. Progres tersimpan otomatis untuk berdua.</p>
             </div>
             <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
         </div>
@@ -456,7 +450,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua: progres tersimpan otomatis setiap 15 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
                 <button class="btn danger" id="resetBtn">Mulai ulang</button>
@@ -1645,14 +1639,22 @@
         const CHARACTERS = { adindayn: { g: 'f', c: 5 }, wawantn: { g: 'm', c: 1 } };
         const LOOK_KEY = 'farmora.look@' + USER;
         let look = (() => { let saved = {}; try { saved = JSON.parse(localStorage.getItem(LOOK_KEY) || '{}'); } catch (e) { } const ch = CHARACTERS[USER] || { g: 'm', c: 0 }; return { c: Number.isInteger(saved.c) ? saved.c : ch.c, n: USER, g: ch.g }; })();
+        const lookOf = name => ({ n: name, g: CHARACTERS[name].g, c: Number.isInteger(state && state.looks && state.looks[name] && state.looks[name].c) ? state.looks[name].c : CHARACTERS[name].c });
         const player = makeFarmer(look);
         player.pos.set(-10, 0, -8);
 
         // ---------- Game state ----------
-        // Each signed-in player has their own farm; an older shared save is copied in once
-        const SAVE_KEY = 'farmora.v1@' + USER;
-        const LEGACY_SAVE_KEY = 'farmora.v1';
-        try { if (!localStorage.getItem(SAVE_KEY)) { const old = localStorage.getItem('farmora.v1') || localStorage.getItem('kebunKecil.v1'); if (old) localStorage.setItem(SAVE_KEY, old); } } catch (e) { }
+        // One farm shared by both players. The copy in the artifact's shared store (db) is the real one;
+        // this device keeps a backup. An older save on this device is adopted once, the furthest one first.
+        const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
+        const SAVE_KEY = 'farmora.shared.v2';
+        try {
+            if (!localStorage.getItem(SAVE_KEY)) {
+                const olds = ['farmora.v1@adindayn', 'farmora.v1@wawantn', 'farmora.v1', 'kebunKecil.v1'].map(k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }).filter(x => x && x.day);
+                olds.sort((a, b) => b.day - a.day || (b.gold || 0) - (a.gold || 0));
+                if (olds[0]) localStorage.setItem(SAVE_KEY, JSON.stringify(olds[0]));
+            }
+        } catch (e) { }
         const DAY_NAMES = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
         const ANIMAL_DEFS = [
             { kind: 'chicken', name: 'Jago', sex: 'm', variant: 'rooster', area: AREA_CHICKEN },
@@ -1682,26 +1684,40 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            return { day: 1, minutes: 6 * 60, gold: 0, inv, animals, trees, water: WATER_MAX, gwater: WATER_MAX };
+            return { day: 1, minutes: 6 * 60, gold: 0, inv, animals, trees, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
         }
-        let state = freshState();
-        try {
-            const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-            if (saved && saved.animals) {
-                const base = freshState();
-                state = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) } };
-            }
-        } catch (e) { /* storage unavailable */ }
-        // Older saves may hold animals that no longer exist or males marked as producing.
-        for (const d of ANIMAL_DEFS) state.animals[d.name].product &&= !!productOf(d);
-        for (const name of Object.keys(state.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete state.animals[name];
-        let lastSaved = 0;
+        // Accept a saved farm from any version, filling in what it lacks
+        function normalize(saved) {
+            const base = freshState();
+            if (!saved || !saved.animals) return base;
+            const st = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, looks: { ...(saved.looks || {}) } };
+            delete st.water; delete st.gwater;
+            for (const d of ANIMAL_DEFS) st.animals[d.name].product &&= !!productOf(d);
+            for (const name of Object.keys(st.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete st.animals[name];
+            return st;
+        }
+        let state = (() => { try { return normalize(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return freshState(); } })();
+        const myWater = () => state.wb[USER] ?? WATER_MAX;
+
+        let dbWriting = false, dbDirty = false;
         function save(show) {
-            if (net.mode === 'guest') return; // a guest plays on the host's farm; the host keeps the save
-            try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); lastSaved = Date.now(); } catch (e) { return; }
+            if (net.mode === 'guest') return; // the host keeps the farm; a guest mirrors it
+            state.savedAt = Date.now();
+            state.looks[USER] = { c: look.c };
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { }
+            saveShared();
             if (show) { const f = document.getElementById('saveFlag'); f.classList.add('show'); clearTimeout(save.t); save.t = setTimeout(() => f.classList.remove('show'), 1500); }
         }
-        const hadSave = (() => { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } })();
+        // one write at a time to the shared document; a newer change waits for the current write
+        async function saveShared() {
+            if (!net.db || net.mode !== 'host') return;
+            if (dbWriting) { dbDirty = true; return; }
+            dbWriting = true;
+            try { await net.db.doc('farm/state').set({ json: JSON.stringify(state), at: state.savedAt, by: USER }); net.dbWriteOk = true; }
+            catch (e) { if (!net.dbWarned) { net.dbWarned = 1; toast('Farm belum bisa disimpan ke penyimpanan bersama. Pastikan akunmu punya akses Editor di link ini.'); } }
+            dbWriting = false;
+            if (dbDirty) { dbDirty = false; saveShared(); }
+        }
 
         // ---------- Animals ----------
         class Animal {
@@ -1751,7 +1767,7 @@
                 } else {
                 if (this.kind === 'dog' && this.mode !== 'paused') {
                     let near = player.pos;
-                    if (remote && net.connected && remote.pos.distanceTo(this.pos) < player.pos.distanceTo(this.pos)) near = remote.pos;
+                    if (net.connected && partnerF.live && partnerF.pos.distanceTo(this.pos) < player.pos.distanceTo(this.pos)) near = partnerF.pos;
                     const d = Math.hypot(near.x - this.pos.x, near.z - this.pos.z);
                     if (d < 14 && d > 2.4) { this.mode = 'follow'; this.target.copy(near); }
                     else if (this.mode === 'follow') { this.mode = 'idle'; this.timer = rand(1, 3); }
@@ -1835,14 +1851,14 @@
             return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
         }
         function updateHud() {
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}|${state.water}`;
+            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(state.inv)}|${myWater()}`;
             if (key === lastHud) return;
             lastHud = key;
             hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
             hud.time.textContent = fmtTime(state.minutes);
             hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
             const held = Object.entries(PRODUCTS).filter(([k]) => state.inv[k] > 0);
-            hud.inv.innerHTML = `<div class="slot water" title="Ember air">🪣<small>Air ${state.water}/${WATER_MAX}</small></div>` +
+            hud.inv.innerHTML = `<div class="slot water" title="Ember air">🪣<small>Air ${myWater()}/${WATER_MAX}</small></div>` +
                 (held.length ? held.map(([k, p]) => `<div class="slot" title="${p.label} (${p.price} G)">${p.icon}<small>${p.label}</small><b>${state.inv[k]}</b></div>`).join('')
                     : '<div class="slot empty bagempty">🎒<small>Tas kosong</small></div>');
         }
@@ -1915,7 +1931,7 @@
                     label() {
                         const t = state.trees[f.key];
                         if (t.r > 0) return `Panen ${f.icon} ${f.label} (${t.r})`;
-                        if (!t.w) return `Siram ${f.icon} ${f.label}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${state.water}/${WATER_MAX}`;
+                        if (!t.w) return `Siram ${f.icon} ${f.label}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${myWater()}/${WATER_MAX}`;
                         return `${f.icon} ${f.label} · berbuah ${left(t)} hari lagi`;
                     },
                     act(who) {
@@ -1928,9 +1944,8 @@
                             return;
                         }
                         if (t.w) { emitEvent(`${f.label} sudah disiram hari ini. Berbuah ${left(t)} hari lagi.`, 'none', null, who); return; }
-                        const wk = who === 'guest' ? 'gwater' : 'water';
-                        if (state[wk] <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
-                        state[wk]--;
+                        if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
+                        state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
                         t.w = true; t.dry = 0;
                         emitEvent(`Menyiram ${f.icon} ${f.label} 💧`, 'water', at(), who);
                     },
@@ -1938,9 +1953,9 @@
             }
             WELLS.forEach((w, i) => list.push({
                 id: 'well:' + i, pos: w, reach: 1.9,
-                label: () => `Isi ember air 🪣 (💧${state.water}/${WATER_MAX})`,
+                label: () => `Isi ember air 🪣 (💧${myWater()}/${WATER_MAX})`,
                 act(who) {
-                    state[who === 'guest' ? 'gwater' : 'water'] = WATER_MAX;
+                    state.wb[who] = WATER_MAX;
                     emitEvent('Ember terisi penuh 🪣💧', 'water', [w.x, 1.2, w.z], who);
                 },
             }));
@@ -1984,7 +1999,7 @@
                 net.acts.push({ q: net.myQ, id: focus.id });
                 if (net.acts.length > 5) net.acts.shift();
             } else {
-                focus.act('host', player.pos);
+                focus.act(USER, player.pos);
             }
             lastPrompt = '';
         }
@@ -2003,82 +2018,85 @@
             else if (typeof e.f === 'string' && e.f.startsWith('icon:') && at) { spawnIcon(at, e.f.slice(5)); chime([523, 784]); }
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); chime([880, 1046], 0.06, 'sine', 0.05); }
-            const mine = net.mode === 'solo' || e.w === net.mode;
+            const mine = e.w === USER;
             toast(mine ? e.t : `${partnerName()}: ${e.t}`);
         }
 
         // ---------- Online for two ----------
-        // Transport: the claude.ai room (presence) inside the viewer, PeerJS data channels on the open web.
-        // Both carry one "latest state" object per player, sent ten times a second.
+        // Both accounts share one farm and meet in one fixed room. Whoever runs the farm (the host) keeps
+        // time, animals and the save; the other mirrors it. Inside claude.ai a lease in the shared store
+        // decides the host; on the open web the newest save hosts. A friend who is offline is "turu" 💤.
         const IN_CLAUDE = !!(window.claude && window.claude.use);
-        const net = { mode: 'solo', code: '', connected: false, partner: null, backend: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, roomOk: null };
-        const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-        const makeCode = () => Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+        const net = { mode: 'host', connected: false, partner: null, backend: null, db: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, tab: Math.random().toString(36).slice(2, 8), leaseHeld: false, status: 'Menyambung…' };
         const PEER_OPTS = (() => {
             const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
             const q = new URLSearchParams(location.search).get('peerhost');
             if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
             return o;
         })();
-        const partnerName = () => (net.partner && net.partner.look && clean(net.partner.look.n)) || 'Teman';
-        const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, '').trim().slice(0, 14);
+        const partnerName = () => OTHER;
+        const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁤﻿]/g, '').trim().slice(0, 14);
         const r2 = v => Math.round(v * 100) / 100;
 
-        if (IN_CLAUDE) window.claude.use('room').then(r => { net.roomOk = !!r; net.roomNs = r; renderOnlineBox(); }).catch(() => { net.roomOk = false; renderOnlineBox(); });
-
-        function renderOnlineBox() {
-            const box = $('onlineBox');
-            if (!box) return;
-            box.replaceChildren();
-            const add = el => (box.append(el), el);
-            const btn = (text, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = text; b.onclick = fn; return b; };
-            if (IN_CLAUDE && net.roomOk === false) {
-                const p = document.createElement('p'); p.className = 'warn';
-                p.textContent = 'Mode online butuh login claude.ai, dan link Farmora harus sudah dibagikan ke temanmu.';
-                add(p); return;
+        async function startNetwork() {
+            let room = null, db = null;
+            if (IN_CLAUDE) {
+                try { [room, db] = await Promise.all([window.claude.use('room'), window.claude.use('db')]); } catch (e) { }
             }
-            if (IN_CLAUDE && net.roomOk === null) { const p = document.createElement('p'); p.className = 'small-note'; p.textContent = 'Memeriksa koneksi online…'; add(p); return; }
-            const row1 = add(document.createElement('div')); row1.className = 'row2';
-            row1.append(btn('👥 Buat farm online', '', () => goOnline('host')));
-            const row2 = add(document.createElement('div')); row2.className = 'row2';
-            const inp = document.createElement('input'); inp.className = 'codein'; inp.maxLength = 4; inp.placeholder = 'KODE'; inp.id = 'codeIn';
-            inp.value = new URLSearchParams(location.search).get('join') || '';
-            row2.append(inp, btn('Gabung', '', () => goOnline('guest', inp.value)));
-            if (net.error) { const p = document.createElement('p'); p.className = 'warn'; p.textContent = net.error; add(p); }
+            net.db = db;
+            if (db) {
+                // the shared farm, if it is newer than this device's backup
+                try {
+                    const snap = await db.doc('farm/state').get();
+                    if (snap.exists) { const d = snap.data(); const st = normalize(JSON.parse(d.json)); if ((st.savedAt || 0) >= (state.savedAt || 0)) replaceState(st); }
+                } catch (e) { }
+                await tryLease();
+                setInterval(tryLease, 4000);
+            }
+            try { net.backend = room ? await roomBackend(room) : IN_CLAUDE ? null : await peerBackend(); } catch (e) { net.backend = null; }
+            net.status = net.backend ? '' : 'Mode online tidak tersedia di sini. Farm tetap tersimpan di perangkat ini.';
+            setInterval(sendMine, 100);
+            renderTitle(); renderBadge();
         }
 
-        async function goOnline(mode, rawCode) {
-            net.error = '';
-            const code = mode === 'host' ? makeCode() : String(rawCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-            if (code.length !== 4) { net.error = 'Kode farm terdiri dari 4 huruf.'; renderOnlineBox(); return; }
-            net.mode = mode; net.code = code;
-            try {
-                net.backend = IN_CLAUDE ? await roomBackend(code) : await peerBackend(code);
-            } catch (e) {
-                if (mode === 'host' && e && e.type === 'unavailable-id') return goOnline('host');
-                net.mode = 'solo';
-                net.error = 'Gagal tersambung (' + ((e && (e.type || e.code)) || 'jaringan') + '). Coba lagi.';
-                renderOnlineBox(); return;
-            }
-            if (mode === 'guest') {
-                // play on the friend's farm: wait for their world before walking around
-                player.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8);
-                toast('Menyambung ke farm ' + code + '…');
-                setTimeout(() => { if (!net.connected && net.mode === 'guest') toast('Belum tersambung. Pastikan temanmu sudah membuat farm dan halamannya terbuka.'); }, 10000);
-            }
-            startGame(mode);
-            if (mode === 'host') toast(`Farm online dibuat! Bagikan kode ${code} ke temanmu`);
-            setInterval(sendMine, 100);
+        function replaceState(st) {
+            state = st;
+            window.kebun.state = state;
+            lastHud = '';
+            if (partnerF) refreshPartnerLook();
+            updateHud();
+        }
+
+        // Host lease: held while this tab runs the farm, renewed every few seconds
+        async function tryLease() {
+            if (!net.db) return;
+            let r;
+            try { r = await net.db.doc('farm/lease').acquire({ holder: USER + ':' + net.tab, ttlMs: 12000 }); } catch (e) { return; }
+            net.leaseHeld = !!r.acquired;
+            if (net.leaseHeld && net.mode !== 'host') becomeHost();
+            else if (!net.leaseHeld && net.mode === 'host') becomeGuest();
+        }
+        function becomeHost() {
+            if (net.mode === 'host') return;
+            // taking over from a farm still running elsewhere: start from its latest world
+            if (net.connected && net.partner && net.partner.role === 'host' && net.partner.w) { try { applyWorld(net.partner); } catch (e) { } }
+            net.mode = 'host';
+            net.lastQ = 0;
+            for (const a of animals) { a.mode = 'idle'; a.timer = rand(0, 2); }
+            save();
+            renderBadge();
+        }
+        function becomeGuest() {
+            if (net.mode === 'guest') return;
+            net.mode = 'guest';
+            net.seenEv = Math.max(net.seenEv, ...((net.partner && net.partner.ev) || []).map(e => e.n));
             renderBadge();
         }
 
-        async function roomBackend(code) {
-            const room = net.roomNs || await window.claude.use('room');
-            if (!room) throw { code: 'room' };
-            const r = await room.join('farmora-' + code.toLowerCase());
+        async function roomBackend(room) {
+            const r = await room.join('farmora-main');
             r.onPeers(ch => {
-                const want = net.mode === 'host' ? 'guest' : 'host';
-                const p = ch.peers.find(x => !x.sameTab && x.presence && x.presence.app === 'farmora' && x.presence.role === want);
+                const p = ch.peers.find(x => !x.sameTab && x.presence && x.presence.app === 'farmora' && clean(x.presence.user) === OTHER);
                 onPartner(p ? p.presence : null);
             });
             return { send: o => r.presence(o).catch(() => { }) };
@@ -2093,34 +2111,38 @@
                 document.head.append(sc);
             });
         }
-        async function peerBackend(code) {
+        // Web: each account listens on a fixed id and keeps calling the other's
+        async function peerBackend() {
             await loadPeerJs();
-            const id = 'farmora-' + code.toLowerCase();
+            const idOf = u => 'farmora-wp2-' + u;
+            let conn = null;
+            const wire = c => {
+                if (conn && conn.open && conn !== c) { c.close(); return; }
+                conn = c;
+                c.lastMsg = Date.now();
+                c.on('data', m => { c.lastMsg = Date.now(); if (m && m.t === 'p') onPartner(m.d); });
+                c.on('close', () => { if (conn === c) { conn = null; onPartner(null); } });
+            };
             return new Promise((res, rej) => {
-                let conn = null, opened = false;
-                const peer = net.mode === 'host' ? new Peer(id, PEER_OPTS) : new Peer(PEER_OPTS);
-                const wire = c => {
-                    conn = c;
-                    c.on('data', m => { if (m && m.t === 'p') onPartner(m.d); });
-                    c.on('close', () => { if (conn === c) conn = null; onPartner(null); });
-                };
+                const peer = new Peer(idOf(USER), PEER_OPTS);
+                let opened = false;
                 peer.on('open', () => {
                     opened = true;
-                    if (net.mode === 'guest') wire(peer.connect(id, { reliable: true }));
+                    const call = () => { if (!conn || !conn.open) wire(peer.connect(idOf(OTHER), { reliable: true })); };
+                    call(); setInterval(call, 6000);
+                    // a closed tab does not always say goodbye: a quiet friend has gone to sleep
+                    setInterval(() => { if (conn && Date.now() - conn.lastMsg > 5000) { const c = conn; conn = null; try { c.close(); } catch (e) { } onPartner(null); } }, 1000);
                     res({ send: o => { if (conn && conn.open) conn.send({ t: 'p', d: o }); } });
                 });
-                peer.on('connection', c => { if (conn && conn.open) { c.close(); return; } wire(c); });
+                peer.on('connection', c => wire(c));
                 peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { } });
-                peer.on('error', e => {
-                    if (!opened) { try { peer.destroy(); } catch (x) { } rej(e); return; }
-                    if (e.type === 'peer-unavailable') toast('Farm dengan kode itu tidak ditemukan. Periksa kodenya.');
-                });
+                peer.on('error', e => { if (!opened) { rej(e); } }); // peer-unavailable just means the friend is turu
             });
         }
 
         function sendMine() {
             if (!net.backend) return;
-            const o = { app: 'farmora', v: 1, role: net.mode, look: { n: look.n, g: look.g, c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0] };
+            const o = { app: 'farmora', v: 2, user: USER, role: net.mode, at: state.savedAt || 0, look: { c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0], here: started ? 1 : 0 };
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
@@ -2128,7 +2150,7 @@
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 const inv = {};
                 for (const [k, v] of Object.entries(state.inv)) if (v) inv[k] = v;
-                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv, an, tr, gw: state.gwater };
+                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv, an, tr, wb: state.wb };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -2140,34 +2162,46 @@
 
         function onPartner(o) {
             const was = net.connected;
-            // only the two registered farmers can share a farm
-            if (o && !(o.look && CHARACTERS[clean(o.look.n).toLowerCase()])) { if (!net.warned) { net.warned = 1; toast('Ada pemain tak terdaftar mencoba bergabung. Diabaikan.'); } o = null; }
-            if (!o || o.app !== 'farmora' || o.v !== 1) {
-                net.connected = false;
-                if (was) toast(`${partnerName()} keluar dari farm`);
-                if (remote) remote.group.visible = false;
-                renderBadge();
+            if (o && (o.app !== 'farmora' || o.v !== 2 || clean(o.user) !== OTHER)) o = null;
+            if (!o) {
+                net.connected = false; net.partner = null;
+                if (was) toast(`${OTHER} pamit, sekarang lagi turu 💤`);
+                // without a shared lease, a guest left alone takes over the farm
+                if (!net.db && net.mode === 'guest') becomeHost();
+                setPartnerAsleep();
+                renderBadge(); renderTitle();
                 return;
             }
             net.partner = o;
             net.connected = true;
+            if (Number.isInteger(o.look && o.look.c) && o.look.c >= 0 && o.look.c < SHIRTS.length && (!state.looks[OTHER] || state.looks[OTHER].c !== o.look.c)) { state.looks[OTHER] = { c: o.look.c }; refreshPartnerLook(); }
             if (!was) {
-                toast(`${partnerName()} ${net.mode === 'host' ? 'bergabung ke farmmu' : 'menyambut kamu di farmnya'} 👋`);
-                if (net.mode === 'guest') { net.myQ = Math.max(net.myQ, o.ack || 0); net.seenEv = Math.max(-1, ...(o.ev || []).map(e => e.n)); }
+                toast(`${OTHER} bangun dan datang ke farm 👋`);
+                // without a lease, two hosts settle it: the newest save keeps the farm
+                if (!net.db && net.mode === 'host' && o.role === 'host') {
+                    const theirsNewer = (o.at || 0) > (state.savedAt || 0) || ((o.at || 0) === (state.savedAt || 0) && OTHER < USER);
+                    if (theirsNewer) becomeGuest();
+                }
+                if (net.mode === 'guest') { net.myQ = Math.max(net.myQ, o.ack || 0); net.seenEv = Math.max(net.seenEv, ...(o.ev || []).map(e => e.n)); }
+                renderTitle();
             }
-            ensureRemote(o.look);
-            if (Array.isArray(o.p)) remote.netT = o.p.map(Number);
+            if (!net.db && net.mode === 'host' && o.role === 'host' && was) {
+                const theirsNewer = (o.at || 0) > (state.savedAt || 0) + 2000;
+                if (theirsNewer) becomeGuest();
+            }
+            partnerF.live = !!o.here;
+            if (Array.isArray(o.p)) partnerF.netT = o.p.map(Number);
             if (net.mode === 'host' && Array.isArray(o.acts)) {
                 for (const a of o.acts) {
                     if (!a || !Number.isInteger(a.q) || a.q <= net.lastQ) continue;
                     net.lastQ = a.q;
                     const it = INTERACTABLES.find(x => x.id === a.id);
                     // check reach against where the guest says they are, not the smoothed avatar
-                    const gx = remote.netT ? remote.netT[0] : remote.pos.x, gz = remote.netT ? remote.netT[1] : remote.pos.z;
-                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act('guest', new THREE.Vector3(gx, 0, gz));
+                    const gx = partnerF.netT ? partnerF.netT[0] : partnerF.pos.x, gz = partnerF.netT ? partnerF.netT[1] : partnerF.pos.z;
+                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act(OTHER, new THREE.Vector3(gx, 0, gz));
                 }
             }
-            if (net.mode === 'guest' && o.w) applyWorld(o);
+            if (net.mode === 'guest' && o.w && o.role === 'host') applyWorld(o);
             renderBadge();
         }
 
@@ -2187,51 +2221,82 @@
             if (Number.isFinite(w.min)) state.minutes = w.min;
             if (Number.isFinite(w.gold)) state.gold = w.gold;
             if (w.inv) for (const k of Object.keys(state.inv)) state.inv[k] = Number.isFinite(w.inv[k]) ? w.inv[k] : 0;
-            if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
-            if (Number.isFinite(w.gw)) state.water = w.gw;
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
+            if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
+            if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
+            state.savedAt = o.at || state.savedAt;
             if (Array.isArray(o.a)) o.a.forEach((v, i) => { if (animals[i] && Array.isArray(v)) animals[i].netT = v.map(Number); });
             if (Array.isArray(o.ev)) for (const e of o.ev) { if (e && e.n > net.seenEv) { net.seenEv = e.n; showEvent(e); } }
+            // keep a mirror on this device too, so this side can carry on if the host leaves
+            if (Date.now() - (applyWorld.at || 0) > 3000) { applyWorld.at = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { } }
         }
 
-        let remote = null;
-        function ensureRemote(lk) {
-            const nm = clean(lk && lk.n).toLowerCase();
-            const l = { n: nm, g: CHARACTERS[nm].g, c: Number.isInteger(lk && lk.c) && lk.c >= 0 && lk.c < SHIRTS.length ? lk.c : CHARACTERS[nm].c };
-            const key = l.n + l.g + l.c;
-            if (!remote) { remote = makeFarmer(l); remote.blinkSeed = 1.3; remote.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8); }
-            if (remote.key !== key) {
-                buildFarmer(remote, l);
-                if (remote.tag) remote.group.remove(remote.tag);
-                remote.tag = nameTag(l.n); remote.tag.position.y = 2.55; remote.group.add(remote.tag);
-                remote.key = key;
-            }
-            remote.group.visible = true;
+        // The other farmer: walks around when online, sleeps on the porch (turu) when not
+        const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
+        // a porch bench to doze on
+        {
+            const g = new THREE.Group();
+            g.position.set(TURU_SPOT.x, 0, TURU_SPOT.z - 0.12);
+            box(1.7, 0.1, 0.55, 0xb07a45, 0, 0.45, 0, g);
+            box(1.7, 0.42, 0.08, 0xa06b3a, 0, 0.78, -0.26, g);
+            for (const sx of [-0.75, 0.75]) for (const sz of [-0.2, 0.2]) box(0.09, 0.42, 0.09, 0x6e4723, sx, 0.21, sz, g);
+            scene.add(g);
+            addBoxCollider(TURU_SPOT.x - 0.85, TURU_SPOT.x + 0.85, TURU_SPOT.z - 0.4, TURU_SPOT.z + 0.15);
         }
+        const partnerF = makeFarmer(lookOf(OTHER));
+        partnerF.blinkSeed = 1.3;
+        partnerF.pos.copy(TURU_SPOT);
+        const zzz = bubbleSprite('💤'); zzz.position.y = 2.6; partnerF.group.add(zzz);
+        function refreshPartnerLook() {
+            buildFarmer(partnerF, lookOf(OTHER));
+            setPartnerTag();
+            partnerF.group.add(zzz);
+        }
+        function setPartnerTag() {
+            const text = partnerF.live && net.connected ? OTHER : OTHER + ' · turu 💤';
+            if (partnerF.tagText === text) return;
+            if (partnerF.tag) partnerF.group.remove(partnerF.tag);
+            partnerF.tag = nameTag(text); partnerF.tag.position.y = 2.15; partnerF.group.add(partnerF.tag);
+            partnerF.tagText = text;
+        }
+        function setPartnerAsleep() { partnerF.live = false; partnerF.netT = null; }
+        setPartnerTag();
+        // the sleeping pose: sitting slumped by the door, eyes shut
         function updateRemote(dt) {
-            if (!remote || !remote.group.visible || !remote.netT) return;
-            const [x, z, hh, m] = remote.netT, k = Math.min(1, dt * 10);
-            remote.pos.x = lerp(remote.pos.x, x, k); remote.pos.z = lerp(remote.pos.z, z, k);
-            remote.heading = lerpAngle(remote.heading, hh, Math.min(1, dt * 12));
-            remote.group.rotation.y = remote.heading;
-            if (m) remote.phase += dt * 12;
-            animateFarmer(remote, !!m, dt);
+            const awake = net.connected && partnerF.live && partnerF.netT;
+            setPartnerTag();
+            zzz.visible = !awake;
+            if (awake) {
+                const [x, z, hh, m] = partnerF.netT, k = Math.min(1, dt * 10);
+                partnerF.pos.x = lerp(partnerF.pos.x, x, k); partnerF.pos.z = lerp(partnerF.pos.z, z, k);
+                partnerF.heading = lerpAngle(partnerF.heading, hh, Math.min(1, dt * 12));
+                partnerF.group.rotation.set(0, partnerF.heading, 0);
+                partnerF.pos.y = 0;
+                if (m) partnerF.phase += dt * 12;
+                animateFarmer(partnerF, !!m, dt);
+            } else {
+                partnerF.pos.lerp(TURU_SPOT, Math.min(1, dt * 3));
+                partnerF.pos.y = -0.3;
+                partnerF.group.rotation.set(-0.08, 0, 0.14);
+                animateFarmer(partnerF, false, dt);
+                partnerF.legs.forEach(l => { l.rotation.x = -1.3; });
+                partnerF.head.rotation.x = 0.35;
+                zzz.position.set(0.45, 2.55 + Math.sin(elapsed * 2) * 0.08, 0);
+                for (const e of partnerF.eyes) e.scale.y = e.scale.x * 0.1;
+            }
         }
+        const remote = { get pos() { return partnerF.pos; } };
 
         function renderBadge() {
             const b = $('netBadge');
-            if (net.mode === 'solo') { b.style.display = 'none'; return; }
             b.style.display = 'block';
             b.replaceChildren();
-            const line = (t, strong) => { const d = document.createElement('div'); if (strong) { const s = document.createElement('b'); s.textContent = t; d.append('Kode farm ', s); } else d.textContent = t; b.append(d); };
-            line(net.code, true);
-            line(net.connected ? `🟢 ${partnerName()} online` : net.mode === 'host' ? '⏳ Menunggu teman bergabung' : '⏳ Menyambung…');
+            const line = t => { const d = document.createElement('div'); d.textContent = t; b.append(d); };
+            line(net.connected && partnerF.live ? `🟢 ${OTHER} lagi di farm` : `💤 ${OTHER} lagi turu`);
+            if (net.backend) line(net.mode === 'host' ? '🏡 Farm berjalan di perangkatmu' : '🔗 Ikut farm yang sedang berjalan');
+            else if (net.status) line('📴 ' + net.status);
         }
-        $('netBadge').addEventListener('click', () => {
-            const text = IN_CLAUDE ? net.code : location.origin + location.pathname + '?join=' + net.code;
-            if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Disalin: ' + text), () => toast('Kode farm: ' + net.code));
-            else toast('Kode farm: ' + net.code);
-        });
+        $('netBadge').addEventListener('click', () => toast(net.connected ? `${OTHER} sedang online` : `${OTHER} sedang turu. Dia bisa menyusul kapan saja.`));
 
         // ---------- Plant visuals: fruit count, water bubble, wilting ----------
         const DRY = new THREE.Color(0xa38f45);
@@ -2349,13 +2414,13 @@
             const btn = $('resetBtn');
             if (Date.now() - resetArmed > 3000) {
                 resetArmed = Date.now();
-                btn.textContent = 'Yakin? Klik lagi';
+                btn.textContent = 'Yakin? Farm berdua dihapus. Klik lagi';
                 setTimeout(() => { btn.textContent = 'Mulai ulang'; }, 3000);
                 return;
             }
             resetArmed = 0;
             btn.textContent = 'Mulai ulang';
-            if (net.mode === 'guest') { toast('Hanya pembuat farm yang bisa memulai ulang'); return; }
+            if (net.mode === 'guest') { toast(`Farm sedang dijalankan di perangkat ${OTHER}. Mulai ulang dari sana, atau tunggu dia turu.`); return; }
             resetFarm();
             toggleHelp(false);
             toast('Peternakan dimulai dari awal 🌱');
@@ -2371,23 +2436,14 @@
                 b.onclick = () => { look.c = i; applyLook(); };
                 return b;
             }));
-            const info = $('saveInfo');
+            $('saveInfo').textContent = `Farm kalian: Hari ${state.day} · ${state.gold.toLocaleString('id-ID')} G`;
+            $('partnerInfo').textContent = net.connected ? `🟢 ${OTHER} sedang di farm` : `💤 ${OTHER} lagi turu`;
             const solo = $('soloBtns');
-            solo.replaceChildren();
-            const mk = (text, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = text; b.onclick = fn; solo.append(b); return b; };
-            if (hadSave) {
-                info.textContent = `Farm tersimpan: Hari ${state.day} · ${state.gold.toLocaleString('id-ID')} G`;
-                mk(`▶ Lanjutkan Hari ${state.day}`, 'big', () => startGame('solo'));
-                let armed = 0;
-                const nb = mk('🌱 Farm baru', '', () => {
-                    if (Date.now() - armed > 3000) { armed = Date.now(); nb.textContent = 'Yakin? Progres lama dihapus'; setTimeout(() => nb.textContent = '🌱 Farm baru', 3000); return; }
-                    resetFarm(); startGame('solo');
-                });
-            } else {
-                info.textContent = 'Belum ada farm tersimpan.';
-                mk('🌱 Mulai bermain', 'big', () => startGame('solo'));
+            if (!solo.firstChild) {
+                const b = document.createElement('button'); b.className = 'btn big'; b.id = 'enterBtn'; b.onclick = () => startGame();
+                solo.append(b);
             }
-            renderOnlineBox();
+            $('enterBtn').textContent = `▶ Masuk ke farm (Hari ${state.day})`;
         }
         function applyLook() {
             try { localStorage.setItem(LOOK_KEY, JSON.stringify({ c: look.c })); } catch (e) { }
@@ -2396,28 +2452,25 @@
         }
 
         function resetFarm() {
-            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
-            state = freshState();
-            window.kebun.state = state;
+            replaceState(freshState());
             player.pos.set(-10, 0, -8);
-            lastHud = '';
-            updateHud();
+            save();
         }
 
-        function startGame(mode) {
+        function startGame() {
             applyLook();
             $('startScreen').classList.add('hidden');
             started = true;
             chime([523, 659, 784]);
-            if (mode === 'solo') toast(state.day > 1 ? `Selamat datang kembali, ${look.n}! Hari ${state.day}` : `Selamat datang di Farmora, ${look.n}! 🌾`);
+            toast(net.connected ? `Selamat datang, ${look.n}! ${OTHER} juga lagi di farm 👋` : `Selamat datang, ${look.n}! ${OTHER} lagi turu 💤`);
             save();
         }
 
         $('saveBtn').addEventListener('click', () => {
-            if (net.mode === 'guest') { toast('Progres farm ini tersimpan di perangkat pembuat farm 💾'); return; }
-            save(true); toast('Progres tersimpan 💾');
+            if (net.mode === 'guest') { toast(`Farm sedang dijalankan di perangkat ${OTHER} dan tersimpan otomatis 💾`); return; }
+            save(true); toast('Progres tersimpan untuk berdua 💾');
         });
-        setInterval(() => { if (started && net.mode !== 'guest') save(); }, 20000);
+        setInterval(() => { if (started && net.mode !== 'guest') save(); }, 15000);
         window.addEventListener('pagehide', () => { if (started) save(); });
 
         window.addEventListener('resize', () => {
@@ -2518,8 +2571,10 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { state, player, animals, camera, net, PLANTS }; // handy for debugging in the console
+        window.kebun = { state, player, animals, camera, net, PLANTS, partnerF }; // handy for debugging in the console
         renderTitle();
+        renderBadge();
+        startNetwork();
         updateHud();
         tick();
     </script>

@@ -142,6 +142,7 @@
         .row > * { flex: 1 1 auto; }
         .note { font-size: 13px; color: var(--muted); }
         .note.warn { color: #9a5a00; }
+        .players { font-weight: 700; font-size: 16px; margin: 10px 0 12px; }
 
         .code {
             font-family: var(--font-display);
@@ -430,8 +431,7 @@
             <section class="box" aria-labelledby="localTitle">
                 <h2 id="localTitle">Berdua di 1 HP</h2>
                 <p>Duduk bersebelahan dan gantian memegang HP. Jawaban rahasia dijawab bergiliran tanpa mengintip.</p>
-                <label>Nama pemain 1<input type="text" id="nameA" maxlength="16" placeholder="contoh: Wadimar"></label>
-                <label>Nama pemain 2<input type="text" id="nameB" maxlength="16" placeholder="contoh: Sayang"></label>
+                <p class="players" id="localPlayers"></p>
                 <button class="btn primary" id="startLocal">Mulai perjalanan</button>
             </section>
 
@@ -496,6 +496,7 @@
         import * as THREE from 'three';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
         const USER = await window.__gate;
+        const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
 
         // ---------- Content ----------
         const CHAPTERS = [
@@ -938,7 +939,7 @@
             const saved = keys.filter(k => k.startsWith('ladago.host.') && k.endsWith('@' + USER)).map(k => k.slice(12, -(USER.length + 1))).map(c => [c, store.get('ladago.host.' + c)]).filter(([, v]) => v && Date.now() - v.at < 86400000);
             const lastGuest = store.get('ladago.guestCode', null);
             box.append(...[
-                h('label', {}, 'Namamu', h('input', { type: 'text', id: 'myName', maxlength: 16, placeholder: 'contoh: Wadimar', value: store.get('ladago.name', USER) })),
+                h('p', { class: 'players', text: `Kamu main sebagai ${USER}, pasanganmu ${OTHER}.` }),
                 h('div', { class: 'row' }, h('button', { class: 'btn primary', id: 'createBtn', onclick: createRoom }, 'Buat ruangan')),
                 h('label', {}, 'Punya kode dari pasangan?', h('div', { class: 'row' },
                     h('input', { type: 'text', id: 'joinCode', maxlength: 4, placeholder: 'ABCD', autocapitalize: 'characters', style: 'text-transform:uppercase;letter-spacing:3px;flex:1 1 90px', value: new URLSearchParams(location.search).get('join') || '' }),
@@ -949,11 +950,8 @@
             ].filter(Boolean));
         }
 
-        function myName() {
-            const n = clean($('#myName') && $('#myName').value, 16);
-            if (n) store.set('ladago.name', n);
-            return n;
-        }
+        // only the two accounts play, so the name is simply who is logged in
+        const myName = () => USER;
 
         async function enterRoom(code, role) {
             net.code = code;
@@ -1024,7 +1022,6 @@
 
         async function createRoom() {
             const n = myName();
-            if (!n) { toast('Isi namamu dulu ya'); return; }
             $('#createBtn').disabled = true;
             let ok = false;
             for (let i = 0; i < 3 && !ok; i++) {
@@ -1056,7 +1053,6 @@
         async function joinRoom() {
             const n = myName();
             const code = clean($('#joinCode').value, 4).toUpperCase();
-            if (!n) { toast('Isi namamu dulu ya'); return; }
             if (code.length !== 4) { toast('Kode ruangan terdiri dari 4 huruf'); return; }
             $('#joinBtn').disabled = true;
             try { await enterRoom(code, 'guest'); } catch (e) { toast('Gagal bergabung. Periksa kodenya.'); $('#joinBtn').disabled = false; return; }
@@ -1075,9 +1071,7 @@
         }
 
         function startLocal() {
-            const a = clean($('#nameA').value, 16) || 'Pemain 1';
-            const b = clean($('#nameB').value, 16) || 'Pemain 2';
-            store.set('ladago.localNames', [a, b]);
+            const [a, b] = [USER, OTHER];
             net.mode = 'local';
             state = newGame([a, b]);
             lastMove = 0; shownPos = 1;
@@ -1697,8 +1691,7 @@
         });
         $('#chapterLegend').replaceChildren(...CHAPTERS.map((ch, k) => h('span', {}, h('i', { style: `background:${TILE_COLORS[k][1]}` }), `${ch.icon} ${k * 20 + 1}–${k * 20 + 20} ${ch.name}`)));
         $('#startLocal').addEventListener('click', startLocal);
-        const names = store.get('ladago.localNames', null);
-        if (names) { $('#nameA').value = names[0]; $('#nameB').value = names[1]; }
+        $('#localPlayers').textContent = `👫 ${USER} & ${OTHER}`;
         const resumeLocal = store.get('ladago.local', null);
         if (resumeLocal && resumeLocal.v === 2 && resumeLocal.phase !== 'done') {
             const btn = h('button', { class: 'btn small', onclick: () => { net.mode = 'local'; state = resumeLocal; lastMove = state.mv ? state.mv.id : 0; shownPos = state.pos; showGame(); } },
