@@ -339,17 +339,17 @@
                     <div class="info">
                         <h2 id="ladagoTitle">LADAGO</h2>
                         <ul class="chips" aria-label="Info game">
-                            <li>Ular tangga</li>
+                            <li>Ular tangga 3D</li>
                             <li>Untuk pasangan</li>
                             <li>Online berdua</li>
                             <li>Bisa di 1 HP</li>
                         </ul>
-                        <p>Perjalanan cinta dari kenalan sampai masa depan. Jawab kartu secara rahasia, buka bersamaan, lalu naik tangga kalau kompak atau turun lewat ular kalau salah paham.</p>
+                        <p>Papan ular tangga klasik 100 kotak tentang perjalanan cinta, dari kenalan sampai masa depan. Jawab kartu secara rahasia, buka bersamaan, lalu naik tangga kalau kompak atau turun lewat ular kalau salah paham.</p>
                         <ul class="cast" aria-label="Isi permainan">
-                            <li>🎲 60 kotak</li>
+                            <li>🎲 100 kotak</li>
                             <li>💌 72 kartu</li>
-                            <li>🪜 5 tangga</li>
-                            <li>🐍 5 ular</li>
+                            <li>🪜 8 tangga</li>
+                            <li>🐍 8 ular</li>
                             <li>❤️ Profil pasangan</li>
                         </ul>
                         <div class="actions">
@@ -401,26 +401,32 @@
                 info.append('Selesai: ', b, ` · terakhir: ${last.profile}`);
             }
             const NS = 'http://www.w3.org/2000/svg', el = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
-            const svg = el('svg', { viewBox: '0 0 300 260' });
-            const colors = ['#7fcf9f', '#f59c73', '#7f8cc4', '#e8b33a', '#a77fd6'];
-            const xy = n => { const r = Math.floor(n / 6), c = r % 2 ? 5 - n % 6 : n % 6; return [25 + c * 50, 235 - r * 50]; };
-            const pts = Array.from({ length: 30 }, (_, i) => xy(i));
-            svg.append(el('path', { d: pts.map((p, i) => (i ? 'L' : 'M') + p).join(' '), fill: 'none', stroke: '#fff', 'stroke-width': 26, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: .85 }));
-            const [lx1, ly1] = xy(2), [lx2, ly2] = xy(15);
-            svg.append(el('line', { x1: lx1 - 6, y1: ly1, x2: lx2 - 6, y2: ly2, stroke: '#d99a1e', 'stroke-width': 4 }));
-            svg.append(el('line', { x1: lx1 + 6, y1: ly1, x2: lx2 + 6, y2: ly2, stroke: '#d99a1e', 'stroke-width': 4 }));
-            for (let t = 0.15; t < 0.95; t += 0.14) svg.append(el('line', { x1: lx1 - 6 + (lx2 - lx1) * t, y1: ly1 + (ly2 - ly1) * t, x2: lx1 + 6 + (lx2 - lx1) * t, y2: ly1 + (ly2 - ly1) * t, stroke: '#f2c25a', 'stroke-width': 3 }));
-            const [sx1, sy1] = xy(22), [sx2, sy2] = xy(9);
-            svg.append(el('path', { d: `M${sx1} ${sy1} Q${sx1 + 40} ${(sy1 + sy2) / 2 - 20} ${(sx1 + sx2) / 2} ${(sy1 + sy2) / 2} T${sx2} ${sy2}`, fill: 'none', stroke: '#3fa465', 'stroke-width': 8, 'stroke-linecap': 'round' }));
-            pts.forEach(([x, y], i) => {
-                svg.append(el('circle', { cx: x, cy: y, r: 16, fill: '#fff', stroke: colors[Math.floor(i / 6)], 'stroke-width': 3.5 }));
-                const t = el('text', { x, y: y + 4.5, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: '#2a2440', 'font-family': 'Nunito, sans-serif' });
-                t.textContent = i + 1;
+            const svg = el('svg', { viewBox: '0 0 300 300' });
+            const pal = [['#a8ecc0', '#6fdc97'], ['#ffc7a8', '#ff9e70'], ['#b9d3ff', '#8cb4ff'], ['#ffe48a', '#ffcb45'], ['#e2c8ff', '#c79cff']];
+            const xy = n => { const i = n - 1, r = Math.floor(i / 10), c = r % 2 ? 9 - i % 10 : i % 10; return [15 + c * 27 + 13.5, 15 + (9 - r) * 27 + 13.5, r, c]; };
+            svg.append(el('rect', { x: 4, y: 4, width: 292, height: 292, rx: 14, fill: '#d6965a' }));
+            for (let n = 1; n <= 100; n++) {
+                const [x, y, r, c] = xy(n);
+                svg.append(el('rect', { x: x - 12.5, y: y - 12.5, width: 25, height: 25, rx: 5, fill: pal[Math.floor((n - 1) / 20)][(r + c) % 2] }));
+                const t = el('text', { x, y: y + 3.5, 'text-anchor': 'middle', 'font-size': 9.5, 'font-weight': 800, fill: '#2a2440', 'font-family': 'Nunito, sans-serif' });
+                t.textContent = n;
                 svg.append(t);
-            });
-            const [tx, ty] = xy(12);
-            svg.append(el('circle', { cx: tx - 7, cy: ty - 18, r: 10, fill: '#ef4f76', stroke: '#fff', 'stroke-width': 2.5 }));
-            svg.append(el('circle', { cx: tx + 7, cy: ty - 18, r: 10, fill: '#4a7fe0', stroke: '#fff', 'stroke-width': 2.5 }));
+            }
+            const ladder = (a, b) => {
+                const [x1, y1] = xy(a), [x2, y2] = xy(b);
+                for (const o of [-5, 5]) svg.append(el('line', { x1: x1 + o, y1, x2: x2 + o, y2, stroke: '#b8782f', 'stroke-width': 3, 'stroke-linecap': 'round' }));
+                for (let t = 0.1; t < 0.95; t += 0.12) svg.append(el('line', { x1: x1 - 5 + (x2 - x1) * t, y1: y1 + (y2 - y1) * t, x2: x1 + 5 + (x2 - x1) * t, y2: y1 + (y2 - y1) * t, stroke: '#f2c25a', 'stroke-width': 2.5 }));
+            };
+            const snake = (a, b, col) => {
+                const [x1, y1] = xy(a), [x2, y2] = xy(b);
+                svg.append(el('path', { d: `M${x1} ${y1} Q${x1 + 30} ${(y1 + y2) / 2 - 10} ${(x1 + x2) / 2} ${(y1 + y2) / 2} T${x2} ${y2}`, fill: 'none', stroke: col, 'stroke-width': 6, 'stroke-linecap': 'round' }));
+                svg.append(el('circle', { cx: x1, cy: y1, r: 5.5, fill: col }));
+            };
+            ladder(9, 31); ladder(51, 67); ladder(71, 91);
+            snake(48, 26, '#3fbf6a'); snake(88, 68, '#ff8a3d'); snake(62, 43, '#4a8be8');
+            const [tx, ty] = xy(1);
+            svg.append(el('circle', { cx: tx - 4, cy: ty - 6, r: 6.5, fill: '#ef4f76', stroke: '#fff', 'stroke-width': 2 }));
+            svg.append(el('circle', { cx: tx + 5, cy: ty - 6, r: 6.5, fill: '#4a7fe0', stroke: '#fff', 'stroke-width': 2 }));
             document.getElementById('ladagoStage').append(svg);
         })();
     </script>
