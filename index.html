@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        /* Layout: a game shelf. One featured "cartridge" with a live diorama, then a row of empty slots for upcoming games. */
+        /* Layout: a game shelf. Each playable game is a featured "cartridge" with a live preview, then a slot for upcoming games. */
         :root {
             --bg: #eaf1e6;
             --surface: #ffffff;
@@ -22,6 +22,8 @@
             --sky-top: #9fd9ff;
             --sky-bottom: #e4f6ff;
             --shadow: rgba(30, 60, 35, .16);
+            --map: #dff1ee;
+            --love: #d93d66;
             --font-display: 'Lilita One', 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
             --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
             --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -41,6 +43,8 @@
                 --sky-top: #1f2f5a;
                 --sky-bottom: #3d4d7a;
                 --shadow: rgba(0, 0, 0, .45);
+                --map: #1d2c33;
+                --love: #ff7d9c;
                 color-scheme: dark;
             }
         }
@@ -57,6 +61,8 @@
             --sky-top: #1f2f5a;
             --sky-bottom: #3d4d7a;
             --shadow: rgba(0, 0, 0, .45);
+            --map: #1d2c33;
+            --love: #ff7d9c;
             color-scheme: dark;
         }
 
@@ -128,6 +134,11 @@
             min-height: 320px;
             background: linear-gradient(var(--sky-top), var(--sky-bottom));
         }
+
+        #ladagoTitle { color: var(--love); }
+        .stage.map { background: var(--map); display: grid; place-items: center; padding: 18px; }
+        .stage.map svg { width: 100%; max-width: 330px; height: auto; }
+        .games { display: flex; flex-direction: column; gap: 22px; }
 
         .stage canvas {
             position: absolute;
@@ -227,7 +238,7 @@
         /* Upcoming slots */
         .shelf {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: minmax(0, 1fr);
             gap: 16px;
         }
 
@@ -293,8 +304,8 @@
         </header>
 
         <main>
-            <section aria-labelledby="farmoraTitle">
-                <p class="label">Bisa dimainkan</p>
+            <section aria-labelledby="farmoraTitle" class="games">
+                <p class="label" style="margin:0">Bisa dimainkan</p>
                 <article class="featured">
                     <div class="stage" id="stage">
                         <div class="fallback" aria-hidden="true">🐄</div>
@@ -322,18 +333,36 @@
                         </div>
                     </div>
                 </article>
+
+                <article class="featured" aria-labelledby="ladagoTitle">
+                    <div class="stage map" id="ladagoStage" aria-hidden="true"></div>
+                    <div class="info">
+                        <h2 id="ladagoTitle">LADAGO</h2>
+                        <ul class="chips" aria-label="Info game">
+                            <li>Ular tangga</li>
+                            <li>Untuk pasangan</li>
+                            <li>Online berdua</li>
+                            <li>Bisa di 1 HP</li>
+                        </ul>
+                        <p>Perjalanan cinta dari kenalan sampai masa depan. Jawab kartu secara rahasia, buka bersamaan, lalu naik tangga kalau kompak atau turun lewat ular kalau salah paham.</p>
+                        <ul class="cast" aria-label="Isi permainan">
+                            <li>🎲 60 kotak</li>
+                            <li>💌 72 kartu</li>
+                            <li>🪜 5 tangga</li>
+                            <li>🐍 5 ular</li>
+                            <li>❤️ Profil pasangan</li>
+                        </ul>
+                        <div class="actions">
+                            <a class="play" id="ladagoBtn" href="games/ladago/index.html">Main</a>
+                            <span class="save" id="ladagoInfo">Belum ada perjalanan selesai</span>
+                        </div>
+                    </div>
+                </article>
             </section>
 
             <section aria-labelledby="soonTitle">
                 <p class="label" id="soonTitle">Segera hadir</p>
                 <div class="shelf">
-                    <div class="slot">
-                        <div class="mark" aria-hidden="true">?</div>
-                        <div>
-                            <h3>Game kedua</h3>
-                            <p>Sedang dikerjakan.</p>
-                        </div>
-                    </div>
                     <div class="slot">
                         <div class="mark" aria-hidden="true">?</div>
                         <div>
@@ -357,6 +386,42 @@
             const gold = (save.gold || 0).toLocaleString('id-ID');
             document.getElementById('saveInfo').innerHTML = `Tersimpan: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
             document.getElementById('playBtn').textContent = 'Lanjutkan';
+        })();
+
+        // LADAGO: finished journeys and a small drawing of the board.
+        (function () {
+            let story = [];
+            try { story = JSON.parse(localStorage.getItem('ladago.story') || '[]'); } catch (e) { }
+            if (story.length) {
+                const last = story[story.length - 1];
+                const info = document.getElementById('ladagoInfo');
+                info.textContent = '';
+                const b = document.createElement('b');
+                b.textContent = `${story.length} perjalanan`;
+                info.append('Selesai: ', b, ` · terakhir: ${last.profile}`);
+            }
+            const NS = 'http://www.w3.org/2000/svg', el = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+            const svg = el('svg', { viewBox: '0 0 300 260' });
+            const colors = ['#7fcf9f', '#f59c73', '#7f8cc4', '#e8b33a', '#a77fd6'];
+            const xy = n => { const r = Math.floor(n / 6), c = r % 2 ? 5 - n % 6 : n % 6; return [25 + c * 50, 235 - r * 50]; };
+            const pts = Array.from({ length: 30 }, (_, i) => xy(i));
+            svg.append(el('path', { d: pts.map((p, i) => (i ? 'L' : 'M') + p).join(' '), fill: 'none', stroke: '#fff', 'stroke-width': 26, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: .85 }));
+            const [lx1, ly1] = xy(2), [lx2, ly2] = xy(15);
+            svg.append(el('line', { x1: lx1 - 6, y1: ly1, x2: lx2 - 6, y2: ly2, stroke: '#d99a1e', 'stroke-width': 4 }));
+            svg.append(el('line', { x1: lx1 + 6, y1: ly1, x2: lx2 + 6, y2: ly2, stroke: '#d99a1e', 'stroke-width': 4 }));
+            for (let t = 0.15; t < 0.95; t += 0.14) svg.append(el('line', { x1: lx1 - 6 + (lx2 - lx1) * t, y1: ly1 + (ly2 - ly1) * t, x2: lx1 + 6 + (lx2 - lx1) * t, y2: ly1 + (ly2 - ly1) * t, stroke: '#f2c25a', 'stroke-width': 3 }));
+            const [sx1, sy1] = xy(22), [sx2, sy2] = xy(9);
+            svg.append(el('path', { d: `M${sx1} ${sy1} Q${sx1 + 40} ${(sy1 + sy2) / 2 - 20} ${(sx1 + sx2) / 2} ${(sy1 + sy2) / 2} T${sx2} ${sy2}`, fill: 'none', stroke: '#3fa465', 'stroke-width': 8, 'stroke-linecap': 'round' }));
+            pts.forEach(([x, y], i) => {
+                svg.append(el('circle', { cx: x, cy: y, r: 16, fill: '#fff', stroke: colors[Math.floor(i / 6)], 'stroke-width': 3.5 }));
+                const t = el('text', { x, y: y + 4.5, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: '#2a2440', 'font-family': 'Nunito, sans-serif' });
+                t.textContent = i + 1;
+                svg.append(t);
+            });
+            const [tx, ty] = xy(12);
+            svg.append(el('circle', { cx: tx - 7, cy: ty - 18, r: 10, fill: '#ef4f76', stroke: '#fff', 'stroke-width': 2.5 }));
+            svg.append(el('circle', { cx: tx + 7, cy: ty - 18, r: 10, fill: '#4a7fe0', stroke: '#fff', 'stroke-width': 2.5 }));
+            document.getElementById('ladagoStage').append(svg);
         })();
     </script>
 

@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LADAGO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Layout: a journey map board (five chapter zones stacked bottom to top) beside a side panel; on phones the panel becomes a bottom bar. */
+        :root {
+            --sea: #dff1ee;
+            --ink: #2a2440;
+            --muted: #6b6582;
+            --card: #ffffff;
+            --line: #e6e0ef;
+            --rose: #ef4f76;
+            --rose-ink: #ffffff;
+            --sun: #ffbf3c;
+            --ladder: #d99a1e;
+            --snake: #3fa465;
+            --ok: #2f9e6b;
+            --p0: #ef4f76;
+            --p1: #4a7fe0;
+            --ch1: #7fcf9f; --zone1: #e6f6ec;
+            --ch2: #f59c73; --zone2: #fde8dc;
+            --ch3: #7f8cc4; --zone3: #e4e7f5;
+            --ch4: #e8b33a; --zone4: #fff1cc;
+            --ch5: #a77fd6; --zone5: #f0e6fb;
+            --font-display: 'Baloo 2', 'Trebuchet MS', 'Arial Rounded MT Bold', sans-serif;
+            --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color-scheme: light;
+        }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
+            background: var(--sea);
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        button, input, textarea { font: inherit; color: inherit; }
+
+        .btn {
+            border: 0;
+            border-radius: 14px;
+            padding: 11px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            background: var(--card);
+            color: var(--ink);
+            box-shadow: 0 0 0 2px var(--line) inset;
+            transition: transform .1s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active { transform: translateY(2px); }
+        .btn:focus-visible, .opt:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+        .btn.primary { background: var(--rose); color: var(--rose-ink); box-shadow: 0 4px 0 #b9334f; }
+        .btn.primary:active { box-shadow: 0 1px 0 #b9334f; }
+        .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+        .btn.small { padding: 7px 12px; font-size: 14px; border-radius: 10px; }
+
+        input[type=text], textarea {
+            width: 100%;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: #fff;
+        }
+
+        textarea { resize: none; min-height: 84px; }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 800;
+            letter-spacing: 1px;
+            line-height: 1;
+            margin: 0;
+            color: var(--ink);
+        }
+
+        .logo span { color: var(--rose); }
+
+        /* ---------- Lobby ---------- */
+        #lobby {
+            min-height: 100%;
+            padding-inline: 16px;
+            padding-block: 28px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22px;
+        }
+
+        #lobby header { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+        #lobby .logo { font-size: clamp(52px, 12vw, 84px); }
+        #lobby .tag { margin: 0; color: var(--muted); font-weight: 600; max-width: 34ch; }
+
+        .lobby-grid {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .box {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+            box-shadow: 0 6px 20px rgba(42, 36, 64, .08);
+        }
+
+        .box h2 { margin: 0; font-family: var(--font-display); font-size: 24px; line-height: 1.1; }
+        .box p { margin: 0; color: var(--muted); font-size: 15px; }
+        .box label { font-weight: 800; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+        .row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .row > * { flex: 1 1 auto; }
+        .note { font-size: 13px; color: var(--muted); }
+        .note.warn { color: #9a5a00; }
+
+        .code {
+            font-family: var(--font-display);
+            font-size: 44px;
+            letter-spacing: 8px;
+            text-align: center;
+            background: var(--zone5);
+            border-radius: 14px;
+            padding: 6px 0 0;
+        }
+
+        .story-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .story-list li { border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; font-size: 14px; }
+        .story-list b { font-family: var(--font-display); font-size: 16px; }
+        .stat-row { display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px; font-variant-numeric: tabular-nums; }
+        .stat-row b { font-family: var(--font-display); font-size: 22px; display: block; line-height: 1; }
+
+        .back { align-self: flex-start; }
+
+        /* ---------- Game ---------- */
+        #game { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 340px; }
+        #game[hidden] { display: none; }
+
+        .board-wrap { overflow: auto; padding: 16px; scroll-behavior: smooth; }
+        #board { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; }
+        #board text { font-family: var(--font-display); }
+        .token { transition: transform .2s ease-out; }
+        .token.slide { transition: transform .8s cubic-bezier(.5, 0, .3, 1); }
+
+        .panel {
+            background: var(--card);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: auto;
+            border-left: 2px solid var(--line);
+        }
+
+        .panel .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .panel .logo { font-size: 30px; }
+        .badge { font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--zone5); white-space: nowrap; }
+
+        .players { display: flex; flex-direction: column; gap: 6px; }
+        .pchip { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--line); font-weight: 800; min-width: 0; }
+        .pchip .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+        .pchip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .pchip.turn { border-color: var(--sun); background: #fff8e6; }
+        .pchip small { font-weight: 600; color: var(--muted); }
+
+        .where { display: flex; flex-direction: column; gap: 2px; }
+        .where .chap { font-family: var(--font-display); font-size: 20px; line-height: 1.1; }
+        .where .sub { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+        .rollbox { display: flex; align-items: center; gap: 14px; }
+        .rollbox .btn { flex: 1; font-size: 17px; }
+
+        .die {
+            width: 62px; height: 62px; flex: none;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 0 0 2px var(--line) inset, 0 4px 0 var(--line);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 9px;
+        }
+
+        .die i { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); place-self: center; visibility: hidden; }
+        .die i.on { visibility: visible; }
+        .die.rolling { animation: shake .12s linear infinite; }
+        @keyframes shake { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
+
+        .turnline { font-size: 14px; color: var(--muted); font-weight: 600; min-height: 21px; }
+
+        .meters { display: flex; flex-direction: column; gap: 7px; }
+        .meter { display: grid; grid-template-columns: 22px minmax(0, 1fr) 34px; align-items: center; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .meter .bar { height: 9px; border-radius: 9px; background: var(--line); overflow: hidden; }
+        .meter .bar span { display: block; height: 100%; border-radius: 9px; background: var(--rose); transition: width .5s; }
+        .meter b { text-align: right; }
+        .section-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; color: var(--muted); margin: 0; }
+
+        .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); }
+
+        /* ---------- Card overlay ---------- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(42, 36, 64, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10;
+        }
+
+        .overlay[hidden] { display: none; }
+
+        .cardv {
+            width: 100%;
+            max-width: 460px;
+            max-height: 100%;
+            overflow: auto;
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+            animation: pop .25s ease-out;
+        }
+
+        @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+
+        .cardv .head {
+            padding: 16px 20px 14px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cardv .head .ic { font-size: 30px; line-height: 1; }
+        .cardv .head .kind { font-family: var(--font-display); font-size: 20px; line-height: 1.1; }
+        .cardv .head small { display: block; font-size: 12px; opacity: .9; font-family: var(--font-body); font-weight: 600; }
+
+        .cardv .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .cardv .q { font-family: var(--font-display); font-size: 22px; line-height: 1.25; margin: 0; text-wrap: balance; }
+        .cardv .hint { font-size: 14px; color: var(--muted); margin: 0; }
+
+        .opts { display: flex; flex-direction: column; gap: 8px; }
+        .opt {
+            text-align: left;
+            border: 2px solid var(--line);
+            background: #fff;
+            border-radius: 14px;
+            padding: 11px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .opt:hover { border-color: var(--rose); }
+        .opt.sel { border-color: var(--rose); background: #fff0f4; }
+
+        .waiting { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 700; }
+        .waiting .ok { color: var(--ok); }
+        .waiting .wait { color: var(--muted); }
+
+        .answers { display: flex; flex-direction: column; gap: 8px; }
+        .ans { border-radius: 14px; padding: 10px 12px; background: #f7f5fb; display: flex; flex-direction: column; gap: 2px; }
+        .ans small { font-weight: 800; font-size: 12px; }
+        .ans span { font-weight: 700; word-break: break-word; }
+
+        .verdict { border-radius: 14px; padding: 12px 14px; font-weight: 800; text-align: center; }
+        .verdict.match { background: #ffe6ee; color: #b9334f; }
+        .verdict.diff { background: #eef0fb; color: #3f4a8a; }
+        .verdict.good { background: #e3f6ec; color: #1f7a50; }
+        .verdict small { display: block; font-weight: 600; margin-top: 2px; }
+
+        .privacy { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 10px 0; }
+        .privacy .big { font-size: 54px; line-height: 1; }
+
+        /* ---------- End screen ---------- */
+        .endv .head { background: var(--rose); justify-content: center; text-align: center; flex-direction: column; gap: 2px; padding: 22px 20px; }
+        .endv .head .kind { font-size: 26px; }
+        .profile { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+        .profile b { font-family: var(--font-display); font-size: 28px; line-height: 1.1; color: var(--rose); }
+        .mem { border-left: 4px solid var(--ch5); padding: 4px 10px; font-size: 14px; }
+        .mem small { font-weight: 800; display: block; }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            top: 14px;
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 20;
+            max-width: calc(100% - 32px);
+            text-align: center;
+            animation: pop .2s ease-out;
+        }
+
+        @media (max-width: 860px) {
+            .lobby-grid { grid-template-columns: minmax(0, 1fr); max-width: 480px; }
+            #game { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+            .board-wrap { padding: 10px; }
+            .panel {
+                border-left: 0;
+                border-top: 2px solid var(--line);
+                padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+                gap: 10px;
+                max-height: 46vh;
+            }
+            .panel .desk { display: none; }
+            .panel .players { flex-direction: row; }
+            .panel .pchip { flex: 1; padding: 6px 8px; font-size: 14px; }
+            .die { width: 52px; height: 52px; padding: 7px; }
+            .die i { width: 8px; height: 8px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .token, .token.slide, .meter .bar span { transition: none; }
+            .cardv, .toast { animation: none; }
+            .die.rolling { animation: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Lobby -->
+    <main id="lobby">
+        <a class="btn small back" href="../../index.html">☰ Menu</a>
+        <header>
+            <h1 class="logo">LADA<span>GO</span></h1>
+            <p class="tag">Ular tangga perjalanan cinta. Setiap langkah menceritakan kisah kalian.</p>
+        </header>
+        <div class="lobby-grid">
+            <section class="box" aria-labelledby="localTitle">
+                <h2 id="localTitle">Berdua di 1 HP</h2>
+                <p>Duduk bersebelahan dan gantian memegang HP. Jawaban rahasia dijawab bergiliran tanpa mengintip.</p>
+                <label>Nama pemain 1<input type="text" id="nameA" maxlength="16" placeholder="contoh: Wadimar"></label>
+                <label>Nama pemain 2<input type="text" id="nameB" maxlength="16" placeholder="contoh: Sayang"></label>
+                <button class="btn primary" id="startLocal">Mulai perjalanan</button>
+            </section>
+
+            <section class="box" aria-labelledby="onlineTitle">
+                <h2 id="onlineTitle">Online berdua</h2>
+                <p>Main dari HP masing-masing. Satu orang membuat ruangan, pasangannya bergabung dengan kode.</p>
+                <div id="onlineBox">
+                    <p class="note" id="onlineStatus">Memeriksa koneksi online…</p>
+                </div>
+            </section>
+
+            <section class="box" aria-labelledby="storyTitle">
+                <h2 id="storyTitle">Cerita Kita</h2>
+                <div id="storyBox"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Game -->
+    <div id="game" hidden>
+        <div class="board-wrap" id="boardWrap">
+            <svg id="board" viewBox="-20 -20 640 1040" role="img" aria-label="Papan perjalanan LADAGO"></svg>
+        </div>
+        <aside class="panel" id="panel">
+            <div class="top">
+                <p class="logo">LADA<span>GO</span></p>
+                <span class="badge" id="modeBadge">1 HP</span>
+            </div>
+            <div class="players" id="players"></div>
+            <div class="where desk">
+                <span class="chap" id="chapName"></span>
+                <span class="sub" id="chapSub"></span>
+            </div>
+            <div class="rollbox">
+                <div class="die" id="die" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <button class="btn primary" id="rollBtn">Lempar dadu</button>
+            </div>
+            <div class="turnline" id="turnLine"></div>
+            <div class="desk">
+                <p class="section-title">Hubungan kalian</p>
+                <div class="meters" id="meters"></div>
+            </div>
+            <div class="legend desk">
+                <span>🪜 Samakan jawaban untuk naik</span>
+                <span>🐍 Beda jawaban, turun</span>
+            </div>
+            <div class="row desk">
+                <button class="btn small" id="leaveBtn">Keluar ke lobi</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="overlay" id="overlay" hidden></div>
+
+    <script type="module">
+        // ---------- Content ----------
+        const CHAPTERS = [
+            { name: 'Pertemuan Pertama', place: 'Kafe', icon: '☕', color: 'var(--ch1)', zone: 'var(--zone1)', hex: '#7fcf9f' },
+            { name: 'Makin Dekat', place: 'Taman', icon: '🌳', color: 'var(--ch2)', zone: 'var(--zone2)', hex: '#f59c73' },
+            { name: 'Ujian Hubungan', place: 'Badai', icon: '🌧️', color: 'var(--ch3)', zone: 'var(--zone3)', hex: '#7f8cc4' },
+            { name: 'Membangun Bersama', place: 'Rumah', icon: '🏠', color: 'var(--ch4)', zone: 'var(--zone4)', hex: '#e8b33a' },
+            { name: 'Masa Depan Kita', place: 'Bandara', icon: '✈️', color: 'var(--ch5)', zone: 'var(--zone5)', hex: '#a77fd6' },
+        ];
+
+        const CATS = {
+            love: { icon: '❤️', label: 'Love Card', color: '#ef4f76' },
+            fun: { icon: '😂', label: 'Fun Card', color: '#f08a3c' },
+            deep: { icon: '🧠', label: 'Deep Talk', color: '#5a6fc4' },
+            guess: { icon: '🎯', label: 'Guess Me', color: '#2f9e8f' },
+            future: { icon: '🔮', label: 'Future Card', color: '#8f5fcf' },
+            event: { icon: '🌧️', label: 'Relationship Event', color: '#56618f' },
+            decide: { icon: '💰', label: 'Our Decision', color: '#c48a12' },
+            talk: { icon: '💬', label: 'Cerita Yuk', color: '#d4577f' },
+            write: { icon: '💌', label: 'Future Letter', color: '#a254b8' },
+            ladder: { icon: '🪜', label: 'Komunikasi Terbuka', color: '#d99a1e' },
+            snake: { icon: '🐍', label: 'Awas Salah Paham', color: '#3fa465' },
+        };
+
+        // t: pick (both choose secretly) · guess (roller answers about self, partner guesses)
+        //    talk (open prompt) · event (choices with effects [communication, trust]) · decide (joint decision) · write (free text)
+        const POOLS = {
+            c1: [
+                { t: 'guess', c: 'guess', q: 'Minuman favoritku saat nongkrong?', g: 'Tebak minuman favorit {A} saat nongkrong!', o: ['Kopi', 'Teh', 'Cokelat atau susu', 'Jus atau soda'] },
+                { t: 'guess', c: 'guess', q: 'Kalau libur seharian, aku paling ingin…', g: 'Kalau libur seharian, {A} paling ingin…', o: ['Rebahan di rumah', 'Jalan-jalan keluar', 'Kumpul sama teman', 'Mengerjakan hobi'] },
+                { t: 'guess', c: 'guess', q: 'Genre film yang paling sering aku pilih?', g: 'Genre film yang paling sering dipilih {A}?', o: ['Komedi', 'Romantis', 'Horor atau thriller', 'Aksi atau petualangan'] },
+                { t: 'guess', c: 'guess', q: 'Makanan yang paling aku suka?', g: 'Makanan yang paling disukai {A}?', o: ['Nasi goreng atau mie', 'Sate atau bakso', 'Seafood', 'Makanan manis'] },
+                { t: 'guess', c: 'guess', q: 'Musik yang paling sering aku putar?', g: 'Musik yang paling sering diputar {A}?', o: ['Pop', 'Indie atau akustik', 'Dangdut atau koplo', 'K-pop atau J-pop', 'Rock'] },
+                { t: 'pick', c: 'fun', q: 'Kencan pertama yang ideal menurutmu?', o: ['Makan malam santai', 'Nonton bioskop', 'Jalan di taman atau pantai', 'Main di arena game'] },
+                { t: 'pick', c: 'love', q: 'Hal pertama yang biasanya kamu perhatikan dari seseorang?', o: ['Senyum', 'Mata', 'Cara bicara', 'Gaya berpakaian'] },
+                { t: 'pick', c: 'fun', q: 'Kalau jadi hewan, kamu merasa paling mirip…', o: ['Kucing yang santai', 'Anjing yang setia', 'Burung yang bebas', 'Panda yang manja'] },
+                { t: 'pick', c: 'fun', q: 'Kamu tipe orang pagi atau malam?', o: ['Orang pagi 🌅', 'Orang malam 🌙', 'Tergantung mood'] },
+                { t: 'talk', c: 'talk', q: 'Ceritakan kesan pertamamu saat pertama kali bertemu pasangan.' },
+                { t: 'talk', c: 'talk', q: 'Sebutkan satu hal yang membuatmu tertarik padanya sejak awal.' },
+                { t: 'talk', c: 'talk', q: 'Apa hal paling memalukan atau lucu yang terjadi waktu PDKT?' },
+            ],
+            c2: [
+                { t: 'pick', c: 'deep', q: 'Hal kecil yang paling membuatmu merasa disayangi?', o: ['Kata-kata manis', 'Waktu berdua', 'Dibantu hal kecil', 'Hadiah kecil', 'Pelukan'] },
+                { t: 'guess', c: 'guess', q: 'Saat stres, biasanya aku…', g: 'Saat stres, biasanya {A}…', o: ['Butuh sendiri dulu', 'Butuh ditemani', 'Cerita panjang lebar', 'Cari pengalihan, makan atau main'] },
+                { t: 'pick', c: 'deep', q: 'Saat sedih, apa yang paling kamu inginkan dari pasangan?', o: ['Dipahami', 'Ditemani', 'Diberi waktu sendiri', 'Dihibur'] },
+                { t: 'pick', c: 'love', q: 'Panggilan sayang favoritmu?', o: ['Sayang', 'Beb', 'Nama asli saja', 'Panggilan unik kita sendiri'] },
+                { t: 'guess', c: 'guess', q: 'Hal yang paling bikin aku bad mood?', g: 'Hal yang paling bikin {A} bad mood?', o: ['Lapar', 'Kurang tidur', 'Dibohongi', 'Rencana berubah mendadak'] },
+                { t: 'pick', c: 'fun', q: 'Liburan singkat impian berdua?', o: ['Pantai', 'Gunung atau kebun teh', 'Kota besar', 'Staycation di hotel'] },
+                { t: 'pick', c: 'deep', q: 'Saat sibuk, seberapa sering kamu ingin kabar dari pasangan?', o: ['Tiap beberapa jam', 'Pagi dan malam cukup', 'Sekali sehari', 'Kalau ada yang penting saja'] },
+                { t: 'guess', c: 'guess', q: 'Cara aku paling sering menunjukkan sayang?', g: 'Cara {A} paling sering menunjukkan sayang?', o: ['Lewat kata-kata', 'Lewat perhatian dan bantuan', 'Lewat hadiah', 'Lewat waktu bersama', 'Lewat sentuhan'] },
+                { t: 'pick', c: 'fun', q: 'Kalau kalian bikin konten bareng, temanya…', o: ['Kuliner', 'Jalan-jalan', 'Komedi', 'Masak di rumah'] },
+                { t: 'talk', c: 'talk', q: 'Menurutmu, kebiasaan pasangan yang paling lucu apa?' },
+                { t: 'talk', c: 'talk', q: 'Ceritakan satu momen saat kamu merasa sangat dekat dengan pasangan.' },
+                { t: 'talk', c: 'talk', q: 'Apa satu hal dari pasanganmu yang ingin kamu tiru?' },
+            ],
+            c3: [
+                { t: 'event', c: 'event', q: 'Kalian sama-sama sibuk, dan salah satu merasa diabaikan. Apa yang kamu lakukan?', o: ['Diam dulu sampai tenang', 'Ajak bicara baik-baik', 'Sindir lewat status', 'Langsung marah'], fx: [[0, 1], [2, 1], [-2, -1], [-2, -2]] },
+                { t: 'event', c: 'event', q: 'Pasangan akrab dengan teman lawan jenis. Kamu…', o: ['Tanya dengan tenang', 'Diam tapi kepikiran', 'Cek HP-nya diam-diam', 'Percaya saja'], fx: [[2, 1], [-1, 0], [-1, -2], [0, 2]] },
+                { t: 'event', c: 'event', q: 'Pasangan lupa hari penting kalian. Kamu…', o: ['Bilang jujur kalau kecewa', 'Pura-pura tidak apa-apa', 'Ngambek seharian', 'Ajak merayakan ulang bersama'], fx: [[2, 1], [-1, 0], [-2, -1], [1, 2]] },
+                { t: 'event', c: 'event', q: 'Keluarga ingin kalian datang tiap minggu, padahal kamu merasa itu terlalu sering. Kamu…', o: ['Bicarakan berdua dulu', 'Ikuti saja demi damai', 'Langsung menolak ke keluarga', 'Usulkan jadwal tengah'], fx: [[2, 1], [-1, 0], [-1, -1], [1, 1]] },
+                { t: 'event', c: 'event', q: 'Salah satu dari kalian gagal dalam pekerjaan atau ujian. Kamu…', o: ['Mendengarkan tanpa menghakimi', 'Langsung kasih solusi', "Bilang 'sudahlah, lupakan'", 'Ajak keluar untuk menghibur'], fx: [[2, 2], [1, 0], [-1, -1], [1, 1]] },
+                { t: 'event', c: 'event', q: 'Salah satu harus tugas ke luar kota selama sebulan. Kamu…', o: ['Atur jadwal video call rutin', 'Pasrah, nanti juga lewat', 'Minta jangan pergi', 'Siapkan kejutan kecil'], fx: [[2, 1], [0, 0], [-1, -1], [1, 2]] },
+                { t: 'pick', c: 'deep', q: 'Saat bertengkar, kamu biasanya butuh…', o: ['Selesai hari itu juga', 'Jeda dulu baru bicara', 'Ditenangkan dulu', 'Bicara lewat pesan'] },
+                { t: 'pick', c: 'deep', q: 'Hal yang paling sulit dimaafkan menurutmu?', o: ['Bohong', 'Ingkar janji', 'Tidak dihargai', 'Merahasiakan hal penting'] },
+                { t: 'pick', c: 'deep', q: 'Bagaimana kamu ingin pasangan minta maaf?', o: ['Bilang langsung dan tulus', 'Lewat tindakan', 'Dengan hadiah kecil', 'Dengan pelukan'] },
+                { t: 'talk', c: 'talk', q: 'Apa satu hal yang ingin kamu perbaiki dari cara kita berdebat?' },
+                { t: 'talk', c: 'talk', q: 'Ceritakan satu masalah yang pernah kalian lalui dan apa pelajarannya.' },
+                { t: 'talk', c: 'talk', q: 'Apa yang membuatmu merasa bisa percaya penuh pada seseorang?' },
+            ],
+            c4: [
+                { t: 'decide', c: 'decide', q: 'Kalian dapat uang tambahan Rp10 juta. Dipakai untuk…', o: ['Liburan', 'Tabungan', 'Beli barang impian', 'Investasi'] },
+                { t: 'decide', c: 'decide', q: 'Kalau punya Rp500 juta, prioritas utama kalian…', o: ['Rumah', 'Usaha bersama', 'Tabungan pendidikan', 'Kendaraan'] },
+                { t: 'decide', c: 'decide', q: 'Akhir pekan ideal sebagai pasangan?', o: ['Di rumah saja', 'Jalan-jalan', 'Kumpul keluarga', 'Ikut kegiatan atau komunitas'] },
+                { t: 'decide', c: 'decide', q: 'Hewan peliharaan pertama kalian?', o: ['Kucing', 'Anjing', 'Ikan atau burung', 'Tidak pelihara dulu'] },
+                { t: 'pick', c: 'future', q: 'Pembagian tugas rumah yang ideal?', o: ['Dibagi rata', 'Sesuai keahlian', 'Bergantian tiap minggu', 'Pakai jasa asisten'] },
+                { t: 'pick', c: 'future', q: 'Ingin tinggal di mana setelah menikah?', o: ['Dekat keluarga', 'Kota besar', 'Kota kecil yang tenang', 'Di mana pun pekerjaan membawa'] },
+                { t: 'pick', c: 'future', q: 'Seberapa sering mengunjungi keluarga besar?', o: ['Tiap minggu', 'Dua minggu sekali', 'Sebulan sekali', 'Saat acara penting'] },
+                { t: 'pick', c: 'future', q: 'Soal keuangan, kamu lebih nyaman…', o: ['Digabung semua', 'Digabung sebagian', 'Dipisah semua', 'Satu orang yang mengelola'] },
+                { t: 'pick', c: 'future', q: 'Ada tawaran promosi, tapi kamu jadi jauh lebih sibuk. Sikapmu?', o: ['Ambil, nanti atur waktu', 'Diskusikan dulu berdua', 'Tolak demi waktu bersama', 'Tergantung kondisi'] },
+                { t: 'event', c: 'event', q: 'Ada diskon besar untuk barang yang sebenarnya tidak perlu. Kamu…', o: ['Diskusikan dulu', 'Beli diam-diam', 'Lewatkan saja', 'Beli, lalu cerita'], fx: [[2, 1], [-1, -2], [1, 1], [0, 0]] },
+                { t: 'talk', c: 'talk', q: 'Bayangkan rumah impian kalian. Ruangan apa yang paling penting dan kenapa?' },
+                { t: 'talk', c: 'talk', q: 'Satu kebiasaan kecil apa yang ingin kalian bangun bersama?' },
+            ],
+            c5: [
+                { t: 'write', c: 'write', q: '5 tahun dari sekarang, aku ingin kita…' },
+                { t: 'write', c: 'write', q: 'Satu janji kecil untuk pasanganku:' },
+                { t: 'pick', c: 'future', q: 'Apa yang paling penting dalam pernikahan?', o: ['Komunikasi', 'Kepercayaan', 'Kesetiaan', 'Saling mendukung', 'Nilai dan iman bersama'] },
+                { t: 'pick', c: 'future', q: 'Perjalanan impian berdua?', o: ['Bali atau Lombok', 'Jepang atau Korea', 'Eropa', 'Road trip keliling Indonesia'] },
+                { t: 'pick', c: 'future', q: 'Berapa anak yang kamu bayangkan?', o: ['Belum terpikir', 'Satu atau dua', 'Tiga atau lebih', 'Fokus berdua dulu'] },
+                { t: 'pick', c: 'future', q: 'Saat tua nanti, kamu ingin kita…', o: ['Tinggal di desa dengan kebun', 'Keliling dunia', 'Dekat anak dan cucu', 'Punya usaha kecil bersama'] },
+                { t: 'pick', c: 'love', q: 'Tradisi kecil yang ingin kita punya?', o: ['Kencan bulanan', 'Masak bareng tiap minggu', 'Liburan tahunan', 'Surat cinta di hari jadi'] },
+                { t: 'pick', c: 'future', q: 'Cara merayakan hari jadi ke-10?', o: ['Makan malam romantis', 'Liburan jauh', 'Pesta kecil bersama orang terdekat', 'Hari santai berdua di rumah'] },
+                { t: 'decide', c: 'decide', q: 'Impian besar pertama yang ingin dicapai bersama?', o: ['Rumah sendiri', 'Perjalanan impian', 'Usaha bersama', 'Dana darurat dan tabungan'] },
+                { t: 'talk', c: 'talk', q: 'Seperti apa kehidupan yang ingin kita bangun 10 tahun lagi?' },
+                { t: 'talk', c: 'talk', q: 'Apa satu hal yang ingin kamu lakukan bersama pasangan sebelum tahun ini berakhir?' },
+                { t: 'talk', c: 'talk', q: 'Apa yang paling kamu syukuri dari hubungan ini?' },
+            ],
+            lad: [
+                { t: 'pick', c: 'ladder', q: 'Kalau ada yang mengganjal di hati, sebaiknya…', o: ['Langsung bilang hari itu', 'Tunggu waktu yang tepat', 'Tulis lewat pesan'] },
+                { t: 'pick', c: 'ladder', q: 'Cara terbaik merayakan keberhasilan pasangan?', o: ['Makan enak bareng', 'Ucapan dan pelukan', 'Kado kecil', 'Unggah di media sosial'] },
+                { t: 'pick', c: 'ladder', q: 'Kencan murah meriah terbaik?', o: ['Piknik di taman', 'Masak bareng di rumah', 'Jalan sore keliling kota', 'Maraton film'] },
+                { t: 'pick', c: 'ladder', q: 'Saat salah satu capek pulang kerja, yang paling membantu…', o: ['Dipeluk atau dipijat', 'Dibiarkan istirahat', 'Dimasakkan atau dibelikan makan', 'Diajak ngobrol santai'] },
+                { t: 'pick', c: 'ladder', q: 'Kalau beda pendapat soal hal kecil, sebaiknya…', o: ['Mengalah bergantian', 'Suit atau undian', 'Cari jalan tengah', 'Yang paling peduli yang memutuskan'] },
+                { t: 'pick', c: 'ladder', q: 'Pesan yang paling bikin harimu lebih baik?', o: ['"Semangat ya!"', '"Aku kangen"', '"Sudah makan?"', 'Foto atau meme lucu'] },
+            ],
+            snk: [
+                { t: 'pick', c: 'snake', q: 'Pasangan telat 30 menit tanpa kabar. Reaksi paling tepat?', o: ['Telepon, pastikan dia baik-baik saja', 'Tunggu, lalu tanya baik-baik', 'Kesal dan langsung menegur'] },
+                { t: 'pick', c: 'snake', q: 'Pasangan belum membalas chat seharian. Yang kamu pikirkan…', o: ['Mungkin dia sibuk', 'Tanya apakah semua baik', 'Merasa diabaikan'] },
+                { t: 'pick', c: 'snake', q: 'Teman pasangan mengajak pergi, padahal kalian sudah punya rencana.', o: ['Rencana kita duluan', 'Boleh pergi kali ini', 'Atur ulang rencana bersama'] },
+                { t: 'pick', c: 'snake', q: 'Pasangan diam saja setelah pulang. Kamu…', o: ['Tanya pelan-pelan ada apa', 'Biarkan dulu sampai dia cerita', 'Ajak melakukan hal yang dia suka'] },
+                { t: 'pick', c: 'snake', q: 'Kalian berbeda pendapat di depan orang lain. Sebaiknya…', o: ['Tahan, bahas berdua nanti', 'Sampaikan dengan sopan saat itu', 'Ikuti dulu pendapat pasangan'] },
+                { t: 'pick', c: 'snake', q: 'Uang belanja bulanan habis lebih cepat. Langkah pertama?', o: ['Cek bersama ke mana perginya', 'Kurangi jajan berdua', 'Tambah dari tabungan'] },
+            ],
+        };
+        const CARD = {};
+        for (const [pool, list] of Object.entries(POOLS)) list.forEach((c, i) => { c.id = pool + '.' + i; CARD[c.id] = c; });
+
+        const TOTAL = 60;
+        const LADDERS = { 3: 15, 11: 26, 22: 35, 30: 44, 42: 55 };
+        const SNAKES = { 19: 8, 33: 21, 39: 28, 47: 36, 58: 45 };
+        const chapterOf = n => Math.min(5, Math.ceil(n / 12));
+
+        const PROFILES = {
+            conn: { title: 'The Best Friends', text: 'Kalian nyaman menjadi diri sendiri satu sama lain. Obrolan dan tawa adalah perekat utama hubungan kalian.' },
+            comm: { title: 'The Open Book', text: 'Kalian berani membicarakan hal sulit dengan kepala dingin, sehingga masalah jarang dibiarkan menggantung.' },
+            trust: { title: 'The Safe Harbor', text: 'Kalian saling menjadi tempat pulang. Rasa percaya membuat hubungan kalian tenang dan kokoh.' },
+            compat: { title: 'The Twin Souls', text: 'Banyak cara pandang kalian yang sejalan. Kalian sering memilih jawaban yang sama tanpa janjian.' },
+            future: { title: 'The Dream Builders', text: 'Tujuan masa depan kalian cukup sejalan, dan kalian siap menyusun rencana hidup bersama.' },
+        };
+        const GROWTH = {
+            conn: 'Sisihkan lebih banyak waktu untuk ngobrol santai dan bercanda berdua.',
+            comm: 'Latih kebiasaan membicarakan perasaan lebih awal, sebelum jadi masalah besar.',
+            trust: 'Bangun rasa aman lewat janji kecil yang selalu ditepati.',
+            compat: 'Cara pandang kalian cukup berbeda, dan itu wajar. Jadikan bahan obrolan, bukan perdebatan.',
+            future: 'Rencana masa depan kalian belum banyak yang sama. Coba bicarakan prioritas satu per satu.',
+        };
+        const METERS = [
+            ['conn', '❤️', 'Connection'], ['comm', '💬', 'Communication'], ['trust', '🤝', 'Trust'],
+            ['compat', '🧠', 'Compatibility'], ['future', '🏡', 'Future Alignment'],
+        ];
+
+        // ---------- Helpers ----------
+        const $ = s => document.querySelector(s);
+        const rand = n => Math.floor(Math.random() * n);
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        function h(tag, props, ...kids) {
+            const el = document.createElement(tag);
+            for (const [k, v] of Object.entries(props || {})) {
+                if (v === false || v == null) continue;
+                if (k === 'class') el.className = v;
+                else if (k === 'text') el.textContent = v;
+                else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+                else el.setAttribute(k, v === true ? '' : v);
+            }
+            for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+            return el;
+        }
+        // Text that travels to the other player: no control or invisible characters, bounded length
+        const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁤﻿]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+        const store = {
+            get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+            del(k) { try { localStorage.removeItem(k); } catch (e) { } },
+        };
+        function toast(text) {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+            const t = h('div', { class: 'toast', role: 'status', text });
+            document.body.append(t);
+            setTimeout(() => t.remove(), 2600);
+        }
+        let actx;
+        function chime(freqs, dur = 0.1, type = 'triangle', vol = 0.06) {
+            try {
+                actx ||= new (window.AudioContext || window.webkitAudioContext)();
+                const t0 = actx.currentTime;
+                freqs.forEach((f, i) => {
+                    const o = actx.createOscillator(), g = actx.createGain();
+                    o.type = type; o.frequency.value = f;
+                    const s = t0 + i * dur;
+                    g.gain.setValueAtTime(0.0001, s);
+                    g.gain.exponentialRampToValueAtTime(vol, s + 0.015);
+                    g.gain.exponentialRampToValueAtTime(0.0001, s + dur * 1.6);
+                    o.connect(g).connect(actx.destination);
+                    o.start(s); o.stop(s + dur * 1.7);
+                });
+            } catch (e) { }
+        }
+
+        // ---------- Game rules (pure state updates) ----------
+        function newGame(names) {
+            return {
+                v: 1, gid: Math.random().toString(36).slice(2, 9),
+                n: names, pos: 1, turn: 0, phase: 'roll',
+                die: 0, mv: null, mid: 0,
+                card: null, ans: [null, null], jt: [null, null], res: null,
+                st: { conn: 0, comm: 0, trust: 0, cmT: 0, cmM: 0, fT: 0, fM: 0, cards: 0 },
+                used: [], mem: [], ack: 0,
+            };
+        }
+
+        function drawCard(s, tile) {
+            const kind = LADDERS[tile] ? 'ladder' : SNAKES[tile] ? 'snake' : 'normal';
+            const pool = kind === 'ladder' ? POOLS.lad : kind === 'snake' ? POOLS.snk : POOLS['c' + chapterOf(tile)];
+            let options = pool.filter(c => !s.used.includes(c.id));
+            if (!options.length) options = pool;
+            const c = options[rand(options.length)];
+            s.used.push(c.id);
+            if (s.used.length > 40) s.used.shift();
+            return { id: c.id, tile, k: kind, who: s.turn };
+        }
+
+        function validAnswer(c, v) {
+            if (c.t === 'talk') return v === true;
+            if (c.t === 'write') return typeof v === 'string' && v.length > 0;
+            return Number.isInteger(v) && v >= 0 && v < c.o.length;
+        }
+
+        function resolve(s) {
+            const c = CARD[s.card.id], [a0, a1] = s.ans, S = s.st, r = {};
+            S.cards++;
+            if (c.t === 'pick' || c.t === 'guess') {
+                r.match = a0 === a1;
+                S.cmT++; if (r.match) S.cmM++;
+                if (c.c === 'future') { S.fT++; if (r.match) S.fM++; }
+                if (r.match && (c.c === 'love' || c.c === 'fun')) S.conn += 1;
+            } else if (c.t === 'talk') {
+                S.conn += 2;
+            } else if (c.t === 'write') {
+                S.conn += 2;
+                s.mem.push([c.id, a0, a1]);
+                if (s.mem.length > 3) s.mem.shift();
+            } else if (c.t === 'event') {
+                const f0 = c.fx[a0], f1 = c.fx[a1];
+                r.fx = [(f0[0] + f1[0]) / 2, (f0[1] + f1[1]) / 2];
+                S.comm += r.fx[0]; S.trust += r.fx[1];
+                r.match = a0 === a1;
+                if (r.match) S.conn += 1;
+            } else if (c.t === 'decide') {
+                r.match = a0 === a1;
+                S.fT++;
+                if (r.match) { S.fM++; S.comm += 1; }
+            }
+            if (s.card.k === 'ladder') {
+                if (r.match) { r.go = LADDERS[s.card.tile]; S.comm += 2; }
+            } else if (s.card.k === 'snake') {
+                if (r.match) S.trust += 1;
+                else { r.go = SNAKES[s.card.tile]; S.comm -= 1; }
+            }
+            s.res = r;
+            s.phase = c.t === 'decide' && !r.match ? 'joint' : 'reveal';
+        }
+
+        // who: 0 or 1. Returns true when the state changed.
+        function apply(s, who, a) {
+            if (!a || typeof a !== 'object') return false;
+            if (a.k === 'roll') {
+                if (s.phase !== 'roll' || s.turn !== who) return false;
+                const d = 1 + rand(6), from = s.pos, to = Math.min(TOTAL, from + d);
+                s.die = d;
+                s.mv = { id: ++s.mid, from, to, k: 'walk' };
+                s.pos = to;
+                if (to === TOTAL) { s.phase = 'done'; s.card = null; return true; }
+                s.card = drawCard(s, to);
+                s.ans = [null, null]; s.jt = [null, null]; s.res = null;
+                s.phase = 'card';
+                return true;
+            }
+            if (a.k === 'ans') {
+                if (s.phase !== 'card' || s.ans[who] !== null) return false;
+                const c = CARD[s.card.id];
+                const v = c.t === 'write' ? clean(a.v, 120) : a.v;
+                if (!validAnswer(c, v)) return false;
+                s.ans[who] = v;
+                if (a.both && c.t === 'talk') s.ans[1 - who] = true; // one tap on a shared device
+                if (s.ans[0] !== null && s.ans[1] !== null) resolve(s);
+                return true;
+            }
+            if (a.k === 'joint') {
+                if (s.phase !== 'joint') return false;
+                const c = CARD[s.card.id];
+                if (!validAnswer(c, a.v)) return false;
+                s.jt[who] = a.v;
+                if (a.both) s.jt[1 - who] = a.v;
+                if (s.jt[0] !== null && s.jt[0] === s.jt[1]) { s.res.agreed = a.v; s.st.comm += 2; s.phase = 'reveal'; }
+                return true;
+            }
+            if (a.k === 'next') {
+                if (s.phase !== 'reveal') return false;
+                if (s.res && s.res.go) {
+                    s.mv = { id: ++s.mid, from: s.pos, to: s.res.go, k: s.res.go > s.pos ? 'ladder' : 'snake' };
+                    s.pos = s.res.go;
+                }
+                s.card = null; s.res = null;
+                s.turn = 1 - s.turn;
+                s.phase = 'roll';
+                return true;
+            }
+            if (a.k === 'again') {
+                if (s.phase !== 'done') return false;
+                Object.assign(s, newGame(s.n), { mid: s.mid, ack: s.ack });
+                return true;
+            }
+            return false;
+        }
+
+        function scores(s) {
+            const S = s.st;
+            return {
+                conn: clamp(Math.round(55 + S.conn * 4), 25, 100),
+                comm: clamp(Math.round(55 + S.comm * 4), 20, 100),
+                trust: clamp(Math.round(60 + S.trust * 5), 20, 100),
+                compat: S.cmT ? Math.round(100 * S.cmM / S.cmT) : 70,
+                future: S.fT ? Math.round(100 * S.fM / S.fT) : 70,
+            };
+        }
+
+        // ---------- Session: local, host or guest ----------
+        const net = { mode: 'local', me: 0, room: null, r: null, code: '', pendingQ: 0, partnerHere: false, hostHere: false };
+        let state = null;
+        let localView = null; // shared-device privacy step: which player is answering right now
+
+        function myIndex() { return net.mode === 'guest' ? 1 : 0; }
+
+        function act(a, who) {
+            if (!state) return;
+            if (net.mode === 'guest') {
+                const q = state.ack + 1;
+                if (net.pendingQ >= q) return; // previous action not confirmed yet
+                net.pendingQ = q;
+                net.r.presence({ a: { q, ...a } }).catch(() => { net.pendingQ = 0; });
+                render();
+                return;
+            }
+            const w = net.mode === 'local' ? who : 0;
+            if (apply(state, w, a)) {
+                afterChange();
+            }
+        }
+
+        function afterChange() {
+            if (net.mode === 'host') publish();
+            if (net.mode === 'local') store.set('ladago.local', state);
+            render();
+        }
+
+        function publish() {
+            if (!net.r) return;
+            let s = state;
+            if (JSON.stringify(s).length > 3600) { s.used = s.used.slice(-12); }
+            store.set('ladago.host.' + net.code, { state, at: Date.now() });
+            net.r.presence({ role: 'host', n: state.n[0], s }).catch(e => {
+                if (e && e.code === 'invalid_argument') { state.mem = state.mem.slice(-1); net.r.presence({ role: 'host', n: state.n[0], s: state }).catch(() => { }); }
+            });
+        }
+
+        function onPeersHost(change) {
+            const guest = change.peers.find(p => !p.sameTab && p.presence && p.presence.role === 'guest');
+            const was = net.partnerHere;
+            net.partnerHere = !!guest;
+            let changed = false;
+            if (guest) {
+                const n = clean(guest.presence.n, 16) || 'Pasangan';
+                if (state.n[1] !== n) { state.n[1] = n; changed = true; }
+                const a = guest.presence.a;
+                if (a && Number.isInteger(a.q) && a.q > state.ack) {
+                    state.ack = a.q;
+                    apply(state, 1, a);
+                    changed = true;
+                }
+                if (!was) toast(`${n} bergabung 💞`);
+            } else if (was) {
+                toast('Pasangan terputus. Menunggu dia kembali…');
+            }
+            if (changed) afterChange(); else render();
+        }
+
+        function onPeersGuest(change) {
+            const host = change.peers.find(p => !p.sameTab && p.presence && p.presence.role === 'host' && p.presence.s);
+            const was = net.hostHere;
+            net.hostHere = !!host;
+            if (host) {
+                const s = host.presence.s;
+                if (s && s.v === 1 && Array.isArray(s.n)) {
+                    if (!state || state.gid !== s.gid) { lastMove = s.mv ? s.mv.id : 0; shownPos = s.pos; }
+                    state = s;
+                    if (net.pendingQ <= state.ack) net.pendingQ = 0;
+                    showGame();
+                }
+                if (!was && state) toast(`Terhubung dengan ${state.n[0]} 💞`);
+            } else if (was) {
+                toast('Pembuat ruangan terputus. Menunggu dia kembali…');
+            }
+            render();
+        }
+
+        // ---------- Lobby ----------
+        const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        const makeCode = () => Array.from({ length: 4 }, () => CODE_CHARS[rand(CODE_CHARS.length)]).join('');
+
+        function renderStory() {
+            const list = store.get('ladago.story', []);
+            const box = $('#storyBox');
+            box.replaceChildren();
+            if (!list.length) {
+                box.append(h('p', { text: 'Setiap perjalanan yang selesai tersimpan di sini: skor, profil pasangan, dan surat masa depan kalian.' }),
+                    h('p', { class: 'note', text: 'Belum ada perjalanan. Mulai yang pertama!' }));
+                return;
+            }
+            const avg = Math.round(list.reduce((t, x) => t + x.sc.compat, 0) / list.length);
+            const memCount = list.reduce((t, x) => t + (x.mem ? x.mem.length : 0), 0);
+            box.append(h('div', { class: 'stat-row' },
+                h('span', {}, h('b', { text: list.length }), 'perjalanan'),
+                h('span', {}, h('b', { text: avg + '%' }), 'rata-rata kecocokan'),
+                h('span', {}, h('b', { text: memCount }), 'surat masa depan')));
+            const ul = h('ul', { class: 'story-list' });
+            for (const x of list.slice(-4).reverse()) {
+                ul.append(h('li', {}, h('b', { text: x.profile }), h('br'),
+                    `${x.names.join(' & ')} · ${new Date(x.at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                    ...(x.mem || []).map(m => h('div', { class: 'mem' }, h('small', { text: CARD[m[0]] ? CARD[m[0]].q : '💌' }), `${x.names[0]}: ${m[1]}`, h('br'), `${x.names[1]}: ${m[2]}`))));
+            }
+            box.append(ul);
+        }
+
+        function renderOnline(roomAvailable) {
+            const box = $('#onlineBox');
+            box.replaceChildren();
+            if (!roomAvailable) {
+                box.append(h('p', { class: 'note warn', text: 'Mode online hanya bisa dipakai saat LADAGO dibuka lewat link Wadimar Playground di claude.ai, dengan akun yang sudah login. Di sini kalian tetap bisa main berdua di 1 HP.' }));
+                return;
+            }
+            let keys = [];
+            try { keys = Object.keys(localStorage); } catch (e) { }
+            const saved = keys.filter(k => k.startsWith('ladago.host.')).map(k => [k.slice(12), store.get(k)]).filter(([, v]) => v && Date.now() - v.at < 86400000);
+            const lastGuest = store.get('ladago.guestCode', null);
+            box.append(...[
+                h('label', {}, 'Namamu', h('input', { type: 'text', id: 'myName', maxlength: 16, placeholder: 'contoh: Wadimar', value: store.get('ladago.name', '') })),
+                h('div', { class: 'row' }, h('button', { class: 'btn primary', id: 'createBtn', onclick: createRoom }, 'Buat ruangan')),
+                h('label', {}, 'Punya kode dari pasangan?', h('div', { class: 'row' },
+                    h('input', { type: 'text', id: 'joinCode', maxlength: 4, placeholder: 'ABCD', autocapitalize: 'characters', style: 'text-transform:uppercase;letter-spacing:3px;flex:1 1 90px' }),
+                    h('button', { class: 'btn', id: 'joinBtn', onclick: joinRoom }, 'Gabung'))),
+                ...saved.map(([code]) => h('button', { class: 'btn small', onclick: () => resumeRoom(code) }, `Lanjutkan ruangan ${code}`)),
+                lastGuest && lastGuest.code && Date.now() - lastGuest.at < 86400000 ? h('button', { class: 'btn small', onclick: () => { $('#joinCode').value = lastGuest.code; joinRoom(); } }, `Gabung lagi ke ${lastGuest.code}`) : null,
+                h('p', { class: 'note', text: 'Kalian berdua perlu login ke claude.ai, dan link ini harus sudah dibagikan ke pasanganmu.' }),
+            ].filter(Boolean));
+        }
+
+        function myName() {
+            const n = clean($('#myName') && $('#myName').value, 16);
+            if (n) store.set('ladago.name', n);
+            return n;
+        }
+
+        async function enterRoom(code) {
+            net.code = code;
+            net.r = await net.room.join('ladago-' + code.toLowerCase());
+        }
+
+        async function createRoom() {
+            const n = myName();
+            if (!n) { toast('Isi namamu dulu ya'); return; }
+            $('#createBtn').disabled = true;
+            try {
+                await enterRoom(makeCode());
+            } catch (e) { toast('Gagal membuat ruangan. Coba lagi.'); $('#createBtn').disabled = false; return; }
+            net.mode = 'host';
+            state = newGame([n, 'Pasangan']);
+            state.phase = 'lobby';
+            lastMove = 0; shownPos = 1;
+            net.r.onPeers(onPeersHost);
+            publish();
+            showGame();
+        }
+
+        async function resumeRoom(code) {
+            const saved = store.get('ladago.host.' + code);
+            if (!saved) return;
+            try { await enterRoom(code); } catch (e) { toast('Gagal masuk ruangan. Coba lagi.'); return; }
+            net.mode = 'host';
+            state = saved.state;
+            lastMove = state.mv ? state.mv.id : 0; shownPos = state.pos;
+            net.r.onPeers(onPeersHost);
+            publish();
+            showGame();
+        }
+
+        async function joinRoom() {
+            const n = myName();
+            const code = clean($('#joinCode').value, 4).toUpperCase();
+            if (!n) { toast('Isi namamu dulu ya'); return; }
+            if (code.length !== 4) { toast('Kode ruangan terdiri dari 4 huruf'); return; }
+            $('#joinBtn').disabled = true;
+            try { await enterRoom(code); } catch (e) { toast('Gagal bergabung. Periksa kodenya.'); $('#joinBtn').disabled = false; return; }
+            net.mode = 'guest';
+            store.set('ladago.guestCode', { code, at: Date.now() });
+            net.r.presence({ role: 'guest', n, a: null }).catch(() => { });
+            net.r.onPeers(onPeersGuest);
+            showWaitingGuest(code);
+        }
+
+        function showWaitingGuest(code) {
+            $('#onlineBox').replaceChildren(
+                h('div', { class: 'code', text: code }),
+                h('p', { class: 'note', text: 'Menunggu pembuat ruangan… Pastikan pasanganmu sudah membuat ruangan dengan kode ini dan halamannya masih terbuka.' }),
+                h('button', { class: 'btn small', onclick: () => location.reload() }, 'Batal'));
+        }
+
+        function startLocal() {
+            const a = clean($('#nameA').value, 16) || 'Pemain 1';
+            const b = clean($('#nameB').value, 16) || 'Pemain 2';
+            store.set('ladago.localNames', [a, b]);
+            net.mode = 'local';
+            state = newGame([a, b]);
+            lastMove = 0; shownPos = 1;
+            store.set('ladago.local', state);
+            showGame();
+        }
+
+        function showGame() {
+            $('#lobby').hidden = true;
+            $('#game').hidden = false;
+            render();
+        }
+
+        // ---------- Board ----------
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const sv = (tag, attrs) => { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; };
+        function tileXY(n) {
+            const i = n - 1, row = Math.floor(i / 6), col = row % 2 === 0 ? i % 6 : 5 - (i % 6);
+            return [50 + col * 100, 1000 - (50 + row * 100)];
+        }
+        const board = $('#board');
+        let tokenEl;
+        function buildBoard() {
+            // Chapter zones: two rows each
+            CHAPTERS.forEach((ch, k) => {
+                const y = 1000 - (k + 1) * 200;
+                board.append(sv('rect', { x: -10, y: y + 4, width: 620, height: 192, rx: 28, fill: ch.zone }));
+            });
+            const labels = CHAPTERS.map((ch, k) => {
+                // Label sits in the gap between the chapter's two rows
+                const y = 1000 - (k + 1) * 200;
+                const g = sv('g', {});
+                g.append(sv('rect', { x: 170, y: y + 86, width: 260, height: 30, rx: 15, fill: '#fff', opacity: .92 }));
+                const label = sv('text', { x: 300, y: y + 107, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: ch.hex });
+                label.textContent = `${ch.icon} ${k + 1}. ${ch.name}`;
+                g.append(label);
+                return g;
+            });
+            // Road
+            const pts = Array.from({ length: TOTAL }, (_, i) => tileXY(i + 1));
+            const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
+            board.append(sv('path', { d, fill: 'none', stroke: '#ffffff', 'stroke-width': 54, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: .9 }));
+            board.append(sv('path', { d, fill: 'none', stroke: '#e6dcef', 'stroke-width': 3, 'stroke-dasharray': '2 12', 'stroke-linecap': 'round' }));
+            // Ladders
+            for (const [a, b] of Object.entries(LADDERS)) {
+                const [x1, y1] = tileXY(+a), [x2, y2] = tileXY(b);
+                const len = Math.hypot(x2 - x1, y2 - y1), nx = -(y2 - y1) / len * 11, ny = (x2 - x1) / len * 11;
+                const g = sv('g', { opacity: .95 });
+                g.append(sv('line', { x1: x1 + nx, y1: y1 + ny, x2: x2 + nx, y2: y2 + ny, stroke: 'var(--ladder)', 'stroke-width': 6, 'stroke-linecap': 'round' }));
+                g.append(sv('line', { x1: x1 - nx, y1: y1 - ny, x2: x2 - nx, y2: y2 - ny, stroke: 'var(--ladder)', 'stroke-width': 6, 'stroke-linecap': 'round' }));
+                for (let t = 0.12; t < 0.95; t += 26 / len) {
+                    const x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t;
+                    g.append(sv('line', { x1: x + nx, y1: y + ny, x2: x - nx, y2: y - ny, stroke: '#f2c25a', 'stroke-width': 5, 'stroke-linecap': 'round' }));
+                }
+                board.append(g);
+            }
+            // Snakes
+            for (const [a, b] of Object.entries(SNAKES)) {
+                const [x1, y1] = tileXY(+a), [x2, y2] = tileXY(b);
+                const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len, px = -uy, py = ux;
+                let dd = `M${x1} ${y1}`;
+                const waves = Math.max(2, Math.round(len / 90));
+                for (let i = 1; i <= waves; i++) {
+                    const t0 = (i - 0.5) / waves, t1 = i / waves, amp = (i % 2 ? 26 : -26);
+                    dd += ` Q${x1 + (x2 - x1) * t0 + px * amp} ${y1 + (y2 - y1) * t0 + py * amp} ${x1 + (x2 - x1) * t1} ${y1 + (y2 - y1) * t1}`;
+                }
+                board.append(sv('path', { d: dd, fill: 'none', stroke: '#2f7f4d', 'stroke-width': 16, 'stroke-linecap': 'round', opacity: .9 }));
+                board.append(sv('path', { d: dd, fill: 'none', stroke: 'var(--snake)', 'stroke-width': 11, 'stroke-linecap': 'round' }));
+                board.append(sv('path', { d: dd, fill: 'none', stroke: '#9fe0b4', 'stroke-width': 3, 'stroke-dasharray': '3 9', 'stroke-linecap': 'round' }));
+                const hx = x1 + ux * 34, hy = y1 + uy * 34;
+                board.append(sv('ellipse', { cx: hx, cy: hy, rx: 13, ry: 11, fill: '#2f7f4d' }));
+                board.append(sv('circle', { cx: hx - 4, cy: hy - 3, r: 2.6, fill: '#fff' }));
+                board.append(sv('circle', { cx: hx + 4, cy: hy - 3, r: 2.6, fill: '#fff' }));
+            }
+            labels.forEach(l => board.append(l));
+            // Tiles
+            for (let n = 1; n <= TOTAL; n++) {
+                const [x, y] = tileXY(n), ch = CHAPTERS[chapterOf(n) - 1];
+                const special = n === 1 ? '🏁' : n === TOTAL ? '❤️' : LADDERS[n] ? '🪜' : SNAKES[n] ? '🐍' : '';
+                board.append(sv('circle', { cx: x, cy: y, r: 31, fill: '#fff', stroke: ch.hex, 'stroke-width': n === TOTAL ? 7 : 5 }));
+                const num = sv('text', { x, y: special ? y - 6 : y + 8, 'text-anchor': 'middle', 'font-size': special ? 15 : 24, 'font-weight': 800, fill: '#2a2440' });
+                num.textContent = n === TOTAL ? 'FINIS' : n;
+                board.append(num);
+                if (special) {
+                    const ic = sv('text', { x, y: y + 20, 'text-anchor': 'middle', 'font-size': 20 });
+                    ic.textContent = special;
+                    board.append(ic);
+                }
+            }
+            // Couple token
+            tokenEl = sv('g', { class: 'token' });
+            tokenEl.append(sv('ellipse', { cx: 0, cy: 30, rx: 22, ry: 6, fill: 'rgba(42,36,64,.25)' }));
+            tokenEl.append(sv('circle', { cx: -11, cy: -2, r: 17, fill: 'var(--p0)', stroke: '#fff', 'stroke-width': 4 }));
+            tokenEl.append(sv('circle', { cx: 11, cy: -2, r: 17, fill: 'var(--p1)', stroke: '#fff', 'stroke-width': 4 }));
+            const t0 = sv('text', { x: -11, y: 4, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: '#fff', id: 'tok0' });
+            const t1 = sv('text', { x: 11, y: 4, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: '#fff', id: 'tok1' });
+            tokenEl.append(t0, t1);
+            const heart = sv('text', { x: 0, y: -22, 'text-anchor': 'middle', 'font-size': 18 });
+            heart.textContent = '💞';
+            tokenEl.append(heart);
+            board.append(tokenEl);
+        }
+
+        let shownPos = 1, lastMove = 0, animating = false;
+        function placeToken(n, slide) {
+            const [x, y] = tileXY(n);
+            tokenEl.classList.toggle('slide', !!slide);
+            tokenEl.style.transform = `translate(${x}px, ${y - 8}px)`;
+            shownPos = n;
+            // keep the token in view
+            const wrap = $('#boardWrap'), rect = board.getBoundingClientRect(), scale = rect.height / 1040;
+            const ty = (y + 20) * scale;
+            wrap.scrollTop = Math.max(0, ty - wrap.clientHeight / 2);
+        }
+
+        const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+        function showDie(v) { [...$('#die').children].forEach((p, i) => p.classList.toggle('on', (PIPS[v] || []).includes(i))); }
+
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        async function animateMove(mv) {
+            animating = true;
+            render();
+            if (mv.k === 'walk') {
+                const die = $('#die');
+                die.classList.add('rolling');
+                for (let i = 0; i < 7; i++) { showDie(1 + rand(6)); chime([300 + rand(200)], 0.03, 'square', 0.02); await wait(70); }
+                die.classList.remove('rolling');
+                showDie(state.die);
+                await wait(250);
+                for (let n = mv.from + 1; n <= mv.to; n++) { placeToken(n); chime([520 + n * 4], 0.05, 'sine', 0.04); await wait(230); }
+            } else {
+                chime(mv.k === 'ladder' ? [523, 659, 784, 1046] : [660, 520, 392, 330], 0.12);
+                placeToken(mv.to, true);
+                await wait(900);
+            }
+            animating = false;
+            render();
+        }
+
+        // ---------- Rendering ----------
+        function chip(i) {
+            const isTurn = state.phase === 'roll' && state.turn === i;
+            let status = '';
+            if (net.mode === 'host' && i === 1) status = net.partnerHere ? '● online' : '○ belum terhubung';
+            if (net.mode === 'guest' && i === 0) status = net.hostHere ? '● online' : '○ terputus';
+            if (net.mode !== 'local' && i === myIndex()) status = 'kamu';
+            return h('div', { class: 'pchip' + (isTurn ? ' turn' : '') },
+                h('span', { class: 'dot', style: `background:var(--p${i})` }),
+                h('span', { class: 'nm', text: state.n[i] }),
+                status ? h('small', { text: status }) : null);
+        }
+
+        function render() {
+            if (!state) return;
+            if (!tokenEl) { buildBoard(); placeToken(shownPos); }
+            $('#tok0').textContent = (state.n[0][0] || '?').toUpperCase();
+            $('#tok1').textContent = (state.n[1][0] || '?').toUpperCase();
+            if (state.mv && state.mv.id !== lastMove && !animating) {
+                lastMove = state.mv.id;
+                placeToken(state.mv.from);
+                animateMove(state.mv);
+                return;
+            }
+            if (!animating && shownPos !== state.pos) placeToken(state.pos);
+            if (!animating && state.die) showDie(state.die);
+
+            $('#modeBadge').textContent = net.mode === 'local' ? '1 HP' : `Online · ${net.code}`;
+            $('#players').replaceChildren(chip(0), chip(1));
+            const ch = CHAPTERS[chapterOf(shownPos) - 1];
+            $('#chapName').textContent = `${ch.icon} ${ch.name}`;
+            $('#chapSub').textContent = `Kotak ${shownPos} dari ${TOTAL} · ${ch.place}`;
+
+            const me = myIndex();
+            const myTurn = net.mode === 'local' || state.turn === me;
+            const roll = $('#rollBtn');
+            const waitingConfirm = net.mode === 'guest' && net.pendingQ > state.ack;
+            roll.disabled = animating || state.phase !== 'roll' || !myTurn || waitingConfirm || (net.mode === 'host' && !net.partnerHere) || (net.mode === 'guest' && !net.hostHere);
+            roll.textContent = net.mode === 'local' ? `${state.n[state.turn]}, lempar dadu!` : 'Lempar dadu';
+            let line = '';
+            if (state.phase === 'lobby') line = net.mode === 'host' ? 'Bagikan kode ruangan ke pasanganmu.' : 'Menunggu pembuat ruangan memulai…';
+            else if (state.phase === 'roll') line = myTurn ? (net.mode === 'local' ? '' : 'Giliranmu melempar dadu 🎲') : `Giliran ${state.n[state.turn]} melempar dadu`;
+            else if (state.phase === 'done') line = 'Perjalanan selesai ❤️';
+            $('#turnLine').textContent = line;
+
+            const sc = scores(state);
+            $('#meters').replaceChildren(...METERS.map(([k, ic, label]) => h('div', { class: 'meter', title: label },
+                h('span', { text: ic }), h('div', { class: 'bar' }, h('span', { style: `width:${sc[k]}%` })), h('b', { text: sc[k] }))));
+
+            renderOverlay();
+        }
+
+        function cardHead(c, extra) {
+            const cat = CATS[c.c];
+            return h('div', { class: 'head', style: `background:${cat.color}` },
+                h('span', { class: 'ic', text: cat.icon }),
+                h('div', {}, h('div', { class: 'kind', text: cat.label }), h('small', { text: extra })));
+        }
+
+        function fill(text, c) {
+            const who = state.card ? state.card.who : 0;
+            return text.replaceAll('{A}', state.n[who]).replaceAll('{B}', state.n[1 - who]);
+        }
+
+        function optionLabel(c, v) { return c.t === 'talk' ? 'Sudah bercerita' : c.t === 'write' ? v : c.o[v]; }
+
+        function renderOverlay() {
+            const ov = $('#overlay');
+            if (animating) { ov.hidden = true; return; }
+            if (state.phase === 'lobby') return renderLobbyOverlay(ov);
+            if (state.phase === 'done') return renderEnd(ov);
+            if (!state.card || !['card', 'joint', 'reveal'].includes(state.phase)) { ov.hidden = true; ov.replaceChildren(); return; }
+            const c = CARD[state.card.id];
+            const tileInfo = state.card.k === 'ladder' ? `Kotak ${state.card.tile} · samakan jawaban untuk naik ke ${LADDERS[state.card.tile]}`
+                : state.card.k === 'snake' ? `Kotak ${state.card.tile} · beda jawaban turun ke ${SNAKES[state.card.tile]}`
+                    : `Kotak ${state.card.tile} · ${CHAPTERS[chapterOf(state.card.tile) - 1].name}`;
+            const body = h('div', { class: 'body' });
+            const view = h('div', { class: 'cardv', role: 'dialog', 'aria-modal': 'true' }, cardHead(c, tileInfo), body);
+            if (state.phase === 'card') renderAnswering(c, body);
+            else if (state.phase === 'joint') renderJoint(c, body);
+            else renderReveal(c, body);
+            ov.replaceChildren(view);
+            ov.hidden = false;
+        }
+
+        function questionFor(c, who) {
+            if (c.t === 'guess') return who === state.card.who ? c.q : fill(c.g, c);
+            return c.q;
+        }
+
+        function answerControls(c, who, body, both) {
+            const send = v => {
+                chime([660, 880], 0.07);
+                act({ k: 'ans', v, both }, who);
+                localView = null;
+            };
+            if (c.t === 'talk') {
+                body.append(h('p', { class: 'hint', text: 'Ceritakan bergantian. Tidak ada jawaban benar atau salah.' }),
+                    h('button', { class: 'btn primary', onclick: () => send(true) }, both ? 'Sudah kami ceritakan ✓' : 'Aku sudah bercerita ✓'));
+                return;
+            }
+            if (c.t === 'write') {
+                const ta = h('textarea', { maxlength: 120, id: 'writeBox', placeholder: 'Tulis dari hati…' });
+                body.append(ta, h('p', { class: 'hint', text: 'Disimpan ke Cerita Kita. Maksimal 120 karakter.' }),
+                    h('button', { class: 'btn primary', onclick: () => { const v = clean(ta.value, 120); if (v) send(v); else toast('Tulis sesuatu dulu ya'); } }, 'Simpan suratku'));
+                return;
+            }
+            if (c.t === 'guess') body.append(h('p', { class: 'hint', text: who === state.card.who ? 'Jawab tentang dirimu sendiri.' : 'Tebak jawaban pasanganmu.' }));
+            else if (c.t === 'event') body.append(h('p', { class: 'hint', text: 'Pilih yang paling mungkin kamu lakukan, dengan jujur.' }));
+            else body.append(h('p', { class: 'hint', text: 'Jawab secara rahasia. Jawaban dibuka bersamaan.' }));
+            body.append(h('div', { class: 'opts' }, c.o.map((o, i) => h('button', { class: 'opt', onclick: () => send(i) }, o))));
+        }
+
+        function renderAnswering(c, body) {
+            const names = state.n;
+            if (net.mode === 'local') {
+                if (c.t === 'talk') {
+                    body.append(h('p', { class: 'q', text: c.q }));
+                    answerControls(c, 0, body, true);
+                    return;
+                }
+                // Secret answers on one device: one player at a time
+                const first = c.t === 'guess' ? state.card.who : state.turn;
+                const order = [first, 1 - first];
+                const next = order.find(i => state.ans[i] === null);
+                if (localView !== next) {
+                    body.append(h('div', { class: 'privacy' },
+                        h('div', { class: 'big', text: '🙈' }),
+                        h('p', { class: 'q', text: `Giliran ${names[next]} menjawab` }),
+                        h('p', { class: 'hint', text: `${names[1 - next]}, jangan intip dulu ya! Serahkan HP ke ${names[next]}.` }),
+                        h('button', { class: 'btn primary', onclick: () => { localView = next; renderOverlay(); } }, `Aku ${names[next]}, tampilkan pertanyaan`)));
+                    return;
+                }
+                body.append(h('p', { class: 'q', text: questionFor(c, next) }));
+                answerControls(c, next, body, false);
+                return;
+            }
+            const me = myIndex(), other = 1 - me;
+            body.append(h('p', { class: 'q', text: questionFor(c, me) }));
+            const waitingConfirm = net.mode === 'guest' && net.pendingQ > state.ack;
+            if (state.ans[me] === null && !waitingConfirm) answerControls(c, me, body, false);
+            body.append(h('div', { class: 'waiting' },
+                h('span', { class: state.ans[me] !== null || waitingConfirm ? 'ok' : 'wait', text: state.ans[me] !== null || waitingConfirm ? '✓ Jawabanmu terkirim' : '… Kamu belum menjawab' }),
+                h('span', { class: state.ans[other] !== null ? 'ok' : 'wait', text: state.ans[other] !== null ? `✓ ${names[other]} sudah menjawab` : `… Menunggu ${names[other]}` })));
+        }
+
+        function renderJoint(c, body) {
+            const n = state.n;
+            body.append(h('p', { class: 'q', text: c.q }),
+                h('div', { class: 'answers' },
+                    h('div', { class: 'ans' }, h('small', { style: 'color:var(--p0)', text: n[0] }), h('span', { text: c.o[state.ans[0]] })),
+                    h('div', { class: 'ans' }, h('small', { style: 'color:var(--p1)', text: n[1] }), h('span', { text: c.o[state.ans[1]] }))),
+                h('div', { class: 'verdict diff' }, '💬 Beda pilihan!', h('small', { text: 'Diskusikan alasan masing-masing, lalu pilih satu keputusan bersama.' })));
+            if (net.mode === 'local') {
+                body.append(h('div', { class: 'opts' }, c.o.map((o, i) => h('button', { class: 'opt', onclick: () => { chime([523, 784], 0.1); act({ k: 'joint', v: i, both: true }, 0); } }, `Kami sepakat: ${o}`))));
+                return;
+            }
+            const me = myIndex(), other = 1 - me;
+            body.append(h('div', { class: 'opts' }, c.o.map((o, i) => h('button', { class: 'opt' + (state.jt[me] === i ? ' sel' : ''), onclick: () => act({ k: 'joint', v: i }) }, o))));
+            const theirs = state.jt[other];
+            body.append(h('div', { class: 'waiting' }, h('span', { class: theirs !== null ? 'ok' : 'wait', text: theirs !== null ? `${n[other]} memilih: ${c.o[theirs]}` : `… ${n[other]} belum memilih` }),
+                state.jt[me] !== null && theirs !== null && state.jt[me] !== theirs ? h('span', { class: 'wait', text: 'Pilihan kalian masih berbeda. Ngobrol dulu, lalu samakan.' }) : null));
+        }
+
+        function renderReveal(c, body) {
+            const n = state.n, r = state.res || {};
+            body.append(h('p', { class: 'q', text: c.t === 'guess' ? fill(c.g, c) : c.q }));
+            if (c.t !== 'talk') {
+                const lab = i => c.t === 'guess' ? (i === state.card.who ? `${n[i]} menjawab` : `${n[i]} menebak`) : n[i];
+                body.append(h('div', { class: 'answers' }, [0, 1].map(i => h('div', { class: 'ans' },
+                    h('small', { style: `color:var(--p${i})`, text: lab(i) }), h('span', { text: optionLabel(c, state.ans[i]) })))));
+            }
+            let v;
+            if (state.card.k === 'ladder') v = r.match ? ['match', `🪜 Kompak! Naik ke kotak ${r.go}`, 'Komunikasi kalian makin lancar.'] : ['diff', 'Belum sama, tetap di sini', 'Ceritakan alasan pilihan masing-masing.'];
+            else if (state.card.k === 'snake') v = r.match ? ['good', '🛡️ Kalian kompak, terhindar dari salah paham!', 'Rasa percaya kalian bertambah.'] : ['diff', `🐍 Salah paham! Turun ke kotak ${r.go}`, 'Bicarakan pelan-pelan, pasti ketemu jalan tengahnya.'];
+            else if (c.t === 'talk') v = ['good', '💬 Terima kasih sudah bercerita', 'Connection kalian bertambah.'];
+            else if (c.t === 'write') v = ['match', '💌 Surat disimpan ke Cerita Kita', 'Baca lagi saat perjalanan selesai.'];
+            else if (c.t === 'guess') v = r.match ? ['match', '🎯 Tebakan tepat!', 'Kamu kenal pasanganmu dengan baik.'] : ['diff', 'Hampir! Sekarang kamu jadi tahu 😄', 'Tanyakan cerita di balik jawabannya.'];
+            else if (c.t === 'decide') v = r.match ? ['match', '❤️ Same Vision!', 'Kalian langsung sepakat.'] : ['good', `🤝 Keputusan bersama: ${c.o[r.agreed]}`, 'Hebat, kalian berhasil sepakat setelah berdiskusi.'];
+            else if (c.t === 'event') {
+                const fmt = x => (x > 0 ? '+' : '') + x;
+                v = [r.match ? 'match' : 'diff', r.match ? '❤️ Pilihan kalian sama!' : '💬 Cara kalian menghadapi ini berbeda', `Komunikasi ${fmt(r.fx[0])} · Kepercayaan ${fmt(r.fx[1])}`];
+            } else v = r.match ? ['match', '❤️ MATCH! Kalian kompak', 'Compatibility bertambah.'] : ['diff', '💬 Beda pandangan', 'Bukan soal benar atau salah. Yuk ceritakan alasannya!'];
+            body.append(h('div', { class: 'verdict ' + v[0] }, v[1], h('small', { text: v[2] })));
+            if (v[0] === 'match') chime([659, 784, 988], 0.09);
+            body.append(h('button', { class: 'btn primary', onclick: () => act({ k: 'next' }, 0) }, 'Lanjut'));
+        }
+
+        function renderLobbyOverlay(ov) {
+            const body = h('div', { class: 'body' });
+            if (net.mode === 'host') {
+                body.append(h('p', { class: 'hint', text: 'Kode ruangan kalian:' }), h('div', { class: 'code', text: net.code }),
+                    h('p', { class: 'hint', text: 'Minta pasanganmu membuka LADAGO dari link yang sama, pilih Gabung, lalu masukkan kode ini.' }),
+                    h('div', { class: 'waiting' }, h('span', { class: net.partnerHere ? 'ok' : 'wait', text: net.partnerHere ? `✓ ${state.n[1]} sudah bergabung` : '… Menunggu pasangan bergabung' })),
+                    h('button', { class: 'btn primary', disabled: !net.partnerHere, onclick: () => { state.phase = 'roll'; afterChange(); } }, 'Mulai perjalanan'));
+            } else {
+                body.append(h('p', { class: 'q', text: `Terhubung dengan ${state.n[0]} 💞` }), h('p', { class: 'hint', text: `Menunggu ${state.n[0]} memulai perjalanan…` }));
+            }
+            ov.replaceChildren(h('div', { class: 'cardv', role: 'dialog' }, h('div', { class: 'head', style: 'background:var(--rose)' }, h('span', { class: 'ic', text: '💞' }), h('div', {}, h('div', { class: 'kind', text: 'Ruang tunggu' }), h('small', { text: 'LADAGO online' }))), body));
+            ov.hidden = false;
+        }
+
+        function bestOf(sc) { return Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0]; }
+        function worstOf(sc) { return Object.entries(sc).sort((a, b) => a[1] - b[1])[0][0]; }
+
+        let savedGid = store.get('ladago.savedGids', []);
+        function renderEnd(ov) {
+            const sc = scores(state), best = bestOf(sc), worst = worstOf(sc), prof = PROFILES[best];
+            if (!savedGid.includes(state.gid)) {
+                savedGid.push(state.gid); savedGid = savedGid.slice(-30); store.set('ladago.savedGids', savedGid);
+                const list = store.get('ladago.story', []);
+                list.push({ at: Date.now(), names: state.n, sc, profile: prof.title, mem: state.mem });
+                store.set('ladago.story', list.slice(-30));
+                chime([523, 659, 784, 1046, 1318], 0.12);
+            }
+            const body = h('div', { class: 'body' },
+                h('div', { class: 'profile' }, h('span', { class: 'hint', text: 'Profil pasangan kalian' }), h('b', { text: prof.title }), h('span', { text: prof.text })),
+                h('div', { class: 'meters' }, METERS.map(([k, ic, label]) => h('div', { class: 'meter' }, h('span', { text: ic }),
+                    h('div', {}, h('div', { style: 'font-size:12px;font-weight:700', text: label }), h('div', { class: 'bar' }, h('span', { style: `width:${sc[k]}%` }))), h('b', { text: sc[k] })))),
+                worst !== best ? h('div', { class: 'verdict diff' }, 'Ruang tumbuh kalian', h('small', { text: GROWTH[worst] })) : null,
+                state.mem.length ? h('div', { class: 'answers' }, h('p', { class: 'section-title', text: 'Surat masa depan' }),
+                    state.mem.map(m => h('div', { class: 'mem' }, h('small', { text: CARD[m[0]] ? CARD[m[0]].q : '💌' }), `${state.n[0]}: ${m[1]}`, h('br'), `${state.n[1]}: ${m[2]}`))) : null,
+                h('p', { class: 'hint', text: `${state.st.cards} kartu dijawab bersama. Tersimpan di Cerita Kita.` }),
+                h('div', { class: 'row' },
+                    net.mode === 'guest' ? h('span', { class: 'hint', text: `Menunggu ${state.n[0]} memulai lagi…` }) : h('button', { class: 'btn primary', onclick: () => act({ k: 'again' }, 0) }, 'Main lagi'),
+                    h('button', { class: 'btn', onclick: leave }, 'Ke lobi')));
+            ov.replaceChildren(h('div', { class: 'cardv endv', role: 'dialog' },
+                h('div', { class: 'head' }, h('span', { class: 'ic', text: '❤️' }), h('div', { class: 'kind', text: 'COUPLE JOURNEY COMPLETE' }), h('small', { text: `${state.n[0]} & ${state.n[1]}` })), body));
+            ov.hidden = false;
+        }
+
+        function leave() {
+            if (net.mode === 'local') store.del('ladago.local');
+            location.reload();
+        }
+
+        // ---------- Boot ----------
+        $('#rollBtn').addEventListener('click', () => { chime([392], 0.05); act({ k: 'roll' }, state.turn); });
+        $('#leaveBtn').addEventListener('click', leave);
+        $('#startLocal').addEventListener('click', startLocal);
+        const names = store.get('ladago.localNames', null);
+        if (names) { $('#nameA').value = names[0]; $('#nameB').value = names[1]; }
+        const resumeLocal = store.get('ladago.local', null);
+        if (resumeLocal && resumeLocal.v === 1 && resumeLocal.phase !== 'done') {
+            const btn = h('button', { class: 'btn small', onclick: () => { net.mode = 'local'; state = resumeLocal; lastMove = state.mv ? state.mv.id : 0; shownPos = state.pos; showGame(); } },
+                `Lanjutkan ${resumeLocal.n[0]} & ${resumeLocal.n[1]} (kotak ${resumeLocal.pos})`);
+            $('#startLocal').after(btn);
+        }
+        renderStory();
+        (async () => {
+            let room = null;
+            try { room = window.claude && window.claude.use ? await window.claude.use('room') : null; } catch (e) { room = null; }
+            net.room = room;
+            renderOnline(!!room);
+        })();
+        window.ladago = { get state() { return state; }, net };
+    </script>
+</body>
+
+</html>
