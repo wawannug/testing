@@ -25,6 +25,13 @@ Game peternakan mungil 3D bergaya lembut dan membulat, terinspirasi dari Stardew
   - 🐑 Domba: Wolly (jantan) dan Kapas (betina)
 - 🐱 🐶 Hewan peliharaan: Oyen si kucing oren dan Bruno si anjing yang suka mengikutimu
 
+## Karakter, simpan, dan main berdua
+- **Pilih petani** sebelum main: nama, laki-laki atau perempuan, dan warna baju.
+- **Progres tersimpan otomatis** setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga. Layar awal menawarkan **Lanjutkan Hari X** atau **Farm baru**.
+- **Main berdua online:** satu orang memilih *Buat farm online* dan mendapat kode 4 huruf, temannya memilih *Gabung*. Kalian bermain bersama di farm milik pembuat: hewan, waktu, inventori, dan uang dipakai bersama. Aksi teman (mengelus, memerah, menjual) tampil di kedua layar, dan saat salah satu tidur, hari berganti untuk berdua. Progres disimpan di perangkat pembuat farm.
+  - Di link claude.ai: memakai fitur ruangan real-time milik artifact. Keduanya harus login, dan link harus sudah dibagikan ke teman.
+  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Ketuk badge kode untuk menyalin link undangan.
+
 ## Cara main
 | Kontrol | Aksi |
 | --- | --- |

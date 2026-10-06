@@ -225,10 +225,51 @@
         .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
         .btn.big { font-size: 20px; padding: 10px 22px; background: #ffe08a; }
+        .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+        /* Title: the farmer stands on the left in 3D, the creator card sits on the right */
+        #startScreen { background: linear-gradient(90deg, rgba(30, 50, 20, 0) 30%, rgba(30, 50, 20, .35)); justify-content: flex-end; }
+        #startScreen .card { max-width: 440px; text-align: left; max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+        #startScreen .card h1 { text-align: center; }
+        .sect { display: flex; flex-direction: column; gap: 8px; border-top: 2px dashed #e1c99a; padding-top: 10px; }
+        .sect > b { font-size: 14px; letter-spacing: .04em; }
+        .pick { display: flex; gap: 8px; }
+        .pick .btn { flex: 1; font-size: 16px; }
+        .pick .btn.on { background: #ffe08a; box-shadow: 0 3px 0 var(--wood-dark), 0 0 0 3px var(--green) inset; }
+        .shirts { display: flex; gap: 8px; flex-wrap: wrap; }
+        .shirts button { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--wood); cursor: pointer; padding: 0; }
+        .shirts button.on { box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--green); }
+        .namein, .codein { width: 100%; font: inherit; font-weight: 600; padding: 8px 12px; border: 3px solid var(--wood); border-radius: 10px; background: #fff; color: var(--ink); }
+        .codein { text-transform: uppercase; letter-spacing: 4px; flex: 1 1 90px; }
+        .row2 { display: flex; gap: 8px; flex-wrap: wrap; }
+        .row2 .btn { flex: 1 1 auto; }
+        .saveinfo { font-size: 14px; font-weight: 600; }
+        .small-note { font-size: 12.5px; opacity: .8; margin: 0; }
+        .warn { font-size: 13px; color: #8a3a12; font-weight: 600; margin: 0; }
+
+        #netBadge {
+            position: fixed;
+            top: 150px;
+            left: 12px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            max-width: 240px;
+            cursor: pointer;
+            display: none;
+        }
+        #netBadge b { font-family: inherit; letter-spacing: 2px; }
+        #saveFlag { position: fixed; right: 14px; top: 62px; font-size: 13px; font-weight: 700; opacity: 0; transition: opacity .4s; color: var(--ink); text-shadow: 0 1px 0 #fff; }
+        #saveFlag.show { opacity: 1; }
         .btn.danger { background: #ffd2c8; font-size: 14px; }
 
         /* Touch controls */
         #joy, #actBtn { display: none; }
+
+        @media (max-width: 760px) {
+            #startScreen { align-items: flex-end; background: linear-gradient(180deg, rgba(30, 50, 20, 0) 25%, rgba(30, 50, 20, .35)); padding-top: 42vh; }
+            #startScreen .card { max-width: none; }
+        }
 
         @media (pointer: coarse) {
             #joy {
@@ -298,6 +339,7 @@
 
     <div id="topRight">
         <a class="btn" id="menuBtn" href="../../index.html" title="Kembali ke menu">☰ Menu</a>
+        <button class="btn" id="saveBtn" title="Simpan progres">💾</button>
         <button class="btn" id="helpBtn" title="Bantuan">?</button>
     </div>
 
@@ -309,22 +351,33 @@
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
 
+    <div id="netBadge" class="panel" title="Ketuk untuk menyalin kode"></div>
+    <div id="saveFlag">💾 Tersimpan</div>
+
     <div id="startScreen" class="overlay">
         <div class="card panel">
             <h1>Farmora</h1>
-            <p>Peternakan mungilmu sudah menunggu. Rawat hewan-hewanmu, kumpulkan hasilnya, lalu jual di kotak pengiriman.</p>
-            <table>
-                <tr class="desktop-only"><td>WASD / ← ↑ → ↓</td><td>Berjalan (Shift = lari)</td></tr>
-                <tr class="desktop-only"><td>E / Spasi</td><td>Elus hewan · ambil hasil · jual · tidur</td></tr>
-                <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
-                <tr><td>🐔 🐄 🐐 🐑</td><td>Elus setiap hari agar makin sayang ❤</td></tr>
-                <tr><td>📦</td><td>Kotak pengiriman di dekat rumah</td></tr>
-                <tr><td>🚪</td><td>Pintu rumah untuk tidur ke hari berikutnya</td></tr>
-            </table>
-            <div class="row">
-                <button class="btn big" id="startBtn">Mulai Bermain</button>
-                <a class="btn" href="../../index.html">Kembali ke menu</a>
+            <p style="margin:0;text-align:center">Peternakan mungilmu sudah menunggu. Siapkan petanimu dulu.</p>
+            <div class="sect">
+                <b>Petanimu</b>
+                <input class="namein" id="nameIn" maxlength="14" placeholder="Nama petani">
+                <div class="pick" id="genderPick">
+                    <button class="btn" data-g="m">👨‍🌾 Laki-laki</button>
+                    <button class="btn" data-g="f">👩‍🌾 Perempuan</button>
+                </div>
+                <div class="shirts" id="shirtPick" aria-label="Warna baju"></div>
             </div>
+            <div class="sect">
+                <b>Main sendiri</b>
+                <span class="saveinfo" id="saveInfo"></span>
+                <div class="row2" id="soloBtns"></div>
+            </div>
+            <div class="sect">
+                <b>Main berdua online 👫</b>
+                <p class="small-note">Satu orang membuat farm online, temannya bergabung dengan kode. Kalian bermain di farm milik pembuat, dan progresnya tersimpan di perangkat pembuat.</p>
+                <div id="onlineBox"></div>
+            </div>
+            <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
         </div>
     </div>
 
@@ -342,7 +395,7 @@
                 <tr><td>🍼 Susu Kambing</td><td>225 G</td></tr>
                 <tr><td>🧶 Wol</td><td>340 G</td></tr>
             </table>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis saat tidur dan berjualan.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis setiap 20 detik, saat tidur, dan saat berjualan. Tombol 💾 menyimpan saat itu juga.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
                 <button class="btn danger" id="resetBtn">Mulai ulang</button>
@@ -1235,25 +1288,45 @@
             dog: n => `${n} menggoyangkan ekornya! Guk! 🐶`,
         };
 
-        // ---------- Player ----------
-        const player = (() => {
-            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-            const overalls = 0x3f6fb5, shirt = 0xd9534a, hair = 0x5b3a1e;
+        // ---------- Farmers (you and, online, your friend) ----------
+        const SHIRTS = [0xd9534a, 0x3f8fd6, 0x4caf6a, 0xf2b33d, 0xb06fd8, 0xf27ba5];
+        function buildFarmer(f, look) {
+            const g = f.group;
+            while (g.children.length) g.remove(g.children[0]);
+            const body = new THREE.Group(); g.add(body);
+            const shirt = SHIRTS[look.c] ?? SHIRTS[0], girl = look.g === 'f';
+            const hair = girl ? 0x6b3a1e : 0x5b3a1e, overalls = 0x3f6fb5;
             blob(g, 0.8, 0.8);
-            const legs = [limb(g, 0.12, 0.76, 0, 0.19, 0.76, overalls), limb(g, -0.12, 0.76, 0, 0.19, 0.76, overalls)];
-            for (const l of legs) ball(0.11, 0.07, 0.16, 0x5b3a1e, 0, -0.72, 0.04, l);
-            ball(0.27, 0.34, 0.2, shirt, 0, 1.1, 0, body);
-            ball(0.255, 0.22, 0.19, overalls, 0, 0.95, 0.012, body);
-            box(0.3, 0.2, 0.05, overalls, 0, 1.16, 0.17, body);
-            for (const sx of [1, -1]) {
-                box(0.06, 0.32, 0.05, overalls, 0.14 * sx, 1.28, 0.15, body).rotation.x = -0.2;
-                ball(0.025, 0.025, 0.012, 0xf2c94c, 0.14 * sx, 1.18, 0.2, body).material = glossy(0xf2c94c);
+            let legs;
+            if (girl) {
+                legs = [limb(g, 0.1, 0.74, 0, 0.14, 0.74, C.skin), limb(g, -0.1, 0.74, 0, 0.14, 0.74, C.skin)];
+                for (const l of legs) ball(0.095, 0.07, 0.15, 0xc0504d, 0, -0.72, 0.04, l);
+                ball(0.245, 0.32, 0.19, shirt, 0, 1.13, 0, body);
+                const skirt = mesh(new THREE.CylinderGeometry(0.22, 0.4, 0.5, 28), mat(shirt), body); skirt.position.y = 0.82;
+                box(0.26, 0.4, 0.04, 0xfff6e8, 0, 0.9, 0.24, body).rotation.x = -0.18;
+                ball(0.17, 0.05, 0.13, 0xfff6e8, 0, 1.42, 0.05, body);
+            } else {
+                legs = [limb(g, 0.12, 0.76, 0, 0.19, 0.76, overalls), limb(g, -0.12, 0.76, 0, 0.19, 0.76, overalls)];
+                for (const l of legs) ball(0.11, 0.07, 0.16, 0x5b3a1e, 0, -0.72, 0.04, l);
+                ball(0.27, 0.34, 0.2, shirt, 0, 1.1, 0, body);
+                ball(0.255, 0.22, 0.19, overalls, 0, 0.95, 0.012, body);
+                box(0.3, 0.2, 0.05, overalls, 0, 1.16, 0.17, body);
+                for (const sx of [1, -1]) {
+                    box(0.06, 0.32, 0.05, overalls, 0.14 * sx, 1.28, 0.15, body).rotation.x = -0.2;
+                    ball(0.025, 0.025, 0.012, 0xf2c94c, 0.14 * sx, 1.18, 0.2, body).material = glossy(0xf2c94c);
+                }
             }
-            const arms = [limb(body, 0.31, 1.36, 0, 0.13, 0.55, shirt), limb(body, -0.31, 1.36, 0, 0.13, 0.55, shirt)];
-            for (const a of arms) ball(0.075, 0.075, 0.075, C.skin, 0, -0.57, 0, a);
+            const armX = girl ? 0.29 : 0.31;
+            const arms = [limb(body, armX, 1.36, 0, 0.12, 0.55, shirt), limb(body, -armX, 1.36, 0, 0.12, 0.55, shirt)];
+            for (const a of arms) ball(0.07, 0.07, 0.07, C.skin, 0, -0.57, 0, a);
             const head = new THREE.Group(); head.position.set(0, 1.66, 0); body.add(head);
             ball(0.23, 0.23, 0.22, C.skin, 0, 0, 0, head);
             ball(0.245, 0.17, 0.23, hair, 0, 0.07, -0.05, head);
+            if (girl) {
+                ball(0.23, 0.33, 0.14, hair, 0, -0.14, -0.13, head);           // long hair down the back
+                for (const sx of [1, -1]) ball(0.07, 0.2, 0.08, hair, 0.2 * sx, -0.1, 0.02, head);
+                ball(0.2, 0.07, 0.1, hair, 0, 0.14, 0.15, head);               // bangs
+            }
             ball(0.05, 0.05, 0.05, C.skin, 0.225, -0.01, 0, head);
             ball(0.05, 0.05, 0.05, C.skin, -0.225, -0.01, 0, head);
             const eyes = [eye(head, 0.08, 0.0, 0.195, 0.032), eye(head, -0.08, 0.0, 0.195, 0.032)];
@@ -1262,11 +1335,49 @@
             ball(0.025, 0.02, 0.02, 0xe8a882, 0, -0.04, 0.22, head);
             const brim = mesh(new THREE.CylinderGeometry(0.43, 0.45, 0.04, 32), mat(C.straw), head); brim.position.y = 0.17;
             const crown = mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.2, 32), mat(C.straw), head); crown.position.y = 0.28;
-            const band = mesh(new THREE.CylinderGeometry(0.245, 0.25, 0.05, 32), mat(C.red), head); band.position.y = 0.21;
-            g.position.set(-10, 0, -8);
-            scene.add(g);
-            return { group: g, body, legs, arms, head, eyes, pos: g.position, heading: Math.PI, phase: 0 };
-        })();
+            const band = mesh(new THREE.CylinderGeometry(0.245, 0.25, 0.05, 32), mat(girl ? 0xf27ba5 : C.red), head); band.position.y = 0.21;
+            if (girl) {
+                for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; ball(0.045, 0.045, 0.02, 0xff8fb8, 0.2 + Math.cos(a) * 0.05, 0.25 + Math.sin(a) * 0.05, 0.12, head); }
+                ball(0.03, 0.03, 0.025, 0xffd34d, 0.2, 0.25, 0.135, head);
+            }
+            Object.assign(f, { body, legs, arms, head, eyes });
+        }
+        function makeFarmer(look) {
+            const f = { group: new THREE.Group(), heading: Math.PI, phase: 0 };
+            f.pos = f.group.position;
+            buildFarmer(f, look);
+            scene.add(f.group);
+            return f;
+        }
+        function animateFarmer(f, moving, dt) {
+            const swing = moving ? Math.sin(f.phase) * 0.7 : 0;
+            const k = Math.min(1, dt * 14);
+            f.legs[0].rotation.x = lerp(f.legs[0].rotation.x, swing, k);
+            f.legs[1].rotation.x = lerp(f.legs[1].rotation.x, -swing, k);
+            f.arms[0].rotation.x = lerp(f.arms[0].rotation.x, -swing * 0.8, k);
+            f.arms[1].rotation.x = lerp(f.arms[1].rotation.x, swing * 0.8, k);
+            f.body.position.y = moving ? Math.abs(Math.sin(f.phase)) * 0.06 : 0;
+            const pb = ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
+            for (const e of f.eyes) e.scale.y = e.scale.x * pb;
+        }
+        function nameTag(text) {
+            const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+            const g = c.getContext('2d');
+            g.font = '700 30px Fredoka, sans-serif';
+            const w = Math.min(240, g.measureText(text).width + 30);
+            g.fillStyle = 'rgba(251,239,208,.95)'; g.strokeStyle = '#8b5a2b'; g.lineWidth = 4;
+            g.beginPath(); g.roundRect((256 - w) / 2, 8, w, 46, 18); g.fill(); g.stroke();
+            g.fillStyle = '#4a2f14'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 128, 32);
+            const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, toneMapped: false }));
+            sp.scale.set(1.8, 0.45, 1);
+            return sp;
+        }
+
+        const LOOK_KEY = 'farmora.look';
+        let look = (() => { try { return { n: '', g: 'm', c: 0, ...JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') }; } catch (e) { return { n: '', g: 'm', c: 0 }; } })();
+        const player = makeFarmer(look);
+        player.pos.set(-10, 0, -8);
 
         // ---------- Game state ----------
         const SAVE_KEY = 'farmora.v1';
@@ -1308,7 +1419,13 @@
         // Older saves may hold animals that no longer exist or males marked as producing.
         for (const d of ANIMAL_DEFS) state.animals[d.name].product &&= !!productOf(d);
         for (const name of Object.keys(state.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete state.animals[name];
-        function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { } }
+        let lastSaved = 0;
+        function save(show) {
+            if (net.mode === 'guest') return; // a guest plays on the host's farm; the host keeps the save
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); lastSaved = Date.now(); } catch (e) { return; }
+            if (show) { const f = document.getElementById('saveFlag'); f.classList.add('show'); clearTimeout(save.t); save.t = setTimeout(() => f.classList.remove('show'), 1500); }
+        }
+        const hadSave = (() => { try { return !!localStorage.getItem(SAVE_KEY) || !!localStorage.getItem(LEGACY_SAVE_KEY); } catch (e) { return false; } })();
 
         // ---------- Animals ----------
         class Animal {
@@ -1348,9 +1465,19 @@
             }
             update(dt, t) {
                 let moving = false, sp = this.speed;
+                if (net.mode === 'guest') {
+                    // the host runs the animals; follow its positions smoothly
+                    if (this.netT) {
+                        const [x, z, hh, m] = this.netT, k = Math.min(1, dt * 8);
+                        this.pos.x = lerp(this.pos.x, x, k); this.pos.z = lerp(this.pos.z, z, k);
+                        this.targetHeading = hh; moving = !!m;
+                    }
+                } else {
                 if (this.kind === 'dog' && this.mode !== 'paused') {
-                    const d = Math.hypot(player.pos.x - this.pos.x, player.pos.z - this.pos.z);
-                    if (d < 14 && d > 2.4) { this.mode = 'follow'; this.target.copy(player.pos); }
+                    let near = player.pos;
+                    if (remote && net.connected && remote.pos.distanceTo(this.pos) < player.pos.distanceTo(this.pos)) near = remote.pos;
+                    const d = Math.hypot(near.x - this.pos.x, near.z - this.pos.z);
+                    if (d < 14 && d > 2.4) { this.mode = 'follow'; this.target.copy(near); }
                     else if (this.mode === 'follow') { this.mode = 'idle'; this.timer = rand(1, 3); }
                 }
                 if (this.mode === 'idle') {
@@ -1375,6 +1502,8 @@
                 else {
                     this.pos.x = clamp(this.pos.x, this.area.minX, this.area.maxX);
                     this.pos.z = clamp(this.pos.z, this.area.minZ, this.area.maxZ);
+                }
+                this.moving = moving;
                 }
                 this.pos.x = clamp(this.pos.x, BOUNDS.minX, BOUNDS.maxX);
                 this.pos.z = clamp(this.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
@@ -1472,7 +1601,7 @@
         // ---------- Interactions ----------
         function interactables() {
             const list = animals.map(a => ({
-                pos: a.pos, reach: a.reach, animal: a,
+                id: 'an:' + a.name, pos: a.pos, reach: a.reach, animal: a,
                 label() {
                     const d = a.data;
                     const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
@@ -1481,44 +1610,39 @@
                     const sex = a.sex === 'm' ? ' jantan ♂' : a.sex === 'f' ? ' betina ♀' : '';
                     return `${a.name} (${a.species}${sex})${hearts}`;
                 },
-                act() {
+                act(who, actorPos) {
                     const d = a.data;
-                    a.pause(2.5, player.pos);
-                    const above = new THREE.Vector3(a.pos.x, a.height, a.pos.z);
+                    a.pause(2.5, actorPos);
+                    const at = [a.pos.x, a.height, a.pos.z];
                     if (!d.petted) {
                         d.petted = true;
                         d.friend = Math.min(500, d.friend + 20);
-                        spawnHearts(above);
-                        chime([660, 880, 990]);
-                        toast(PET_LINES[a.kind](a.name, a.sex));
+                        emitEvent(PET_LINES[a.kind](a.name, a.sex), 'hearts', at, who);
                     } else if (d.product) {
                         d.product = false;
                         const p = PRODUCTS[a.product];
                         state.inv[a.product]++;
-                        spawnIcon(above, p.icon);
-                        chime([523, 784]);
-                        toast(`Dapat ${p.icon} ${p.label} dari ${a.name}!`);
+                        emitEvent(`Dapat ${p.icon} ${p.label} dari ${a.name}!`, 'icon:' + p.icon, at, who);
+                        save();
                     } else {
-                        spawnHearts(above, 1);
-                        toast(`${a.name} sudah senang hari ini ❤`);
+                        emitEvent(`${a.name} sudah senang hari ini ❤`, 'heart1', at, who);
                     }
                 },
             }));
             list.push({
-                pos: BIN, reach: 2.0,
+                id: 'bin', pos: BIN, reach: 2.0,
                 label: () => 'Jual barang di kotak pengiriman',
-                act() {
+                act(who) {
                     let total = 0, count = 0;
                     for (const [k, p] of Object.entries(PRODUCTS)) { total += state.inv[k] * p.price; count += state.inv[k]; state.inv[k] = 0; }
-                    if (!count) { toast('Belum ada barang untuk dijual.'); return; }
+                    if (!count) { emitEvent('Belum ada barang untuk dijual.', 'none', null, who); return; }
                     state.gold += total;
-                    chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
-                    toast(`Terjual ${count} barang · +${total.toLocaleString('id-ID')} G 💰`);
-                    save();
+                    emitEvent(`Terjual ${count} barang · +${total.toLocaleString('id-ID')} G 💰`, 'sell', null, who);
+                    save(true);
                 },
             });
             list.push({
-                pos: HOUSE_DOOR, reach: 1.8,
+                id: 'door', pos: HOUSE_DOOR, reach: 1.8,
                 label: () => state.minutes < 18 * 60 ? 'Tidur (lewati sisa hari)' : 'Tidur',
                 act: () => sleep(false),
             });
@@ -1539,14 +1663,256 @@
         function interact() {
             if (!started || sleeping || !focus) return;
             player.targetHeading = Math.atan2(focus.pos.x - player.pos.x, focus.pos.z - player.pos.z);
-            focus.act();
+            if (net.mode === 'guest') {
+                // the host applies the action on its farm and tells both of us how it went
+                net.myQ++;
+                net.acts.push({ q: net.myQ, id: focus.id });
+                if (net.acts.length > 5) net.acts.shift();
+            } else {
+                focus.act('host', player.pos);
+            }
             lastPrompt = '';
         }
+
+        // Something happened on the farm: shown on both screens, with the actor's name for the other player
+        function emitEvent(text, fx, at, who) {
+            const e = { n: ++net.evN, t: String(text).slice(0, 90), f: fx, at: at ? at.map(v => Math.round(v * 100) / 100) : null, w: who };
+            net.events.push(e);
+            if (net.events.length > 6) net.events.shift();
+            showEvent(e);
+        }
+        function showEvent(e) {
+            const at = e.at ? new THREE.Vector3(e.at[0], e.at[1], e.at[2]) : null;
+            if (e.f === 'hearts' && at) { spawnHearts(at); chime([660, 880, 990]); }
+            else if (e.f === 'heart1' && at) spawnHearts(at, 1);
+            else if (typeof e.f === 'string' && e.f.startsWith('icon:') && at) { spawnIcon(at, e.f.slice(5)); chime([523, 784]); }
+            else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
+            const mine = net.mode === 'solo' || e.w === net.mode;
+            toast(mine ? e.t : `${partnerName()}: ${e.t}`);
+        }
+
+        // ---------- Online for two ----------
+        // Transport: the claude.ai room (presence) inside the viewer, PeerJS data channels on the open web.
+        // Both carry one "latest state" object per player, sent ten times a second.
+        const IN_CLAUDE = !!(window.claude && window.claude.use);
+        const net = { mode: 'solo', code: '', connected: false, partner: null, backend: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, roomOk: null };
+        const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        const makeCode = () => Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+        const PEER_OPTS = (() => {
+            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+            const q = new URLSearchParams(location.search).get('peerhost');
+            if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
+            return o;
+        })();
+        const partnerName = () => (net.partner && net.partner.look && clean(net.partner.look.n)) || 'Teman';
+        const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, '').trim().slice(0, 14);
+        const r2 = v => Math.round(v * 100) / 100;
+
+        if (IN_CLAUDE) window.claude.use('room').then(r => { net.roomOk = !!r; net.roomNs = r; renderOnlineBox(); }).catch(() => { net.roomOk = false; renderOnlineBox(); });
+
+        function renderOnlineBox() {
+            const box = $('onlineBox');
+            if (!box) return;
+            box.replaceChildren();
+            const add = el => (box.append(el), el);
+            const btn = (text, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = text; b.onclick = fn; return b; };
+            if (IN_CLAUDE && net.roomOk === false) {
+                const p = document.createElement('p'); p.className = 'warn';
+                p.textContent = 'Mode online butuh login claude.ai, dan link Farmora harus sudah dibagikan ke temanmu.';
+                add(p); return;
+            }
+            if (IN_CLAUDE && net.roomOk === null) { const p = document.createElement('p'); p.className = 'small-note'; p.textContent = 'Memeriksa koneksi online…'; add(p); return; }
+            const row1 = add(document.createElement('div')); row1.className = 'row2';
+            row1.append(btn('👥 Buat farm online', '', () => goOnline('host')));
+            const row2 = add(document.createElement('div')); row2.className = 'row2';
+            const inp = document.createElement('input'); inp.className = 'codein'; inp.maxLength = 4; inp.placeholder = 'KODE'; inp.id = 'codeIn';
+            inp.value = new URLSearchParams(location.search).get('join') || '';
+            row2.append(inp, btn('Gabung', '', () => goOnline('guest', inp.value)));
+            if (net.error) { const p = document.createElement('p'); p.className = 'warn'; p.textContent = net.error; add(p); }
+        }
+
+        async function goOnline(mode, rawCode) {
+            net.error = '';
+            const code = mode === 'host' ? makeCode() : String(rawCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+            if (code.length !== 4) { net.error = 'Kode farm terdiri dari 4 huruf.'; renderOnlineBox(); return; }
+            net.mode = mode; net.code = code;
+            try {
+                net.backend = IN_CLAUDE ? await roomBackend(code) : await peerBackend(code);
+            } catch (e) {
+                if (mode === 'host' && e && e.type === 'unavailable-id') return goOnline('host');
+                net.mode = 'solo';
+                net.error = 'Gagal tersambung (' + ((e && (e.type || e.code)) || 'jaringan') + '). Coba lagi.';
+                renderOnlineBox(); return;
+            }
+            if (mode === 'guest') {
+                // play on the friend's farm: wait for their world before walking around
+                player.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8);
+                toast('Menyambung ke farm ' + code + '…');
+                setTimeout(() => { if (!net.connected && net.mode === 'guest') toast('Belum tersambung. Pastikan temanmu sudah membuat farm dan halamannya terbuka.'); }, 10000);
+            }
+            startGame(mode);
+            if (mode === 'host') toast(`Farm online dibuat! Bagikan kode ${code} ke temanmu`);
+            setInterval(sendMine, 100);
+            renderBadge();
+        }
+
+        async function roomBackend(code) {
+            const room = net.roomNs || await window.claude.use('room');
+            if (!room) throw { code: 'room' };
+            const r = await room.join('farmora-' + code.toLowerCase());
+            r.onPeers(ch => {
+                const want = net.mode === 'host' ? 'guest' : 'host';
+                const p = ch.peers.find(x => !x.sameTab && x.presence && x.presence.app === 'farmora' && x.presence.role === want);
+                onPartner(p ? p.presence : null);
+            });
+            return { send: o => r.presence(o).catch(() => { }) };
+        }
+
+        function loadPeerJs() {
+            return new Promise((res, rej) => {
+                if (window.Peer) return res();
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
+                sc.onload = () => res(); sc.onerror = () => rej({ type: 'peerjs' });
+                document.head.append(sc);
+            });
+        }
+        async function peerBackend(code) {
+            await loadPeerJs();
+            const id = 'farmora-' + code.toLowerCase();
+            return new Promise((res, rej) => {
+                let conn = null, opened = false;
+                const peer = net.mode === 'host' ? new Peer(id, PEER_OPTS) : new Peer(PEER_OPTS);
+                const wire = c => {
+                    conn = c;
+                    c.on('data', m => { if (m && m.t === 'p') onPartner(m.d); });
+                    c.on('close', () => { if (conn === c) conn = null; onPartner(null); });
+                };
+                peer.on('open', () => {
+                    opened = true;
+                    if (net.mode === 'guest') wire(peer.connect(id, { reliable: true }));
+                    res({ send: o => { if (conn && conn.open) conn.send({ t: 'p', d: o }); } });
+                });
+                peer.on('connection', c => { if (conn && conn.open) { c.close(); return; } wire(c); });
+                peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { } });
+                peer.on('error', e => {
+                    if (!opened) { try { peer.destroy(); } catch (x) { } rej(e); return; }
+                    if (e.type === 'peer-unavailable') toast('Farm dengan kode itu tidak ditemukan. Periksa kodenya.');
+                });
+            });
+        }
+
+        function sendMine() {
+            if (!net.backend) return;
+            const o = { app: 'farmora', v: 1, role: net.mode, look: { n: look.n, g: look.g, c: look.c }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0] };
+            if (net.mode === 'host') {
+                const an = {};
+                for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
+                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, inv: state.inv, an };
+                o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
+                o.ev = net.events;
+                o.ack = net.lastQ;
+            } else {
+                o.acts = net.acts;
+            }
+            net.backend.send(o);
+        }
+
+        function onPartner(o) {
+            const was = net.connected;
+            if (!o || o.app !== 'farmora' || o.v !== 1) {
+                net.connected = false;
+                if (was) toast(`${partnerName()} keluar dari farm`);
+                if (remote) remote.group.visible = false;
+                renderBadge();
+                return;
+            }
+            net.partner = o;
+            net.connected = true;
+            if (!was) {
+                toast(`${partnerName()} ${net.mode === 'host' ? 'bergabung ke farmmu' : 'menyambut kamu di farmnya'} 👋`);
+                if (net.mode === 'guest') { net.myQ = Math.max(net.myQ, o.ack || 0); net.seenEv = Math.max(-1, ...(o.ev || []).map(e => e.n)); }
+            }
+            ensureRemote(o.look);
+            if (Array.isArray(o.p)) remote.netT = o.p.map(Number);
+            if (net.mode === 'host' && Array.isArray(o.acts)) {
+                for (const a of o.acts) {
+                    if (!a || !Number.isInteger(a.q) || a.q <= net.lastQ) continue;
+                    net.lastQ = a.q;
+                    const it = INTERACTABLES.find(x => x.id === a.id);
+                    // check reach against where the guest says they are, not the smoothed avatar
+                    const gx = remote.netT ? remote.netT[0] : remote.pos.x, gz = remote.netT ? remote.netT[1] : remote.pos.z;
+                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act('guest', new THREE.Vector3(gx, 0, gz));
+                }
+            }
+            if (net.mode === 'guest' && o.w) applyWorld(o);
+            renderBadge();
+        }
+
+        function applyWorld(o) {
+            const w = o.w;
+            if (Number.isInteger(w.day) && w.day !== state.day && state.day && started) {
+                // the host slept: show the night falling, then start the new day by the house
+                $('fadeText').textContent = 'Zzz...';
+                $('fade').classList.add('show');
+                setTimeout(() => {
+                    player.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8);
+                    $('fade').classList.remove('show');
+                    toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
+                }, 1200);
+            }
+            if (Number.isInteger(w.day)) state.day = w.day;
+            if (Number.isFinite(w.min)) state.minutes = w.min;
+            if (Number.isFinite(w.gold)) state.gold = w.gold;
+            if (w.inv) for (const k of Object.keys(state.inv)) if (Number.isFinite(w.inv[k])) state.inv[k] = w.inv[k];
+            if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
+            if (Array.isArray(o.a)) o.a.forEach((v, i) => { if (animals[i] && Array.isArray(v)) animals[i].netT = v.map(Number); });
+            if (Array.isArray(o.ev)) for (const e of o.ev) { if (e && e.n > net.seenEv) { net.seenEv = e.n; showEvent(e); } }
+        }
+
+        let remote = null;
+        function ensureRemote(lk) {
+            const l = { n: clean(lk && lk.n) || 'Teman', g: lk && lk.g === 'f' ? 'f' : 'm', c: Number.isInteger(lk && lk.c) && lk.c >= 0 && lk.c < SHIRTS.length ? lk.c : 1 };
+            const key = l.n + l.g + l.c;
+            if (!remote) { remote = makeFarmer(l); remote.blinkSeed = 1.3; remote.pos.set(HOUSE_DOOR.x + 1.5, 0, HOUSE_DOOR.z + 1.8); }
+            if (remote.key !== key) {
+                buildFarmer(remote, l);
+                if (remote.tag) remote.group.remove(remote.tag);
+                remote.tag = nameTag(l.n); remote.tag.position.y = 2.55; remote.group.add(remote.tag);
+                remote.key = key;
+            }
+            remote.group.visible = true;
+        }
+        function updateRemote(dt) {
+            if (!remote || !remote.group.visible || !remote.netT) return;
+            const [x, z, hh, m] = remote.netT, k = Math.min(1, dt * 10);
+            remote.pos.x = lerp(remote.pos.x, x, k); remote.pos.z = lerp(remote.pos.z, z, k);
+            remote.heading = lerpAngle(remote.heading, hh, Math.min(1, dt * 12));
+            remote.group.rotation.y = remote.heading;
+            if (m) remote.phase += dt * 12;
+            animateFarmer(remote, !!m, dt);
+        }
+
+        function renderBadge() {
+            const b = $('netBadge');
+            if (net.mode === 'solo') { b.style.display = 'none'; return; }
+            b.style.display = 'block';
+            b.replaceChildren();
+            const line = (t, strong) => { const d = document.createElement('div'); if (strong) { const s = document.createElement('b'); s.textContent = t; d.append('Kode farm ', s); } else d.textContent = t; b.append(d); };
+            line(net.code, true);
+            line(net.connected ? `🟢 ${partnerName()} online` : net.mode === 'host' ? '⏳ Menunggu teman bergabung' : '⏳ Menyambung…');
+        }
+        $('netBadge').addEventListener('click', () => {
+            const text = IN_CLAUDE ? net.code : location.origin + location.pathname + '?join=' + net.code;
+            if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Disalin: ' + text), () => toast('Kode farm: ' + net.code));
+            else toast('Kode farm: ' + net.code);
+        });
 
         // ---------- Day cycle ----------
         let sleeping = false;
         function sleep(passedOut) {
             if (sleeping) return;
+            if (net.mode === 'guest') return;
             sleeping = true;
             $('fadeText').textContent = passedOut ? 'Kamu pingsan karena kelelahan... 😵' : 'Zzz...';
             $('fade').classList.add('show');
@@ -1561,7 +1927,7 @@
                 state.minutes = 6 * 60;
                 player.pos.set(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.5);
                 player.heading = 0;
-                save();
+                save(true);
                 updateHud();
                 $('fade').classList.remove('show');
                 sleeping = false;
@@ -1644,20 +2010,75 @@
             }
             resetArmed = 0;
             btn.textContent = 'Mulai ulang';
-            try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
-            state = freshState();
-            player.pos.set(-10, 0, -8);
-            lastHud = '';
-            updateHud();
+            if (net.mode === 'guest') { toast('Hanya pembuat farm yang bisa memulai ulang'); return; }
+            resetFarm();
             toggleHelp(false);
             toast('Peternakan dimulai dari awal 🌱');
         });
-        $('startBtn').addEventListener('click', () => {
+        // ---------- Title screen: character creator, save slot, online ----------
+        function renderTitle() {
+            $('nameIn').value = look.n;
+            for (const b of $('genderPick').querySelectorAll('button')) b.classList.toggle('on', b.dataset.g === look.g);
+            $('shirtPick').replaceChildren(...SHIRTS.map((c, i) => {
+                const b = document.createElement('button');
+                b.style.background = '#' + c.toString(16).padStart(6, '0');
+                b.className = look.c === i ? 'on' : '';
+                b.setAttribute('aria-label', 'Warna baju ' + (i + 1));
+                b.onclick = () => { look.c = i; applyLook(); };
+                return b;
+            }));
+            const info = $('saveInfo');
+            const solo = $('soloBtns');
+            solo.replaceChildren();
+            const mk = (text, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = text; b.onclick = fn; solo.append(b); return b; };
+            if (hadSave) {
+                info.textContent = `Farm tersimpan: Hari ${state.day} · ${state.gold.toLocaleString('id-ID')} G`;
+                mk(`▶ Lanjutkan Hari ${state.day}`, 'big', () => startGame('solo'));
+                let armed = 0;
+                const nb = mk('🌱 Farm baru', '', () => {
+                    if (Date.now() - armed > 3000) { armed = Date.now(); nb.textContent = 'Yakin? Progres lama dihapus'; setTimeout(() => nb.textContent = '🌱 Farm baru', 3000); return; }
+                    resetFarm(); startGame('solo');
+                });
+            } else {
+                info.textContent = 'Belum ada farm tersimpan.';
+                mk('🌱 Mulai bermain', 'big', () => startGame('solo'));
+            }
+            renderOnlineBox();
+        }
+        function applyLook() {
+            look.n = ($('nameIn').value || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 14);
+            try { localStorage.setItem(LOOK_KEY, JSON.stringify(look)); } catch (e) { }
+            buildFarmer(player, look);
+            renderTitle();
+        }
+        $('nameIn').addEventListener('change', applyLook);
+        for (const b of $('genderPick').querySelectorAll('button')) b.addEventListener('click', () => { look.g = b.dataset.g; applyLook(); });
+
+        function resetFarm() {
+            try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(LEGACY_SAVE_KEY); } catch (e) { }
+            state = freshState();
+            window.kebun.state = state;
+            player.pos.set(-10, 0, -8);
+            lastHud = '';
+            updateHud();
+        }
+
+        function startGame(mode) {
+            applyLook();
+            if (!look.n) look.n = look.g === 'f' ? 'Petani' : 'Petani';
             $('startScreen').classList.add('hidden');
             started = true;
             chime([523, 659, 784]);
-            toast(state.day > 1 ? `Selamat datang kembali! Hari ${state.day}` : 'Selamat datang di Farmora! 🌾');
+            if (mode === 'solo') toast(state.day > 1 ? `Selamat datang kembali, ${look.n}! Hari ${state.day}` : `Selamat datang di Farmora, ${look.n}! 🌾`);
+            save();
+        }
+
+        $('saveBtn').addEventListener('click', () => {
+            if (net.mode === 'guest') { toast('Progres farm ini tersimpan di perangkat pembuat farm 💾'); return; }
+            save(true); toast('Progres tersimpan 💾');
         });
+        setInterval(() => { if (started && net.mode !== 'guest') save(); }, 20000);
+        window.addEventListener('pagehide', () => { if (started) save(); });
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -1692,17 +2113,11 @@
             resolveCollisions(player.pos, 0.35);
             player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
             player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+            if (!started) player.targetHeading = Math.sin(elapsed * 0.7) * 0.6;
             if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
             player.group.rotation.y = player.heading;
-            const swing = moving ? Math.sin(player.phase) * 0.7 : 0;
-            const k = Math.min(1, dt * 14);
-            player.legs[0].rotation.x = lerp(player.legs[0].rotation.x, swing, k);
-            player.legs[1].rotation.x = lerp(player.legs[1].rotation.x, -swing, k);
-            player.arms[0].rotation.x = lerp(player.arms[0].rotation.x, -swing * 0.8, k);
-            player.arms[1].rotation.x = lerp(player.arms[1].rotation.x, swing * 0.8, k);
-            player.body.position.y = moving ? Math.abs(Math.sin(player.phase)) * 0.06 : 0;
-            const pb = (elapsed % 3.7) < 0.12 ? 0.12 : 1;
-            for (const e of player.eyes) e.scale.y = e.scale.x * pb;
+            player.moving = moving;
+            animateFarmer(player, moving, dt);
         }
 
         function tick() {
@@ -1710,7 +2125,7 @@
             elapsed += dt;
             const helpOpen = !$('helpScreen').classList.contains('hidden');
 
-            if (started && !sleeping && !helpOpen) {
+            if (started && !sleeping && !helpOpen && net.mode !== 'guest') {
                 state.minutes += dt * (10 / 7); // 10 in-game minutes per 7 seconds
                 if (state.minutes >= 26 * 60) sleep(true);
             }
@@ -1718,6 +2133,7 @@
             grassTime.value = elapsed;
             updatePlayer(dt);
             for (const a of animals) a.update(dt, elapsed);
+            updateRemote(dt);
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
@@ -1744,8 +2160,15 @@
             updateHud();
 
             camTarget.lerp(player.pos, Math.min(1, dt * 5));
-            camera.position.set(camTarget.x, camTarget.y + 15 * zoom, camTarget.z + 13.5 * zoom);
-            camera.lookAt(camTarget.x, camTarget.y + 0.8, camTarget.z);
+            if (!started) {
+                // close-up of your farmer while you choose the look
+                const wide = innerWidth > 760;
+                camera.position.set(player.pos.x + (wide ? 1.3 : 0), 2.1, player.pos.z + 4.4);
+                camera.lookAt(player.pos.x + (wide ? 1.3 : 0), wide ? 1.05 : 0.55, player.pos.z);
+            } else {
+                camera.position.set(camTarget.x, camTarget.y + 15 * zoom, camTarget.z + 13.5 * zoom);
+                camera.lookAt(camTarget.x, camTarget.y + 0.8, camTarget.z);
+            }
             sun.position.set(camTarget.x + 14, 24, camTarget.z + 9);
             sun.target.position.copy(camTarget);
 
@@ -1753,7 +2176,8 @@
             requestAnimationFrame(tick);
         }
         camTarget.copy(player.pos);
-        window.kebun = { state, player, animals, camera }; // handy for debugging in the console
+        window.kebun = { state, player, animals, camera, net }; // handy for debugging in the console
+        renderTitle();
         updateHud();
         tick();
     </script>
