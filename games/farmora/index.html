@@ -342,7 +342,7 @@
                 <tr><td>🍼 Susu Kambing</td><td>225 G</td></tr>
                 <tr><td>🧶 Wol</td><td>340 G</td></tr>
             </table>
-            <p style="font-size:13px">Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis saat tidur dan berjualan.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Progres tersimpan otomatis saat tidur dan berjualan.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
                 <button class="btn danger" id="resetBtn">Mulai ulang</button>
@@ -819,8 +819,8 @@
         }
 
         // ---------- Animal models (all face +Z) ----------
-        function makeChicken(variant) {
-            const col = variant === 'brown' ? 0xc0783c : C.white;
+        function makeChicken(variant, sex) {
+            const col = variant === 'brown' ? 0xc0783c : variant === 'rooster' ? 0xd9772b : C.white;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
             box(0.45, 0.4, 0.55, col, 0, 0.45, 0, body);
             box(0.32, 0.32, 0.16, col, 0, 0.62, -0.3, body);
@@ -833,11 +833,22 @@
             box(0.06, 0.09, 0.05, C.red, 0, -0.04, 0.16, head);
             box(0.05, 0.05, 0.05, C.black, 0.14, 0.14, 0.07, head);
             box(0.05, 0.05, 0.05, C.black, -0.14, 0.14, 0.07, head);
+            if (sex === 'm') {
+                box(0.08, 0.22, 0.3, C.red, 0, 0.36, -0.02, head);
+                box(0.07, 0.16, 0.08, C.red, 0, -0.1, 0.16, head);
+                box(0.3, 0.22, 0.3, 0xf2c14e, 0, 0.6, 0.12, body); // golden neck feathers
+                const tailCols = [0x1f4d3a, 0x2b2b2b, 0x1f4d3a, 0xa83226];
+                tailCols.forEach((c, i) => {
+                    const f = box(0.08, 0.5 - i * 0.05, 0.12, c, (i - 1.5) * 0.07, 0.85 - i * 0.04, -0.38 - i * 0.03, body);
+                    f.rotation.x = -0.5 - i * 0.18;
+                });
+                g.scale.setScalar(1.18);
+            }
             const legs = [limb(g, 0.1, 0.26, 0, 0.06, 0.26, C.orange), limb(g, -0.1, 0.26, 0, 0.06, 0.26, C.orange)];
-            return { group: g, body, head, legs, height: 1.05 };
+            return { group: g, body, head, legs, height: sex === 'm' ? 1.3 : 1.05 };
         }
 
-        function makeCow(variant) {
+        function makeCow(variant, sex) {
             const jersey = variant === 'jersey';
             const col = jersey ? 0xb5793f : C.white, spot = jersey ? 0xf3e6cf : C.black;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
@@ -845,7 +856,7 @@
             box(0.92, 0.4, 0.5, spot, 0, 1.2, 0.2, body);
             box(0.92, 0.35, 0.4, spot, 0, 1.0, -0.5, body);
             box(0.5, 0.82, 0.3, spot, 0.1, 1.1, -0.1, body);
-            box(0.32, 0.16, 0.32, C.pink, 0, 0.64, -0.35, body);
+            if (sex !== 'm') box(0.32, 0.16, 0.32, C.pink, 0, 0.64, -0.35, body);
             const tail = new THREE.Group(); tail.position.set(0, 1.4, -0.8); body.add(tail);
             box(0.07, 0.6, 0.07, col, 0, -0.3, -0.02, tail);
             box(0.12, 0.15, 0.12, C.black, 0, -0.62, -0.02, tail);
@@ -856,8 +867,17 @@
             box(0.06, 0.06, 0.04, 0x7a3b3b, -0.12, -0.12, 0.43, head);
             box(0.07, 0.07, 0.04, C.black, 0.2, 0.1, 0.26, head);
             box(0.07, 0.07, 0.04, C.black, -0.2, 0.1, 0.26, head);
-            box(0.08, 0.22, 0.08, C.cream, 0.2, 0.36, -0.05, head);
-            box(0.08, 0.22, 0.08, C.cream, -0.2, 0.36, -0.05, head);
+            if (sex === 'm') {
+                box(0.34, 0.1, 0.1, C.cream, 0.4, 0.3, -0.05, head);
+                box(0.34, 0.1, 0.1, C.cream, -0.4, 0.3, -0.05, head);
+                box(0.1, 0.22, 0.1, C.cream, 0.55, 0.42, -0.05, head);
+                box(0.1, 0.22, 0.1, C.cream, -0.55, 0.42, -0.05, head);
+                box(0.2, 0.05, 0.05, 0xf2c94c, 0, -0.27, 0.44, head); // nose ring
+                box(0.6, 0.25, 0.6, col, 0, 1.55, 0.45, body); // shoulder hump
+            } else {
+                box(0.08, 0.22, 0.08, C.cream, 0.2, 0.36, -0.05, head);
+                box(0.08, 0.22, 0.08, C.cream, -0.2, 0.36, -0.05, head);
+            }
             box(0.25, 0.1, 0.14, col, 0.38, 0.14, -0.05, head);
             box(0.25, 0.1, 0.14, col, -0.38, 0.14, -0.05, head);
             const legs = [
@@ -867,7 +887,7 @@
             return { group: g, body, head, tail, legs, height: 2.0 };
         }
 
-        function makeGoat(variant) {
+        function makeGoat(variant, sex) {
             const col = variant === 'brown' ? 0x9b6b43 : 0xe9e1d2, dark = variant === 'brown' ? 0x5e3d22 : 0xb7a993;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
             box(0.55, 0.55, 1.0, col, 0, 0.85, 0, body);
@@ -877,13 +897,17 @@
             const head = new THREE.Group(); head.position.set(0, 1.18, 0.6); body.add(head);
             box(0.34, 0.38, 0.45, col, 0, 0, 0.05, head);
             box(0.26, 0.2, 0.15, dark, 0, -0.1, 0.32, head);
-            box(0.08, 0.2, 0.06, C.white, 0, -0.3, 0.22, head);
+            if (sex === 'm') box(0.1, 0.34, 0.08, C.white, 0, -0.36, 0.2, head);
             box(0.06, 0.06, 0.04, C.black, 0.15, 0.06, 0.22, head);
             box(0.06, 0.06, 0.04, C.black, -0.15, 0.06, 0.22, head);
             box(0.24, 0.07, 0.11, col, 0.27, 0.08, -0.05, head).rotation.z = -0.3;
             box(0.24, 0.07, 0.11, col, -0.27, 0.08, -0.05, head).rotation.z = 0.3;
-            box(0.06, 0.32, 0.06, 0x8a7a66, 0.09, 0.3, -0.12, head).rotation.x = -0.6;
-            box(0.06, 0.32, 0.06, 0x8a7a66, -0.09, 0.3, -0.12, head).rotation.x = -0.6;
+            const hornLen = sex === 'm' ? 0.55 : 0.2;
+            for (const sx of [1, -1]) {
+                const h = box(0.07, hornLen, 0.07, 0x8a7a66, 0.09 * sx, 0.2 + hornLen / 2, -0.12 - hornLen * 0.3, head);
+                h.rotation.x = sex === 'm' ? -0.9 : -0.5;
+                h.rotation.z = sex === 'm' ? -0.25 * sx : 0;
+            }
             const legs = [
                 limb(g, 0.18, 0.6, 0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, 0.35, 0.12, 0.6, col),
                 limb(g, 0.18, 0.6, -0.35, 0.12, 0.6, col), limb(g, -0.18, 0.6, -0.35, 0.12, 0.6, col),
@@ -891,7 +915,7 @@
             return { group: g, body, head, tail, legs, height: 1.6 };
         }
 
-        function makeSheep() {
+        function makeSheep(variant, sex) {
             const dark = 0x3a3330;
             const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
             const wool = new THREE.Group(); wool.position.set(0, 0.9, 0); body.add(wool);
@@ -911,6 +935,14 @@
                 limb(g, 0.24, 0.56, 0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, 0.33, 0.13, 0.56, dark),
                 limb(g, 0.24, 0.56, -0.33, 0.13, 0.56, dark), limb(g, -0.24, 0.56, -0.33, 0.13, 0.56, dark),
             ];
+            if (sex === 'm') {
+                const horn = 0xc9b28a;
+                for (const sx of [1, -1]) {
+                    box(0.12, 0.3, 0.3, horn, 0.24 * sx, 0.1, -0.05, head);
+                    box(0.12, 0.14, 0.2, horn, 0.26 * sx, -0.08, 0.1, head);
+                    box(0.12, 0.12, 0.12, horn, 0.26 * sx, -0.02, 0.2, head);
+                }
+            }
             return { group: g, body, head, legs, wool, height: 1.6 };
         }
 
@@ -981,7 +1013,7 @@
         };
 
         const PET_LINES = {
-            chicken: n => `${n} berkotek senang!`,
+            chicken: (n, sex) => sex === 'm' ? `${n} berkokok: "Kukuruyuuuk!"` : `${n} berkotek senang!`,
             cow: n => `${n} melenguh "Mooo~" dengan gembira.`,
             goat: n => `${n} mengembik riang, "Mbeee!"`,
             sheep: n => `${n} terasa lembut sekali. "Beee~"`,
@@ -1021,22 +1053,28 @@
         const LEGACY_SAVE_KEY = 'kebunKecil.v1';
         const DAY_NAMES = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
         const ANIMAL_DEFS = [
-            { kind: 'chicken', name: 'Kiki', variant: 'white', area: AREA_CHICKEN },
-            { kind: 'chicken', name: 'Popo', variant: 'brown', area: AREA_CHICKEN },
-            { kind: 'chicken', name: 'Ciko', variant: 'white', area: AREA_CHICKEN },
-            { kind: 'cow', name: 'Mimi', variant: 'holstein', area: AREA_BARN },
-            { kind: 'cow', name: 'Moli', variant: 'jersey', area: AREA_BARN },
-            { kind: 'goat', name: 'Gogo', variant: 'white', area: AREA_BARN },
-            { kind: 'goat', name: 'Bimbi', variant: 'brown', area: AREA_BARN },
-            { kind: 'sheep', name: 'Wolly', area: AREA_BARN },
-            { kind: 'sheep', name: 'Kapas', area: AREA_BARN },
+            { kind: 'chicken', name: 'Jago', sex: 'm', variant: 'rooster', area: AREA_CHICKEN },
+            { kind: 'chicken', name: 'Kiki', sex: 'f', variant: 'white', area: AREA_CHICKEN },
+            { kind: 'cow', name: 'Bento', sex: 'm', variant: 'jersey', area: AREA_BARN },
+            { kind: 'cow', name: 'Mimi', sex: 'f', variant: 'holstein', area: AREA_BARN },
+            { kind: 'goat', name: 'Gogo', sex: 'm', variant: 'brown', area: AREA_BARN },
+            { kind: 'goat', name: 'Bimbi', sex: 'f', variant: 'white', area: AREA_BARN },
+            { kind: 'sheep', name: 'Wolly', sex: 'm', area: AREA_BARN },
+            { kind: 'sheep', name: 'Kapas', sex: 'f', area: AREA_BARN },
             { kind: 'cat', name: 'Oyen', area: AREA_YARD },
             { kind: 'dog', name: 'Bruno', area: AREA_YARD },
         ];
 
+        // Eggs and milk come from females only; both sheep grow wool.
+        const productOf = d => {
+            const p = KIND_INFO[d.kind].product;
+            if (!p) return null;
+            return d.sex === 'f' || p === 'wool' ? p : null;
+        };
+
         function freshState() {
             const animals = {};
-            for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !KIND_INFO[d.kind].pet };
+            for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !!productOf(d) };
             return { day: 1, minutes: 6 * 60, gold: 0, inv: { egg: 0, milk: 0, goatMilk: 0, wool: 0 }, animals };
         }
         let state = freshState();
@@ -1047,13 +1085,17 @@
                 state = { ...base, ...saved, inv: { ...base.inv, ...saved.inv }, animals: { ...base.animals, ...saved.animals } };
             }
         } catch (e) { /* storage unavailable */ }
+        // Older saves may hold animals that no longer exist or males marked as producing.
+        for (const d of ANIMAL_DEFS) state.animals[d.name].product &&= !!productOf(d);
+        for (const name of Object.keys(state.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete state.animals[name];
         function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { } }
 
         // ---------- Animals ----------
         class Animal {
             constructor(def) {
                 Object.assign(this, def, KIND_INFO[def.kind]);
-                Object.assign(this, BUILDERS[def.kind](def.variant));
+                Object.assign(this, BUILDERS[def.kind](def.variant, def.sex));
+                this.product = productOf(def);
                 this.pos = this.group.position;
                 this.pos.set(rand(this.area.minX, this.area.maxX), 0, rand(this.area.minZ, this.area.maxZ));
                 this.heading = rand(0, Math.PI * 2);
@@ -1212,7 +1254,8 @@
                     const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
                     if (!d.petted) return `Elus ${a.name}${hearts}`;
                     if (d.product) return `${a.verb} ${a.name}${hearts}`;
-                    return `${a.name} (${a.species})${hearts}`;
+                    const sex = a.sex === 'm' ? ' jantan ♂' : a.sex === 'f' ? ' betina ♀' : '';
+                    return `${a.name} (${a.species}${sex})${hearts}`;
                 },
                 act() {
                     const d = a.data;
@@ -1223,7 +1266,7 @@
                         d.friend = Math.min(500, d.friend + 20);
                         spawnHearts(above);
                         chime([660, 880, 990]);
-                        toast(PET_LINES[a.kind](a.name));
+                        toast(PET_LINES[a.kind](a.name, a.sex));
                     } else if (d.product) {
                         d.product = false;
                         const p = PRODUCTS[a.product];
@@ -1288,7 +1331,7 @@
                     const d = a.data;
                     if (!a.pet && !d.petted) d.friend = Math.max(0, d.friend - 10);
                     d.petted = false;
-                    if (!a.pet) d.product = true;
+                    d.product = !!a.product;
                 }
                 state.day++;
                 state.minutes = 6 * 60;

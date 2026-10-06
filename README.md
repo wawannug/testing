@@ -16,8 +16,11 @@ Game peternakan mungil 3D low-poly, terinspirasi dari Stardew Valley, Coral Isla
 
 ## Isi peternakan
 - 🏠 Rumah, kotak pengiriman, ladang sayur, kolam, dan orang-orangan sawah
-- 🐔 Kandang ayam: Kiki, Popo, dan Ciko
-- 🐄 🐐 🐑 Lumbung dan padang: sapi (Mimi, Moli), kambing (Gogo, Bimbi), domba (Wolly, Kapas)
+- Sepasang hewan jantan ♂ dan betina ♀ untuk setiap jenis ternak:
+  - 🐔 Ayam: Jago (jantan) dan Kiki (betina), di kandang ayam
+  - 🐄 Sapi: Bento (jantan) dan Mimi (betina), di padang lumbung
+  - 🐐 Kambing: Gogo (jantan) dan Bimbi (betina), di padang lumbung
+  - 🐑 Domba: Wolly (jantan) dan Kapas (betina), di padang lumbung
 - 🐱 🐶 Hewan peliharaan: Oyen si kucing oren dan Bruno si anjing yang suka mengikutimu
 
 ## Cara main
@@ -31,7 +34,7 @@ Game peternakan mungil 3D low-poly, terinspirasi dari Stardew Valley, Coral Isla
 Di HP muncul joystick dan tombol aksi ✋.
 
 - Elus hewan setiap hari agar hatinya (♥) bertambah. Hewan ternak yang tidak dielus seharian akan sedikit sedih.
-- Setiap pagi hewan ternak menghasilkan telur, susu sapi, susu kambing, atau wol. Ikon di atas kepala menandakan hasilnya sudah siap.
+- Setiap pagi ayam, sapi, dan kambing betina menghasilkan telur atau susu, dan kedua domba menghasilkan wol. Hewan jantan tetap bisa dielus. Ikon di atas kepala menandakan hasilnya sudah siap.
 - Jual hasil ternak di kotak pengiriman 📦 di dekat rumah.
 - Masuk ke pintu rumah untuk tidur. Kalau masih di luar sampai pukul 02:00, kamu akan pingsan.
 - Progres tersimpan otomatis di browser.
