@@ -6,6 +6,7 @@ Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` un
 | --- | --- | --- |
 | Farmora | `games/farmora/` | Bisa dimainkan |
 | LADAGO | `games/ladago/` | Bisa dimainkan |
+| Fotoin | `games/fotoin/` | Bisa dipakai |
 
 Untuk menambah game baru, buat folder `games/<nama-game>/index.html`, lalu tambahkan kartunya di `index.html`. Sediakan juga tautan kembali ke `../../index.html`.
 
@@ -62,4 +63,17 @@ Ular tangga 3D kooperatif untuk pasangan: papan klasik 10×10 berisi 100 kotak d
 ## Cara main
 - **Berdua di 1 HP:** jalan di mana saja. Jawaban rahasia diisi bergiliran, dengan layar "jangan intip".
 - **Online berdua:** memakai fitur ruangan real-time milik artifact claude.ai. Satu orang membuat ruangan, pasangannya bergabung dengan kode 4 huruf. Hanya bisa dipakai saat dibuka lewat link claude.ai: kedua pemain harus login, dan link harus sudah dibagikan ke pasangan. Di GitHub Pages, mode ini nonaktif.
+
+---
+
+# Fotoin 📸
+
+Photobooth online di browser.
+
+1. **Pilih bentuk:** Strip 4 (klasik), Strip 3, Kotak 2×2, atau Polaroid. Atur juga hitung mundur (3/5/10 detik) dan jeda antarfoto.
+2. **Masuk booth:** kamera menghitung mundur, ada kilatan flash dan bunyi rana, lalu foto diambil otomatis sampai semua kotak terisi. Ketuk foto kecil untuk mengambil ulang satu foto. Filter bisa dilihat langsung di kamera.
+3. **Hias:** warna bingkai (termasuk warna bebas), motif (polkadot, garis, kotak-kotak, hati), 7 filter, 24 stiker emoji yang bisa digeser, diperbesar, dan diputar, tulisan dengan 3 gaya huruf, tanggal, dan logo.
+4. **Simpan:** unduh PNG resolusi tinggi, bagikan lewat menu share HP (kalau didukung), atau simpan ke galeri di perangkat.
+
+Tanpa kamera, misalnya saat dibuka lewat link claude.ai yang tidak mengizinkan kamera, setiap kotak bisa diisi dengan unggah foto. Di HP, cara ini langsung membuka kamera bawaan.
 

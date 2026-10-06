@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Fotoin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Caveat:wght@700&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Layout: a marquee-lit booth. Home picks a strip layout, the booth shoots, the darkroom decorates and exports. Single deliberate light look. */
+        :root {
+            --paper: #fff3c4;
+            --ink: #1d1a22;
+            --muted: #6a6170;
+            --cherry: #e5372f;
+            --cherry-dark: #a9231c;
+            --bulb: #ffd23f;
+            --booth: #2b2236;
+            --booth-2: #3b2f4a;
+            --card: #ffffff;
+            --line: #eadfb8;
+            --font-display: 'Bungee', 'Arial Black', Impact, sans-serif;
+            --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --font-hand: 'Caveat', 'Comic Sans MS', cursive;
+            color-scheme: light;
+        }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+
+        html, body { min-height: 100%; }
+
+        body {
+            margin: 0;
+            background-color: var(--paper);
+            background-image: radial-gradient(rgba(229, 55, 47, .09) 1.6px, transparent 1.8px);
+            background-size: 18px 18px;
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        button, input, select { font: inherit; color: inherit; }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-inline: 16px;
+            padding-block: 18px 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+        .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 11px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            background: var(--card);
+            color: var(--ink);
+            box-shadow: 0 0 0 2px var(--ink) inset, 0 3px 0 var(--ink);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active { transform: translateY(2px); box-shadow: 0 0 0 2px var(--ink) inset, 0 1px 0 var(--ink); }
+        .btn.primary { background: var(--cherry); color: #fff; }
+        .btn.small { padding: 7px 12px; font-size: 14px; border-radius: 10px; }
+        .btn[disabled] { opacity: .45; cursor: not-allowed; }
+        .btn:focus-visible, .chip:focus-visible, .layout:focus-visible, .sw:focus-visible, .stk:focus-visible, .thumb:focus-visible { outline: 3px solid var(--bulb); outline-offset: 2px; }
+
+        /* Marquee sign */
+        .sign {
+            position: relative;
+            background: var(--cherry);
+            color: #fff;
+            border-radius: 22px;
+            padding: 26px 20px 22px;
+            text-align: center;
+            box-shadow: 0 6px 0 var(--cherry-dark);
+        }
+
+        .sign::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 16px;
+            background:
+                radial-gradient(circle, var(--bulb) 3.5px, transparent 4.5px) top left / 22px 22px repeat-x,
+                radial-gradient(circle, var(--bulb) 3.5px, transparent 4.5px) bottom left / 22px 22px repeat-x,
+                radial-gradient(circle, var(--bulb) 3.5px, transparent 4.5px) top left / 22px 22px repeat-y,
+                radial-gradient(circle, var(--bulb) 3.5px, transparent 4.5px) top right / 22px 22px repeat-y;
+            animation: bulbs 1.6s steps(2) infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bulbs { 50% { filter: brightness(1.35) drop-shadow(0 0 4px #fff3a0); } }
+
+        .sign h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(54px, 13vw, 104px); line-height: .95; margin: 0; letter-spacing: 2px; text-shadow: 0 5px 0 var(--cherry-dark); }
+        .sign p { margin: 8px auto 0; max-width: 36ch; font-weight: 600; font-size: 17px; }
+
+        h2.sec { font-family: var(--font-display); font-weight: 400; font-size: 22px; margin: 0; letter-spacing: .5px; }
+        .sub { margin: 4px 0 0; color: var(--muted); }
+
+        /* Layout picker */
+        .layouts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .layout {
+            background: var(--card);
+            border: 2px solid var(--ink);
+            border-radius: 16px;
+            padding: 14px 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            min-width: 0;
+        }
+
+        .layout.sel { background: #fff7d9; box-shadow: 0 0 0 3px var(--cherry); border-color: var(--cherry); }
+        .layout b { font-size: 16px; }
+        .layout small { color: var(--muted); font-size: 13px; line-height: 1.3; }
+        .mini { display: grid; gap: 3px; background: var(--ink); padding: 4px; border-radius: 4px; }
+        .mini i { background: #ffd9a0; border-radius: 2px; display: block; }
+
+        .opts-row { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; }
+        .seg { display: inline-flex; border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; background: var(--card); }
+        .seg button { border: 0; background: transparent; padding: 8px 14px; font-weight: 800; cursor: pointer; }
+        .seg button.on { background: var(--ink); color: #fff; }
+        .optlabel { font-weight: 800; font-size: 14px; margin-right: 8px; }
+
+        .gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+        .gallery button { border: 0; padding: 0; background: none; cursor: pointer; }
+        .gallery img { width: 100%; max-width: 100%; display: block; border-radius: 6px; box-shadow: 0 3px 10px rgba(0, 0, 0, .18); }
+        .empty { color: var(--muted); font-size: 15px; margin: 0; }
+
+        .panel { background: var(--card); border: 2px solid var(--ink); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+        /* Booth */
+        .booth { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+        .screen {
+            position: relative;
+            background: var(--booth);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: 0 6px 0 #150f1c;
+        }
+
+        .screen::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle, var(--bulb) 3px, transparent 4px) top left / 20px 20px repeat-x,
+                radial-gradient(circle, var(--bulb) 3px, transparent 4px) bottom left / 20px 20px repeat-x;
+            opacity: .9;
+            pointer-events: none;
+        }
+
+        .viewfinder { position: relative; border-radius: 12px; overflow: hidden; background: var(--booth-2); aspect-ratio: 4 / 3; max-width: 100%; }
+        .viewfinder video, .viewfinder .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .viewfinder video.mirror { transform: scaleX(-1); }
+        .vf-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #fff; text-align: center; padding: 20px; }
+        .vf-msg .big { font-size: 46px; line-height: 1; }
+        .vf-msg p { margin: 0; max-width: 34ch; }
+        .count { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-size: clamp(90px, 22vw, 180px); color: #fff; text-shadow: 0 6px 0 rgba(0, 0, 0, .35); pointer-events: none; }
+        .count.pulse { animation: pulse 1s ease-out; }
+        @keyframes pulse { from { transform: scale(1.5); opacity: 0; } 30% { opacity: 1; } to { transform: scale(.9); opacity: .9; } }
+        .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+        .flash.go { animation: flash .45s ease-out; }
+        @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
+        .shotlabel { position: absolute; left: 12px; top: 12px; background: rgba(0, 0, 0, .55); color: #fff; font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 999px; }
+
+        .thumbs { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+        .thumb {
+            width: 86px;
+            border: 2px dashed rgba(255, 255, 255, .45);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .06);
+            color: #fff;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .thumb.done { border-style: solid; border-color: var(--bulb); }
+        .thumb.active { box-shadow: 0 0 0 3px var(--cherry); }
+        .thumb span { position: absolute; right: 4px; bottom: 2px; font-size: 11px; text-shadow: 0 1px 2px #000; }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { border: 2px solid var(--ink); background: var(--card); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .chip.on { background: var(--ink); color: #fff; }
+
+        .shutter {
+            width: 100%;
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 400;
+            padding: 16px;
+            letter-spacing: 1px;
+        }
+
+        .note { font-size: 13px; color: var(--muted); margin: 0; }
+
+        /* Darkroom */
+        .studio { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+        .preview-wrap { display: flex; justify-content: center; align-items: flex-start; padding: 10px; min-width: 0; }
+        #preview { max-width: 100%; max-height: 78vh; height: auto; box-shadow: 0 14px 34px rgba(0, 0, 0, .28); border-radius: 4px; touch-action: none; cursor: grab; background: #fff; }
+        .tools { display: flex; flex-direction: column; gap: 14px; }
+        .tools h3 { margin: 0; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+        .swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .sw { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ink); cursor: pointer; padding: 0; }
+        .sw.on { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--cherry); }
+        .sw input { opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .sw.custom { background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); position: relative; overflow: hidden; }
+        .stickers { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+        .stk { border: 2px solid var(--line); background: #fffaf0; border-radius: 10px; font-size: 22px; padding: 4px 0; cursor: pointer; }
+        .stk:hover { border-color: var(--ink); }
+        .field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 14px; }
+        .field input[type=text], .field select { border: 2px solid var(--ink); border-radius: 10px; padding: 8px 10px; background: #fff; }
+        .check { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+        .selbox { border: 2px dashed var(--cherry); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .selbox label { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .actions .btn { flex: 1 1 auto; }
+
+        .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
+
+        .viewer { position: fixed; inset: 0; background: rgba(29, 26, 34, .8); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+        .viewer .box { background: var(--card); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 100%; max-width: 520px; width: 100%; }
+        .viewer img { max-width: 100%; max-height: 64vh; object-fit: contain; align-self: center; }
+
+        @media (max-width: 900px) {
+            .layouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .booth, .studio { grid-template-columns: minmax(0, 1fr); }
+            .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            #preview { max-height: 62vh; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .sign::before { animation: none; }
+            .count.pulse, .flash.go { animation: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <a class="btn small" href="../../index.html">☰ Menu</a>
+            <span class="note" id="where"></span>
+        </div>
+
+        <!-- Home -->
+        <section id="home" class="wrap" style="padding:0">
+            <header class="sign">
+                <h1>FOTOIN</h1>
+                <p>Photobooth online. Pilih bentuk strip, bergaya di depan kamera, lalu hias dan simpan kenanganmu.</p>
+            </header>
+
+            <div>
+                <h2 class="sec">1. Pilih bentuk</h2>
+                <p class="sub">Setiap bentuk punya jumlah jepretan sendiri.</p>
+            </div>
+            <div class="layouts" id="layouts"></div>
+
+            <div class="panel">
+                <div class="opts-row">
+                    <span><span class="optlabel">Hitung mundur</span><span class="seg" id="timerSeg"></span></span>
+                    <span><span class="optlabel">Jeda antarfoto</span><span class="seg" id="gapSeg"></span></span>
+                </div>
+                <button class="btn primary shutter" id="enterBooth">Masuk booth 📸</button>
+            </div>
+
+            <div>
+                <h2 class="sec">Galeri</h2>
+                <p class="sub">Strip yang kamu simpan di perangkat ini.</p>
+            </div>
+            <div id="gallery"></div>
+        </section>
+
+        <!-- Booth -->
+        <section id="booth" hidden>
+            <div class="booth">
+                <div class="screen">
+                    <div class="viewfinder" id="viewfinder">
+                        <video id="video" class="mirror" playsinline muted autoplay></video>
+                        <img class="still" id="still" alt="" hidden>
+                        <div class="vf-msg" id="vfMsg" hidden></div>
+                        <div class="shotlabel" id="shotLabel"></div>
+                        <div class="count" id="count"></div>
+                        <div class="flash" id="flash"></div>
+                    </div>
+                    <div class="thumbs" id="thumbs"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="sec" id="boothTitle">Siap bergaya?</h2>
+                    <p class="note" id="boothHint"></p>
+                    <div>
+                        <span class="optlabel">Filter</span>
+                        <div class="chips" id="boothFilters" style="margin-top:6px"></div>
+                    </div>
+                    <button class="btn primary shutter" id="shootBtn">Mulai jepret</button>
+                    <div class="actions">
+                        <button class="btn small" id="uploadBtn">🖼️ Unggah foto</button>
+                        <button class="btn small" id="flipBtn" hidden>🔄 Ganti kamera</button>
+                    </div>
+                    <input type="file" id="fileIn" accept="image/*" hidden>
+                    <input type="file" id="camIn" accept="image/*" capture="user" hidden>
+                    <button class="btn" id="toStudio" disabled>Lanjut hias ✨</button>
+                    <button class="btn small" id="backHome">← Ganti bentuk</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Darkroom -->
+        <section id="studio" hidden>
+            <div class="studio">
+                <div class="preview-wrap"><canvas id="preview" aria-label="Pratinjau strip foto"></canvas></div>
+                <div class="panel tools">
+                    <h2 class="sec">Hias stripmu</h2>
+                    <div>
+                        <h3>Warna bingkai</h3>
+                        <div class="swatches" id="swatches" style="margin-top:8px"></div>
+                    </div>
+                    <div>
+                        <h3>Motif</h3>
+                        <div class="chips" id="patterns" style="margin-top:8px"></div>
+                    </div>
+                    <div>
+                        <h3>Filter</h3>
+                        <div class="chips" id="studioFilters" style="margin-top:8px"></div>
+                    </div>
+                    <div>
+                        <h3>Stiker</h3>
+                        <p class="note" style="margin:4px 0 8px">Ketuk untuk menambah, lalu geser di pratinjau.</p>
+                        <div class="stickers" id="stickers"></div>
+                    </div>
+                    <div class="selbox" id="selBox" hidden>
+                        <label>Ukuran <input type="range" id="stkSize" min="40" max="320" step="2"></label>
+                        <label>Putar <input type="range" id="stkRot" min="-180" max="180" step="1"></label>
+                        <button class="btn small" id="stkDel">🗑️ Hapus stiker</button>
+                    </div>
+                    <label class="field">Tulisan
+                        <input type="text" id="caption" maxlength="40" placeholder="contoh: Malam minggu bareng kamu">
+                    </label>
+                    <label class="field">Gaya huruf
+                        <select id="fontSel">
+                            <option value="hand">Tulisan tangan</option>
+                            <option value="display">Papan tanda</option>
+                            <option value="body">Rapi</option>
+                        </select>
+                    </label>
+                    <label class="check"><input type="checkbox" id="showDate" checked> Tampilkan tanggal</label>
+                    <label class="check"><input type="checkbox" id="showLogo" checked> Tampilkan logo Fotoin</label>
+                    <div class="actions">
+                        <button class="btn primary" id="saveBtn">⬇️ Unduh PNG</button>
+                        <button class="btn" id="shareBtn" hidden>📤 Bagikan</button>
+                        <button class="btn" id="keepBtn">💾 Simpan ke galeri</button>
+                    </div>
+                    <div class="actions">
+                        <button class="btn small" id="retakeBtn">📸 Foto ulang</button>
+                        <button class="btn small" id="newBtn">✨ Mulai baru</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ---------- Data ----------
+        const S = 2; // export scale for crisp output
+        function stripLayout(n) {
+            const slots = Array.from({ length: n }, (_, i) => ({ x: 40, y: 40 + i * 412, w: 520, h: 390 }));
+            const ty = 40 + n * 390 + (n - 1) * 22;
+            return { w: 600, h: ty + 190, slots, text: { y: ty, h: 190 } };
+        }
+        const LAYOUTS = {
+            strip4: { name: 'Strip 4', desc: 'Klasik photobooth, 4 jepretan', ...stripLayout(4), mini: [1, 4] },
+            strip3: { name: 'Strip 3', desc: 'Lebih singkat, 3 jepretan', ...stripLayout(3), mini: [1, 3] },
+            grid4: { name: 'Kotak 2×2', desc: 'Empat foto dalam satu kartu', w: 1000, h: 960, slots: [{ x: 40, y: 40, w: 440, h: 330 }, { x: 520, y: 40, w: 440, h: 330 }, { x: 40, y: 410, w: 440, h: 330 }, { x: 520, y: 410, w: 440, h: 330 }], text: { y: 780, h: 180 }, mini: [2, 2] },
+            polaroid: { name: 'Polaroid', desc: 'Satu foto, banyak cerita', w: 800, h: 1010, slots: [{ x: 50, y: 50, w: 700, h: 700 }], text: { y: 770, h: 240 }, mini: [1, 1] },
+        };
+        const FILTERS = {
+            normal: { name: 'Normal', css: 'none' },
+            bw: { name: 'Hitam putih', css: 'grayscale(1) contrast(1.12)' },
+            vintage: { name: 'Vintage', css: 'sepia(.55) contrast(.92) brightness(1.06) saturate(.9)' },
+            warm: { name: 'Hangat', css: 'saturate(1.15) sepia(.18) brightness(1.03)' },
+            cool: { name: 'Sejuk', css: 'saturate(.95) hue-rotate(12deg) brightness(1.04)' },
+            glow: { name: 'Glowing', css: 'brightness(1.1) contrast(.88) saturate(1.12)' },
+            film: { name: 'Film', css: 'contrast(1.18) saturate(.82)' },
+        };
+        const COLORS = ['#ffffff', '#1d1a22', '#e5372f', '#ff9ec4', '#ffd23f', '#9fe3c1', '#9cc9ff', '#c7a6ff', '#f4e1c1'];
+        const PATTERNS = { plain: 'Polos', dots: 'Polkadot', stripes: 'Garis', checker: 'Kotak-kotak', hearts: 'Hati' };
+        const STICKERS = ['❤️', '💖', '✨', '⭐', '🌸', '🌼', '🎀', '👑', '😎', '🥰', '😜', '🤪', '🐱', '🐶', '🦋', '🍓', '🎉', '🎈', '📸', '💋', '🌈', '☁️', '🔥', '💯'];
+        const TIMERS = [3, 5, 10], GAPS = [1, 2, 3];
+
+        // ---------- State ----------
+        const st = {
+            layout: 'strip4', timer: 3, gap: 1, filter: 'normal',
+            shots: [], // per slot: canvas (raw, unfiltered) or null
+            frame: '#ffffff', pattern: 'plain', caption: '', font: 'hand', date: true, logo: true,
+            stickers: [], sel: -1,
+        };
+
+        // ---------- Helpers ----------
+        const $ = s => document.querySelector(s);
+        function h(tag, props, ...kids) {
+            const el = document.createElement(tag);
+            for (const [k, v] of Object.entries(props || {})) {
+                if (v === false || v == null) continue;
+                if (k === 'class') el.className = v;
+                else if (k === 'text') el.textContent = v;
+                else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+                else el.setAttribute(k, v === true ? '' : v);
+            }
+            for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+            return el;
+        }
+        const store = {
+            get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+        };
+        let toastTimer;
+        function toast(t) {
+            document.querySelectorAll('.toast').forEach(x => x.remove());
+            const el = h('div', { class: 'toast', role: 'status', text: t });
+            document.body.append(el);
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.remove(), 2800);
+        }
+        let actx;
+        function beep(f, d = 0.08, type = 'sine', vol = 0.06) {
+            try {
+                actx ||= new (window.AudioContext || window.webkitAudioContext)();
+                const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+                o.type = type; o.frequency.value = f;
+                g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+                o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d + 0.02);
+            } catch (e) { }
+        }
+        function shutterSound() {
+            try {
+                actx ||= new (window.AudioContext || window.webkitAudioContext)();
+                const len = actx.sampleRate * 0.12, buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+                const src = actx.createBufferSource(), g = actx.createGain();
+                g.gain.value = 0.25; src.buffer = buf; src.connect(g).connect(actx.destination); src.start();
+            } catch (e) { }
+        }
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const L = () => LAYOUTS[st.layout];
+
+        // ---------- Home ----------
+        function renderHome() {
+            $('#layouts').replaceChildren(...Object.entries(LAYOUTS).map(([k, l]) => {
+                const [cols, rows] = l.mini;
+                const mini = h('span', { class: 'mini', style: `grid-template-columns:repeat(${cols},${cols > 1 ? 22 : 30}px)` },
+                    Array.from({ length: cols * rows }, () => h('i', { style: `height:${k === 'polaroid' ? 30 : 18}px` })));
+                return h('button', { class: 'layout' + (st.layout === k ? ' sel' : ''), onclick: () => { st.layout = k; renderHome(); }, 'aria-pressed': st.layout === k ? 'true' : 'false' },
+                    mini, h('b', { text: l.name }), h('small', { text: l.desc }));
+            }));
+            const seg = (el, list, key, unit) => $(el).replaceChildren(...list.map(v => h('button', { class: st[key] === v ? 'on' : '', onclick: () => { st[key] = v; renderHome(); } }, v + unit)));
+            seg('#timerSeg', TIMERS, 'timer', ' dtk');
+            seg('#gapSeg', GAPS, 'gap', ' dtk');
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const list = store.get('fotoin.gallery', []);
+            if (!list.length) { $('#gallery').replaceChildren(h('p', { class: 'empty', text: 'Belum ada strip tersimpan. Hasil yang kamu simpan akan muncul di sini.' })); return; }
+            $('#gallery').replaceChildren(h('div', { class: 'gallery' }, list.slice().reverse().map((g, i) =>
+                h('button', { onclick: () => openViewer(g), 'aria-label': 'Buka strip ' + (i + 1) }, h('img', { src: g.src, alt: 'Strip foto ' + new Date(g.at).toLocaleDateString('id-ID') })))));
+        }
+
+        function openViewer(g) {
+            const close = () => v.remove();
+            const v = h('div', { class: 'viewer', onclick: e => { if (e.target === v) close(); } },
+                h('div', { class: 'box' }, h('img', { src: g.src, alt: 'Strip foto' }),
+                    h('div', { class: 'actions' },
+                        h('button', { class: 'btn primary', onclick: async () => { const b = await (await fetch(g.src)).blob(); saveFile(b, 'fotoin-galeri.jpg'); } }, '⬇️ Unduh'),
+                        h('button', { class: 'btn', onclick: () => { const list = store.get('fotoin.gallery', []).filter(x => x.at !== g.at); store.set('fotoin.gallery', list); close(); renderGallery(); toast('Strip dihapus dari galeri'); } }, '🗑️ Hapus'),
+                        h('button', { class: 'btn', onclick: close }, 'Tutup'))));
+            document.body.append(v);
+        }
+
+        // ---------- Booth ----------
+        let stream = null, facing = 'user', camOk = false, busy = false, active = 0, uploadTarget = 0;
+        const video = $('#video');
+
+        async function startCamera() {
+            stopCamera();
+            camOk = false;
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return showNoCam();
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+                video.srcObject = stream;
+                await video.play().catch(() => { });
+                camOk = true;
+                video.hidden = false;
+                video.classList.toggle('mirror', facing === 'user');
+                $('#vfMsg').hidden = true;
+                navigator.mediaDevices.enumerateDevices().then(d => { $('#flipBtn').hidden = d.filter(x => x.kind === 'videoinput').length < 2; }).catch(() => { });
+            } catch (e) {
+                showNoCam();
+            }
+            renderBooth();
+        }
+        function stopCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; }
+        function showNoCam() {
+            video.hidden = true;
+            const touch = matchMedia('(pointer: coarse)').matches;
+            $('#vfMsg').replaceChildren(h('div', { class: 'big', text: '📷' }),
+                h('p', { text: 'Kamera tidak bisa dibuka di sini.' }),
+                h('p', { class: 'note', style: 'color:#d8cfe6', text: touch ? 'Tidak apa-apa: ketuk kotak foto di bawah untuk memotret dengan kamera HP atau memilih dari galeri.' : 'Izinkan akses kamera di browser, atau pakai tombol Unggah foto untuk tiap kotak.' }),
+                h('button', { class: 'btn small', onclick: startCamera }, 'Coba lagi'));
+            $('#vfMsg').hidden = false;
+            renderBooth();
+        }
+
+        function enterBooth() {
+            st.shots = Array(L().slots.length).fill(null);
+            st.stickers = []; st.sel = -1;
+            filteredCache.clear();
+            active = 0;
+            $('#home').hidden = true; $('#studio').hidden = true; $('#booth').hidden = false;
+            $('#viewfinder').style.aspectRatio = st.layout === 'polaroid' ? '1 / 1' : '4 / 3';
+            startCamera();
+            renderBooth();
+            scrollTo({ top: 0 });
+        }
+
+        function renderBooth() {
+            const n = L().slots.length, done = st.shots.filter(Boolean).length;
+            $('#thumbs').replaceChildren(...st.shots.map((c, i) => {
+                const a = L().slots[i].w / L().slots[i].h;
+                const el = h('button', { class: 'thumb' + (c ? ' done' : '') + (i === active && !c ? ' active' : ''), style: `aspect-ratio:${a}`, 'aria-label': c ? `Foto ${i + 1}, ketuk untuk ambil ulang` : `Kotak foto ${i + 1}`, onclick: () => slotTap(i) },
+                    c ? h('img', { src: c.toDataURL('image/jpeg', 0.7), alt: '' }) : String(i + 1), c ? h('span', { text: '↺' }) : null);
+                return el;
+            }));
+            $('#shotLabel').textContent = `Foto ${Math.min(done + 1, n)} dari ${n}`;
+            $('#boothTitle').textContent = done === n ? 'Semua foto siap! 🎉' : 'Siap bergaya?';
+            $('#boothHint').textContent = camOk ? `Kamera menghitung mundur ${st.timer} detik sebelum tiap jepretan. Ketuk foto kecil untuk mengambil ulang.` : 'Ketuk kotak foto untuk memotret atau memilih gambar.';
+            $('#shootBtn').hidden = !camOk;
+            $('#shootBtn').disabled = busy;
+            $('#shootBtn').textContent = busy ? 'Bergaya!' : done === 0 ? 'Mulai jepret' : done === n ? 'Jepret ulang semua' : 'Lanjut jepret';
+            $('#toStudio').disabled = done < n || busy;
+            $('#boothFilters').replaceChildren(...Object.entries(FILTERS).map(([k, f]) => h('button', { class: 'chip' + (st.filter === k ? ' on' : ''), onclick: () => { st.filter = k; video.style.filter = f.css; renderBooth(); } }, f.name)));
+            video.style.filter = FILTERS[st.filter].css;
+        }
+
+        async function countdown() {
+            const c = $('#count');
+            for (let s = st.timer; s > 0; s--) {
+                c.textContent = s; c.classList.remove('pulse'); void c.offsetWidth; c.classList.add('pulse');
+                beep(s === 1 ? 880 : 660, 0.12, 'triangle');
+                await wait(1000);
+            }
+            c.textContent = '';
+            const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+            shutterSound();
+        }
+
+        function cropTo(src, sw, sh, slot, mirror) {
+            const c = document.createElement('canvas');
+            c.width = slot.w * S; c.height = slot.h * S;
+            const g = c.getContext('2d');
+            const a = slot.w / slot.h;
+            let cw = sw, ch = sw / a;
+            if (ch > sh) { ch = sh; cw = sh * a; }
+            const cx = (sw - cw) / 2, cy = (sh - ch) / 2;
+            if (mirror) { g.translate(c.width, 0); g.scale(-1, 1); }
+            g.drawImage(src, cx, cy, cw, ch, 0, 0, c.width, c.height);
+            return c;
+        }
+
+        async function shootSlot(i) {
+            active = i; renderBooth();
+            await countdown();
+            st.shots[i] = cropTo(video, video.videoWidth, video.videoHeight, L().slots[i], facing === 'user');
+            filteredCache.clear();
+            renderBooth();
+        }
+
+        async function shootAll() {
+            if (busy || !camOk) return;
+            busy = true;
+            const n = st.shots.length;
+            if (st.shots.every(Boolean)) st.shots = Array(n).fill(null);
+            renderBooth();
+            for (let i = 0; i < n; i++) {
+                if (st.shots[i]) continue;
+                await shootSlot(i);
+                if (st.shots.some(s => !s)) await wait(st.gap * 1000);
+            }
+            busy = false;
+            active = -1;
+            renderBooth();
+            toast('Semua foto siap! Lanjut hias ✨');
+        }
+
+        async function slotTap(i) {
+            if (busy) return;
+            if (camOk) { busy = true; await shootSlot(i); busy = false; renderBooth(); return; }
+            uploadTarget = i;
+            (matchMedia('(pointer: coarse)').matches ? $('#camIn') : $('#fileIn')).click();
+        }
+
+        function loadFile(file, i) {
+            if (!file || !file.type.startsWith('image/')) { toast('Pilih file gambar ya'); return; }
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                st.shots[i] = cropTo(img, img.naturalWidth, img.naturalHeight, L().slots[i], false);
+                URL.revokeObjectURL(url);
+                filteredCache.clear();
+                const next = st.shots.findIndex(s => !s);
+                active = next;
+                renderBooth();
+            };
+            img.onerror = () => toast('Gambar tidak bisa dibuka');
+            img.src = url;
+        }
+        for (const id of ['#fileIn', '#camIn']) $(id).addEventListener('change', e => { loadFile(e.target.files[0], uploadTarget); e.target.value = ''; });
+        $('#uploadBtn').addEventListener('click', () => { uploadTarget = Math.max(0, st.shots.findIndex(s => !s)); if (st.shots.every(Boolean)) uploadTarget = 0; $('#fileIn').click(); });
+
+        // ---------- Filters (pixel level, so exports match on every browser) ----------
+        const filteredCache = new Map();
+        function applyFilter(src, key) {
+            if (key === 'normal') return src;
+            const id = (src.__id ||= Math.random()) + '|' + key;
+            if (filteredCache.has(id)) return filteredCache.get(id);
+            const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+            const g = c.getContext('2d'); g.drawImage(src, 0, 0);
+            const img = g.getImageData(0, 0, c.width, c.height), d = img.data;
+            const sat = (r, gg, b, k) => { const l = 0.299 * r + 0.587 * gg + 0.114 * b; return [l + (r - l) * k, l + (gg - l) * k, l + (b - l) * k]; };
+            const con = (v, k) => (v - 128) * k + 128;
+            for (let i = 0; i < d.length; i += 4) {
+                let r = d[i], gg = d[i + 1], b = d[i + 2];
+                if (key === 'bw') { const l = con(0.299 * r + 0.587 * gg + 0.114 * b, 1.12); r = gg = b = l; }
+                else if (key === 'vintage') {
+                    const sr = 0.393 * r + 0.769 * gg + 0.189 * b, sg = 0.349 * r + 0.686 * gg + 0.168 * b, sb = 0.272 * r + 0.534 * gg + 0.131 * b;
+                    r = r * 0.45 + sr * 0.55; gg = gg * 0.45 + sg * 0.55; b = b * 0.45 + sb * 0.55;
+                    r = con(r, 0.9) + 12; gg = con(gg, 0.9) + 8; b = con(b, 0.9) + 4;
+                } else if (key === 'warm') { [r, gg, b] = sat(r, gg, b, 1.12); r += 14; gg += 4; b -= 12; }
+                else if (key === 'cool') { [r, gg, b] = sat(r, gg, b, 0.95); r -= 8; gg += 2; b += 16; }
+                else if (key === 'glow') { r = con(r, 0.88) + 16; gg = con(gg, 0.88) + 12; b = con(b, 0.88) + 14; [r, gg, b] = sat(r, gg, b, 1.12); }
+                else if (key === 'film') { [r, gg, b] = sat(r, gg, b, 0.82); const n = (Math.random() - 0.5) * 22; r = con(r, 1.18) + n; gg = con(gg, 1.18) + n; b = con(b, 1.18) + n + 4; }
+                d[i] = r; d[i + 1] = gg; d[i + 2] = b;
+            }
+            g.putImageData(img, 0, 0);
+            filteredCache.set(id, c);
+            return c;
+        }
+
+        // ---------- Strip rendering ----------
+        function luminance(hex) {
+            const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        }
+        function heartPath(g, x, y, s) {
+            g.beginPath(); g.moveTo(x, y + s * 0.3);
+            g.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.3);
+            g.bezierCurveTo(x - s * 0.5, y + s * 0.6, x, y + s * 0.75, x, y + s);
+            g.bezierCurveTo(x, y + s * 0.75, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+            g.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.3); g.fill();
+        }
+        function drawPattern(g, w, h, dark) {
+            g.save();
+            g.fillStyle = dark ? 'rgba(255,255,255,.16)' : 'rgba(0,0,0,.08)';
+            g.strokeStyle = g.fillStyle;
+            if (st.pattern === 'dots') { for (let y = 0; y < h; y += 34) for (let x = (y / 34) % 2 ? 17 : 0; x < w; x += 34) { g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill(); } }
+            else if (st.pattern === 'stripes') { g.lineWidth = 14; for (let x = -h; x < w; x += 44) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + h, h); g.stroke(); } }
+            else if (st.pattern === 'checker') { for (let y = 0; y < h; y += 30) for (let x = 0; x < w; x += 30) if (((x + y) / 30) % 2 === 0) g.fillRect(x, y, 30, 30); }
+            else if (st.pattern === 'hearts') { for (let y = 6; y < h; y += 46) for (let x = (y / 46) % 2 ? 23 : 0; x < w + 20; x += 46) heartPath(g, x, y, 18); }
+            g.restore();
+        }
+
+        function fontFor(size) {
+            return st.font === 'hand' ? `700 ${size * 1.25}px ${getComputedStyle(document.body).getPropertyValue('--font-hand')}`
+                : st.font === 'display' ? `400 ${size}px ${getComputedStyle(document.body).getPropertyValue('--font-display')}`
+                    : `800 ${size}px ${getComputedStyle(document.body).getPropertyValue('--font-body')}`;
+        }
+
+        function renderStrip(canvas, withUI) {
+            const lay = L();
+            canvas.width = lay.w * S; canvas.height = lay.h * S;
+            const g = canvas.getContext('2d');
+            g.setTransform(S, 0, 0, S, 0, 0);
+            const dark = luminance(st.frame) < 0.5;
+            g.fillStyle = st.frame; g.fillRect(0, 0, lay.w, lay.h);
+            drawPattern(g, lay.w, lay.h, dark);
+            lay.slots.forEach((sl, i) => {
+                g.save();
+                g.beginPath(); g.roundRect(sl.x, sl.y, sl.w, sl.h, 6); g.clip();
+                const shot = st.shots[i];
+                if (shot) g.drawImage(applyFilter(shot, st.filter), sl.x, sl.y, sl.w, sl.h);
+                else { g.fillStyle = dark ? '#3b3442' : '#efe7d6'; g.fillRect(sl.x, sl.y, sl.w, sl.h); }
+                g.restore();
+            });
+            // caption, date, logo
+            const ink = dark ? '#ffffff' : '#1d1a22';
+            const t = lay.text, cx = lay.w / 2;
+            g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle';
+            const base = lay.w > 700 ? 46 : 38;
+            let y = t.y + t.h * 0.36;
+            if (st.caption) { g.font = fontFor(base); fitText(g, st.caption, cx, y, lay.w - 60); }
+            else y -= 10;
+            if (st.date) {
+                g.font = `600 ${base * 0.5}px ${getComputedStyle(document.body).getPropertyValue('--font-body')}`;
+                g.globalAlpha = 0.8;
+                g.fillText(new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }), cx, st.caption ? y + base * 0.95 : y + 6);
+                g.globalAlpha = 1;
+            }
+            if (st.logo) {
+                g.font = `400 ${base * 0.42}px ${getComputedStyle(document.body).getPropertyValue('--font-display')}`;
+                g.fillStyle = dark ? '#ffd23f' : '#e5372f';
+                g.fillText('FOTOIN', cx, t.y + t.h - 26);
+            }
+            // stickers
+            st.stickers.forEach((s, i) => {
+                g.save();
+                g.translate(s.x, s.y); g.rotate(s.rot * Math.PI / 180);
+                g.font = `${s.size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+                g.textAlign = 'center'; g.textBaseline = 'middle';
+                g.fillText(s.e, 0, s.size * 0.06);
+                if (withUI && i === st.sel) {
+                    g.setLineDash([8, 6]); g.lineWidth = 3; g.strokeStyle = '#e5372f';
+                    g.beginPath(); g.arc(0, 0, s.size * 0.62, 0, Math.PI * 2); g.stroke();
+                }
+                g.restore();
+            });
+        }
+        function fitText(g, text, x, y, max) {
+            let size = parseFloat(g.font.match(/(\d+(\.\d+)?)px/)[1]);
+            while (g.measureText(text).width > max && size > 12) { size -= 2; g.font = g.font.replace(/\d+(\.\d+)?px/, size + 'px'); }
+            g.fillText(text, x, y);
+        }
+
+        // ---------- Darkroom ----------
+        const preview = $('#preview');
+        function enterStudio() {
+            stopCamera();
+            $('#booth').hidden = true; $('#studio').hidden = false;
+            renderStudio();
+            scrollTo({ top: 0 });
+        }
+        function renderStudio() {
+            $('#swatches').replaceChildren(...COLORS.map(c => h('button', { class: 'sw' + (st.frame === c ? ' on' : ''), style: `background:${c}`, 'aria-label': 'Warna ' + c, onclick: () => { st.frame = c; renderStudio(); } })),
+                h('label', { class: 'sw custom' + (COLORS.includes(st.frame) ? '' : ' on'), title: 'Warna lain' }, h('input', { type: 'color', value: st.frame, 'aria-label': 'Pilih warna lain', oninput: e => { st.frame = e.target.value; draw(); } , onchange: () => renderStudio() })));
+            $('#patterns').replaceChildren(...Object.entries(PATTERNS).map(([k, n]) => h('button', { class: 'chip' + (st.pattern === k ? ' on' : ''), onclick: () => { st.pattern = k; renderStudio(); } }, n)));
+            $('#studioFilters').replaceChildren(...Object.entries(FILTERS).map(([k, f]) => h('button', { class: 'chip' + (st.filter === k ? ' on' : ''), onclick: () => { st.filter = k; renderStudio(); } }, f.name)));
+            $('#stickers').replaceChildren(...STICKERS.map(e => h('button', { class: 'stk', 'aria-label': 'Tambah stiker ' + e, onclick: () => addSticker(e) }, e)));
+            const s = st.stickers[st.sel];
+            $('#selBox').hidden = !s;
+            if (s) { $('#stkSize').value = s.size; $('#stkRot').value = s.rot; }
+            draw();
+        }
+        function draw() { renderStrip(preview, true); }
+
+        function addSticker(e) {
+            const lay = L();
+            const n = st.stickers.length;
+            st.stickers.push({ e, x: lay.w * (0.25 + (n % 3) * 0.25), y: lay.slots[0].y + 60 + (n % 4) * 70, size: lay.w > 700 ? 130 : 96, rot: (n % 2 ? 1 : -1) * 10 });
+            st.sel = st.stickers.length - 1;
+            renderStudio();
+        }
+        $('#stkSize').addEventListener('input', e => { const s = st.stickers[st.sel]; if (s) { s.size = +e.target.value; draw(); } });
+        $('#stkRot').addEventListener('input', e => { const s = st.stickers[st.sel]; if (s) { s.rot = +e.target.value; draw(); } });
+        $('#stkDel').addEventListener('click', () => { st.stickers.splice(st.sel, 1); st.sel = -1; renderStudio(); });
+
+        // drag stickers on the preview
+        let drag = null;
+        function toStrip(e) {
+            const r = preview.getBoundingClientRect();
+            return [(e.clientX - r.left) / r.width * L().w, (e.clientY - r.top) / r.height * L().h];
+        }
+        preview.addEventListener('pointerdown', e => {
+            const [x, y] = toStrip(e);
+            let hit = -1;
+            for (let i = st.stickers.length - 1; i >= 0; i--) { const s = st.stickers[i]; if (Math.hypot(x - s.x, y - s.y) < s.size * 0.6) { hit = i; break; } }
+            st.sel = hit;
+            if (hit >= 0) { drag = { dx: x - st.stickers[hit].x, dy: y - st.stickers[hit].y }; preview.setPointerCapture(e.pointerId); preview.style.cursor = 'grabbing'; }
+            renderStudio();
+        });
+        preview.addEventListener('pointermove', e => {
+            if (!drag || st.sel < 0) return;
+            const [x, y] = toStrip(e), s = st.stickers[st.sel];
+            s.x = Math.max(0, Math.min(L().w, x - drag.dx)); s.y = Math.max(0, Math.min(L().h, y - drag.dy));
+            draw();
+        });
+        const endDrag = () => { drag = null; preview.style.cursor = 'grab'; };
+        preview.addEventListener('pointerup', endDrag);
+        preview.addEventListener('pointercancel', endDrag);
+
+        $('#caption').addEventListener('input', e => { st.caption = e.target.value.slice(0, 40); draw(); });
+        $('#fontSel').addEventListener('change', e => { st.font = e.target.value; draw(); });
+        $('#showDate').addEventListener('change', e => { st.date = e.target.checked; draw(); });
+        $('#showLogo').addEventListener('change', e => { st.logo = e.target.checked; draw(); });
+
+        // ---------- Export ----------
+        let downloads = null;
+        function exportBlob(type = 'image/png', q) {
+            const c = document.createElement('canvas');
+            renderStrip(c, false);
+            return new Promise(r => c.toBlob(r, type, q));
+        }
+        const fileName = ext => `fotoin-${new Date().toISOString().slice(0, 10)}.${ext}`;
+        async function saveFile(blob, name) {
+            if (downloads) {
+                try { await downloads.save({ filename: name, data: blob }); toast('Tersimpan 🎉'); }
+                catch (e) { if (e && e.code === 'declined') return; toast('Belum bisa mengunduh di sini. Coba lagi sebentar.'); }
+                return;
+            }
+            const a = h('a', { href: URL.createObjectURL(blob), download: name });
+            document.body.append(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+            toast('Mengunduh strip 🎉');
+        }
+        $('#saveBtn').addEventListener('click', async () => saveFile(await exportBlob(), fileName('png')));
+        $('#keepBtn').addEventListener('click', async () => {
+            const c = document.createElement('canvas'); renderStrip(c, false);
+            const small = document.createElement('canvas'), k = Math.min(1, 700 / c.width);
+            small.width = Math.round(c.width * k); small.height = Math.round(c.height * k);
+            small.getContext('2d').drawImage(c, 0, 0, small.width, small.height);
+            const list = store.get('fotoin.gallery', []);
+            list.push({ at: Date.now(), src: small.toDataURL('image/jpeg', 0.82) });
+            while (list.length > 8) list.shift();
+            let ok = store.set('fotoin.gallery', list);
+            while (!ok && list.length > 1) { list.shift(); ok = store.set('fotoin.gallery', list); }
+            toast(ok ? 'Disimpan ke galeri di perangkat ini 💾' : 'Penyimpanan browser penuh atau tidak tersedia');
+        });
+        if (navigator.canShare && navigator.share) {
+            try { if (navigator.canShare({ files: [new File([new Blob(['x'], { type: 'image/png' })], 'x.png', { type: 'image/png' })] })) $('#shareBtn').hidden = false; } catch (e) { }
+        }
+        $('#shareBtn').addEventListener('click', async () => {
+            const blob = await exportBlob();
+            try { await navigator.share({ files: [new File([blob], fileName('png'), { type: 'image/png' })], title: 'Fotoin' }); }
+            catch (e) { if (e.name !== 'AbortError') toast('Tidak bisa membagikan dari sini, pakai Unduh saja'); }
+        });
+
+        // ---------- Navigation ----------
+        $('#enterBooth').addEventListener('click', enterBooth);
+        $('#shootBtn').addEventListener('click', shootAll);
+        $('#toStudio').addEventListener('click', enterStudio);
+        $('#backHome').addEventListener('click', () => { stopCamera(); $('#booth').hidden = true; $('#home').hidden = false; renderHome(); });
+        $('#flipBtn').addEventListener('click', () => { facing = facing === 'user' ? 'environment' : 'user'; startCamera(); });
+        $('#retakeBtn').addEventListener('click', () => { $('#studio').hidden = true; $('#booth').hidden = false; startCamera(); renderBooth(); });
+        $('#newBtn').addEventListener('click', () => { $('#studio').hidden = true; $('#home').hidden = false; st.caption = ''; $('#caption').value = ''; renderHome(); scrollTo({ top: 0 }); });
+
+        renderHome();
+        if (document.fonts) document.fonts.ready.then(() => { if (!$('#studio').hidden) draw(); });
+        (async () => {
+            try { downloads = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { downloads = null; }
+        })();
+        window.fotoin = { st };
+    </script>
+</body>
+
+</html>

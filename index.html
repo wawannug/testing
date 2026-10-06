@@ -24,6 +24,8 @@
             --shadow: rgba(30, 60, 35, .16);
             --map: #dff1ee;
             --love: #d93d66;
+            --cherry: #d8322a;
+            --booth-bg: #ffe9a6;
             --font-display: 'Lilita One', 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
             --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
             --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -45,6 +47,8 @@
                 --shadow: rgba(0, 0, 0, .45);
                 --map: #1d2c33;
                 --love: #ff7d9c;
+                --cherry: #ff6a5f;
+                --booth-bg: #3a3022;
                 color-scheme: dark;
             }
         }
@@ -63,6 +67,8 @@
             --shadow: rgba(0, 0, 0, .45);
             --map: #1d2c33;
             --love: #ff7d9c;
+            --cherry: #ff6a5f;
+            --booth-bg: #3a3022;
             color-scheme: dark;
         }
 
@@ -136,6 +142,13 @@
         }
 
         #ladagoTitle { color: var(--love); }
+        #fotoinTitle { color: var(--cherry); }
+        .stage.booth { background: var(--booth-bg); display: grid; place-items: center; padding: 22px; min-height: 300px; }
+        .strip { display: flex; gap: 18px; align-items: center; }
+        .strip .film { background: #fff; padding: 8px 8px 22px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 10px 24px rgba(0, 0, 0, .3); border-radius: 3px; }
+        .strip .film:nth-child(1) { transform: rotate(-7deg); }
+        .strip .film:nth-child(2) { transform: rotate(5deg); background: #ff9ec4; }
+        .strip .film i { width: 74px; height: 56px; display: grid; place-items: center; font-style: normal; font-size: 30px; border-radius: 2px; }
         .stage.map { background: var(--map); display: grid; place-items: center; padding: 18px; }
         .stage.map svg { width: 100%; max-width: 330px; height: auto; }
         .games { display: flex; flex-direction: column; gap: 22px; }
@@ -305,7 +318,7 @@
 
         <main>
             <section aria-labelledby="farmoraTitle" class="games">
-                <p class="label" style="margin:0">Bisa dimainkan</p>
+                <p class="label" style="margin:0">Bisa dimainkan &amp; dipakai</p>
                 <article class="featured">
                     <div class="stage" id="stage">
                         <div class="fallback" aria-hidden="true">🐄</div>
@@ -358,6 +371,35 @@
                         </div>
                     </div>
                 </article>
+
+                <article class="featured" aria-labelledby="fotoinTitle">
+                    <div class="stage booth" aria-hidden="true">
+                        <div class="strip">
+                            <div class="film"><i style="background:#ffd9a0">😄</i><i style="background:#bfe3ff">😎</i><i style="background:#ffc7d9">🥰</i><i style="background:#d5f5c4">🤪</i></div>
+                            <div class="film"><i style="background:#fff3c4">💖</i><i style="background:#e2d4ff">✨</i><i style="background:#ffe0b8">😜</i><i style="background:#c9f0ea">🎀</i></div>
+                        </div>
+                    </div>
+                    <div class="info">
+                        <h2 id="fotoinTitle">Fotoin</h2>
+                        <ul class="chips" aria-label="Info aplikasi">
+                            <li>Photobooth online</li>
+                            <li>Kamera atau unggah foto</li>
+                            <li>Unduh PNG</li>
+                        </ul>
+                        <p>Photobooth di browser. Pilih bentuk strip, bergaya mengikuti hitung mundur, lalu hias dengan bingkai, motif, filter, stiker, dan tulisan sebelum disimpan.</p>
+                        <ul class="cast" aria-label="Isi aplikasi">
+                            <li>🎞️ Strip 4 &amp; 3</li>
+                            <li>🖼️ Kotak 2×2</li>
+                            <li>📷 Polaroid</li>
+                            <li>🎨 7 filter</li>
+                            <li>💖 24 stiker</li>
+                        </ul>
+                        <div class="actions">
+                            <a class="play" id="fotoinBtn" href="games/fotoin/index.html">Buka booth</a>
+                            <span class="save" id="fotoinInfo">Belum ada strip di galeri</span>
+                        </div>
+                    </div>
+                </article>
             </section>
 
             <section aria-labelledby="soonTitle">
@@ -366,7 +408,7 @@
                     <div class="slot">
                         <div class="mark" aria-hidden="true">?</div>
                         <div>
-                            <h3>Game ketiga</h3>
+                            <h3>Proyek berikutnya</h3>
                             <p>Masih berupa ide.</p>
                         </div>
                     </div>
@@ -386,6 +428,13 @@
             const gold = (save.gold || 0).toLocaleString('id-ID');
             document.getElementById('saveInfo').innerHTML = `Tersimpan: <b>Hari ${save.day}</b> · <b>${gold} G</b>`;
             document.getElementById('playBtn').textContent = 'Lanjutkan';
+        })();
+
+        // Fotoin: how many strips are in this browser's gallery.
+        (function () {
+            let g = [];
+            try { g = JSON.parse(localStorage.getItem('fotoin.gallery') || '[]'); } catch (e) { }
+            if (g.length) document.getElementById('fotoinInfo').textContent = `${g.length} strip di galeri`;
         })();
 
         // LADAGO: finished journeys and a small drawing of the board.
