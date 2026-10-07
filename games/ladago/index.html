@@ -495,8 +495,10 @@
     <script type="module">
         import * as THREE from 'three';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+        // the two accounts, kept out of plain text in the source
+        const [NA, NW] = ['YWRpbmRheW4=', 'd2F3YW50bg=='].map(atob);
         const USER = await window.__gate;
-        const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
+        const OTHER = USER === NA ? NW : NA;
 
         // ---------- Content ----------
         const CHAPTERS = [

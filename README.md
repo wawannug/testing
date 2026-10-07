@@ -54,9 +54,9 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Beri hadiah 🎁:** dari menu yang sama, pilih satu barang dari tasmu (hasil panen, telur, masakan, pot, benih…); barangnya pindah ke tas pasanganmu, dan pasanganmu kegirangan: melompat kecil sambil melambaikan kedua tangan, dikelilingi hati dan ikon 🎁 (terlihat di kedua layar).
 
 ## Karakter, farm bersama, dan turu 💤
-- **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih (juga di lemari kamar).
+- **Karakter sesuai akun:** akun pertama bermain sebagai petani perempuan, akun kedua sebagai petani laki-laki. Warna baju bisa dipilih (juga di lemari kamar).
 - **Satu farm untuk berdua.** Di layar awal pilih **Buat farm baru** atau **lanjutkan salah satu save game**. Kalau pasanganmu sudah main, tombolnya jadi **Gabung ke farm** dia. Hewan, waktu, kebun, kotak penyimpanan, dan uang dipakai bersama.
-- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (adindayn di kiri, wawantn di kanan).
+- **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (pemain perempuan di kiri, pemain laki-laki di kanan).
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
 ## Karakter dan pakaian 👗
@@ -93,7 +93,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
 ## Menyimpan progres
-- **Satu save untuk berdua.** Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres**; **Tidur tanpa menyimpan** juga bisa. Hanya ada satu save dan dipakai bersama: siapa pun yang menyimpan terakhir (adindayn atau wawantn), save itulah yang muncul sebagai **▶ Lanjutkan** untuk kalian berdua besoknya. Membuat farm baru meminta konfirmasi dulu, karena menyimpannya akan mengganti save bersama.
+- **Satu save untuk berdua.** Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres**; **Tidur tanpa menyimpan** juga bisa. Hanya ada satu save dan dipakai bersama: siapa pun yang menyimpan terakhir (pemain mana pun dari kalian berdua), save itulah yang muncul sebagai **▶ Lanjutkan** untuk kalian berdua besoknya. Membuat farm baru meminta konfirmasi dulu, karena menyimpannya akan mengganti save bersama.
 - Di link claude.ai, save tersimpan di penyimpanan bersama artifact, jadi selalu tersinkron walau kalian main bergantian (pasangan perlu dibagikan akses yang bisa mengedit). Save yang dulu hanya tersimpan di perangkat ikut diunggah begitu tersambung. Dari 10 slot versi lama, save yang paling baru dipakai.
 - Saat kalian berdua online bersamaan, save yang lebih baru juga dikirim lewat koneksi online ke perangkat yang lain.
 - **Versi web (GitHub Pages):** main bareng memakai dua jalur sekaligus, yaitu relay lewat broker MQTT publik (broker.emqx.io dan broker.hivemq.com, websocket aman) dan koneksi langsung PeerJS. Jalur relay tetap jalan di data seluler maupun Wi-Fi yang ketat, di mana koneksi langsung WebRTC sering gagal. Relay juga menyimpan satu save bersama, jadi save terakhir sampai ke perangkat pasangan walau kalian main bergantian. Catatan: broker publik bisa dibaca siapa saja yang tahu nama topiknya, dan tidak menjamin data disimpan selamanya, jadi save juga tetap tersimpan di perangkat masing-masing.

@@ -511,7 +511,7 @@
                 <span class="saveinfo" id="saveInfo"></span>
                 <span class="saveinfo" id="partnerInfo"></span>
                 <div class="row2" id="soloBtns"></div>
-                <p class="small-note">Satu farm untuk adindayn dan wawantn. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di kamar dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur. Kalian berdua memakai satu save yang sama: siapa pun yang menyimpan terakhir, save itulah yang dilanjutkan.</p>
+                <p class="small-note">Satu farm untuk kalian berdua. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di kamar dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur. Kalian berdua memakai satu save yang sama: siapa pun yang menyimpan terakhir, save itulah yang dilanjutkan.</p>
             </div>
             <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
         </div>
@@ -547,6 +547,8 @@
     <script type="module">
         import * as THREE from 'three';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+        // the two accounts, kept out of plain text in the source
+        const [NA, NW] = ['YWRpbmRheW4=', 'd2F3YW50bg=='].map(atob);
         const USER = await window.__gate;
 
         // ---------- Utilities ----------
@@ -1865,7 +1867,7 @@
         // ---------- Farmers (you and, online, your friend) ----------
         // Human proportions: about 6.5 heads tall, with separate clothes for the top, bottom (or a one-piece),
         // shoes and headwear. Clothes are drawn from the outfit, so changing clothes only rebuilds the farmer.
-        const SKIN = { adindayn: 0xe9b993, wawantn: 0xd9a077 };
+        const SKIN = { [NA]: 0xe9b993, [NW]: 0xd9a077 };
         const HAIR = 0x2a1a12;
         const patCache = {};
         // fabric patterns drawn once on a small canvas
@@ -2253,8 +2255,8 @@
             return sp;
         }
 
-        // Each account plays its own farmer: adindayn is the woman, wawantn the man; clothes are chosen in the wardrobe
-        const CHARACTERS = { adindayn: { g: 'f' }, wawantn: { g: 'm' } };
+        // Each account plays its own farmer: the first account is the woman, the second the man; clothes are chosen in the wardrobe
+        const CHARACTERS = { [NA]: { g: 'f' }, [NW]: { g: 'm' } };
         const LOOK_KEY = 'farmora.look@' + USER;
         let look = (() => { let saved = {}; try { saved = JSON.parse(localStorage.getItem(LOOK_KEY) || '{}'); } catch (e) { } const g = (CHARACTERS[USER] || { g: 'm' }).g; return { n: USER, g, o: cleanOutfit(saved.o, g) }; })();
         const lookOf = name => ({ n: name, g: CHARACTERS[name].g, o: cleanOutfit(state && state.looks && state.looks[name] && state.looks[name].o, CHARACTERS[name].g) });
@@ -2268,13 +2270,13 @@
         // ---------- Game state ----------
         // One farm shared by both players. The copy in the artifact's shared store (db) is the real one;
         // this device keeps a backup. An older save on this device is adopted once, the furthest one first.
-        const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
+        const OTHER = USER === NA ? NW : NA;
         // the day starts at 04:00 in the dark before dawn and ends at midnight at the latest
         const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60, FARM_WAKE = 5 * 60;
         // ⚡ energy: farm work uses it, food, hugs and sleep bring it back
         const ENERGY_MAX = 200;
         const FOOD_ENERGY = { dadar: 20, puding: 25, tumis: 30, salad: 30, jus: 25, sambal: 15, sop: 45 };
-        const otherOf = u => u === 'adindayn' ? 'wawantn' : 'adindayn';
+        const otherOf = u => u === NA ? NW : NA;
         const energyOf = u => state.en && Number.isFinite(state.en[u]) ? state.en[u] : ENERGY_MAX;
         const addEnergy = (u, n) => { state.en ||= {}; state.en[u] = clamp(energyOf(u) + n, 0, ENERGY_MAX); };
         // what each kind of farm work costs
@@ -2287,7 +2289,7 @@
         const SAVE_KEY = 'farmora.shared.v2';
         try {
             if (!localStorage.getItem(SAVE_KEY)) {
-                const olds = ['farmora.v1@adindayn', 'farmora.v1@wawantn', 'farmora.v1', 'kebunKecil.v1'].map(k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }).filter(x => x && x.day);
+                const olds = ['farmora.v1@' + NA, 'farmora.v1@' + NW, 'farmora.v1', 'kebunKecil.v1'].map(k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }).filter(x => x && x.day);
                 olds.sort((a, b) => b.day - a.day || (b.gold || 0) - (a.gold || 0));
                 if (olds[0]) localStorage.setItem(SAVE_KEY, JSON.stringify(olds[0]));
             }
@@ -2319,13 +2321,13 @@
             const animals = {};
             for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !LAYERS.has(d.kind) && !!productOf(d) };
             // a housewarming gift for the rooftop garden, split between both bags
-            const bags = { adindayn: toSlots({ pot: 1, pupuk: 1, b_kangkung: 2, b_bayam: 2 }), wawantn: toSlots({ pot: 1, pupuk: 1, b_tomat: 1, b_mawar: 1 }) };
+            const bags = { [NA]: toSlots({ pot: 1, pupuk: 1, b_kangkung: 2, b_bayam: 2 }), [NW]: toSlots({ pot: 1, pupuk: 1, b_tomat: 1, b_mawar: 1 }) };
             const pots = Array(POT_SLOTS).fill(null);
             for (let i = 0; i < 4; i++) pots[i] = {};
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, en: { adindayn: ENERGY_MAX, wawantn: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2336,7 +2338,7 @@
             const st = { ...base, ...saved, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, en: { ...base.en, ...(saved.en || {}) }, looks: { ...(saved.looks || {}) } };
             delete st.water; delete st.gwater;
             // bags and boxes; older saves had one shared inventory, which goes into the storage chest
-            st.bags = saved.bags ? { adindayn: toSlots(saved.bags.adindayn), wawantn: toSlots(saved.bags.wawantn) } : base.bags;
+            st.bags = saved.bags ? { [NA]: toSlots(saved.bags[NA]), [NW]: toSlots(saved.bags[NW]) } : base.bags;
             const sv = saved.store || {};
             st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin) };
             if (saved.inv && !saved.bags) for (const [k, n] of Object.entries(cleanItems(saved.inv))) st.store.chest[k] = (st.store.chest[k] || 0) + n;
@@ -2350,7 +2352,7 @@
             st.orders = st.orders.filter(o => o && SUPPLIES[o.k]);
             st.pkg = { ...(saved.pkg || {}) }; st.ib = { ...(saved.ib || {}) };
             const wd = saved.wardrobe || {};
-            st.wardrobe = { adindayn: (wd.adindayn || []).filter(id => CLOTH[id]), wawantn: (wd.wawantn || []).filter(id => CLOTH[id]) };
+            st.wardrobe = { [NA]: (wd[NA] || []).filter(id => CLOTH[id]), [NW]: (wd[NW] || []).filter(id => CLOTH[id]) };
             st.pkgCloth = (saved.pkgCloth || []).filter(v => Array.isArray(v) && CLOTH[v[0]] && CHARACTERS[v[1]]);
             for (const u of Object.keys(CHARACTERS)) if (st.looks[u] && !st.looks[u].o) delete st.looks[u];
             for (const d of ANIMAL_DEFS) st.animals[d.name].product &&= !!productOf(d);
@@ -2985,7 +2987,7 @@
         // Places to sit: h = facing, s = where you stand up, k = 1 sit / 2 kneel
         const seat = (f, x, z, h, sx, sz, k = 1, y) => ({ x: f + x, z, h, sx: f + sx, sz, k, y });
         // lying down (k 3): head toward the back (north), face up
-        const BED = { adindayn: seat(F2, -2.25, -4.5, 0, -3.25, -3.8, 3, 0.8), wawantn: seat(F2, -1.25, -4.5, 0, -0.25, -3.8, 3, 0.8) };
+        const BED = { [NA]: seat(F2, -2.25, -4.5, 0, -3.25, -3.8, 3, 0.8), [NW]: seat(F2, -1.25, -4.5, 0, -0.25, -3.8, 3, 0.8) };
         const SEATS = {
             sofaFamily: [seat(F1, -5.55, 4.05, -Math.PI / 2, -6.5, 4.05), seat(F1, -5.55, 5.15, -Math.PI / 2, -6.5, 5.15)],
             sofaGuest: [seat(F1, -0.5, 2.05, 0, -0.5, 2.85), seat(F1, 0.5, 2.05, 0, 0.5, 2.85)],
@@ -3000,7 +3002,7 @@
             roofBench: [seat(RF, -6.8, 5.65, 0, -6.8, 4.6), seat(RF, -5.8, 5.65, 0, -5.8, 4.6)],
             lounge: [{ ...seat(RF, 6.3, 5.9, 0, 5.4, 5.6, 3, 0.66), rec: 0.5 }, { ...seat(RF, 7.7, 5.9, 0, 8.6, 5.6, 3, 0.66), rec: 0.5 }],
         };
-        const WAKE = { wawantn: HV(F2, 0.2, -4.2), adindayn: HV(F2, -3.4, -3.4) };
+        const WAKE = { [NW]: HV(F2, 0.2, -4.2), [NA]: HV(F2, -3.4, -3.4) };
 
         let homeScene = null, homeKey = null, homeHemi = null, homeGlass = null, tvScreen = null, roofCover = null;
         const TV_SHOWS = ['Acara masak sore ini: sayur sop hangat.', 'Ramalan cuaca: cerah, cocok menyiram kebun.', 'Kartun favorit lagi tayang, seru!', 'Berita panen: harga cabai naik minggu ini.', 'Film keluarga yang bikin senyum-senyum 🥰'];
@@ -3292,7 +3294,7 @@
             col(f, bx - 1.15, bx + 1.15, -6.9, -4.2);
             for (const x of [bx - 1.6, bx + 1.6]) { box(0.5, 0.5, 0.45, 0xb07a45, x, 0.25, -6.6, g); lamp(g, x, -6.6, 0.55); }
             box(0.65, 2.1, 1.7, 0xb07a45, -5.05, 1.05, -2.2, g); box(0.02, 1.9, 0.02, 0x6e4723, -4.71, 1.05, -2.2, g); col(f, -5.4, -4.7, -3.1, -1.3);
-            textPlate(g, 'adindayn ♥ wawantn', bx, 2.3, -6.8, 1.9);
+            textPlate(g, `${NA} ♥ ${NW}`, bx, 2.3, -6.8, 1.9);
 
             // 🧸 two rooms kept ready for children one day
             rug(g, 3.75, -3.4, 2.4, 1.6, 0xa8d8ff, 0xcbe8ff);
@@ -4677,10 +4679,10 @@
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 state.looks[USER] = { o: look.o };
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
-                    bg: { adindayn: encBag(bagOf('adindayn')), wawantn: encBag(bagOf('wawantn')) },
+                    bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
-                    wd: { adindayn: state.wardrobe.adindayn.map(id => CLOTHES.indexOf(CLOTH[id])), wawantn: state.wardrobe.wawantn.map(id => CLOTHES.indexOf(CLOTH[id])) },
+                    wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
                 o.ev = net.events;
