@@ -64,8 +64,10 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
 ## Kandang, bebek, musim, dan cuaca 🌦️
 - **Kandang bisa dimasuki** (ayam, sapi, kambing, domba, bebek) lewat pintunya, sama seperti rumah. Semua kandang memakai model dalam yang sama: lantai jerami, tumpukan jerami, palung makan, dan sarang (untuk ayam/bebek) atau sekat kandang.
-- **Hewan masuk kandang** mulai pukul 19:00 dan saat cuaca tidak cerah; besok pagi yang cerah mereka keluar lagi. Kucing dan anjing berteduh di ruang keluarga. Kalau hewan di dalam, telur juga muncul di kandang.
-- **Bebek** jantan (Kwek) dan betina (Bebi) tinggal di sekitar kolam dengan rumah bebek; bebek betina bertelur 🥚 (Telur Bebek, 90 G).
+- **Hewan masuk kandang** mulai pukul 19:00 dan saat cuaca tidak cerah; besok pagi yang cerah mereka keluar lagi. Kucing dan anjing berteduh di ruang keluarga. Telur selalu muncul di sarang **di dalam kandang** ayam/bebek, jadi masuk kandang untuk mengambilnya.
+- **Bebek** jantan (Kwek) dan betina (Bebi) tinggal di kandang berpagar tepat di bawah (selatan) kandang ayam, lengkap dengan rumah bebek dan kolam kecil; bebek betina bertelur 🥚 (Telur Bebek, 90 G).
+- **Kolam dangkal**: kolam bebek dan kolam besar bisa dilewati pemain, jadi bebek yang sedang berenang tetap bisa didekati dan dielus.
+- **Gerak karakter lebih luwes**: kaki punya lutut dan lengan punya siku. Saat berjalan, lutut menekuk ketika kaki diayun ke depan dan lengan berayun dengan siku sedikit menekuk. Saat duduk, betis menggantung ke bawah, dan saat duduk di sajadah karakter duduk bersimpuh di atas tumit.
 - **6 musim**, masing-masing satu bulan (30 hari): 🌸 Semi → ☀️ Panas → 🏜️ Kemarau → 🍂 Gugur → 🌧️ Penghujan → ❄️ Dingin, lalu kembali ke Semi. Warna daun, rumput, dan tanah ikut berubah (daun jingga di musim gugur, salju di musim dingin).
 - **Cuaca harian** sesuai peluang musimnya: cerah, hujan, salju (musim dingin), atau badai (dengan kilat dan guruh). Langit jadi kelabu saat hujan, dan suara hujan/angin terdengar.
 - Saat **hujan**, pohon buah tersiram sendiri. Di **musim dingin** pohon buah beristirahat dan tidak berbuah. **Taman rooftop** tetap disiram setiap hari, kecuali saat hujan (tersiram sendiri). Di musim dingin rooftop ditutup atap kaca: salju tidak masuk dan tanaman tetap tumbuh, tapi harus disiram.
@@ -81,7 +83,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - Membuka kulkas/kotak menampilkan isi kotak dan isi tas berdampingan seperti Stardew Valley: ketuk barang untuk memindahkannya (semua atau 1 buah).
 - **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur.
 - **Alat** (ada di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
-- **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di tanah kandang ayam.
+- **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
 ## Menyimpan progres
 - Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres** lalu pilih slot (ada 10 slot). **Tidur tanpa menyimpan** juga bisa.

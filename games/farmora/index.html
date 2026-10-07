@@ -523,7 +523,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ada di tanah kandang ayam.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -712,7 +712,10 @@
         const PEN_COW = { minX: 5, maxX: 13, minZ: -8, maxZ: 0 };
         const PEN_GOAT = { minX: 14.5, maxX: 22.5, minZ: -8, maxZ: 0 };
         const PEN_SHEEP = { minX: 14.5, maxX: 22.5, minZ: 4, maxZ: 12 };
-        const PENS = [PEN_CHICKEN, PEN_COW, PEN_GOAT, PEN_SHEEP];
+        // ducks get their own fenced run right below the chicken run, with a shallow pond inside
+        const PEN_DUCK = { minX: -20, maxX: -14, minZ: 9.6, maxZ: 14.4 };
+        const DUCK_POND = { x: -17.4, z: 12, r: 1.35 };
+        const PENS = [PEN_CHICKEN, PEN_COW, PEN_GOAT, PEN_SHEEP, PEN_DUCK];
         const inset = (r, m) => ({ minX: r.minX + m, maxX: r.maxX - m, minZ: r.minZ + m, maxZ: r.maxZ - m });
         const AREA_CHICKEN = inset(PEN_CHICKEN, 0.7);
         const AREA_COW = inset(PEN_COW, 1.0);
@@ -721,9 +724,7 @@
         const AREA_YARD = { minX: -8.5, maxX: 4, minZ: -8, maxZ: 9 };
         const FIELD = { minX: -6, maxX: 2, minZ: 11, maxZ: 18 };
         const POND = { x: 12, z: 16, r: 3.2 };
-        // ducks live around the pond
-        const PEN_DUCK = { minX: 8, maxX: 16, minZ: 12.6, maxZ: 19.6 };
-        const AREA_DUCK = inset(PEN_DUCK, 0.4);
+        const AREA_DUCK = inset(PEN_DUCK, 0.5);
         // Every pen has a shelter to walk into. Inside they all share one simple barn model, each far away on
         // the map like the floors of the house; animals go in at night and when the weather is not clear.
         const BARNS = {
@@ -731,7 +732,7 @@
             cow: { x: 440, icon: '🐄', label: 'Kandang sapi', out: new THREE.Vector3(9, 0, -7.2), face: 0 },
             goat: { x: 500, icon: '🐐', label: 'Kandang kambing', out: new THREE.Vector3(18.5, 0, -7.1), face: 0 },
             sheep: { x: 560, icon: '🐑', label: 'Kandang domba', out: new THREE.Vector3(18.5, 0, 11.1), face: Math.PI },
-            duck: { x: 620, icon: '🦆', label: 'Kandang bebek', out: new THREE.Vector3(10.2, 0, 19.0), face: Math.PI },
+            duck: { x: 620, icon: '🦆', label: 'Kandang bebek', out: new THREE.Vector3(-17, 0, 13.7), face: Math.PI },
         };
         for (const b of Object.values(BARNS)) { b.area = { minX: b.x - 3.6, maxX: b.x + 3.6, minZ: -2.6, maxZ: 2.0 }; b.in = new THREE.Vector3(b.x, 0, 2.4); }
         const LAYERS = new Set(['chicken', 'duck']);
@@ -900,9 +901,9 @@
             box(0.7, 0.6, 0.1, windowMat, 1.3, 1.4, 1.55, g);
         }
 
-        // Duck house by the pond
+        // Duck house at the back (south) of the duck run, door facing into the run
         {
-            const g = building({ x: 10.2, z: 20.5, w: 2.6, d: 1.7, h: 1.3, wall: 0xf2e6c8, roof: 0x3f7fb5, roofH: 0.9 });
+            const g = building({ x: -17, z: 15.6, w: 2.6, d: 1.7, h: 1.3, wall: 0xf2e6c8, roof: 0x3f7fb5, roofH: 0.9 });
             box(0.7, 0.8, 0.1, 0x7a4b25, 0, 0.4, -0.9, g);
             box(0.7, 0.08, 0.6, C.darkWood, 0, 0.12, -1.25, g).rotation.x = -0.3;
         }
@@ -940,11 +941,12 @@
         fenceRect(PEN_COW, { side: 's', a: 7, b: 9.8 });
         fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 });
         fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 });
+        fenceRect(PEN_DUCK, { side: 'e', a: 10.4, b: 12.8 });
         sign(-13.4, 0.4, 'Ayam');
         sign(5.6, 0.6, 'Sapi');
         sign(15.1, 0.6, 'Kambing');
         sign(15.1, 3.4, 'Domba');
-        sign(16.6, 18.6, 'Bebek');
+        sign(-13.4, 9.9, 'Bebek');
 
         // Feeding troughs along the back fence of each pen
         function trough(x, z, w, d, feed) {
@@ -956,6 +958,7 @@
         trough(18.5, -7.55, 2.2, 0.45, C.straw);
         trough(18.5, 11.55, 2.2, 0.45, 0x9cc95a);
         trough(-19.55, 7.3, 0.45, 1.4, 0xe8d27a);
+        trough(-15, 13.85, 1.4, 0.45, 0xe8d27a);
 
         // Shipping bin
         const BIN = new THREE.Vector3(-6.5, 0, -10.2);
@@ -1023,7 +1026,19 @@
                 cap(0.025, hgt, 0x4a7f2c, rx, hgt / 2, rz, scene);
                 if (i % 2 === 0) cap(0.045, 0.18, 0x7a4b25, rx, hgt + 0.05, rz, scene);
             }
-            addCircleCollider(POND.x, POND.z, POND.r + 0.1);
+            // the pond is shallow: you can wade through it
+        }
+        {
+            const water = new THREE.Mesh(new THREE.CircleGeometry(DUCK_POND.r, 36), new THREE.MeshStandardMaterial({ color: 0x5cbfe8, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.85 }));
+            water.rotation.x = -Math.PI / 2;
+            water.position.set(DUCK_POND.x, 0.05, DUCK_POND.z);
+            water.receiveShadow = true;
+            scene.add(water);
+            for (let i = 0; i < 14; i++) {
+                const a = i / 14 * Math.PI * 2, s = srange(0.3, 0.5);
+                const st = mesh(ICO, mat(C.stone), scene); st.scale.set(s * 0.6, s * 0.3, s * 0.55);
+                st.position.set(DUCK_POND.x + Math.cos(a) * (DUCK_POND.r + 0.1), 0.06, DUCK_POND.z + Math.sin(a) * (DUCK_POND.r + 0.1));
+            }
         }
 
         // Field with the scarecrow (its beds hold watermelon, melon, strawberries and pineapples)
@@ -1086,14 +1101,14 @@
         // cycle = nights of watering until the next harvest, yield = fruit per harvest, roughly following how each plant bears
         const FRUIT_DEFS = [
             // West orchard
-            { key: 'pisang', label: 'Pisang', icon: '🍌', price: 120, cycle: 4, yield: [1, 2], kind: 'banana', at: [-21, 13.5] },
-            { key: 'kelapa', label: 'Kelapa', icon: '🥥', price: 85, cycle: 3, yield: [2, 3], kind: 'palm', at: [-17.5, 13.5] },
-            { key: 'pepaya', label: 'Pepaya', icon: '🍈', price: 100, cycle: 2, yield: [1, 2], kind: 'papaya', at: [-14, 13.5] },
-            { key: 'salak', label: 'Salak', icon: '🥝', price: 40, cycle: 3, yield: [3, 5], kind: 'salak', at: [-10.5, 13.5] },
-            { key: 'jambu', label: 'Jambu biji', icon: '🍉', price: 35, cycle: 2, yield: [2, 4], kind: 'tree', at: [-21, 19], tree: { r: 1.05, y: 2.0, trunk: 0.85, leaf: 0x78b64a, bark: 0xb59a74, shape: 'spread' }, fruit: 'jambu' },
-            { key: 'jeruk', label: 'Jeruk', icon: '🍊', price: 45, cycle: 3, yield: [3, 5], kind: 'tree', at: [-17.5, 19], tree: { r: 0.95, y: 1.9, trunk: 0.8, leaf: 0x3f9f45, shape: 'round' }, fruit: 'jeruk' },
-            { key: 'apel', label: 'Apel', icon: '🍎', price: 70, cycle: 4, yield: [2, 4], kind: 'tree', at: [-14, 19], tree: { r: 1.05, y: 2.0, trunk: 0.9, leaf: 0x5aa33f, shape: 'round' }, fruit: 'apel' },
-            { key: 'pir', label: 'Pir', icon: '🍐', price: 65, cycle: 4, yield: [2, 4], kind: 'tree', at: [-10.5, 19], tree: { r: 0.95, y: 2.2, trunk: 0.95, leaf: 0x6aaa45, shape: 'cone' }, fruit: 'pir' },
+            { key: 'pisang', label: 'Pisang', icon: '🍌', price: 120, cycle: 4, yield: [1, 2], kind: 'banana', at: [-21, 18.2] },
+            { key: 'kelapa', label: 'Kelapa', icon: '🥥', price: 85, cycle: 3, yield: [2, 3], kind: 'palm', at: [-17.5, 18.2] },
+            { key: 'pepaya', label: 'Pepaya', icon: '🍈', price: 100, cycle: 2, yield: [1, 2], kind: 'papaya', at: [-14, 18.2] },
+            { key: 'salak', label: 'Salak', icon: '🥝', price: 40, cycle: 3, yield: [3, 5], kind: 'salak', at: [-10.5, 18.2] },
+            { key: 'jambu', label: 'Jambu biji', icon: '🍉', price: 35, cycle: 2, yield: [2, 4], kind: 'tree', at: [-21, 21.5], tree: { r: 1.05, y: 2.0, trunk: 0.85, leaf: 0x78b64a, bark: 0xb59a74, shape: 'spread' }, fruit: 'jambu' },
+            { key: 'jeruk', label: 'Jeruk', icon: '🍊', price: 45, cycle: 3, yield: [3, 5], kind: 'tree', at: [-17.5, 21.5], tree: { r: 0.95, y: 1.9, trunk: 0.8, leaf: 0x3f9f45, shape: 'round' }, fruit: 'jeruk' },
+            { key: 'apel', label: 'Apel', icon: '🍎', price: 70, cycle: 4, yield: [2, 4], kind: 'tree', at: [-14, 21.5], tree: { r: 1.05, y: 2.0, trunk: 0.9, leaf: 0x5aa33f, shape: 'round' }, fruit: 'apel' },
+            { key: 'pir', label: 'Pir', icon: '🍐', price: 65, cycle: 4, yield: [2, 4], kind: 'tree', at: [-10.5, 21.5], tree: { r: 0.95, y: 2.2, trunk: 0.95, leaf: 0x6aaa45, shape: 'cone' }, fruit: 'pir' },
             // North orchard
             { key: 'mangga', label: 'Mangga', icon: '🥭', price: 90, cycle: 4, yield: [2, 4], kind: 'tree', at: [0, -16.5], tree: { r: 1.55, y: 2.6, trunk: 1.1, leaf: 0x2f7a35, shape: 'round' }, fruit: 'mangga' },
             { key: 'durian', label: 'Durian', icon: '🥭', price: 550, cycle: 5, yield: [1, 2], kind: 'tree', at: [6, -16.5], tree: { r: 1.3, y: 3.3, trunk: 1.5, leaf: 0x3e7d3a, shape: 'oval' }, fruit: 'durian' },
@@ -1303,7 +1318,7 @@
             addCircleCollider(w.x, w.z, 0.85);
         }
         const PLANTS = FRUIT_DEFS.map(f => ({ def: f, ...buildPlant(f) }));
-        const sign2 = [[-15.75, 10.6, 'Kebun Barat'], [9, -14.0, 'Kebun Utara']];
+        const sign2 = [[-12.4, 16.3, 'Kebun Barat'], [9, -14.0, 'Kebun Utara']];
         for (const [x, z, t] of sign2) sign(x, z, t);
 
         // Flowers, grass tufts and rocks
@@ -1767,13 +1782,12 @@
         // the toolbar is the top row of the bag; the selected slot decides what is in your hands
         let selSlot = 1, tool = 'penyiram';
         const toolHint = k => `pilih ${TOOLS[k].icon} ${TOOLS[k].label}`;
-        // hens lay their eggs on the ground somewhere in the chicken run
+        // hens and ducks lay their eggs in the nests inside their barn
         const EGG_MAX = 6;
         function layEggs(st) {
             st.eggs = (st.eggs || []).filter(Boolean);
-            const inside = st.weather && st.weather !== 'cerah';
             for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind) && d.sex === 'f' && st.eggs.length < EGG_MAX) {
-                const a = inside ? BARNS[d.kind].area : d.area;
+                const a = BARNS[d.kind].area; // eggs are laid in the nests inside the barn
                 st.eggs.push([Math.round(rand(a.minX + 0.4, a.maxX - 0.4) * 100) / 100, Math.round(rand(a.minZ + 0.4, a.maxZ - 0.4) * 100) / 100, d.kind === 'duck' ? 1 : 0]);
             }
         }
@@ -1954,14 +1968,18 @@
             const botMat = clothMat(botItem.c, botItem.pat, botItem.c2);
             const skinMat = mat(skin);
 
-            // legs (pivot at the hip): skin, then trousers over it, then shoes
+            // legs (pivot at the hip, bending at the knee): skin, then trousers over it, then shoes
+            const knees = [];
             const legs = [1, -1].map(side => {
                 const p = new THREE.Group(); p.position.set(0.09 * side, hipY - 0.02, 0); rig.add(p);
+                const kn = new THREE.Group(); kn.position.y = -0.42; p.add(kn); knees.push(kn);
+                const longP = botItem.legs === 'long';
                 cap(0.068, 0.3, skin, 0, -0.21, 0, p);
-                cap(0.054, 0.32, skin, 0, -0.6, 0, p);
-                if (botItem.legs === 'long') { mesh(capGeo(0.077, 0.32), botMat, p).position.y = -0.21; mesh(capGeo(0.064, 0.34), botMat, p).position.y = -0.59; }
+                cap(0.054, 0.32, skin, 0, -0.18, 0, kn);
+                ball(0.06, 0.06, 0.06, skin, 0, 0, 0, kn).material = longP ? botMat : skinMat;
+                if (longP) { mesh(capGeo(0.077, 0.32), botMat, p).position.y = -0.21; mesh(capGeo(0.064, 0.34), botMat, kn).position.y = -0.17; }
                 else if (botItem.legs === 'short') mesh(capGeo(0.08, 0.12), botMat, p).position.y = -0.12;
-                shoe(p, shoes, skin);
+                shoe(kn, shoes, skin, -0.44);
                 return p;
             });
             const body = new THREE.Group(); rig.add(body);
@@ -1981,14 +1999,19 @@
             details(body, topItem, botItem, { hipY, shY, girl, skin });
             // arms (pivot at the shoulder)
             const sleeveMat = topMat === skinMat ? null : topMat;
+            // arms (pivot at the shoulder, bending at the elbow), hanging slightly away from the body
+            const elbows = [];
             const arms = [1, -1].map(side => {
-                const p = new THREE.Group(); p.position.set(shX * side, shY - 0.03, 0); body.add(p);
+                const p = new THREE.Group(); p.position.set(shX * side, shY - 0.03, 0); p.rotation.z = 0.06 * side; body.add(p);
+                const el = new THREE.Group(); el.position.y = -0.27; p.add(el); elbows.push(el);
+                const longS = sleeveMat && !swim && topItem.sleeve === 'long';
                 cap(0.046, 0.2, skin, 0, -0.14, 0, p);
-                cap(0.039, 0.2, skin, 0, -0.4, 0, p);
-                ball(0.042, 0.055, 0.035, skin, 0, -0.57, 0.005, p);
+                cap(0.039, 0.2, skin, 0, -0.13, 0, el);
+                ball(0.043, 0.043, 0.043, skin, 0, 0, 0, el).material = longS ? sleeveMat : skinMat;
+                ball(0.042, 0.055, 0.035, skin, 0, -0.3, 0.005, el);
                 const bulk = topItem.bulk ? 0.008 : 0;
                 if (sleeveMat && !swim && topItem.sleeve === 'short') mesh(capGeo(0.058 + bulk, 0.08), sleeveMat, p).position.y = -0.08;
-                if (sleeveMat && !swim && topItem.sleeve === 'long') { mesh(capGeo(0.056 + bulk, 0.22), sleeveMat, p).position.y = -0.14; mesh(capGeo(0.049 + bulk, 0.2), sleeveMat, p).position.y = -0.39; }
+                if (longS) { mesh(capGeo(0.056 + bulk, 0.22), sleeveMat, p).position.y = -0.14; mesh(capGeo(0.049 + bulk, 0.2), sleeveMat, el).position.y = -0.12; }
                 return p;
             });
             // head
@@ -2003,7 +2026,7 @@
             const hijab = head && head.kind === 'hijab';
             if (!hijab) hair(hd, girl, head);
             if (head) hat(hd, head, girl);
-            Object.assign(f, { body, legs, arms, head: hd, eyes });
+            Object.assign(f, { body, legs, arms, knees, elbows, head: hd, eyes });
         }
         // the top and bottom of a one-piece or a matching set
         function fullParts(it) {
@@ -2048,8 +2071,7 @@
                 ball(0.072, 0.035, 0.06, it.c, 0, -0.118, 0.03, hd).material = m2;
             }
         }
-        function shoe(p, it, skin) {
-            const y = -0.86;
+        function shoe(p, it, skin, y = -0.86) {
             if (!it) { ball(0.045, 0.03, 0.095, skin, 0, y + 0.01, 0.04, p); return; }
             const k = it.kind;
             if (k === 'sandal' || k === 'jepit') {
@@ -2100,13 +2122,21 @@
             return f;
         }
         function animateFarmer(f, moving, dt) {
-            const swing = moving ? Math.sin(f.phase) * 0.7 : 0;
+            // a human walk: the thigh swings from the hip while the knee folds as that leg swings forward,
+            // and the arms swing against the legs with the elbows softly bent
+            const sn = Math.sin(f.phase), cs = Math.cos(f.phase);
+            const swing = moving ? sn * 0.45 : 0;
             const k = Math.min(1, dt * 14);
-            f.legs[0].rotation.x = lerp(f.legs[0].rotation.x, swing, k);
-            f.legs[1].rotation.x = lerp(f.legs[1].rotation.x, -swing, k);
-            f.arms[0].rotation.x = lerp(f.arms[0].rotation.x, -swing * 0.8, k);
-            f.arms[1].rotation.x = lerp(f.arms[1].rotation.x, swing * 0.8, k);
-            f.body.position.y = moving ? Math.abs(Math.sin(f.phase)) * 0.06 : 0;
+            const knee = [moving ? 0.1 + Math.max(0, -cs) * 0.8 : 0.06, moving ? 0.1 + Math.max(0, cs) * 0.8 : 0.06];
+            const arm = [-swing * 0.85, swing * 0.85];
+            for (let i = 0; i < 2; i++) {
+                f.legs[i].rotation.x = lerp(f.legs[i].rotation.x, i ? -swing : swing, k);
+                f.knees[i].rotation.x = lerp(f.knees[i].rotation.x, knee[i], k);
+                f.arms[i].rotation.x = lerp(f.arms[i].rotation.x, arm[i], k);
+                f.elbows[i].rotation.x = lerp(f.elbows[i].rotation.x, moving ? -0.3 - Math.max(0, -arm[i]) * 0.7 : -0.12, k);
+            }
+            f.body.position.y = moving ? Math.abs(sn) * 0.035 - 0.015 : 0;
+            f.body.rotation.y = lerp(f.body.rotation.y, moving ? sn * 0.07 : 0, k);
             const pb = ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
             for (const e of f.eyes) e.scale.y = e.scale.x * pb;
         }
@@ -3398,11 +3428,18 @@
                 f.pos.y = (y || 0.8) - 0.04;
                 f.legs.forEach(l => { l.rotation.x = 0; });
                 f.arms.forEach(a => { a.rotation.x = 0; });
+                f.knees.forEach(n => { n.rotation.x = 0.12; });
+                f.elbows.forEach(e => { e.rotation.x = -0.15; });
+                f.body.rotation.y = 0; f.body.position.y = 0;
                 return;
             }
-            // seat the hips on the chair (k 1) or kneel on the mat (k 2)
+            // seat the hips on the chair with the shins hanging down (k 1), or sit back on the heels on the mat (k 2)
             f.pos.y = k === 2 ? 0.2 - f.hip : 0.47 - (f.hip - 0.08);
-            f.legs.forEach(l => { l.rotation.x = k === 2 ? 1.5 : -1.4; });
+            f.legs.forEach(l => { l.rotation.x = -1.45; });
+            f.knees.forEach(n => { n.rotation.x = k === 2 ? 2.85 : 1.5; });
+            f.arms.forEach(a => { a.rotation.x = -0.25; });
+            f.elbows.forEach(e => { e.rotation.x = -0.9; });
+            f.body.rotation.y = 0; f.body.position.y = 0;
         }
         // a bench or sofa for two: take the free place nearest to you
         const seatTaken = s => net.connected && partnerF.live && partnerF.netT && partnerF.netT[4] && Math.hypot(partnerF.netT[0] - s.x, partnerF.netT[1] - s.z) < 0.4;
@@ -4780,7 +4817,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
