@@ -105,7 +105,7 @@ Di HP muncul joystick dan tombol aksi ✋.
 - Elus hewan setiap hari agar hatinya (♥) bertambah. Hewan ternak yang tidak dielus seharian akan sedikit sedih.
 - Setiap pagi ayam, sapi, dan kambing betina menghasilkan telur atau susu, dan kedua domba menghasilkan wol. Hewan jantan tetap bisa dielus. Ikon di atas kepala menandakan hasilnya sudah siap.
 - Jual hasil ternak di kotak pengiriman 📦 di dekat rumah.
-- Masuk ke pintu rumah untuk tidur. Kalau masih di luar sampai pukul 02:00, kamu akan pingsan.
+- Hari dimulai pukul **04:00** saat langit masih gelap, lalu perlahan terang menjelang pagi (terang penuh pukul 07:00). Masuk ke pintu rumah untuk tidur; paling malam pukul **00:00**, saat itu kalian otomatis tidur (ada pengingat pukul 23:00). Hewan tetap di kandang sampai pukul 06:00.
 - Progres tersimpan otomatis di browser.
 
 ## Menjalankan

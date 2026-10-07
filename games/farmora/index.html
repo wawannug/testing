@@ -459,7 +459,7 @@
     <div id="clock" class="panel">
         <div class="day" id="dayLabel">Senin · Hari 1</div>
         <div class="season" id="seasonLabel">🌸 Musim Semi</div>
-        <div class="time" id="timeLabel">06:00</div>
+        <div class="time" id="timeLabel">04:00</div>
         <div class="gold" id="goldLabel">💰 0 G</div>
         <div class="loc" id="locLabel">🌾 Farm</div>
     </div>
@@ -2204,6 +2204,9 @@
         // One farm shared by both players. The copy in the artifact's shared store (db) is the real one;
         // this device keeps a backup. An older save on this device is adopted once, the furthest one first.
         const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
+        // the day starts at 04:00 in the dark before dawn and ends at midnight at the latest
+        const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60;
+        let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
         try {
             if (!localStorage.getItem(SAVE_KEY)) {
@@ -2245,7 +2248,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: 6 * 60, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -4760,7 +4763,7 @@
             if (sleeping) return;
             if (net.mode === 'guest') return;
             sleeping = true;
-            $('fadeText').textContent = passedOut ? 'Kamu pingsan karena kelelahan... 😵' : 'Zzz...';
+            $('fadeText').textContent = passedOut ? 'Sudah pukul 00:00, waktunya tidur... 😴' : 'Zzz...';
             $('fade').classList.add('show');
             setTimeout(() => {
                 for (const a of animals) {
@@ -4792,7 +4795,7 @@
                 if (isWet()) for (const f of FRUIT_DEFS) { state.trees[f.key].w = true; state.trees[f.key].dry = 0; }
                 if (rainOnRoof(newSeason)) for (const p of state.pots) if (p && p.s) { p.w = true; p.dry = 0; }
                 state.day++;
-                state.minutes = 6 * 60;
+                state.minutes = WAKE_MIN;
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
@@ -4815,12 +4818,15 @@
             const h = state.minutes / 60;
             // 0 = night, 1 = full day
             let day;
-            if (h < 6) day = 0.2;
-            else if (h < 7) day = lerp(0.75, 1, h - 6);
+            // 04:00 is still dark; the sky slowly brightens until full day at 07:00
+            if (h < 4) day = 0.1;
+            else if (h < 5) day = lerp(0.1, 0.3, h - 4);
+            else if (h < 6) day = lerp(0.3, 0.7, h - 5);
+            else if (h < 7) day = lerp(0.7, 1, h - 6);
             else if (h < 17.5) day = 1;
             else if (h < 20.5) day = lerp(1, 0, (h - 17.5) / 3);
             else day = 0;
-            const dusk = h > 17 && h < 21 ? 1 - Math.abs(h - 19) / 2 : (h > 6 && h < 7.5 ? 0.5 : 0);
+            const dusk = h > 17 && h < 21 ? 1 - Math.abs(h - 19) / 2 : (h > 4.8 && h < 7.5 ? 0.6 * (1 - Math.abs(h - 6) / 1.5) : 0);
             skyColor.copy(SKY_NIGHT).lerp(SKY_DAY, day).lerp(SKY_DUSK, dusk * 0.45);
             // clouds: rain, snow and storms dim the sun and grey the sky
             const wf = { cerah: 1, hujan: 0.55, salju: 0.7, badai: 0.38 }[state.weather] ?? 1;
@@ -5007,7 +5013,8 @@
 
             if (started && !sleeping && !helpOpen && net.mode !== 'guest') {
                 state.minutes += dt * (10 / 7); // 10 in-game minutes per 7 seconds
-                if (state.minutes >= 26 * 60) sleep(true);
+                if (state.minutes >= 23 * 60 && warnLate !== state.day) { warnLate = state.day; toast('🌙 Sudah pukul 23:00. Pukul 00:00 kalian otomatis tidur.'); }
+                if (state.minutes >= BED_MIN) sleep(true);
             }
             if (net.mode === 'host') deliverOrders();
             pkgMesh.visible = pkgCount() > 0;
