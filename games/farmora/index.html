@@ -266,6 +266,7 @@
         .btn.danger { background: #ffd2c8; font-size: 14px; }
 
         #fade.quick { transition: opacity .3s; }
+        #flash { position: fixed; inset: 0; background: #eef4ff; opacity: 0; pointer-events: none; transition: opacity .25s; }
         #fade.soft { background: rgba(13, 16, 34, .55); transition: opacity .6s; font-size: 54px; }
         #clock .loc { font-size: 12.5px; font-weight: 600; margin-top: 2px; opacity: .85; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         @media (max-width: 480px) {
@@ -457,7 +458,7 @@
 
     <div id="clock" class="panel">
         <div class="day" id="dayLabel">Senin · Hari 1</div>
-        <div class="season">🌸 Musim Semi</div>
+        <div class="season" id="seasonLabel">🌸 Musim Semi</div>
         <div class="time" id="timeLabel">06:00</div>
         <div class="gold" id="goldLabel">💰 0 G</div>
         <div class="loc" id="locLabel">🌾 Farm</div>
@@ -476,6 +477,7 @@
     <div id="itemName" class="panel"></div>
     <div id="toasts"></div>
     <div id="fade"><span id="fadeText"></span></div>
+    <div id="flash"></div>
 
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
@@ -521,7 +523,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ada di tanah kandang ayam.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap 10 hari (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop tumbuh sendiri tanpa disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ada di tanah kandang ayam.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -719,8 +721,24 @@
         const AREA_YARD = { minX: -8.5, maxX: 4, minZ: -8, maxZ: 9 };
         const FIELD = { minX: -6, maxX: 2, minZ: 11, maxZ: 18 };
         const POND = { x: 12, z: 16, r: 3.2 };
+        // ducks live around the pond
+        const PEN_DUCK = { minX: 8, maxX: 16, minZ: 12.6, maxZ: 19.6 };
+        const AREA_DUCK = inset(PEN_DUCK, 0.4);
+        // Every pen has a shelter to walk into. Inside they all share one simple barn model, each far away on
+        // the map like the floors of the house; animals go in at night and when the weather is not clear.
+        const BARNS = {
+            chicken: { x: 380, icon: '🐔', label: 'Kandang ayam', out: new THREE.Vector3(-17, 0, 1.9), face: 0 },
+            cow: { x: 440, icon: '🐄', label: 'Kandang sapi', out: new THREE.Vector3(9, 0, -7.2), face: 0 },
+            goat: { x: 500, icon: '🐐', label: 'Kandang kambing', out: new THREE.Vector3(18.5, 0, -7.1), face: 0 },
+            sheep: { x: 560, icon: '🐑', label: 'Kandang domba', out: new THREE.Vector3(18.5, 0, 11.1), face: Math.PI },
+            duck: { x: 620, icon: '🦆', label: 'Kandang bebek', out: new THREE.Vector3(10.2, 0, 19.0), face: Math.PI },
+        };
+        for (const b of Object.values(BARNS)) { b.area = { minX: b.x - 3.6, maxX: b.x + 3.6, minZ: -2.6, maxZ: 2.0 }; b.in = new THREE.Vector3(b.x, 0, 2.4); }
+        const LAYERS = new Set(['chicken', 'duck']);
 
-        // Ground with subtle color variation
+        // Ground with subtle color variation (tinted by the season)
+        const GROUND_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
+        const GRASS_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
         {
             const geo = new THREE.PlaneGeometry(130, 130, 65, 65);
             geo.rotateX(-Math.PI / 2);
@@ -734,7 +752,7 @@
                 colors.push(tmp.r, tmp.g, tmp.b);
             }
             geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-            const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+            const ground = new THREE.Mesh(geo, GROUND_MAT);
             ground.receiveShadow = true;
             scene.add(ground);
         }
@@ -882,6 +900,13 @@
             box(0.7, 0.6, 0.1, windowMat, 1.3, 1.4, 1.55, g);
         }
 
+        // Duck house by the pond
+        {
+            const g = building({ x: 10.2, z: 20.5, w: 2.6, d: 1.7, h: 1.3, wall: 0xf2e6c8, roof: 0x3f7fb5, roofH: 0.9 });
+            box(0.7, 0.8, 0.1, 0x7a4b25, 0, 0.4, -0.9, g);
+            box(0.7, 0.08, 0.6, C.darkWood, 0, 0.12, -1.25, g).rotation.x = -0.3;
+        }
+
         // Fences
         function fenceRect(r, gate) {
             const sides = {
@@ -919,6 +944,7 @@
         sign(5.6, 0.6, 'Sapi');
         sign(15.1, 0.6, 'Kambing');
         sign(15.1, 3.4, 'Domba');
+        sign(16.6, 18.6, 'Bebek');
 
         // Feeding troughs along the back fence of each pen
         function trough(x, z, w, d, feed) {
@@ -944,6 +970,7 @@
         }
         // eggs on the ground
         const EGG_POS = Array.from({ length: 6 }, () => new THREE.Vector3(0, 0, -999));
+        const CHICKEN_EGG_MAT = mat(0xfff4e0), DUCK_EGG_MAT = mat(0xd6eee4);
         const eggMeshes = EGG_POS.map(() => { const m = ball(0.12, 0.15, 0.12, 0xfff4e0, 0, 0.14, 0, scene); m.visible = false; return m; });
         {
             const g = new THREE.Group();
@@ -1016,6 +1043,8 @@
 
         // Trees
         const TRUNK = new THREE.CylinderGeometry(0.16, 0.26, 1.8, 12);
+        const LEAF_MATS = {};
+        const leafMat = (c, pine) => LEAF_MATS[c + (pine ? 'p' : '')] ||= Object.assign(new THREE.MeshStandardMaterial({ color: c, roughness: 0.82 }), { userData: { base: new THREE.Color(c), pine, seed: (c % 97) / 97 } });
         function roundTree(x, z, s = 1) {
             const g = new THREE.Group();
             g.position.set(x, 0, z);
@@ -1023,7 +1052,7 @@
             const c = [C.leaf1, C.leaf2, C.leaf3][Math.floor(srand() * 3)];
             const lighter = new THREE.Color(c).offsetHSL(0, 0, 0.06).getHex();
             for (const [px, py, pz, r, cc] of [[0, 2.3, 0, 1.15, c], [0.65, 2.0, 0.3, 0.75, c], [-0.6, 2.1, -0.2, 0.8, c], [0.2, 3.0, -0.1, 0.8, lighter], [-0.15, 2.4, 0.7, 0.65, lighter]]) {
-                const f = mesh(ICO, mat(cc), g); f.scale.setScalar(r * s); f.position.set(px * s, py * s, pz * s); f.rotation.y = srand() * 3;
+                const f = mesh(ICO, leafMat(cc), g); f.scale.setScalar(r * s); f.position.set(px * s, py * s, pz * s); f.rotation.y = srand() * 3;
             }
             if (srand() < 0.35) for (let i = 0; i < 4; i++) {
                 const f = mesh(SPH, glossy(0xe8413a), g); f.scale.setScalar(0.12 * s);
@@ -1037,7 +1066,7 @@
             g.position.set(x, 0, z);
             const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.set(0.85 * s, 0.7 * s, 0.85 * s); trunk.position.y = 0.6 * s;
             for (let i = 0; i < 3; i++) {
-                const c = mesh(CONE, mat(0x3f8a4a), g);
+                const c = mesh(CONE, leafMat(0x3f8a4a, true), g);
                 c.scale.set((1.4 - i * 0.35) * s, 1.5 * s, (1.4 - i * 0.35) * s);
                 c.position.y = (1.6 + i * 0.85) * s;
             }
@@ -1312,7 +1341,7 @@
             const inRect = (x, z, r, m) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
             const blade = new THREE.ConeGeometry(0.035, 0.34, 3);
             blade.translate(0, 0.17, 0);
-            const grassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+            const grassMat = GRASS_MAT;
             grassMat.onBeforeCompile = sh => {
                 sh.uniforms.uTime = grassTime;
                 sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -1624,10 +1653,30 @@
             return { group: g, body, head, tail, legs, eyes, height: 1.25 };
         }
 
-        const BUILDERS = { chicken: makeChicken, cow: makeCow, goat: makeGoat, sheep: makeSheep, cat: makeCat, dog: makeDog };
+        function makeDuck(variant, sex) {
+            const drake = sex === 'm';
+            const bodyC = drake ? 0xdcd8d0 : 0xb88a5a, headC = drake ? 0x1f6b3a : 0xa57a4e, wingC = drake ? 0xa8a49c : 0x8f6440;
+            const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+            blob(g, 0.5, 0.6);
+            ball(0.22, 0.17, 0.32, bodyC, 0, 0.32, 0, body);
+            ball(0.13, 0.11, 0.12, drake ? 0x7a4a2e : bodyC, 0, 0.36, 0.2, body);
+            ball(0.08, 0.06, 0.13, drake ? 0x2b2b2b : 0x7a5434, 0, 0.4, -0.3, body).rotation.x = 0.5;
+            for (const sx of [1, -1]) ball(0.05, 0.11, 0.22, wingC, 0.19 * sx, 0.36, -0.03, body);
+            ball(0.065, 0.11, 0.065, headC, 0, 0.48, 0.22, body);
+            const head = new THREE.Group(); head.position.set(0, 0.6, 0.25); body.add(head);
+            ball(0.11, 0.1, 0.11, headC, 0, 0, 0, head);
+            if (drake) ball(0.07, 0.018, 0.07, 0xffffff, 0, -0.1, -0.015, head);
+            box(0.09, 0.035, 0.13, 0xf2a03a, 0, -0.02, 0.13, head);
+            const eyes = [eye(head, 0.07, 0.03, 0.07, 0.022), eye(head, -0.07, 0.03, 0.07, 0.022)];
+            const legs = [limb(g, 0.07, 0.19, 0, 0.04, 0.19, 0xf2a03a), limb(g, -0.07, 0.19, 0, 0.04, 0.19, 0xf2a03a)];
+            for (const l of legs) ball(0.065, 0.015, 0.085, 0xf2a03a, 0, -0.18, 0.03, l);
+            return { group: g, body, head, legs, eyes, height: 0.85 };
+        }
+        const BUILDERS = { duck: makeDuck, chicken: makeChicken, cow: makeCow, goat: makeGoat, sheep: makeSheep, cat: makeCat, dog: makeDog };
 
         const PRODUCTS = {
             egg: { label: 'Telur', icon: '🥚', price: 50 },
+            duckEgg: { label: 'Telur Bebek', icon: '🥚', price: 90 },
             milk: { label: 'Susu Sapi', icon: '🥛', price: 125 },
             goatMilk: { label: 'Susu Kambing', icon: '🍼', price: 225 },
             wool: { label: 'Wol', icon: '🧶', price: 340 },
@@ -1722,9 +1771,33 @@
         const EGG_MAX = 6;
         function layEggs(st) {
             st.eggs = (st.eggs || []).filter(Boolean);
-            for (const d of ANIMAL_DEFS) if (d.kind === 'chicken' && d.sex === 'f' && st.eggs.length < EGG_MAX)
-                st.eggs.push([Math.round(rand(AREA_CHICKEN.minX + 0.4, AREA_CHICKEN.maxX - 0.4) * 100) / 100, Math.round(rand(AREA_CHICKEN.minZ + 0.4, AREA_CHICKEN.maxZ - 0.4) * 100) / 100]);
+            const inside = st.weather && st.weather !== 'cerah';
+            for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind) && d.sex === 'f' && st.eggs.length < EGG_MAX) {
+                const a = inside ? BARNS[d.kind].area : d.area;
+                st.eggs.push([Math.round(rand(a.minX + 0.4, a.maxX - 0.4) * 100) / 100, Math.round(rand(a.minZ + 0.4, a.maxZ - 0.4) * 100) / 100, d.kind === 'duck' ? 1 : 0]);
+            }
         }
+        // ---- seasons: one per month (10 days), six of them ----
+        const DAYS_PER_SEASON = 10;
+        const SEASONS = [
+            { key: 'semi', label: 'Musim Semi', icon: '🌸', odds: { cerah: 70, hujan: 25, badai: 5 } },
+            { key: 'panas', label: 'Musim Panas', icon: '☀️', odds: { cerah: 78, hujan: 12, badai: 10 } },
+            { key: 'kemarau', label: 'Musim Kemarau', icon: '🏜️', odds: { cerah: 95, hujan: 5 } },
+            { key: 'gugur', label: 'Musim Gugur', icon: '🍂', odds: { cerah: 60, hujan: 30, badai: 10 } },
+            { key: 'penghujan', label: 'Musim Penghujan', icon: '🌧️', odds: { cerah: 25, hujan: 55, badai: 20 } },
+            { key: 'dingin', label: 'Musim Dingin', icon: '❄️', odds: { cerah: 45, salju: 45, badai: 10 } },
+        ];
+        const seasonOf = day => SEASONS[Math.floor((day - 1) / DAYS_PER_SEASON) % SEASONS.length];
+        const WEATHER_INFO = { cerah: { icon: '☀️', label: 'Cerah' }, hujan: { icon: '🌧️', label: 'Hujan' }, salju: { icon: '❄️', label: 'Salju' }, badai: { icon: '⛈️', label: 'Badai' } };
+        const weatherName = (w, season) => w === 'badai' && season.key === 'dingin' ? '🌨️ Badai salju' : `${WEATHER_INFO[w].icon} ${WEATHER_INFO[w].label}`;
+        function pickWeather(season) {
+            let roll = Math.random() * 100;
+            for (const [w, p] of Object.entries(season.odds)) { if ((roll -= p) < 0) return w; }
+            return 'cerah';
+        }
+        const isWet = () => state.weather === 'hujan' || state.weather === 'badai';
+        // animals stay in at night and whenever it is not clear
+        const shouldShelter = () => state.weather !== 'cerah' || state.minutes >= 19 * 60 || state.minutes < 6 * 60;
         const FULL_MSG = `Tas penuh (${BAG_MAX} slot terisi). Simpan dulu di kulkas atau kotak penyimpanan, atau taruh di kotak pengiriman.`;
         const WATER_MAX = 10;
 
@@ -1733,6 +1806,7 @@
             cow: { product: 'milk', verb: 'Perah susu', speed: 0.9, radius: 0.8, reach: 2.4, idle: [3, 8], species: 'Sapi' },
             goat: { product: 'goatMilk', verb: 'Perah susu', speed: 1.3, radius: 0.5, reach: 2.0, idle: [2, 6], species: 'Kambing' },
             sheep: { product: 'wool', verb: 'Cukur wol', speed: 1.0, radius: 0.55, reach: 2.1, idle: [2, 7], species: 'Domba' },
+            duck: { product: 'duckEgg', verb: 'Ambil telur', speed: 0.9, radius: 0.3, reach: 1.5, idle: [1, 4], species: 'Bebek' },
             cat: { speed: 1.6, radius: 0.3, reach: 1.6, idle: [3, 9], species: 'Kucing', pet: true },
             dog: { speed: 2.2, radius: 0.35, reach: 1.9, idle: [1, 4], species: 'Anjing', pet: true },
         };
@@ -1743,6 +1817,7 @@
             goat: n => `${n} mengembik riang, "Mbeee!"`,
             sheep: n => `${n} terasa lembut sekali. "Beee~"`,
             cat: n => `${n} mendengkur... purrr~ 😺`,
+            duck: n => `${n} berkwek-kwek riang! 🦆`,
             dog: n => `${n} menggoyangkan ekornya! Guk! 🐶`,
         };
 
@@ -2080,6 +2155,8 @@
             { kind: 'goat', name: 'Bimbi', sex: 'f', variant: 'white', area: AREA_GOAT },
             { kind: 'sheep', name: 'Wolly', sex: 'm', area: AREA_SHEEP },
             { kind: 'sheep', name: 'Kapas', sex: 'f', area: AREA_SHEEP },
+            { kind: 'duck', name: 'Kwek', sex: 'm', variant: 'mallard', area: AREA_DUCK },
+            { kind: 'duck', name: 'Bebi', sex: 'f', variant: 'brown', area: AREA_DUCK },
             { kind: 'cat', name: 'Oyen', area: AREA_YARD },
             { kind: 'dog', name: 'Bruno', area: AREA_YARD },
         ];
@@ -2093,7 +2170,7 @@
 
         function freshState() {
             const animals = {};
-            for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: d.kind !== 'chicken' && !!productOf(d) };
+            for (const d of ANIMAL_DEFS) animals[d.name] = { friend: 0, petted: false, product: !LAYERS.has(d.kind) && !!productOf(d) };
             // a housewarming gift for the rooftop garden, split between both bags
             const bags = { adindayn: toSlots({ pot: 1, pupuk: 1, b_kangkung: 2, b_bayam: 2 }), wawantn: toSlots({ pot: 1, pupuk: 1, b_tomat: 1, b_mawar: 1 }) };
             const pots = Array(POT_SLOTS).fill(null);
@@ -2101,7 +2178,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: 6 * 60, gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: 6 * 60, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2118,7 +2195,8 @@
             if (saved.inv && !saved.bags) for (const [k, n] of Object.entries(cleanItems(saved.inv))) st.store.chest[k] = (st.store.chest[k] || 0) + n;
             delete st.inv;
             st.eggs = Array.isArray(saved.eggs) ? saved.eggs.filter(e => Array.isArray(e) && e.every(Number.isFinite)).slice(0, EGG_MAX) : base.eggs;
-            for (const d of ANIMAL_DEFS) if (d.kind === 'chicken') st.animals[d.name].product = false;
+            for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind)) st.animals[d.name].product = false;
+            if (!WEATHER_INFO[st.weather]) st.weather = 'cerah';
             if (!Array.isArray(st.pots) || st.pots.length !== POT_SLOTS) st.pots = base.pots;
             st.pots = st.pots.map(p => p && (!p.s || GDEF[p.s]) ? p : null);
             if (!Array.isArray(st.orders)) st.orders = [];
@@ -2181,6 +2259,8 @@
                 Object.assign(this, def, KIND_INFO[def.kind]);
                 Object.assign(this, BUILDERS[def.kind](def.variant, def.sex));
                 this.product = productOf(def);
+                this.baseArea = def.area;
+                this.inside = false;
                 this.pos = this.group.position;
                 this.pos.set(rand(this.area.minX, this.area.maxX), 0, rand(this.area.minZ, this.area.maxZ));
                 this.heading = rand(0, Math.PI * 2);
@@ -2200,6 +2280,19 @@
                 scene.add(this.group);
             }
             get data() { return state.animals[this.name]; }
+            // where this animal shelters: its barn, or the family room for the cat and dog
+            get shelter() { return BARNS[this.kind] || PET_HOME; }
+            goInside(now) {
+                const h = this.shelter;
+                this.inside = true; this.area = h.area; this.mode = 'idle'; this.timer = rand(0.5, 3);
+                this.pos.set(now ? rand(h.area.minX, h.area.maxX) : h.in.x + rand(-1, 1), 0, now ? rand(h.area.minZ, h.area.maxZ) : h.in.z - rand(0.3, 1.2));
+            }
+            goOutside(now) {
+                const h = this.shelter;
+                this.inside = false; this.area = this.baseArea; this.mode = 'idle'; this.timer = rand(0.5, 2);
+                const a = this.baseArea;
+                this.pos.set(now ? rand(a.minX, a.maxX) : h.out.x + rand(-0.4, 0.4), 0, now ? rand(a.minZ, a.maxZ) : h.out.z + rand(-0.3, 0.3));
+            }
             hearts() { return Math.min(5, Math.floor(this.data.friend / 100)); }
             pickTarget() {
                 const a = this.area;
@@ -2220,10 +2313,17 @@
                     // the host runs the animals; follow its positions smoothly
                     if (this.netT) {
                         const [x, z, hh, m] = this.netT, k = Math.min(1, dt * 8);
+                        if (Math.hypot(this.pos.x - x, this.pos.z - z) > 15) this.pos.set(x, 0, z); // went through a barn door
                         this.pos.x = lerp(this.pos.x, x, k); this.pos.z = lerp(this.pos.z, z, k);
                         this.targetHeading = hh; moving = !!m;
                     }
                 } else {
+                // bedtime or bad weather: walk to the door and go in; fine again: come out
+                const shelter = shouldShelter();
+                if (shelter && !this.inside) {
+                    if (asleep) this.goInside(true);
+                    else if (this.mode !== 'door') { this.mode = 'door'; this.target.copy(this.shelter.out); this.walkTime = 0; }
+                } else if (!shelter && this.inside) this.goOutside(false);
                 if (asleep) { this.mode = 'idle'; this.timer = rand(0.5, 2); }
                 else if (this.mode === 'idle') {
                     this.timer -= dt;
@@ -2231,7 +2331,8 @@
                 } else {
                     const dx = this.target.x - this.pos.x, dz = this.target.z - this.pos.z, d = Math.hypot(dx, dz);
                     this.walkTime += dt;
-                    if ((this.mode === 'walk' && (d < 0.15 || this.walkTime > 10))) {
+                    if (this.mode === 'door' && (d < 0.55 || this.walkTime > 8)) this.goInside(false);
+                    else if ((this.mode === 'walk' && (d < 0.15 || this.walkTime > 10))) {
                         this.mode = 'idle';
                         this.timer = rand(...this.idle);
                     } else if (d > 0.01) {
@@ -2242,15 +2343,20 @@
                         moving = true;
                     }
                 }
-                if (this.pet) resolveCollisions(this.pos, this.radius);
+                if (this.pet && !this.inside) resolveCollisions(this.pos, this.radius);
                 else {
                     this.pos.x = clamp(this.pos.x, this.area.minX, this.area.maxX);
                     this.pos.z = clamp(this.pos.z, this.area.minZ, this.area.maxZ);
                 }
                 this.moving = moving;
                 }
-                this.pos.x = clamp(this.pos.x, BOUNDS.minX, BOUNDS.maxX);
-                this.pos.z = clamp(this.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+                if (this.pos.x < 150) {
+                    this.pos.x = clamp(this.pos.x, BOUNDS.minX, BOUNDS.maxX);
+                    this.pos.z = clamp(this.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+                }
+                // drawn in the barn (or house) scene while inside
+                const want = sceneOf(this.pos);
+                if (this.group.parent !== want) { want.add(this.group); want.add(this.zzz); if (this.icon) want.add(this.icon); }
 
                 if (this.targetHeading !== undefined) this.heading = lerpAngle(this.heading, this.targetHeading, Math.min(1, dt * 6));
                 this.group.rotation.y = this.heading;
@@ -2262,7 +2368,7 @@
                     l.rotation.x = lerp(l.rotation.x, target, Math.min(1, dt * 12));
                 });
                 this.body.position.y = moving ? Math.abs(Math.sin(this.phase)) * 0.05 : 0;
-                if (this.kind === 'chicken') {
+                if (this.kind === 'chicken' || this.kind === 'duck') {
                     const peck = !moving && Math.sin(t * 0.8 + this.seed) > 0.4;
                     this.head.rotation.x = lerp(this.head.rotation.x, peck ? (Math.sin(t * 14) > 0 ? 0.9 : 0.3) : 0, Math.min(1, dt * 14));
                 } else if (this.kind === 'cow' || this.kind === 'sheep' || this.kind === 'goat') {
@@ -2310,13 +2416,15 @@
         function updateHud() {
             const place = placeName(player.pos);
             const bag = bagOf(USER);
-            const key = `${state.day}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${selSlot}`;
+            const key = `${state.day}|${state.weather}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${selSlot}`;
             if (key === lastHud) return;
             lastHud = key;
             hud.day.textContent = `${DAY_NAMES[(state.day - 1) % 7]} · Hari ${state.day}`;
             hud.time.textContent = fmtTime(state.minutes);
             hud.gold.textContent = `💰 ${state.gold.toLocaleString('id-ID')} G`;
             $('locLabel').textContent = place;
+            const se = seasonOf(state.day);
+            $('seasonLabel').textContent = `${se.icon} ${se.label} ${(state.day - 1) % DAYS_PER_SEASON + 1}/${DAYS_PER_SEASON} · ${weatherName(state.weather, se)}`;
             const cells = [];
             for (let i = 0; i < HOTBAR; i++) {
                 const x = bag[i], it = x && ITEMS[x[0]];
@@ -2477,6 +2585,10 @@
                 tone({ type: 'triangle', pts: [[0, 520], [0.2, 860], [0.55, 640], [0.75, 440]], dur: 0.78, vol: 0.45, filter: 'bandpass', q: 2, fpts: [[0, 900], [0.25, 1900], [0.75, 900]], dest: d });
                 tone({ type: 'sine', pts: [[0, 1040], [0.2, 1720], [0.75, 880]], dur: 0.75, vol: 0.03, dest: d });
             },
+            duck(d, k) {
+                const n = 2 + Math.floor(Math.random() * 2), f0 = k.male ? 230 : 300;
+                for (let i = 0; i < n; i++) tone({ pts: [[0, f0], [0.13, f0 * 0.85]], dur: 0.17, at: i * 0.21, vol: 0.3, filter: 'bandpass', q: 4, fpts: [[0, 1150], [0.17, 800]], dest: d });
+            },
             dog(d, k) {
                 const barks = k.asleep ? 0 : 2;
                 for (let i = 0; i < barks; i++) {
@@ -2521,7 +2633,7 @@
         };
         const mus = { next: 0, step: 0, phrase: null, plays: 0, mood: null };
         const midi = n => 440 * Math.pow(2, (n - 69) / 12);
-        function currentMood() { const h = state.minutes / 60; return h >= 6 && h < 17 ? 'day' : h >= 17 && h < 20.5 ? 'evening' : 'night'; }
+        function currentMood() { const h = state.minutes / 60; return h >= 6 && h < 17 ? (isWet() ? 'evening' : 'day') : h >= 17 && h < 20.5 ? 'evening' : 'night'; }
         function newPhrase(m) {
             // a gentle random walk over the scale, 8 eighth-notes a bar, some rests
             const bars = [];
@@ -2582,6 +2694,26 @@
                 mus.step++;
             }
         }
+        // rain and wind: two looping noises whose loudness follows the weather (softer inside)
+        let rainGain = null, windGain = null;
+        function weatherAudio() {
+            if (!actx || actx.state !== 'running') return;
+            if (!rainGain) {
+                const loop = (type, f, q) => { const src = actx.createBufferSource(); src.buffer = noiseBuf; src.loop = true; const bq = actx.createBiquadFilter(); bq.type = type; bq.frequency.value = f; bq.Q.value = q; const g = actx.createGain(); g.gain.value = 0; src.connect(bq).connect(g).connect(sfxBus); src.start(); return g; };
+                rainGain = loop('bandpass', 1500, 0.5); windGain = loop('lowpass', 420, 0.8);
+            }
+            const w = state.weather, inside = inHome(player.pos) && floorOf(player.pos) !== RF, m = !started ? 0 : inside ? 0.3 : 1;
+            const rainV = { hujan: 0.16, badai: 0.26 }[w] || 0, windV = { badai: 0.22, salju: 0.07 }[w] || 0;
+            const gust = 0.75 + 0.25 * Math.sin(elapsed * 0.7) * Math.sin(elapsed * 0.31);
+            rainGain.gain.setTargetAtTime(rainV * m, actx.currentTime, 0.5);
+            windGain.gain.setTargetAtTime(windV * m * gust, actx.currentTime, 0.5);
+        }
+        function thunder(outdoors) {
+            const d = spot(null, outdoors ? 1 : 0.5);
+            if (!d) return;
+            noise({ dur: 0.25, vol: 0.18, filter: 'bandpass', f: 1800, q: 0.6, dest: d });
+            noise({ dur: 2.8, at: 0.05, vol: 0.5, filter: 'lowpass', f: 380, f2: 70, q: 0.7, dest: d });
+        }
         // the 🎵 and 🔊 buttons
         function setSound(k, on) {
             sndPref[k] = on;
@@ -2602,7 +2734,7 @@
             ambientT -= dt;
             if (ambientT > 0) return;
             ambientT = r(7, 16);
-            if (inHome(player.pos) || state.minutes >= 20 * 60) return;
+            if (state.minutes >= 20 * 60) return;
             const near = animals.filter(a => a.pos.distanceTo(player.pos) < 14);
             if (!near.length) return;
             const a = near[Math.floor(Math.random() * near.length)];
@@ -2628,7 +2760,11 @@
         // Each floor sits far away from the farm on the same map, so positions stay unique for online play.
         const F1 = 200, F2 = 260, RF = 320;
         const inHome = p => p.x > 150;
-        const floorOf = p => p.x > RF - 30 ? RF : p.x > F2 - 30 ? F2 : F1;
+        const floorOf = p => Math.round((p.x - F1) / 60) * 60 + F1;
+        const isBarn = f => f >= BARNS.chicken.x;
+        const halfOf = f => isBarn(f) ? { x: 4.6, z: 3.6 } : HOME_HALF;
+        // the cat and dog spend nights and bad weather in the family room
+        const PET_HOME = { out: new THREE.Vector3(HOUSE_DOOR.x + 0.9, 0, HOUSE_DOOR.z + 1.0), in: new THREE.Vector3(F1 - 6.9, 0, 4.4), area: { minX: F1 - 7.8, maxX: F1 - 6.2, minZ: 2.4, maxZ: 6.0 } };
         const HV = (f, x, z) => new THREE.Vector3(f + x, 0, z);
         const HOME_HALF = { x: 8.6, z: 6.6 };
         const ROOMS = [
@@ -2644,11 +2780,13 @@
             { f: F2, n: '🪜 Lorong', x: [-9, 9], z: [-7, 3] },
             { f: F2, n: '🌇 Balkon', x: [-9, 9], z: [3, 7] },
             { f: RF, n: '🌿 Taman atap', x: [-9, 9], z: [-7, 7] },
+            ...Object.values(BARNS).map(b => ({ f: b.x, n: `${b.icon} ${b.label}`, x: [-5, 5], z: [-4, 4] })),
         ];
         function placeName(p) {
             if (!inHome(p)) return '🌾 Farm';
             const f = floorOf(p), x = p.x - f;
             const r = ROOMS.find(r => r.f === f && x >= r.x[0] && x <= r.x[1] && p.z >= r.z[0] && p.z <= r.z[1]);
+            if (isBarn(f)) return r ? r.n : '🏚️ Kandang';
             return `${r ? r.n : '🏠 Rumah'} · ${f === F1 ? 'Lantai 1' : f === F2 ? 'Lantai 2' : 'Rooftop'}`;
         }
         // Rooftop pot racks: 4 rows of 6
@@ -2703,7 +2841,7 @@
             homeKey.shadow.bias = -0.0005; homeKey.shadow.normalBias = 0.03;
             homeScene.add(homeHemi, homeKey, homeKey.target);
             homeGlass = new THREE.MeshStandardMaterial({ color: 0xbfe6ff, roughness: 0.2, emissive: 0x6fb6e8, emissiveIntensity: 0.35 });
-            buildFloor1(); buildFloor2(); buildRoof();
+            buildFloor1(); buildFloor2(); buildRoof(); buildBarns();
         }
 
         // --- small building blocks, in each floor's own coordinates ---
@@ -3055,6 +3193,34 @@
             }
             updatePots(true);
         }
+        // the inside of every barn: straw floor, hay, a trough, nests or stalls
+        function buildBarns() {
+            for (const [k, b] of Object.entries(BARNS)) {
+                const f = b.x, g = floorGroup(f), WOOD = 0xb98557;
+                box(10, 0.1, 8, 0xc9a464, 0, -0.05, 0, g).castShadow = false;
+                for (let i = 0; i < 26; i++) ball(0.35, 0.04, 0.3, i % 2 ? 0xe8c66a : 0xdcb65a, -4.4 + ((i * 37) % 88) / 10, 0.02, -3.4 + ((i * 53) % 66) / 10, g).castShadow = false;
+                wall(g, f, 'x', -4, -5, 5, 2.4, [], WOOD);
+                wall(g, f, 'z', -5, -4, 4, 2.4, [], WOOD);
+                wall(g, f, 'z', 5, -4, 4, 2.4, [], WOOD);
+                wall(g, f, 'x', 4, -5, 5, 0.45, [[0, 1.8]], WOOD);
+                for (const x of [-2.6, 2.6]) windowOn(g, x, 1.6, -3.88, 1.1, 0.7);
+                for (const [x, y, z] of [[-4.3, 0.3, -3.3], [-4.3, 0.9, -3.3], [-3.3, 0.3, -3.3], [4.3, 0.3, 3.0]]) box(0.95, 0.6, 0.7, C.straw, x, y, z, g);
+                col(f, -4.85, -2.8, -3.75, -2.9); col(f, 3.8, 4.85, 2.6, 3.4);
+                box(3, 0.4, 0.5, C.darkWood, 0, 0.2, -3.5, g); box(2.8, 0.08, 0.4, C.straw, 0, 0.42, -3.5, g); col(f, -1.5, 1.5, -3.8, -3.2);
+                const bucket = mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.35, 16), mat(0x6e8ea8), g); bucket.position.set(2.3, 0.18, -3.4);
+                const lantern = box(0.25, 0.32, 0.25, new THREE.MeshStandardMaterial({ color: 0xfff1c9, emissive: 0xffc46b, emissiveIntensity: 0.8 }), -4.8, 1.9, 0, g); lantern.castShadow = false;
+                if (LAYERS.has(k)) {
+                    // nesting boxes along the east wall
+                    for (let i = 0; i < 3; i++) { box(0.7, 0.45, 0.6, WOOD, 4.55, 0.55, -2.4 + i * 1.0, g); box(0.6, 0.08, 0.5, C.straw, 4.55, 0.8, -2.4 + i * 1.0, g); }
+                    col(f, 4.2, 4.9, -2.75, -0.15);
+                    for (let i = 0; i < 3; i++) box(3.0, 0.06, 0.06, C.darkWood, -3.2, 0.5 + i * 0.4, -1.5 + i * 0.5, g); // perches
+                } else {
+                    for (const x of [-1.8, 1.8]) { box(0.1, 1.0, 1.7, WOOD, x, 0.5, -3.1, g); col(f, x - 0.08, x + 0.08, -3.95, -2.25); }
+                }
+                textPlate(g, `${b.icon} ${b.label}`, 0, 2.0, -3.85, 2.0);
+                rug(g, 0, 3.55, 1.6, 0.7, 0x8a5a3a, 0xb98557);
+            }
+        }
         const POT_GEO = new THREE.CylinderGeometry(0.3, 0.22, 0.42, 20);
         const SOIL_GEO = new THREE.CylinderGeometry(0.27, 0.27, 0.04, 20);
         const SLOT_GEO = new THREE.CylinderGeometry(0.33, 0.33, 0.01, 20);
@@ -3178,7 +3344,7 @@
                     v.model.ripe.visible = !!isReady;
                     v.model.g.rotation.z = p.dry >= 2 && !isReady ? 0.25 : 0;
                 }
-                v.water.visible = !!(def && !p.w && !isReady);
+                v.water.visible = false;
                 v.ready.visible = !!isReady;
             }
         }
@@ -3628,6 +3794,12 @@
                 },
             });
             add('bench', new THREE.Vector3(TURU_SPOT.x, 0, TURU_SPOT.z + 0.3), 1.3, seatsAct(PORCH_SEATS, 'Santai di teras 🌿'));
+            // barns: in through the door, out again
+            for (const [k, b] of Object.entries(BARNS)) {
+                const outside = new THREE.Vector3(b.out.x + Math.sin(b.face) * 0.8, 0, b.out.z + Math.cos(b.face) * 0.8);
+                add('barn:' + k, b.out, 1.3, { local: true, label: () => `Masuk ${b.label.toLowerCase()} ${b.icon}`, act: () => travel(HV(b.x, 0, 2.9), Math.PI, '') });
+                add('barnx:' + k, HV(b.x, 0, 3.5), 1.1, { local: true, label: () => 'Keluar kandang 🚪', act: () => travel(outside, b.face, '') });
+            }
             // floor 1
             add('h:exit', HV(F1, 0, 6.4), 1.3, { local: true, label: () => 'Keluar rumah 🚪', act: () => travel(new THREE.Vector3(HOUSE_DOOR.x, 0, HOUSE_DOOR.z + 1.4), 0, '') });
             add('h:up1', HV(F1, -7.9, 2.0), 1.2, { local: true, label: () => 'Naik ke lantai 2 🪜', act: () => travel(HV(F2, -6.3, -2.4), 0, '') });
@@ -3665,7 +3837,6 @@
                     if (!p.s) return 'Tanam benih di pot 🌱';
                     const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
                     if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
-                    if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
                     if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
                     return `${d.icon} ${d.label} · siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
                 },
@@ -3690,18 +3861,11 @@
                         state.pots[i] = d.type === 'hias' ? null : {};
                         emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
                     }
-                    if (!p.w) {
-                        if (x !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
-                        if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi di keran rooftop 🪣', 'none', null, who); return; }
-                        state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
-                        p.w = true; p.dry = 0;
-                        emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
-                    }
                     if (!p.f && takeBag(who, 'pupuk')) {
                         p.f = true;
                         emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return;
                     }
-                    emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
+                    emitEvent(`${d.label} tumbuh sendiri setiap malam, tidak perlu disiram 🌱`, 'none', null, who);
                 },
             }));
             return L;
@@ -3711,8 +3875,9 @@
             for (const p of state.pots) {
                 if (!p || !p.s) continue;
                 const d = GDEF[p.s];
-                if (p.w) { p.dry = 0; if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1)); }
-                else if (p.p < d.days) p.dry = (p.dry || 0) + 1;
+                // the rooftop garden needs no watering
+                p.dry = 0;
+                if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1));
                 p.w = false;
             }
         }
@@ -3763,6 +3928,8 @@
                     label() {
                         const t = state.trees[f.key];
                         if (t.r > 0) return `Panen ${f.icon} ${f.label} (${t.r})`;
+                        if (seasonOf(state.day).key === 'dingin') return `${f.icon} ${f.label} · ❄️ istirahat di musim dingin`;
+                        if (isWet()) return `${f.icon} ${f.label} · disiram hujan 🌧️`;
                         if (!t.w) return tool === 'penyiram' ? `Siram ${f.icon} ${f.label}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${myWater()}/${WATER_MAX}` : `${f.icon} ${f.label} perlu disiram · ${toolHint('penyiram')}`;
                         return `${f.icon} ${f.label} · berbuah ${left(t)} hari lagi`;
                     },
@@ -3777,6 +3944,7 @@
                             if (!t.r) t.p = 0;
                             return;
                         }
+                        if (seasonOf(state.day).key === 'dingin') { emitEvent(`${f.label} sedang istirahat di musim dingin, tidak berbuah ❄️`, 'none', null, who); return; }
                         if (t.w) { emitEvent(`${f.label} sudah disiram hari ini. Berbuah ${left(t)} hari lagi.`, 'none', null, who); return; }
                         if (x !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
                         if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
@@ -3797,12 +3965,14 @@
             list.push({ id: 'bin', pos: BIN, reach: 2.0, local: true, label: () => 'Buka kotak pengiriman 🧺', act: () => openStorage('bin') });
             list.push({ id: 'chest', pos: CHEST, reach: 1.6, local: true, label: () => 'Buka kotak penyimpanan 📦', act: () => openStorage('chest') });
             EGG_POS.forEach((pos, i) => list.push({
-                id: 'egg:' + i, pos, reach: 1.1, when: () => !!state.eggs[i], label: () => 'Ambil telur 🥚',
+                id: 'egg:' + i, pos, reach: 1.1, when: () => !!state.eggs[i], label: () => state.eggs[i] && state.eggs[i][2] ? 'Ambil telur bebek 🥚' : 'Ambil telur 🥚',
                 act(who) {
-                    if (!state.eggs[i]) return;
-                    if (!addBag(who, 'egg', 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    const e = state.eggs[i];
+                    if (!e) return;
+                    const duck = !!e[2];
+                    if (!addBag(who, duck ? 'duckEgg' : 'egg', 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     state.eggs[i] = null;
-                    emitEvent('Dapat 🥚 Telur!', 'icon:🥚', [pos.x, 0.6, pos.z], who, 'chicken:f');
+                    emitEvent(duck ? 'Dapat 🥚 Telur Bebek!' : 'Dapat 🥚 Telur!', 'icon:🥚', [pos.x, 0.6, pos.z], who, duck ? 'duck:f' : 'chicken:f');
                 },
             }));
             list.push(...homeInteractables());
@@ -3984,7 +4154,7 @@
                 const tr = {};
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 state.looks[USER] = { o: look.o };
-                o.w = { day: state.day, min: Math.round(state.minutes), gold: state.gold, an, tr,
+                o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { adindayn: encBag(bagOf('adindayn')), wawantn: encBag(bagOf('wawantn')) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
@@ -4070,6 +4240,7 @@
             if (Number.isInteger(w.day)) state.day = w.day;
             if (Number.isFinite(w.min)) state.minutes = w.min;
             if (Number.isFinite(w.gold)) state.gold = w.gold;
+            if (WEATHER_INFO[w.we]) state.weather = w.we;
             if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
             if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]) };
             if (Array.isArray(w.eg)) state.eggs = w.eg.slice(0, EGG_MAX).map(e => Array.isArray(e) && e.every(Number.isFinite) ? e : null);
@@ -4170,14 +4341,97 @@
                 const d = state.trees[pl.def.key];
                 if (!d) continue;
                 pl.slots.forEach((s, i) => { s.visible = i < d.r; });
-                pl.bubble.visible = !d.w && d.r === 0;
-                const k = Math.min(1, d.dry / 3);
-                if (pl.k !== k) { pl.k = k; pl.leafMats.forEach((m, i) => m.color.copy(pl.base[i]).lerp(DRY, k * 0.75)); }
+                const winter = seasonOf(state.day).key === 'dingin';
+                pl.bubble.visible = !d.w && d.r === 0 && !winter;
+                const k = Math.min(1, d.dry / 3), sk = seasonOf(state.day).key + k;
+                if (pl.k !== sk) { pl.k = sk; pl.leafMats.forEach((m, i) => seasonTint(m.color.copy(pl.base[i]), seasonOf(state.day).key, i * 0.37 + pl.group.position.x * 0.1, false).lerp(DRY, k * 0.75)); }
                 pl.sway.rotation.z = Math.sin(t * 1.1 + pl.group.position.x) * 0.02;
             }
         }
 
+        // ---------- Seasons and weather on screen ----------
+        const TINT = {
+            panas: [[0x3f8a3a, 0.15]], kemarau: [[0xb5a84a, 0.45]], gugur: [[0xd9782e, 0.75], [0xc9452e, 0.75], [0xe0a23a, 0.7]],
+            penghujan: [[0x2f6b35, 0.25]], dingin: [[0xeef2f5, 0.72]],
+        };
+        function seasonTint(color, key, seed, pine) {
+            const t = TINT[key];
+            if (!t) return color;
+            if (pine && key === 'gugur') return color; // evergreens stay green in autumn
+            const [c, a] = t[Math.floor(Math.abs(seed * 7.3)) % t.length];
+            return color.lerp(new THREE.Color(c), pine && key === 'dingin' ? 0.5 : a);
+        }
+        let seasonShown = '';
+        function applySeason() {
+            const key = seasonOf(state.day).key;
+            if (key === seasonShown) return;
+            seasonShown = key;
+            for (const m of Object.values(LEAF_MATS)) seasonTint(m.color.copy(m.userData.base), key, m.userData.seed, m.userData.pine);
+            const ground = { panas: [0xf4ffe6, 0], kemarau: [0xe6d79a, 0], gugur: [0xe8d8a0, 0], penghujan: [0xd2ecc8, 0], dingin: [0xffffff, 0.78] }[key] || [0xffffff, 0];
+            GROUND_MAT.color.setHex(ground[0]); GROUND_MAT.emissive.setHex(0xc9d6de); GROUND_MAT.emissiveIntensity = ground[1];
+            const grass = { panas: [0xf0f8e0, 0], kemarau: [0xe2cf7a, 0], gugur: [0xd9b25a, 0], penghujan: [0xbcdcb0, 0], dingin: [0xe8eef2, 0.45] }[key] || [0xffffff, 0];
+            GRASS_MAT.color.setHex(grass[0]); GRASS_MAT.emissive.setHex(0x8a9aa4); GRASS_MAT.emissiveIntensity = grass[1];
+        }
+        // falling rain (short lines) or snow (soft dots) around the camera
+        const PRECIP = (() => {
+            const N = LITE ? 800 : 1600, off = new Float32Array(N * 3);
+            for (let i = 0; i < N; i++) { off[i * 3] = rand(-22, 22); off[i * 3 + 1] = rand(0, 18); off[i * 3 + 2] = rand(-20, 16); }
+            const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 6), 3));
+            const rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xc4d8f0, transparent: true, opacity: 0.55 }));
+            const cv = document.createElement('canvas'); cv.width = cv.height = 32;
+            const cg = cv.getContext('2d'), grd = cg.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(1, 'rgba(255,255,255,0)'); cg.fillStyle = grd; cg.fillRect(0, 0, 32, 32);
+            const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+            const snow = new THREE.Points(sg, new THREE.PointsMaterial({ map: new THREE.CanvasTexture(cv), size: 0.2, transparent: true, depthWrite: false }));
+            rain.frustumCulled = snow.frustumCulled = false; rain.visible = snow.visible = false;
+            return { N, off, rain, snow };
+        })();
+        let lightningT = 5;
+        function updateWeatherFx(dt, sceneNow) {
+            applySeason();
+            const w = state.weather, winter = seasonOf(state.day).key === 'dingin';
+            const outdoors = !inHome(player.pos) || floorOf(player.pos) === RF;
+            const kind = !started || !outdoors ? null : (w === 'hujan' || (w === 'badai' && !winter)) ? 'rain' : (w === 'salju' || (w === 'badai' && winter)) ? 'snow' : null;
+            const { rain, snow, off, N } = PRECIP;
+            rain.visible = kind === 'rain'; snow.visible = kind === 'snow';
+            if (kind) {
+                const obj = kind === 'rain' ? rain : snow;
+                if (obj.parent !== sceneNow) sceneNow.add(obj);
+                const storm = w === 'badai', n = storm ? N : Math.floor(N * 0.6);
+                const fall = kind === 'rain' ? (storm ? 26 : 18) : (storm ? 4 : 1.6), wind = storm ? 7 : kind === 'snow' ? 0.5 : 1.2;
+                const arr = obj.geometry.attributes.position.array, cx = camTarget.x, cz = camTarget.z;
+                for (let i = 0; i < n; i++) {
+                    const j = i * 3;
+                    off[j + 1] -= fall * dt;
+                    off[j] += (kind === 'snow' ? Math.sin(elapsed * 1.3 + i) * 0.4 + wind : wind) * dt;
+                    if (off[j + 1] < 0) { off[j + 1] += 18; off[j] = rand(-22, 22); }
+                    if (off[j] > 22) off[j] -= 44;
+                    const x = cx + off[j], y = off[j + 1], z = cz + off[j + 2];
+                    if (kind === 'rain') { const k = i * 6; arr[k] = x; arr[k + 1] = y; arr[k + 2] = z; arr[k + 3] = x - wind * 0.05; arr[k + 4] = y + 0.55; arr[k + 5] = z; }
+                    else { arr[j] = x; arr[j + 1] = y; arr[j + 2] = z; }
+                }
+                obj.geometry.setDrawRange(0, kind === 'rain' ? n * 2 : n);
+                obj.geometry.attributes.position.needsUpdate = true;
+            }
+            // lightning in a storm: a flash, then the thunder a moment later
+            if (started && w === 'badai') {
+                lightningT -= dt;
+                if (lightningT <= 0) {
+                    lightningT = rand(5, 12);
+                    const f = $('flash');
+                    f.style.transition = 'none'; f.style.opacity = outdoors ? 0.7 : 0.25;
+                    setTimeout(() => { f.style.transition = ''; f.style.opacity = 0; }, 90);
+                    setTimeout(() => thunder(outdoors), rand(300, 1400));
+                }
+            }
+        }
+
         // ---------- Day cycle ----------
+        // put every animal in its barn or out in its pen, right away (new farm, loaded farm, new morning)
+        function settleAnimals() {
+            const inside = shouldShelter();
+            for (const a of animals) { if (inside) a.goInside(true); else a.goOutside(true); }
+        }
         let sleeping = false;
         function sleep(passedOut) {
             if (sleeping) return;
@@ -4190,21 +4444,29 @@
                     const d = a.data;
                     if (!a.pet && !d.petted) d.friend = Math.max(0, d.friend - 10);
                     d.petted = false;
-                    d.product = a.kind !== 'chicken' && !!a.product;
+                    d.product = !LAYERS.has(a.kind) && !!a.product;
                 }
                 layEggs(state);
+                settleAnimals();
                 // the shipping bin is sold overnight
                 let sold = 0, nSold = 0;
                 for (const [k, n] of Object.entries(state.store.bin)) { sold += (PRODUCTS[k] ? PRODUCTS[k].price : 0) * n; nSold += n; }
                 state.store.bin = {};
                 state.gold += sold;
+                // fruit trees rest in winter; the rooftop garden grows in every season
+                const winter = seasonOf(state.day).key === 'dingin';
                 for (const f of FRUIT_DEFS) {
                     const t = state.trees[f.key];
+                    if (winter) { t.w = false; continue; }
                     if (t.w) { t.dry = 0; if (t.r === 0) { t.p++; if (t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; } } }
                     else t.dry++;
                     t.w = false;
                 }
                 growPots();
+                // tomorrow's weather; rain waters the orchard
+                const oldSeason = seasonOf(state.day), newSeason = seasonOf(state.day + 1);
+                state.weather = pickWeather(newSeason);
+                if (isWet()) for (const f of FRUIT_DEFS) { state.trees[f.key].w = true; state.trees[f.key].dry = 0; }
                 state.day++;
                 state.minutes = 6 * 60;
                 standUp(); buildHome();
@@ -4214,14 +4476,16 @@
                 updateHud();
                 $('fade').classList.remove('show');
                 sleeping = false;
-                toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day}`);
+                toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day} · ${weatherName(state.weather, newSeason)}`);
+                if (newSeason !== oldSeason) emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, '');
+                if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
                 morningCrow();
                 if (nSold) emitEvent(`🧺 Kotak pengiriman: ${nSold} barang terjual semalam · +${sold.toLocaleString('id-ID')} G`, 'sell', null, '');
                 morningSave();
             }, 1700);
         }
 
-        const SKY_DAY = new THREE.Color(0x8fd3ff), SKY_DUSK = new THREE.Color(0xf4a261), SKY_NIGHT = new THREE.Color(0x16203d);
+        const SKY_DAY = new THREE.Color(0x8fd3ff), SKY_DUSK = new THREE.Color(0xf4a261), SKY_NIGHT = new THREE.Color(0x16203d), SKY_GREY = new THREE.Color(0x98a4b0);
         let lightDay = 1;
         function updateLighting() {
             const h = state.minutes / 60;
@@ -4234,10 +4498,14 @@
             else day = 0;
             const dusk = h > 17 && h < 21 ? 1 - Math.abs(h - 19) / 2 : (h > 6 && h < 7.5 ? 0.5 : 0);
             skyColor.copy(SKY_NIGHT).lerp(SKY_DAY, day).lerp(SKY_DUSK, dusk * 0.45);
+            // clouds: rain, snow and storms dim the sun and grey the sky
+            const wf = { cerah: 1, hujan: 0.55, salju: 0.7, badai: 0.38 }[state.weather] ?? 1;
+            skyColor.lerp(SKY_GREY.clone().multiplyScalar(0.25 + 0.75 * day), (1 - wf) * 0.85);
             scene.fog.color.copy(skyColor);
-            sun.intensity = 0.08 + 1.55 * day;
+            scene.fog.near = lerp(16, 45, wf); scene.fog.far = lerp(52, 85, wf);
+            sun.intensity = (0.08 + 1.55 * day) * wf;
             sun.color.setHSL(lerp(0.62, 0.1, day), 0.6, lerp(0.7, 0.95, day));
-            hemi.intensity = 0.22 + 0.7 * day;
+            hemi.intensity = (0.22 + 0.7 * day) * lerp(0.75, 1, wf);
             hemi.color.setHSL(lerp(0.63, 0.57, day), 0.6, lerp(0.55, 0.95, day));
             const night = 1 - day;
             windowMat.emissiveIntensity = night * 0.9;
@@ -4333,6 +4601,7 @@
             if (mode === 'new') replaceState(freshState());
             else if (mode === 'load') { try { replaceState(normalize(JSON.parse(slots[i].json))); } catch (e) { toast('Save ini tidak bisa dibuka 😢'); return; } }
             applyLook();
+            if (mode !== 'join') settleAnimals();
             player.pos.set(-10, 0, -8);
             camTarget.copy(player.pos);
             $('startScreen').classList.add('hidden');
@@ -4383,8 +4652,9 @@
                 resolveCollisions(player.pos, 0.35);
                 if (inHome(player.pos)) {
                     const f = floorOf(player.pos);
-                    player.pos.x = clamp(player.pos.x, f - HOME_HALF.x, f + HOME_HALF.x);
-                    player.pos.z = clamp(player.pos.z, -HOME_HALF.z, HOME_HALF.z);
+                    const hh = halfOf(f);
+                    player.pos.x = clamp(player.pos.x, f - hh.x, f + hh.x);
+                    player.pos.z = clamp(player.pos.z, -hh.z, hh.z);
                 } else {
                     player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
                     player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
@@ -4411,7 +4681,14 @@
             }
             if (net.mode === 'host') deliverOrders();
             pkgMesh.visible = pkgCount() > 0;
-            EGG_POS.forEach((v, i) => { const e = state.eggs[i]; eggMeshes[i].visible = !!e; if (e) { v.set(e[0], 0, e[1]); eggMeshes[i].position.set(e[0], 0.14, e[1]); } else v.set(0, 0, -999); });
+            EGG_POS.forEach((v, i) => {
+                const e = state.eggs[i], m = eggMeshes[i];
+                m.visible = !!e;
+                if (!e) { v.set(0, 0, -999); return; }
+                v.set(e[0], 0, e[1]); m.position.set(e[0], 0.14, e[1]);
+                m.material = e[2] ? DUCK_EGG_MAT : CHICKEN_EGG_MAT;
+                const want = sceneOf(v); if (m.parent !== want) want.add(m);
+            });
             updatePots();
             updateTv();
             // each farmer lives in the scene of where they are
@@ -4422,6 +4699,8 @@
             ambientAnimals(dt);
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
+            updateWeatherFx(dt, started && inHome(player.pos) && homeScene ? homeScene : scene);
+            weatherAudio();
             updatePlants(elapsed);
 
             for (let i = particles.length - 1; i >= 0; i--) {
