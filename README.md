@@ -66,9 +66,9 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Kandang bisa dimasuki** (ayam, sapi, kambing, domba, bebek) lewat pintunya, sama seperti rumah. Semua kandang memakai model dalam yang sama: lantai jerami, tumpukan jerami, palung makan, dan sarang (untuk ayam/bebek) atau sekat kandang.
 - **Hewan masuk kandang** mulai pukul 19:00 dan saat cuaca tidak cerah; besok pagi yang cerah mereka keluar lagi. Kucing dan anjing berteduh di ruang keluarga. Kalau hewan di dalam, telur juga muncul di kandang.
 - **Bebek** jantan (Kwek) dan betina (Bebi) tinggal di sekitar kolam dengan rumah bebek; bebek betina bertelur 🥚 (Telur Bebek, 90 G).
-- **6 musim**, masing-masing 10 hari (satu bulan): 🌸 Semi → ☀️ Panas → 🏜️ Kemarau → 🍂 Gugur → 🌧️ Penghujan → ❄️ Dingin, lalu kembali ke Semi. Warna daun, rumput, dan tanah ikut berubah (daun jingga di musim gugur, salju di musim dingin).
+- **6 musim**, masing-masing satu bulan (30 hari): 🌸 Semi → ☀️ Panas → 🏜️ Kemarau → 🍂 Gugur → 🌧️ Penghujan → ❄️ Dingin, lalu kembali ke Semi. Warna daun, rumput, dan tanah ikut berubah (daun jingga di musim gugur, salju di musim dingin).
 - **Cuaca harian** sesuai peluang musimnya: cerah, hujan, salju (musim dingin), atau badai (dengan kilat dan guruh). Langit jadi kelabu saat hujan, dan suara hujan/angin terdengar.
-- Saat **hujan**, pohon buah tersiram sendiri. Di **musim dingin** pohon buah beristirahat dan tidak berbuah. **Taman rooftop** tidak perlu disiram dan tetap tumbuh di semua musim.
+- Saat **hujan**, pohon buah tersiram sendiri. Di **musim dingin** pohon buah beristirahat dan tidak berbuah. **Taman rooftop** tetap disiram setiap hari, kecuali saat hujan (tersiram sendiri). Di musim dingin rooftop ditutup atap kaca: salju tidak masuk dan tanaman tetap tumbuh, tapi harus disiram.
 
 ## Suara 🔊
 - Semua suara dibuat langsung dengan Web Audio (tanpa file audio): suara sapi, kambing, domba, ayam, kokok ayam jago tiap pagi, kucing (mengeong/mendengkur), dan anjing saat dielus atau diperah; hewan di dekatmu juga sesekali bersuara sendiri. Ada juga cipratan air saat menyiram dan bunyi kecil saat memanen atau berjualan.
