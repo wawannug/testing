@@ -86,9 +86,9 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
 ## Menyimpan progres
-- Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres** lalu pilih slot (ada 10 slot). **Tidur tanpa menyimpan** juga bisa.
-- Di link claude.ai, slot tersimpan di penyimpanan bersama artifact, jadi terlihat oleh berdua dan langsung muncul saat pasangan menyimpan (pasangan perlu dibagikan akses yang bisa mengedit). Save yang dulu hanya tersimpan di perangkat ikut diunggah ke penyimpanan bersama begitu tersambung.
-- Saat kalian berdua online bersamaan (di claude.ai maupun versi web), daftar save juga saling dikirim lewat koneksi online: slot yang lebih baru di satu perangkat otomatis masuk ke perangkat yang lain. Di versi web tanpa penyimpanan bersama, inilah satu-satunya cara save berpindah, jadi buka game bersamaan sekali agar save tersinkron.
+- **Satu save untuk berdua.** Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres**; **Tidur tanpa menyimpan** juga bisa. Hanya ada satu save dan dipakai bersama: siapa pun yang menyimpan terakhir (adindayn atau wawantn), save itulah yang muncul sebagai **▶ Lanjutkan** untuk kalian berdua besoknya. Membuat farm baru meminta konfirmasi dulu, karena menyimpannya akan mengganti save bersama.
+- Di link claude.ai, save tersimpan di penyimpanan bersama artifact, jadi selalu tersinkron walau kalian main bergantian (pasangan perlu dibagikan akses yang bisa mengedit). Save yang dulu hanya tersimpan di perangkat ikut diunggah begitu tersambung. Dari 10 slot versi lama, save yang paling baru dipakai.
+- Saat kalian berdua online bersamaan (di claude.ai maupun versi web), save yang lebih baru juga dikirim lewat koneksi online ke perangkat yang lain. Di versi web tanpa penyimpanan bersama, inilah satu-satunya cara save berpindah, jadi buka game bersamaan sekali agar save tersinkron.
 
 ## Cara main
 | Kontrol | Aksi |

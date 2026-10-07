@@ -499,7 +499,7 @@
                 <span class="saveinfo" id="saveInfo"></span>
                 <span class="saveinfo" id="partnerInfo"></span>
                 <div class="row2" id="soloBtns"></div>
-                <p class="small-note">Satu farm untuk adindayn dan wawantn. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di kamar dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur (10 slot).</p>
+                <p class="small-note">Satu farm untuk adindayn dan wawantn. Kalau pasanganmu sedang tidak main, dia lagi turu 💤 di kamar dan bisa menyusul kapan pun. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau saat tidur. Kalian berdua memakai satu save yang sama: siapa pun yang menyimpan terakhir, save itulah yang dilanjutkan.</p>
             </div>
             <a class="btn" href="../../index.html" style="align-self:center">Kembali ke menu</a>
         </div>
@@ -523,7 +523,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -3817,9 +3817,10 @@
             sendAct('move', `${c}|${dir}|${k}|${n}`);
         }
 
-        // --- 10 save slots; nothing is saved unless you choose to ---
-        const SLOTS_KEY = 'farmora.slots.v3', SLOT_N = 10;
-        let slots = (() => { try { const a = JSON.parse(localStorage.getItem(SLOTS_KEY)); if (Array.isArray(a)) return Array.from({ length: SLOT_N }, (_, i) => a[i] || null); } catch (e) { } return Array(SLOT_N).fill(null); })();
+        // --- one save shared by both players: the newest save of either of you is the one you continue ---
+        // (it lives in slots[0]; older versions had 10 slots, the newest of those becomes the save)
+        const SLOTS_KEY = 'farmora.slots.v3', SLOT_N = 1;
+        let slots = (() => { try { const a = JSON.parse(localStorage.getItem(SLOTS_KEY)); if (Array.isArray(a)) { const best = a.filter(x => x && x.json).sort((x, y) => (y.at || 0) - (x.at || 0))[0]; return [best || null]; } } catch (e) { } return [null]; })();
         function storeSlots() { try { localStorage.setItem(SLOTS_KEY, JSON.stringify(slots)); } catch (e) { } }
         // the old automatic save becomes slot 1
         try {
@@ -3849,10 +3850,9 @@
                 net.db.collection('slots').onSnapshot(async snap => {
                     const inDb = {};
                     for (const doc of snap.docs) {
-                        const i = Number(String(doc.id).replace('s', '')) - 1;
                         const d = doc.data();
-                        inDb[i] = Number(d && d.at) || 0;
-                        mergeSlot(i, d);
+                        inDb[0] = Math.max(inDb[0] || 0, Number(d && d.at) || 0);
+                        mergeSlot(0, d);
                     }
                     if (!first) return;
                     first = false;
@@ -3896,14 +3896,14 @@
             const sx = o.sx;
             if (!Array.isArray(sx) || sx.length < 6) return;
             const [i, at, k, n, part, by] = sx;
-            if (!Number.isInteger(i) || !Number.isInteger(k) || !Number.isInteger(n) || n < 1 || n > 600 || typeof part !== 'string' || part.length > SLOT_CHUNK) return;
+            if (i !== 0 || !Number.isInteger(k) || !Number.isInteger(n) || n < 1 || n > 600 || typeof part !== 'string' || part.length > SLOT_CHUNK) return;
             if (slots[i] && (slots[i].at || 0) >= at) return;
             let c = slotRx.cur;
             if (!c || c.i !== i || c.at !== at) c = slotRx.cur = { i, at, n, parts: [], got: 0 };
             if (k === c.got) { c.parts[k] = part; c.got++; }
             if (c.got === c.n) {
                 slotRx.cur = null;
-                if (mergeSlot(i, { json: c.parts.join(''), at, by })) { uploadSlot(i); toast(`💾 Save slot ${i + 1} dari ${OTHER} masuk ke daftar save.`); }
+                if (mergeSlot(i, { json: c.parts.join(''), at, by })) { uploadSlot(i); toast(`💾 Save terbaru dari ${OTHER} (Hari ${slots[0].day}) sekarang jadi save bersama.`); }
             }
         }
         const slotAck = () => slotRx.cur ? [slotRx.cur.i, slotRx.cur.at, slotRx.cur.got] : null;
@@ -3915,20 +3915,17 @@
             storeSlots();
             uploadSlot(i);
             const f = $('saveFlag'); f.classList.add('show'); clearTimeout(writeSlot.t); writeSlot.t = setTimeout(() => f.classList.remove('show'), 1500);
-            toast(`💾 Tersimpan di slot ${i + 1} · Hari ${state.day}`);
+            toast(`💾 Tersimpan · Hari ${state.day} · save bersama ${USER} & ${OTHER}`);
             renderTitle.sig = '';
         }
         const slotLabel = s => s ? `Hari ${s.day} · ${(s.gold || 0).toLocaleString('id-ID')} G · ${s.by} · ${new Date(s.at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Kosong';
+        // there is one save for both of you, so saving just replaces it
         function openSaveDialog(then) {
-            let armed = -1;
-            const render = () => openDlg('💾 Simpan progres', [
-                el('p', { class: 'small-note', text: 'Pilih slot untuk menyimpan. Slot yang sudah terisi akan ditimpa.' }),
-                el('div', { class: 'shoplist' }, slots.map((s, i) => el('div', { class: 'shopitem' },
-                    el('span', { class: 'ic', text: s ? '💾' : '▫️' }),
-                    el('span', { class: 'nm' }, el('b', { text: `Slot ${i + 1}` }), el('small', { text: slotLabel(s) })),
-                    el('button', { class: 'btn', onclick: () => { if (s && armed !== i) { armed = i; render(); return; } closeDlg(); then(i); } }, s ? (armed === i ? 'Yakin timpa?' : 'Timpa') : 'Simpan')))),
-            ], [{ t: 'Batal' }]);
-            render();
+            const s = slots[0];
+            openDlg('💾 Simpan progres', [
+                el('p', { text: `Simpan farm sekarang (Hari ${state.day})? Save ini dipakai berdua: besok ${USER} maupun ${OTHER} melanjutkan dari save terakhir.` }),
+                el('p', { class: 'small-note', text: s ? `Save sekarang: ${slotLabel(s)}` : 'Belum ada save.' }),
+            ], [{ t: '💾 Simpan', big: true, f: () => then(0) }, { t: 'Batal' }]);
         }
         // sleeping: with or without saving; the save is written once the new morning starts
         let pendingSlot = -1;
@@ -4841,10 +4838,15 @@
                 box.replaceChildren(btn('joinBtn', 'btn big', `▶ Gabung ke farm ${OTHER}`, () => startGame('join')));
                 return;
             }
-            const filled = slots.map((x, i) => [x, i]).filter(([x]) => x);
-            $('saveInfo').textContent = filled.length ? 'Buat farm baru, atau lanjutkan save game:' : 'Belum ada save game. Mulai farm baru yuk!';
-            box.replaceChildren(btn('newBtn', 'btn big', '✨ Buat farm baru', () => startGame('new')),
-                ...filled.map(([x, i]) => btn('slotBtn' + i, 'btn slotbtn', `📂 Slot ${i + 1} · ${slotLabel(x)}`, () => startGame('load', i))));
+            const sv = slots[0];
+            $('saveInfo').textContent = sv ? `Lanjutkan save terakhir kalian berdua (disimpan ${sv.by}):` : 'Belum ada save game. Mulai farm baru yuk!';
+            const fresh = () => {
+                if (!sv) { startGame('new'); return; }
+                openDlg('✨ Farm baru?', [el('p', { text: `Farm baru dimulai dari Hari 1. Kalau nanti kamu menyimpan, save bersama (${slotLabel(sv)}) akan diganti farm baru ini, juga untuk ${OTHER}.` })],
+                    [{ t: '✨ Ya, farm baru', big: true, f: () => startGame('new') }, { t: 'Batal' }]);
+            };
+            box.replaceChildren(...(sv ? [btn('slotBtn0', 'btn big slotbtn', `▶ Lanjutkan · ${slotLabel(sv)}`, () => startGame('load', 0))] : []),
+                btn('newBtn', sv ? 'btn' : 'btn big', '✨ Buat farm baru', fresh));
         }
         function applyLook() {
             try { localStorage.setItem(LOOK_KEY, JSON.stringify({ o: look.o })); } catch (e) { }
