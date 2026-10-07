@@ -523,7 +523,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -1814,7 +1814,9 @@
         const roofCovered = season => (season || seasonOf(state.day)).key === 'dingin';
         const rainOnRoof = season => isWet() && !roofCovered(season);
         // animals stay in at night and whenever it is not clear
-        const shouldShelter = () => state.weather !== 'cerah' || state.minutes >= 19 * 60 || state.minutes < 6 * 60;
+        // the farm wakes at 05:00: before that the animals sleep in their barns, from 20:00 they sleep again
+        const animalsAsleep = () => state.minutes >= 20 * 60 || state.minutes < FARM_WAKE;
+        const shouldShelter = () => state.weather !== 'cerah' || state.minutes >= 19 * 60 || state.minutes < FARM_WAKE;
         const FULL_MSG = `Tas penuh (${BAG_MAX} slot terisi). Simpan dulu di kulkas atau kotak penyimpanan, atau taruh di kotak pengiriman.`;
         const WATER_MAX = 10;
 
@@ -2205,7 +2207,7 @@
         // this device keeps a backup. An older save on this device is adopted once, the furthest one first.
         const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
         // the day starts at 04:00 in the dark before dawn and ends at midnight at the latest
-        const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60;
+        const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60, FARM_WAKE = 5 * 60;
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
         try {
@@ -2378,7 +2380,7 @@
             update(dt, t) {
                 let moving = false, sp = this.speed;
                 // bedtime on the farm: from 20:00 until morning everyone sleeps where they are
-                const asleep = state.minutes >= 20 * 60;
+                const asleep = animalsAsleep();
                 if (net.mode === 'guest') {
                     // the host runs the animals; follow its positions smoothly
                     if (this.netT) {
@@ -2672,7 +2674,7 @@
         function voice(spec, pos, vol = 1) {
             const [kind, sex, extra] = String(spec).split(':');
             if (!VOICES[kind]) return;
-            const asleep = state.minutes >= 20 * 60;
+            const asleep = animalsAsleep();
             const d = spot(pos, vol * (asleep && extra !== 'crow' ? 0.5 : 1));
             if (!d) return;
             VOICES[kind](d, { male: sex === 'm', crow: extra === 'crow', asleep });
@@ -2804,7 +2806,7 @@
             ambientT -= dt;
             if (ambientT > 0) return;
             ambientT = r(7, 16);
-            if (state.minutes >= 20 * 60) return;
+            if (animalsAsleep()) return;
             const near = animals.filter(a => a.pos.distanceTo(player.pos) < 14);
             if (!near.length) return;
             const a = near[Math.floor(Math.random() * near.length)];
@@ -4144,7 +4146,7 @@
                 label() {
                     const d = a.data;
                     const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
-                    if (state.minutes >= 20 * 60) return `${a.name} sedang tidur 💤 ${d.petted ? '' : '· elus pelan-pelan'}${hearts}`;
+                    if (animalsAsleep()) return `${a.name} sedang tidur 💤 ${d.petted ? '' : '· elus pelan-pelan'}${hearts}`;
                     if (!d.petted) return `Elus ${a.name}${hearts}`;
                     if (d.product) { const need = a.product === 'wool' ? 'gunting' : 'pemeras'; return tool === need ? `${a.verb} ${a.name}${hearts}` : `${a.name} siap: ${toolHint(need)}${hearts}`; }
                     const sex = a.sex === 'm' ? ' jantan ♂' : a.sex === 'f' ? ' betina ♀' : '';
