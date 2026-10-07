@@ -87,7 +87,8 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
 ## Menyimpan progres
 - Tidak ada simpan otomatis. Simpan lewat tombol 💾, atau saat tidur pilih **Tidur dan simpan progres** lalu pilih slot (ada 10 slot). **Tidur tanpa menyimpan** juga bisa.
-- Di link claude.ai, slot tersimpan di penyimpanan bersama artifact, jadi terlihat oleh berdua (pasangan perlu akses Editor). Di versi web (GitHub Pages), slot tersimpan di perangkat masing-masing.
+- Di link claude.ai, slot tersimpan di penyimpanan bersama artifact, jadi terlihat oleh berdua dan langsung muncul saat pasangan menyimpan (pasangan perlu dibagikan akses yang bisa mengedit). Save yang dulu hanya tersimpan di perangkat ikut diunggah ke penyimpanan bersama begitu tersambung.
+- Saat kalian berdua online bersamaan (di claude.ai maupun versi web), daftar save juga saling dikirim lewat koneksi online: slot yang lebih baru di satu perangkat otomatis masuk ke perangkat yang lain. Di versi web tanpa penyimpanan bersama, inilah satu-satunya cara save berpindah, jadi buka game bersamaan sekali agar save tersinkron.
 
 ## Cara main
 | Kontrol | Aksi |

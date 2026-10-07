@@ -3828,31 +3828,92 @@
                 if (st && st.day) { slots[0] = { json: old, at: st.savedAt || Date.now(), by: 'save lama', day: st.day, gold: st.gold || 0 }; storeSlots(); }
             }
         } catch (e) { }
-        async function loadSharedSlots() {
-            if (!net.db) return;
-            for (let i = 0; i < SLOT_N; i++) {
-                try {
-                    const snap = await net.db.doc('slots/s' + (i + 1)).get();
-                    const d = snap.exists && snap.data();
-                    if (d && d.json && (!slots[i] || (d.at || 0) > (slots[i].at || 0))) slots[i] = { json: d.json, at: d.at || 0, by: d.by || '', day: d.day || 1, gold: d.gold || 0 };
-                } catch (e) { }
-            }
-            if (!slots.some(Boolean)) {
-                try { const snap = await net.db.doc('farm/state').get(); const d = snap.exists && snap.data(); const st = d && JSON.parse(d.json); if (st && st.day) slots[0] = { json: d.json, at: d.at || 0, by: 'save lama', day: st.day, gold: st.gold || 0 }; } catch (e) { }
-            }
+        // Take a save from the shared store or from your friend when it is newer than the one here
+        function mergeSlot(i, d) {
+            if (!(i >= 0 && i < SLOT_N) || !d || typeof d.json !== 'string' || d.json.length > 500000) return false;
+            const at = Number(d.at) || 0;
+            if (slots[i] && (slots[i].at || 0) >= at) return false;
+            let st; try { st = JSON.parse(d.json); } catch (e) { return false; }
+            if (!st || !st.day) return false;
+            slots[i] = { json: d.json, at, by: clean(d.by) || '', day: st.day, gold: st.gold || 0 };
             storeSlots();
             renderTitle();
+            return true;
+        }
+        // Inside claude.ai the slots live in the shared store, so both accounts see the same saves (live).
+        // Saves that only made it to this device are uploaded once the store answers.
+        function loadSharedSlots() {
+            if (!net.db) return;
+            let first = true;
+            try {
+                net.db.collection('slots').onSnapshot(async snap => {
+                    const inDb = {};
+                    for (const doc of snap.docs) {
+                        const i = Number(String(doc.id).replace('s', '')) - 1;
+                        const d = doc.data();
+                        inDb[i] = Number(d && d.at) || 0;
+                        mergeSlot(i, d);
+                    }
+                    if (!first) return;
+                    first = false;
+                    slots.forEach((x, i) => { if (x && (x.at || 0) > (inDb[i] || 0) && x.by !== 'save lama') uploadSlot(i); });
+                    if (!slots.some(Boolean)) {
+                        try { const snap = await net.db.doc('farm/state').get(); const d = snap.exists && snap.data(); const st = d && JSON.parse(d.json); if (st && st.day) { slots[0] = { json: d.json, at: d.at || 0, by: 'save lama', day: st.day, gold: st.gold || 0 }; storeSlots(); renderTitle(); } } catch (e) { }
+                    }
+                }, () => { });
+            } catch (e) { }
         }
         let slotWrites = Promise.resolve();
+        function uploadSlot(i) {
+            const rec = slots[i];
+            if (!net.db || !rec) return;
+            slotWrites = slotWrites.then(() => net.db.doc('slots/s' + (i + 1)).set({ json: rec.json, at: rec.at, by: rec.by, day: rec.day, gold: rec.gold })).catch(() => {
+                if (!net.dbWarned) { net.dbWarned = 1; toast(`Save tersimpan di perangkat ini, tapi belum bisa ke penyimpanan bersama. Save tetap terkirim ke ${OTHER} saat kalian online bersama.`); }
+            });
+        }
+        // Over the live connection the two of you swap saves too (also on the open web, where there is no
+        // shared store): each side announces when its slots were saved, and a newer slot goes across in
+        // small pieces, each acknowledged before the next.
+        const SLOT_CHUNK = 900;
+        const slotTx = { cur: null };
+        function slotOut(o) {
+            o.sl = slots.map(x => x ? x.at || 0 : 0);
+            const p = net.connected && net.partner;
+            if (!p || !Array.isArray(p.sl)) return;
+            let c = slotTx.cur;
+            if (c && (!slots[c.i] || slots[c.i].at !== c.at || (p.sl[c.i] || 0) >= c.at)) c = slotTx.cur = null;
+            if (!c) {
+                const i = slots.findIndex((x, i) => x && x.by !== 'save lama' && (x.at || 0) > (Number(p.sl[i]) || 0));
+                if (i < 0) return;
+                c = slotTx.cur = { i, at: slots[i].at, n: Math.ceil(slots[i].json.length / SLOT_CHUNK) };
+            }
+            const k = Array.isArray(p.sa) && p.sa[0] === c.i && p.sa[1] === c.at ? Math.min(c.n - 1, Number(p.sa[2]) || 0) : 0;
+            const x = slots[c.i];
+            o.sx = [c.i, c.at, k, c.n, x.json.slice(k * SLOT_CHUNK, (k + 1) * SLOT_CHUNK), x.by];
+        }
+        const slotRx = { cur: null };
+        function slotIn(o) {
+            const sx = o.sx;
+            if (!Array.isArray(sx) || sx.length < 6) return;
+            const [i, at, k, n, part, by] = sx;
+            if (!Number.isInteger(i) || !Number.isInteger(k) || !Number.isInteger(n) || n < 1 || n > 600 || typeof part !== 'string' || part.length > SLOT_CHUNK) return;
+            if (slots[i] && (slots[i].at || 0) >= at) return;
+            let c = slotRx.cur;
+            if (!c || c.i !== i || c.at !== at) c = slotRx.cur = { i, at, n, parts: [], got: 0 };
+            if (k === c.got) { c.parts[k] = part; c.got++; }
+            if (c.got === c.n) {
+                slotRx.cur = null;
+                if (mergeSlot(i, { json: c.parts.join(''), at, by })) { uploadSlot(i); toast(`💾 Save slot ${i + 1} dari ${OTHER} masuk ke daftar save.`); }
+            }
+        }
+        const slotAck = () => slotRx.cur ? [slotRx.cur.i, slotRx.cur.at, slotRx.cur.got] : null;
         function writeSlot(i) {
             state.savedAt = Date.now();
             state.looks[USER] = { o: look.o };
             const rec = { json: JSON.stringify(state), at: state.savedAt, by: USER, day: state.day, gold: state.gold };
             slots[i] = rec;
             storeSlots();
-            if (net.db) slotWrites = slotWrites.then(() => net.db.doc('slots/s' + (i + 1)).set(rec)).catch(() => {
-                if (!net.dbWarned) { net.dbWarned = 1; toast('Save tersimpan di perangkat ini, tapi belum bisa ke penyimpanan bersama. Pastikan akunmu punya akses Editor.'); }
-            });
+            uploadSlot(i);
             const f = $('saveFlag'); f.classList.add('show'); clearTimeout(writeSlot.t); writeSlot.t = setTimeout(() => f.classList.remove('show'), 1500);
             toast(`💾 Tersimpan di slot ${i + 1} · Hari ${state.day}`);
             renderTitle.sig = '';
@@ -4337,6 +4398,8 @@
         function sendMine() {
             if (!net.backend) return;
             const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
+            slotOut(o);
+            const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
                 const an = {};
                 for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
@@ -4374,6 +4437,7 @@
             }
             net.partner = o;
             net.connected = true;
+            slotIn(o);
             if (o.look && o.look.o) {
                 const po = cleanOutfit(o.look.o, CHARACTERS[OTHER].g);
                 if (JSON.stringify(po) !== JSON.stringify(lookOf(OTHER).o)) { state.looks[OTHER] = { o: po }; refreshPartnerLook(); }
