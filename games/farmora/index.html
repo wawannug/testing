@@ -275,6 +275,10 @@
             #clock .loc { max-width: 128px; }
         }
         #dlg { z-index: 20; }
+        #helpScreen { z-index: 30; }
+        #helpScreen .card { position: relative; max-width: 520px; max-height: 92vh; overflow: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+        #helpX { position: sticky; top: 0; float: right; margin: -10px -12px 0 0; width: 40px; height: 40px; padding: 0; font-size: 20px; z-index: 1; }
+        #dlg .card, #startScreen .card { touch-action: pan-y; }
         #dlg .card { max-width: 520px; max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
         #dlg h2 { margin: 0; font-size: 24px; color: var(--green); text-shadow: 0 2px 0 #2f6b1d; }
         #dlg p { margin: 0; }
@@ -509,6 +513,7 @@
 
     <div id="helpScreen" class="overlay hidden">
         <div class="card panel">
+            <button class="btn" id="helpX" aria-label="Tutup">✕</button>
             <h1 style="font-size:30px">Bantuan</h1>
             <table>
                 <tr class="desktop-only"><td>WASD / Panah</td><td>Berjalan</td></tr>
@@ -1813,6 +1818,14 @@
         // in winter the rooftop is under a glass roof: snow stays out, so the pots still need watering
         const roofCovered = season => (season || seasonOf(state.day)).key === 'dingin';
         const rainOnRoof = season => isWet() && !roofCovered(season);
+        // while it rains, everything it reaches stays watered: seeds planted today and pots set out today too
+        let rainCheck = 0;
+        function rainWaters() {
+            if (!started || !isWet() || elapsed - rainCheck < 1) return;
+            rainCheck = elapsed;
+            if (!roofCovered()) for (const p of state.pots) if (p && p.s && !p.w) { p.w = true; p.dry = 0; }
+            for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; if (t && !t.w) { t.w = true; t.dry = 0; } }
+        }
         // animals stay in at night and whenever it is not clear
         // the farm wakes at 05:00: before that the animals sleep in their barns, from 20:00 they sleep again
         const animalsAsleep = () => state.minutes >= 20 * 60 || state.minutes < FARM_WAKE;
@@ -2547,7 +2560,7 @@
         let actx = null, sfxBus = null, musicBus = null, echoIn = null, noiseBuf = null;
         const MUSIC_VOL = 0.38;
         function audio() {
-            if (actx) { if (actx.state === 'suspended') actx.resume(); return actx; }
+            if (actx) { if (actx.state !== 'running') actx.resume().catch(() => { }); return actx; }
             try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
             const master = actx.createGain(); master.gain.value = 1.5;
             const comp = actx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
@@ -2563,8 +2576,30 @@
             setInterval(musicTick, 50);
             return actx;
         }
-        // browsers only allow sound after the first tap or key press
-        for (const ev of ['pointerdown', 'keydown', 'touchstart']) addEventListener(ev, () => audio(), { passive: true });
+        // browsers only allow sound after the first tap or key press. iPhones want it on the end of a tap,
+        // pause the sound when the app is switched away ("interrupted"), and keep Web Audio silent while the
+        // ringer switch is off unless the page plays as media: a tiny silent clip and audioSession do that.
+        let unlocked = false;
+        function unlockAudio() {
+            const c = audio();
+            if (!c) return;
+            if (c.state !== 'running') c.resume().catch(() => { });
+            if (unlocked) return;
+            unlocked = true;
+            try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { }
+            try {
+                const b = c.createBuffer(1, 1, 22050), src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(0);
+                const n = 800, buf = new ArrayBuffer(44 + n), v = new DataView(buf), w = (o, t) => [...t].forEach((ch, i) => v.setUint8(o + i, ch.charCodeAt(0)));
+                w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+                v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true);
+                for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+                const el = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+                el.setAttribute('playsinline', ''); el.loop = true; el.volume = 0.01;
+                el.play().catch(() => { unlocked = false; });
+            } catch (e) { }
+        }
+        for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) addEventListener(ev, unlockAudio, { passive: true });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => { }); });
 
         // one voice: oscillator → optional filter → envelope → destination, with pitch points over time
         function tone({ type = 'sawtooth', pts, dur, vol = 0.1, at = 0, filter, q = 1, fpts, trem, vib, dest }) {
@@ -2894,7 +2929,7 @@
             balc1: seat(F2, -4.1, 5.3, 0, -4.1, 4.3),
             balcBench: [seat(F2, 4.1, 5.65, 0, 4.1, 4.6), seat(F2, 4.9, 5.65, 0, 4.9, 4.6)],
             roofBench: [seat(RF, -6.8, 5.65, 0, -6.8, 4.6), seat(RF, -5.8, 5.65, 0, -5.8, 4.6)],
-            lounge: [seat(RF, 6.3, 5.8, 0, 5.4, 5.6, 3, 0.62), seat(RF, 7.7, 5.8, 0, 8.6, 5.6, 3, 0.62)],
+            lounge: [{ ...seat(RF, 6.3, 5.9, 0, 5.4, 5.6, 3, 0.66), rec: 0.5 }, { ...seat(RF, 7.7, 5.9, 0, 8.6, 5.6, 3, 0.66), rec: 0.5 }],
         };
         const WAKE = { wawantn: HV(F2, 0.2, -4.2), adindayn: HV(F2, -3.4, -3.4) };
 
@@ -3476,9 +3511,10 @@
             player.sit = null;
             player.pos.set(s.sx, 0, s.sz);
         }
-        function sitPose(f, k, y) {
+        function sitPose(f, k, y, rec) {
             if (k === 3) {
-                f.group.rotation.set(-Math.PI / 2, 0, 0);
+                // flat in bed; on a lounger the upper body leans back against the backrest (rec)
+                f.group.rotation.set(-Math.PI / 2 + (rec || 0), 0, 0);
                 f.pos.y = (y || 0.8) - 0.04;
                 f.legs.forEach(l => { l.rotation.x = 0; });
                 f.arms.forEach(a => { a.rotation.x = 0; });
@@ -4487,7 +4523,7 @@
         function sendMine() {
             if (!net.backend) return;
             sendMine.sq = (sendMine.sq || 0) + 1;
-            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -4637,7 +4673,7 @@
             setPartnerTag();
             zzz.visible = !awake;
             if (awake) {
-                const [x, z, hh, m, sit, sy] = partnerF.netT, k = Math.min(1, dt * 10);
+                const [x, z, hh, m, sit, sy, srec] = partnerF.netT, k = Math.min(1, dt * 10);
                 if (Math.hypot(partnerF.pos.x - x, partnerF.pos.z - z) > 15) partnerF.pos.set(x, 0, z); // walked through a door
                 partnerF.pos.x = lerp(partnerF.pos.x, x, k); partnerF.pos.z = lerp(partnerF.pos.z, z, k);
                 partnerF.heading = lerpAngle(partnerF.heading, hh, Math.min(1, dt * 12));
@@ -4646,7 +4682,7 @@
                 partnerF.head.rotation.x = 0;
                 if (m) partnerF.phase += dt * 12;
                 animateFarmer(partnerF, !!m, dt);
-                if (sit) sitPose(partnerF, sit, sy);
+                if (sit) sitPose(partnerF, sit, sy, srec);
                 overhead(sit === 3);
             } else {
                 // offline: asleep on their side of the big bed
@@ -4915,6 +4951,8 @@
         }
         $('helpBtn').addEventListener('click', () => toggleHelp(true));
         $('closeHelp').addEventListener('click', () => toggleHelp(false));
+        $('helpX').addEventListener('click', () => toggleHelp(false));
+        $('helpScreen').addEventListener('click', e => { if (e.target.id === 'helpScreen') toggleHelp(false); });
         // ---------- Title screen: character creator, save slot, online ----------
         function renderTitle() {
             const p = net.connected && net.partner, hosting = !!(p && p.role === 'host' && p.rdy);
@@ -5028,7 +5066,7 @@
             player.group.rotation.set(0, player.heading, 0);
             player.moving = moving;
             animateFarmer(player, moving, dt);
-            if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y); }
+            if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y, player.sit.rec); }
             else player.pos.y = 0;
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
@@ -5045,7 +5083,7 @@
                 if (state.minutes >= 23 * 60 && warnLate !== state.day) { warnLate = state.day; toast('🌙 Sudah pukul 23:00. Pukul 00:00 kalian otomatis tidur.'); }
                 if (state.minutes >= BED_MIN) sleep(true);
             }
-            if (net.mode === 'host') deliverOrders();
+            if (net.mode === 'host') { deliverOrders(); rainWaters(); }
             crowCheck();
             pkgMesh.visible = pkgCount() > 0;
             EGG_POS.forEach((v, i) => {
