@@ -1971,7 +1971,7 @@
             rig.scale.setScalar(scale);
             blob(g, 0.6, 0.6);
             const hipY = girl ? 0.88 : 0.92, shY = girl ? 1.38 : 1.42, shX = girl ? 0.175 : 0.2;
-            f.hip = hipY * scale; f.hipY = hipY; f.sc = scale; // used to seat the body on chairs and mats
+            f.hip = hipY * scale; f.hipY = hipY; f.shY = shY; f.sc = scale; f.pp = null; // used to seat the body on chairs and mats
             // swimwear: a one-piece for her, trunks for him
             const swim = topItem.kind === 'renang';
             const topMat = swim && !girl ? mat(skin) : clothMat(topItem.c, topItem.pat, topItem.c2);
@@ -3486,11 +3486,53 @@
             qiyam: { leg: 0, knee: 0, tilt: 0.04, arm: -0.3, elbow: -1.75, fold: 1, head: 0.25, turn: 0, y: 0 },
             ruku: { leg: 0, knee: 0, tilt: 1.45, arm: -1.25, elbow: 0, fold: 0, head: -0.1, turn: 0, y: 0 },
             itidal: { leg: 0, knee: 0, tilt: 0, arm: 0, elbow: -0.08, fold: 0, head: 0, turn: 0, y: 0 },
-            sujud: { leg: -0.5, knee: 2.05, tilt: 2.0, arm: -2.05, elbow: -1.05, fold: 0, head: -0.3, turn: 0, y: 1 },
-            duduk: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.15, turn: 0, y: 2 },
-            salamR: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: -1.0, y: 2 },
-            salamL: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: 1.0, y: 2 },
+            sujud: { leg: -0.5, knee: 2.05, tilt: 2.0, arm: -2.05, elbow: -1.05, fold: 0, head: -0.3, turn: 0, y: 1, hands: 'mat' },
+            duduk: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.15, turn: 0, y: 2, hands: 'knee' },
+            salamR: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: -1.0, y: 2, hands: 'knee' },
+            salamL: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: 1.0, y: 2, hands: 'knee' },
         };
+        for (const p of Object.values(PP)) { p.splay = 0; p.wing = 0; }
+        const _qa = new THREE.Quaternion(), _qx = new THREE.Quaternion(), _ax = new THREE.Vector3(), _X = new THREE.Vector3(1, 0, 0), _el = new THREE.Vector3();
+        const MAT_TOP = 0.045;
+        // height of the feet: standing, on the knees (the knee caps touch the mat), or seated on the heels
+        const prayY = (f, i) => [0, f.sc * (0.08 - f.hipY + 0.02 + 0.42 * Math.cos(PP.sujud.leg)), 0.2 - f.hip][i];
+        // Solve one pose for this body: in sujud the forehead rests on the mat and the palms lie flat on it
+        // beside the head; when sitting the palms rest on the thighs with the fingers at the knees.
+        // A two-bone reach in the side plane (rig units, y up, z forward); bend 1 folds the elbow back and down,
+        // bend -1 keeps the elbow raised.
+        function reachArm(f, tilt, ty, tz, bend) {
+            const h = f.hipY, d = f.shY - 0.03 - h;
+            const sy = h + d * Math.cos(tilt), sz = d * Math.sin(tilt);
+            const a = 0.27, b = 0.3, dy = ty - sy, dz = tz - sz;
+            const L = Math.min(a + b - 0.002, Math.max(0.05, Math.hypot(dy, dz)));
+            const dir = Math.atan2(-dz, -dy);
+            const beta = Math.acos(Math.min(1, (a * a + L * L - b * b) / (2 * a * L)));
+            const gamma = Math.acos(Math.max(-1, Math.min(1, (a * a + b * b - L * L) / (2 * a * b))));
+            const p1 = dir + bend * beta;
+            return { arm: p1 - tilt, elbow: -bend * (Math.PI - gamma), elbowY: sy - a * Math.cos(p1) };
+        }
+        function poseFor(f, key) {
+            const p = PP[key];
+            if (!p.hands) return p;
+            f.pp ||= {};
+            if (f.pp[key]) return f.pp[key];
+            const q = { ...p }, ground = (MAT_TOP - prayY(f, p.y)) / f.sc, h = f.hipY, hl = f.shY + 0.21 - h;
+            if (p.hands === 'mat') {
+                q.tilt = Math.acos(Math.max(-1, Math.min(1, (ground + 0.105 - h) / hl)));
+                const headZ = hl * Math.sin(q.tilt);
+                // palms flat on the mat level with the forehead, forearms low along the mat, elbows just off it
+                let r = reachArm(f, q.tilt, ground + 0.035, headZ + 0.02, 1);
+                if (r.elbowY < ground + 0.06) r = reachArm(f, q.tilt, ground + 0.035, headZ + 0.02, -1);
+                Object.assign(q, { arm: r.arm, elbow: r.elbow });
+                q.wing = 1.25; // swing the elbows out to the sides around the shoulder-to-hand line
+            } else {
+                // a point on top of the thigh just behind the knee
+                const t = 0.34, hy = h - 0.02 + Math.cos(p.leg) * -t, hz = -Math.sin(p.leg) * t;
+                const r = reachArm(f, p.tilt, hy + 0.105, hz, 1);
+                Object.assign(q, { arm: r.arm, elbow: r.elbow });
+            }
+            return f.pp[key] = q;
+        }
         // one rakaat straight into tasyahud and salam: 7 s, which is 10 minutes of game time
         const PRAYER = [['takbir', 0.5], ['qiyam', 1.2], ['ruku', 0.8], ['itidal', 0.6], ['sujud', 0.8], ['duduk', 0.6], ['sujud', 0.8], ['duduk', 0.8], ['salamR', 0.45], ['salamL', 0.45]];
         const PRAY_TIME = PRAYER.reduce((t, [, d]) => t + d, 0);
@@ -3499,17 +3541,16 @@
             if (f.prayLast == null || elapsed - f.prayLast > 0.5) f.prayStart = elapsed;
             f.prayLast = elapsed;
             mukena(f, true);
-            let t = elapsed - f.prayStart, a = PP.duduk, b = PP.duduk, u = 1;
+            let t = elapsed - f.prayStart, a = poseFor(f, 'duduk'), b = a, u = 1;
             for (let i = 0; i < PRAYER.length; i++) {
                 const [key, d] = PRAYER[i];
-                if (t < d) { a = i ? PP[PRAYER[i - 1][0]] : PP.itidal; b = PP[key]; u = Math.min(1, t / PRAY_MOVE); break; }
+                if (t < d) { a = poseFor(f, i ? PRAYER[i - 1][0] : 'itidal'); b = poseFor(f, key); u = Math.min(1, t / PRAY_MOVE); break; }
                 t -= d;
             }
             u = u * u * (3 - 2 * u);
             const v = {};
-            for (const k of Object.keys(b)) v[k] = a[k] + (b[k] - a[k]) * u;
-            // height of the feet: standing, on the knees (the knee caps touch the mat), or seated on the heels
-            const ys = [0, f.sc * (0.08 - f.hipY + 0.02 + 0.42 * Math.cos(PP.sujud.leg)), 0.2 - f.hip];
+            for (const k of Object.keys(b)) if (typeof b[k] === 'number') v[k] = a[k] + (b[k] - a[k]) * u;
+            const ys = [0, 1, 2].map(i => prayY(f, i));
             const yi = Math.min(1, Math.floor(v.y)), yf = v.y - yi;
             f.pos.y = ys[yi] + (ys[yi + 1] - ys[yi]) * yf;
             f.legs.forEach(l => { l.rotation.x = v.leg; });
@@ -3519,10 +3560,21 @@
             f.body.rotation.x = v.tilt;
             f.body.position.set(0, h - h * Math.cos(v.tilt), -h * Math.sin(v.tilt));
             // folding the hands on the chest: twist each arm about itself so the bent forearm points inward
-            f.arms.forEach((m, i) => { m.rotation.x = v.arm; m.rotation.y = (i ? 1 : -1) * 1.0 * v.fold; m.rotation.z = (i ? -1 : 1) * (0.06 - 0.12 * v.fold); });
+            f.arms.forEach((m, i) => {
+                const side = i ? -1 : 1;
+                m.rotation.set(v.arm, -side * 1.0 * v.fold, side * (0.06 - 0.12 * v.fold + v.splay));
+                if (v.wing > 0.001) {
+                    // turn the whole arm about the line from the shoulder to the hand: the hand stays put, the elbow goes out
+                    const p1 = v.arm, p2 = v.arm + v.elbow;
+                    _ax.set(0, -0.27 * Math.cos(p1) - 0.3 * Math.cos(p2), -0.27 * Math.sin(p1) - 0.3 * Math.sin(p2)).normalize();
+                    _el.set(0, -Math.cos(p1), -Math.sin(p1));
+                    const out = (_ax.y * _el.z - _ax.z * _el.y) * side > 0 ? 1 : -1;
+                    m.quaternion.copy(_qa.setFromAxisAngle(_ax, out * v.wing).multiply(_qx.setFromAxisAngle(_X, p1)));
+                }
+            });
             f.elbows.forEach(e => { e.rotation.x = v.elbow; });
             if (f.skirt) f.skirt.rotation.x = v.leg * 0.55;
-            if (f.mukena) f.mukena.skirt.rotation.x = v.leg * 0.55;
+            if (f.mukena) f.mukena.skirt.rotation.x = v.leg * 0.6;
             f.head.rotation.set(v.head, v.turn, 0);
         }
         // a bench or sofa for two: take the free place nearest to you
