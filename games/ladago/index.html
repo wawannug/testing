@@ -962,20 +962,32 @@
         // Whichever reaches your partner carries the game; their newest presence wins.
         async function webRoom(code, role) {
             const routes = [], handlers = [];
-            let mine = {};
-            const latest = new Map(); // route -> { presence, at }
-            const emit = () => {
+            // every presence we send carries this tab (_t) and a version (_v): the same update can come in
+            // over both routes and at different times, so only a newer version may replace what is shown,
+            // and a repeat (the relay re-sends every 2 s) changes nothing on screen
+            const tab = Math.random().toString(36).slice(2, 8);
+            let mine = { _t: tab, _v: 0 }, shown = null;
+            const latest = new Map(); // route -> { pr: their presence or null, at: when it arrived }
+            const emit = force => {
+                // the partner's current tab is the one heard from last; take its newest version from any route
+                let last = null;
+                for (const v of latest.values()) if (v.pr && (!last || v.at > last.at)) last = v;
                 let best = null;
-                for (const v of latest.values()) if (v.presence && (!best || v.at > best.at)) best = v;
+                if (last) for (const v of latest.values()) if (v.pr && v.pr._t === last.pr._t && (!best || (v.pr._v || 0) > (best._v || 0))) best = v.pr;
+                if (!force) {
+                    if (!best && !shown) return;
+                    if (best && shown && best._t === shown._t && (best._v || 0) <= (shown._v || 0)) return; // a repeat or an older copy
+                }
+                shown = best;
                 const peers = [{ sameTab: true, isMe: true, presence: mine }];
-                if (best) peers.push({ sameTab: false, isMe: false, presence: best.presence });
+                if (best) peers.push({ sameTab: false, isMe: false, presence: best });
                 handlers.forEach(h => h({ peers, joined: [], left: [], updated: [] }));
             };
             const add = rt => {
                 routes.push(rt);
                 rt.onPeers(ch => {
                     const p = ch.peers.find(x => !x.sameTab);
-                    latest.set(rt, { presence: p ? p.presence : null, at: Date.now() });
+                    latest.set(rt, { pr: p && p.presence ? p.presence : null, at: Date.now() });
                     emit();
                 });
                 if (Object.keys(mine).length) rt.presence(mine).catch(() => { }); // catch up a route that came late
@@ -984,9 +996,11 @@
                 presence(patch) {
                     mine = { ...mine };
                     for (const k in patch) { if (patch[k] === null) delete mine[k]; else mine[k] = patch[k]; }
-                    return Promise.all(routes.map(rt => rt.presence(patch).catch(() => { }))).then(() => { });
+                    mine._v++;
+                    const p = { ...patch, _t: tab, _v: mine._v };
+                    return Promise.all(routes.map(rt => rt.presence(p).catch(() => { }))).then(() => { });
                 },
-                onPeers(h) { handlers.push(h); setTimeout(emit, 0); return () => { }; },
+                onPeers(h) { handlers.push(h); setTimeout(() => emit(true), 0); return () => { }; },
             };
             const peerP = peerRoom(code, role);
             let relay = null;
