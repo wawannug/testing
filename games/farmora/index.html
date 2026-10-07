@@ -56,6 +56,10 @@
         #clock .season { font-size: 12px; opacity: .75; }
         #clock .time { font-weight: 700; font-size: 26px; letter-spacing: 1px; }
         #clock .gold { margin-top: 2px; font-weight: 600; font-size: 16px; color: #a86a00; }
+        #clock .energy { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 13px; }
+        #clock .ebar { width: 72px; height: 9px; border-radius: 6px; background: #e8d9b5; overflow: hidden; border: 1px solid #c79a5b; }
+        #clock .ebar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #f5b52e, #7cc45a); transition: width .4s; }
+        #clock .energy.low .ebar i { background: #e85d4a; }
 
         #topRight {
             position: fixed;
@@ -336,6 +340,8 @@
 
         /* Touch controls */
         #joy, #actBtn { display: none; }
+        #eatBtn { position: fixed; right: 22px; bottom: 128px; z-index: 6; font-size: 17px; padding: 10px 14px; border-radius: 999px; }
+        #eatBtn[hidden] { display: none; }
 
         @media (max-width: 760px) {
             #startScreen { align-items: flex-end; background: linear-gradient(180deg, rgba(30, 50, 20, 0) 25%, rgba(30, 50, 20, .35)); padding-top: 42vh; }
@@ -465,6 +471,7 @@
         <div class="season" id="seasonLabel">🌸 Musim Semi</div>
         <div class="time" id="timeLabel">04:00</div>
         <div class="gold" id="goldLabel">💰 0 G</div>
+        <div class="energy" id="energyLabel"><span class="ebar"><i id="energyFill"></i></span><b id="energyNum">⚡ 100</b></div>
         <div class="loc" id="locLabel">🌾 Farm</div>
     </div>
 
@@ -485,6 +492,7 @@
 
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
+    <button id="eatBtn" class="btn" hidden>🍽️ Makan</button>
 
     <div id="netBadge" class="panel" title="Ketuk untuk melihat status pasanganmu"></div>
     <div id="saveFlag">💾 Tersimpan</div>
@@ -528,7 +536,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -1786,6 +1794,7 @@
         const isTool = k => k.startsWith('t_');
         // the toolbar is the top row of the bag; the selected slot decides what is in your hands
         let selSlot = 1, tool = 'penyiram';
+        function heldItem() { const x = bagOf(USER)[selSlot]; return x ? x[0] : null; }
         const toolHint = k => `pilih ${TOOLS[k].icon} ${TOOLS[k].label}`;
         // hens and ducks lay their eggs in the nests inside their barn
         const EGG_MAX = 6;
@@ -2165,6 +2174,21 @@
             scene.add(f.group);
             return f;
         }
+        const HUG_TIME = 2.6;
+        const hugging = () => player.hugT != null && elapsed - player.hugT < HUG_TIME;
+        function startHug() {
+            if (!partnerF || !partnerF.group.visible) return;
+            const d = new THREE.Vector3().subVectors(partnerF.pos, player.pos).setY(0);
+            const len = d.length();
+            if (len > 3) return;
+            if (player.sit) standUp();
+            // both of us step to the middle; each device moves only its own farmer
+            if (len > 0.5) player.pos.addScaledVector(d, (len - 0.5) / 2 / len);
+            player.heading = player.targetHeading = Math.atan2(d.x, d.z);
+            player.hugT = partnerF.hugT = elapsed;
+            spawnHearts(player.pos.clone().add(partnerF.pos).multiplyScalar(0.5).setY(1.6));
+            chime([523, 659, 784, 1046], 0.1, 'sine', 0.05);
+        }
         function animateFarmer(f, moving, dt) {
             // a human walk: the thigh swings from the hip while the knee folds as that leg swings forward,
             // and the arms swing against the legs with the elbows softly bent
@@ -2186,6 +2210,18 @@
             for (let i = 0; i < 2; i++) { f.arms[i].rotation.z = i ? -0.06 : 0.06; f.arms[i].rotation.y = 0; }
             if (f.skirt) f.skirt.rotation.x = 0;
             mukena(f, false);
+            if (f.hugT != null && elapsed - f.hugT < HUG_TIME) {
+                // arms wrapped around the other, a gentle sway
+                const sway = Math.sin((elapsed - f.hugT) * 3) * 0.06;
+                for (let i = 0; i < 2; i++) {
+                    const side = i ? -1 : 1;
+                    f.arms[i].rotation.set(-1.25, side * 0.5, -side * 0.15);
+                    f.elbows[i].rotation.x = -0.9;
+                    f.legs[i].rotation.x = 0; f.knees[i].rotation.x = 0.08;
+                }
+                f.body.rotation.set(0.08, sway, 0);
+                f.body.position.set(0, 0, 0);
+            }
             const pb = ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
             for (const e of f.eyes) e.scale.y = e.scale.x * pb;
         }
@@ -2221,6 +2257,18 @@
         const OTHER = USER === 'adindayn' ? 'wawantn' : 'adindayn';
         // the day starts at 04:00 in the dark before dawn and ends at midnight at the latest
         const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60, FARM_WAKE = 5 * 60;
+        // ⚡ energy: farm work uses it, food, hugs and sleep bring it back
+        const ENERGY_MAX = 100;
+        const FOOD_ENERGY = { dadar: 20, puding: 25, tumis: 30, salad: 30, jus: 25, sambal: 15, sop: 45 };
+        const otherOf = u => u === 'adindayn' ? 'wawantn' : 'adindayn';
+        const energyOf = u => state.en && Number.isFinite(state.en[u]) ? state.en[u] : ENERGY_MAX;
+        const addEnergy = (u, n) => { state.en ||= {}; state.en[u] = clamp(energyOf(u) + n, 0, ENERGY_MAX); };
+        // what each kind of farm work costs
+        function energyCost(id) {
+            if (id === 'cook') return 3;
+            const p = String(id).split(':')[0];
+            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1 }[p] || 0;
+        }
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
         try {
@@ -2263,7 +2311,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {} }, eggs: [], animals, trees, pots, orders: [], pkg: {}, pkgCloth: [], wardrobe: { adindayn: [], wawantn: [] }, ib: {}, wb: { adindayn: WATER_MAX, wawantn: WATER_MAX }, en: { adindayn: ENERGY_MAX, wawantn: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2271,7 +2319,7 @@
         function normalize(saved) {
             const base = freshState();
             if (!saved || !saved.animals) return base;
-            const st = { ...base, ...saved, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, looks: { ...(saved.looks || {}) } };
+            const st = { ...base, ...saved, animals: { ...base.animals, ...saved.animals }, trees: { ...base.trees, ...(saved.trees || {}) }, wb: { ...base.wb, ...(saved.wb || {}) }, en: { ...base.en, ...(saved.en || {}) }, looks: { ...(saved.looks || {}) } };
             delete st.water; delete st.gwater;
             // bags and boxes; older saves had one shared inventory, which goes into the storage chest
             st.bags = saved.bags ? { adindayn: toSlots(saved.bags.adindayn), wawantn: toSlots(saved.bags.wawantn) } : base.bags;
@@ -2501,6 +2549,13 @@
         function updateHud() {
             const place = placeName(player.pos);
             const bag = bagOf(USER);
+            const held = heldItem(), dish = started && RECIPES.find(r => r.key === held);
+            $('eatBtn').hidden = !dish;
+            if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${FOOD_ENERGY[dish.key] || 20} ⚡`;
+            const en = Math.round(energyOf(USER));
+            $('energyNum').textContent = `⚡ ${en}`;
+            $('energyFill').style.width = `${en}%`;
+            $('energyLabel').classList.toggle('low', en < 20);
             const key = `${state.day}|${state.weather}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${selSlot}`;
             if (key === lastHud) return;
             lastHud = key;
@@ -4043,6 +4098,24 @@
                 if (!inBag) fr[r.key] = (fr[r.key] || 0) + 1;
                 emitEvent(`Memasak ${r.icon} ${r.label}!${inBag ? '' : ' Tas penuh, masakan disimpan di kulkas.'}`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
             },
+            eat(who, k) {
+                const r = RECIPES.find(r => r.key === k);
+                if (!r || !takeBag(who, k)) return;
+                const n = FOOD_ENERGY[k] || 20;
+                addEnergy(who, n);
+                emitEvent(`Makan ${r.icon} ${r.label}, enak! +${n} ⚡`, 'icon:' + r.icon, null, who);
+            },
+            hug(who) {
+                // a hug warms you both up a little
+                addEnergy(who, 5); addEnergy(otherOf(who), 5);
+                emitEvent(`Memeluk ${otherOf(who)} 🤗 +5 ⚡ untuk berdua`, 'hug', null, who);
+            },
+            give(who, k) {
+                const to = otherOf(who), it = ITEMS[k];
+                if (!it || isTool(k) || !takeBag(who, k)) return;
+                if (!addBag(to, k, 1)) { addBag(who, k, 1); emitEvent(`Tas ${to} penuh, hadiahnya belum bisa diberikan 🎁`, 'none', null, who); return; }
+                emitEvent(`Memberi ${it.icon} ${it.label} untuk ${to} 🎁`, 'gift', null, who);
+            },
             ibadah(who) {
                 state.ib[who] = state.day;
                 emitEvent('Alhamdulillah, sudah melaksanakan ibadah hari ini 🤲✨', 'none', null, who);
@@ -4279,8 +4352,41 @@
                 },
             }));
             list.push(...homeInteractables());
+            // your partner: hug or give them something
+            list.push({
+                id: 'pp', local: true, reach: 1.6,
+                get pos() { return partnerF ? partnerF.pos : FAR_AWAY; },
+                when: () => !!(partnerF && net.connected && partnerF.live && partnerF.group.visible && !player.sit && !(partnerF.netT && partnerF.netT[4]) && sceneOf(partnerF.pos) === sceneOf(player.pos) && !hugging()),
+                label: () => `Peluk / beri hadiah ke ${OTHER} 💞`,
+                act: () => openPartnerMenu(),
+            });
             return list;
         }
+        const FAR_AWAY = new THREE.Vector3(1e6, 0, 1e6);
+        function openPartnerMenu() {
+            openDlg(`💞 ${OTHER}`, [el('p', { text: `Mau apa dengan ${OTHER}?` })], [
+                { t: '🤗 Peluk', big: true, f: () => sendAct('hug') },
+                { t: '🎁 Beri hadiah', f: openGiftMenu },
+                { t: 'Batal' },
+            ]);
+        }
+        function openGiftMenu() {
+            const items = Object.entries(bagItems(USER));
+            if (!items.length) { openDlg('🎁 Beri hadiah', [el('p', { text: 'Tasmu masih kosong. Ambil hasil panen, telur, atau masakan dulu ya.' })]); return; }
+            openDlg(`🎁 Hadiah untuk ${OTHER}`, [
+                el('p', { class: 'small-note', text: 'Pilih barang dari tasmu. Satu barang pindah ke tas pasanganmu.' }),
+                el('div', { class: 'shoplist' }, items.map(([k, n]) => el('div', { class: 'shopitem' },
+                    el('span', { class: 'ic', text: ITEMS[k].icon }),
+                    el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `di tas ${n}` })),
+                    el('button', { class: 'btn', onclick: () => { closeDlg(); sendAct('give', k); } }, 'Beri')))),
+            ], [{ t: 'Batal' }]);
+        }
+        // holding a cooked dish with nothing else to do here: eat it
+        const EAT_HERE = {
+            id: 'eat', local: true, reach: 0, get pos() { return player.pos; },
+            label: () => { const k = heldItem(), r = RECIPES.find(r => r.key === k); return r ? `Makan ${r.icon} ${r.label} · +${FOOD_ENERGY[k] || 20} ⚡ (energi ${Math.round(energyOf(USER))})` : ''; },
+            act: () => { const k = heldItem(); if (RECIPES.some(r => r.key === k)) sendAct('eat', k); },
+        };
         const INTERACTABLES = interactables();
         let focus = null;
 
@@ -4291,6 +4397,7 @@
                 const d = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
                 if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
+            if (!best && RECIPES.some(r => r.key === heldItem())) return EAT_HERE;
             return best;
         }
 
@@ -4310,8 +4417,19 @@
                 net.myQ++;
                 net.acts.push(x === undefined ? { q: net.myQ, id } : { q: net.myQ, id, x });
                 if (net.acts.length > 8) net.acts.shift();
-            } else if (ACTIONS[id]) ACTIONS[id](USER, x);
-            else { const it = INTERACTABLES.find(i => i.id === id); if (it && !it.local) it.act(USER, player.pos, x); }
+            } else runAct(USER, id, x, player.pos);
+        }
+        // the host runs every farm action here: tired farmers cannot work until they eat or sleep
+        function runAct(who, id, x, pos) {
+            const it = ACTIONS[id] ? null : INTERACTABLES.find(i => i.id === id && !i.local);
+            if (!ACTIONS[id] && !it) return;
+            const cost = energyCost(id);
+            if (cost && energyOf(who) < cost) { emitEvent('Capek sekali 😩 Makan masakan, peluk pasangan, atau tidur dulu untuk isi energi ⚡', 'none', null, who); return; }
+            const before = net.evN;
+            if (ACTIONS[id]) ACTIONS[id](who, x); else it.act(who, pos, x);
+            // only real work costs energy: something happened, and it was not a "you need…" note
+            const last = net.events[net.events.length - 1];
+            if (cost && net.evN > before && last && last.f !== 'none') addEnergy(who, -cost);
         }
 
         // Something happened on the farm: shown on both screens, with the actor's name for the other player
@@ -4329,6 +4447,8 @@
             else if (typeof e.f === 'string' && e.f.startsWith('icon:') && at) { spawnIcon(at, e.f.slice(5)); chime([523, 784]); }
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
+            else if (e.f === 'hug') startHug();
+            else if (e.f === 'gift') { const f = e.w === USER ? partnerF : player; if (f && f.group.visible) spawnIcon(f.pos.clone().setY(1.9), '🎁'); chime([659, 784, 1046]); }
             if (e.v) voice(e.v, at);
             const mine = e.w === USER;
             toast(mine || !e.w ? e.t : `${partnerName()}: ${e.t}`);
@@ -4535,7 +4655,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { adindayn: encBag(bagOf('adindayn')), wawantn: encBag(bagOf('wawantn')) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
-                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
+                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { adindayn: state.wardrobe.adindayn.map(id => CLOTHES.indexOf(CLOTH[id])), wawantn: state.wardrobe.wawantn.map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
@@ -4590,11 +4710,11 @@
                     if (!a || !Number.isInteger(a.q) || a.q <= net.lastQ) continue;
                     net.lastQ = a.q;
                     const x = typeof a.x === 'string' && a.x.length <= 40 ? a.x : undefined;
-                    if (typeof a.id === 'string' && Object.hasOwn(ACTIONS, a.id)) { ACTIONS[a.id](OTHER, x); continue; }
+                    if (typeof a.id === 'string' && Object.hasOwn(ACTIONS, a.id)) { runAct(OTHER, a.id, x); continue; }
                     const it = INTERACTABLES.find(i => i.id === a.id && !i.local);
                     // check reach against where the guest says they are, not the smoothed avatar
                     const gx = partnerF.netT ? partnerF.netT[0] : partnerF.pos.x, gz = partnerF.netT ? partnerF.netT[1] : partnerF.pos.z;
-                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) it.act(OTHER, new THREE.Vector3(gx, 0, gz), x);
+                    if (it && Math.hypot(it.pos.x - gx, it.pos.z - gz) < it.reach + 1.5) runAct(OTHER, a.id, x, new THREE.Vector3(gx, 0, gz));
                 }
             }
             if (net.mode === 'guest' && o.w && o.role === 'host' && o.rdy) applyWorld(o);
@@ -4627,6 +4747,7 @@
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
             if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
             if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
+            if (w.en) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.en[u])) state.en[u] = clamp(w.en[u], 0, ENERGY_MAX);
             if (Array.isArray(w.pots) && w.pots.length === POT_SLOTS) state.pots = w.pots.map(decPot);
             if (Array.isArray(w.ord)) state.orders = w.ord.filter(v => Array.isArray(v) && SUPPLIES[v[0]]).map(v => ({ k: v[0], n: +v[1] || 1, due: +v[2] || 0, by: CHARACTERS[v[3]] ? v[3] : undefined }));
             if (w.wd) for (const u of Object.keys(CHARACTERS)) if (Array.isArray(w.wd[u])) state.wardrobe[u] = w.wd[u].map(i => CLOTHES[i] && CLOTHES[i].id).filter(Boolean);
@@ -4851,6 +4972,8 @@
                 if (rainOnRoof(newSeason)) for (const p of state.pots) if (p && p.s) { p.w = true; p.dry = 0; }
                 state.day++;
                 state.minutes = WAKE_MIN;
+                // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
+                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut ? Math.max(energyOf(u), 70) : ENERGY_MAX;
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
@@ -4950,6 +5073,10 @@
             el.classList.toggle('hidden', !show);
         }
         $('helpBtn').addEventListener('click', () => toggleHelp(true));
+        // eat what you hold, wherever you are (button or F)
+        const eatHeld = () => { const k = heldItem(); if (started && !sleeping && !dlgOpen() && RECIPES.some(r => r.key === k)) sendAct('eat', k); };
+        $('eatBtn').addEventListener('click', eatHeld);
+        window.addEventListener('keydown', e => { if (e.code === 'KeyF' && !e.repeat) eatHeld(); });
         $('closeHelp').addEventListener('click', () => toggleHelp(false));
         $('helpX').addEventListener('click', () => toggleHelp(false));
         $('helpScreen').addEventListener('click', e => { if (e.target.id === 'helpScreen') toggleHelp(false); });
@@ -5039,11 +5166,12 @@
             ix += joy.x; iz += joy.y;
             const len = Math.hypot(ix, iz);
             const helpOpen = !$('helpScreen').classList.contains('hidden');
-            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1;
+            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging();
             if (moving && player.sit) standUp();
             if (moving) {
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null;
-                const sp = (run ? 7.5 : 4.5) * Math.min(1, len);
+                const tired = energyOf(USER) < 10;
+                const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len);
                 player.pos.x += ix / len * sp * dt;
                 player.pos.z += iz / len * sp * dt;
                 player.targetHeading = Math.atan2(ix, iz);
