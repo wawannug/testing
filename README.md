@@ -47,11 +47,11 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Hewan tidur** mulai pukul 20:00 sampai pagi: diam di tempat dengan 💤. Anjing tidak lagi terus mengikuti pemain.
 
 ## Energi, makan, dan interaksi berdua ⚡🤗
-- **Energi ⚡ (0–100)** tampil di bawah jumlah gold. Kerja di farm memakai energi: siram atau panen pohon dan pot (2), elus, perah, atau cukur hewan (2), ambil telur (1), isi ember (1), dan memasak (3). Kalau energi habis, kamu tidak bisa bekerja dan jalan lebih pelan; makan atau tidur dulu.
-- **Tidur** di kasur mengisi energi penuh. Kalau tertidur otomatis pukul 00:00, energi terisi minimal 70.
+- **Energi ⚡ (0–200)** tampil di bawah jumlah gold. Kerja di farm memakai energi: siram atau panen pohon dan pot (2), elus, perah, atau cukur hewan (2), ambil telur (1), isi ember (1), dan memasak (3). Kalau energi habis, kamu tidak bisa bekerja dan jalan lebih pelan; makan atau tidur dulu.
+- **Tidur** di kasur mengisi energi penuh. Kalau tertidur otomatis pukul 00:00, energi terisi minimal 140.
 - **Makan masakan:** pilih masakan di toolbar, lalu tekan tombol **🍽️ Makan** (atau F, atau tombol aksi kalau tidak ada yang lain di dekatmu). Telur dadar +20, puding susu +25, tumis kangkung +30, salad segar +30, jus mangga susu +25, sambal tomat +15, sayur sop +45.
 - **Peluk 🤗:** dekati pasanganmu lalu tekan tombol aksi (**Peluk / beri hadiah**). Kalian berdua melangkah mendekat, saling berhadapan, dan berpelukan dengan hati beterbangan, terlihat di kedua layar. Setiap pelukan menambah +5 ⚡ untuk berdua.
-- **Beri hadiah 🎁:** dari menu yang sama, pilih satu barang dari tasmu (hasil panen, telur, masakan, pot, benih…); barangnya pindah ke tas pasanganmu.
+- **Beri hadiah 🎁:** dari menu yang sama, pilih satu barang dari tasmu (hasil panen, telur, masakan, pot, benih…); barangnya pindah ke tas pasanganmu, dan pasanganmu kegirangan: melompat kecil sambil melambaikan kedua tangan, dikelilingi hati dan ikon 🎁 (terlihat di kedua layar).
 
 ## Karakter, farm bersama, dan turu 💤
 - **Karakter sesuai akun:** adindayn bermain sebagai petani perempuan, wawantn sebagai petani laki-laki. Warna baju bisa dipilih (juga di lemari kamar).

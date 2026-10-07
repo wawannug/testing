@@ -2174,7 +2174,7 @@
             scene.add(f.group);
             return f;
         }
-        const HUG_TIME = 2.6;
+        const HUG_TIME = 2.6, JOY_TIME = 2.2;
         const hugging = () => player.hugT != null && elapsed - player.hugT < HUG_TIME;
         function startHug() {
             if (!partnerF || !partnerF.group.visible) return;
@@ -2210,6 +2210,20 @@
             for (let i = 0; i < 2; i++) { f.arms[i].rotation.z = i ? -0.06 : 0.06; f.arms[i].rotation.y = 0; }
             if (f.skirt) f.skirt.rotation.x = 0;
             mukena(f, false);
+            if (f.joyT != null && elapsed - f.joyT < JOY_TIME) {
+                const t = elapsed - f.joyT, hop = Math.abs(Math.sin(t * 8)) * 0.16 * (1 - t / JOY_TIME);
+                for (let i = 0; i < 2; i++) {
+                    const side = i ? -1 : 1;
+                    // both arms up, waving
+                    f.arms[i].rotation.set(-2.7 + Math.sin(t * 10 + i * Math.PI) * 0.25, 0, side * 0.35);
+                    f.elbows[i].rotation.x = -0.35;
+                    f.knees[i].rotation.x = hop > 0.08 ? 0.5 : 0.15;
+                    f.legs[i].rotation.x = hop > 0.08 ? -0.25 : 0;
+                }
+                f.body.position.set(0, hop, 0);
+                f.body.rotation.set(-0.05, Math.sin(t * 4) * 0.15, 0);
+                f.head.rotation.set(-0.25, 0, Math.sin(t * 6) * 0.12);
+            }
             if (f.hugT != null && elapsed - f.hugT < HUG_TIME) {
                 // arms wrapped around the other, a gentle sway
                 const sway = Math.sin((elapsed - f.hugT) * 3) * 0.06;
@@ -2258,7 +2272,7 @@
         // the day starts at 04:00 in the dark before dawn and ends at midnight at the latest
         const WAKE_MIN = 4 * 60, BED_MIN = 24 * 60, FARM_WAKE = 5 * 60;
         // ⚡ energy: farm work uses it, food, hugs and sleep bring it back
-        const ENERGY_MAX = 100;
+        const ENERGY_MAX = 200;
         const FOOD_ENERGY = { dadar: 20, puding: 25, tumis: 30, salad: 30, jus: 25, sambal: 15, sop: 45 };
         const otherOf = u => u === 'adindayn' ? 'wawantn' : 'adindayn';
         const energyOf = u => state.en && Number.isFinite(state.en[u]) ? state.en[u] : ENERGY_MAX;
@@ -2554,8 +2568,8 @@
             if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${FOOD_ENERGY[dish.key] || 20} ⚡`;
             const en = Math.round(energyOf(USER));
             $('energyNum').textContent = `⚡ ${en}`;
-            $('energyFill').style.width = `${en}%`;
-            $('energyLabel').classList.toggle('low', en < 20);
+            $('energyFill').style.width = `${en / ENERGY_MAX * 100}%`;
+            $('energyLabel').classList.toggle('low', en < ENERGY_MAX * 0.15);
             const key = `${state.day}|${state.weather}|${fmtTime(state.minutes)}|${state.gold}|${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${myWater()}|${place}|${selSlot}`;
             if (key === lastHud) return;
             lastHud = key;
@@ -4448,7 +4462,17 @@
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
             else if (e.f === 'hug') startHug();
-            else if (e.f === 'gift') { const f = e.w === USER ? partnerF : player; if (f && f.group.visible) spawnIcon(f.pos.clone().setY(1.9), '🎁'); chime([659, 784, 1046]); }
+            else if (e.f === 'gift') {
+                // whoever receives the present is delighted: hops, waves both arms, hearts all around
+                const f = e.w === USER ? partnerF : player;
+                if (f && f.group.visible) {
+                    f.joyT = elapsed;
+                    spawnIcon(f.pos.clone().setY(2.1), '🎁');
+                    spawnHearts(f.pos.clone().setY(1.7));
+                    setTimeout(() => spawnHearts(f.pos.clone().setY(1.9), 2), 700);
+                }
+                chime([659, 784, 1046, 1318], 0.09, 'sine', 0.05);
+            }
             if (e.v) voice(e.v, at);
             const mine = e.w === USER;
             toast(mine || !e.w ? e.t : `${partnerName()}: ${e.t}`);
@@ -4973,7 +4997,7 @@
                 state.day++;
                 state.minutes = WAKE_MIN;
                 // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
-                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut ? Math.max(energyOf(u), 70) : ENERGY_MAX;
+                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut ? Math.max(energyOf(u), 140) : ENERGY_MAX;
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
