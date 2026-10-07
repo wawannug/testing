@@ -62,6 +62,11 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - Penutup kepala: topi jerami, topi, peci, kupluk, dan hijab (5 warna).
 - Pakaian dibeli lewat **laptop** di ruang keluarga (tab 👕 Pakaian), diantar kurir bersama paket, lalu langsung masuk ke lemari pemiliknya. Ganti pakaian di **lemari kamar utama** atau lewat tombol *Ganti pakaian* di layar awal. Pakaian dan baju yang sedang dipakai ikut tersimpan di save game dan terlihat oleh pasangan.
 
+## Suara 🔊
+- Semua suara dibuat langsung dengan Web Audio (tanpa file audio): suara sapi, kambing, domba, ayam, kokok ayam jago tiap pagi, kucing (mengeong/mendengkur), dan anjing saat dielus atau diperah; hewan di dekatmu juga sesekali bersuara sendiri. Ada juga cipratan air saat menyiram dan bunyi kecil saat memanen atau berjualan.
+- **Lagu latar** berganti mengikuti waktu: ceria di pagi–siang, lebih santai saat sore, dan lembut di malam hari dengan suara jangkrik. Lagunya disusun acak per frasa, jadi tidak monoton. Suara dari luar terdengar lebih pelan saat di dalam rumah.
+- Tombol 🎵 (musik) dan 🔊 (efek suara) di kanan atas untuk menyalakan/mematikan; pilihan diingat di perangkat.
+
 ## Tas, alat, dan penyimpanan
 - **Tas pribadi 30 slot (3 baris × 10).** Baris paling atas adalah toolbar yang terlihat saat main (tombol 1–0); ketuk 🎒 untuk membuka semua isi tas, lalu tahan-geser (atau ketuk dua slot) untuk menukar tempat barang. Nama alat/barang muncul sebentar saat dipilih. Satu slot menumpuk sampai 99 barang yang sama.
 - Isi tas: Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.

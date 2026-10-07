@@ -466,6 +466,8 @@
     <div id="topRight">
         <a class="btn" id="menuBtn" href="../../index.html" title="Kembali ke menu">☰ Menu</a>
         <button class="btn" id="saveBtn" title="Simpan progres">💾</button>
+        <button class="btn" id="musicBtn" title="Musik">🎵</button>
+        <button class="btn" id="sfxBtn" title="Efek suara">🔊</button>
         <button class="btn" id="helpBtn" title="Bantuan">?</button>
     </div>
 
@@ -519,7 +521,7 @@
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00. Telur ada di tanah kandang ayam.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur (10 slot). Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ada di tanah kandang ayam.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -2358,23 +2360,256 @@
         }
 
         // ---------- Sound ----------
-        let actx;
-        function chime(freqs, dur = 0.1, type = 'triangle', vol = 0.07) {
-            try {
-                actx ||= new (window.AudioContext || window.webkitAudioContext)();
-                const t0 = actx.currentTime;
-                freqs.forEach((f, i) => {
-                    const o = actx.createOscillator(), g = actx.createGain();
-                    o.type = type; o.frequency.value = f;
-                    const s = t0 + i * dur;
-                    g.gain.setValueAtTime(0.0001, s);
-                    g.gain.exponentialRampToValueAtTime(vol, s + 0.015);
-                    g.gain.exponentialRampToValueAtTime(0.0001, s + dur * 1.6);
-                    o.connect(g).connect(actx.destination);
-                    o.start(s); o.stop(s + dur * 1.7);
-                });
-            } catch (e) { }
+        // Everything is synthesized with Web Audio: animal voices, little effects and a soundtrack that
+        // follows the time of day. No audio files, so nothing extra to download.
+        const SND_KEY = 'farmora.sound';
+        const sndPref = (() => { try { return { music: true, sfx: true, ...JSON.parse(localStorage.getItem(SND_KEY) || '{}') }; } catch (e) { return { music: true, sfx: true }; } })();
+        let actx = null, sfxBus = null, musicBus = null, echoIn = null, noiseBuf = null;
+        const MUSIC_VOL = 0.38;
+        function audio() {
+            if (actx) { if (actx.state === 'suspended') actx.resume(); return actx; }
+            try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+            const master = actx.createGain(); master.gain.value = 1.5;
+            const comp = actx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
+            master.connect(comp).connect(actx.destination);
+            sfxBus = actx.createGain(); sfxBus.gain.value = sndPref.sfx ? 1 : 0; sfxBus.connect(master);
+            musicBus = actx.createGain(); musicBus.gain.value = sndPref.music ? MUSIC_VOL : 0; musicBus.connect(master);
+            // a soft echo for the melody
+            echoIn = actx.createDelay(1); echoIn.delayTime.value = 0.33;
+            const fb = actx.createGain(); fb.gain.value = 0.3; const wet = actx.createGain(); wet.gain.value = 0.32;
+            echoIn.connect(fb).connect(echoIn); echoIn.connect(wet).connect(musicBus);
+            noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+            const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+            setInterval(musicTick, 50);
+            return actx;
         }
+        // browsers only allow sound after the first tap or key press
+        for (const ev of ['pointerdown', 'keydown', 'touchstart']) addEventListener(ev, () => audio(), { passive: true });
+
+        // one voice: oscillator → optional filter → envelope → destination, with pitch points over time
+        function tone({ type = 'sawtooth', pts, dur, vol = 0.1, at = 0, filter, q = 1, fpts, trem, vib, dest }) {
+            const t = actx.currentTime + at;
+            const o = actx.createOscillator(); o.type = type;
+            o.frequency.setValueAtTime(pts[0][1], t);
+            for (const [dt, f] of pts.slice(1)) o.frequency.linearRampToValueAtTime(f, t + dt);
+            let node = o;
+            if (filter) {
+                const bq = actx.createBiquadFilter(); bq.type = filter; bq.Q.value = q;
+                bq.frequency.setValueAtTime(fpts[0][1], t);
+                for (const [dt, f] of fpts.slice(1)) bq.frequency.linearRampToValueAtTime(f, t + dt);
+                node.connect(bq); node = bq;
+            }
+            const g = actx.createGain();
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.06, dur * 0.2));
+            g.gain.setValueAtTime(vol, t + dur * 0.7);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            node.connect(g);
+            let out = g;
+            if (trem) {
+                // a fast wobble in loudness: the bleat of goats and sheep, the purr of a cat
+                const tg = actx.createGain(); tg.gain.value = 1 - trem.depth / 2;
+                const l = actx.createOscillator(); l.frequency.value = trem.rate;
+                const ld = actx.createGain(); ld.gain.value = trem.depth / 2;
+                l.connect(ld).connect(tg.gain); g.connect(tg); out = tg; l.start(t); l.stop(t + dur + 0.05);
+            }
+            if (vib) { const l = actx.createOscillator(); l.frequency.value = vib.rate; const ld = actx.createGain(); ld.gain.value = vib.depth; l.connect(ld).connect(o.frequency); l.start(t); l.stop(t + dur + 0.05); }
+            out.connect(dest);
+            o.start(t); o.stop(t + dur + 0.05);
+        }
+        function noise({ dur, vol = 0.1, at = 0, filter = 'bandpass', f = 1000, f2, q = 1, trem, dest }) {
+            const t = actx.currentTime + at;
+            const s = actx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+            const bq = actx.createBiquadFilter(); bq.type = filter; bq.Q.value = q;
+            bq.frequency.setValueAtTime(f, t); if (f2) bq.frequency.exponentialRampToValueAtTime(f2, t + dur);
+            const g = actx.createGain();
+            g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.03, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            s.connect(bq).connect(g);
+            let out = g;
+            if (trem) { const tg = actx.createGain(); tg.gain.value = 0.5; const l = actx.createOscillator(); l.frequency.value = trem; const ld = actx.createGain(); ld.gain.value = 0.5; l.connect(ld).connect(tg.gain); g.connect(tg); out = tg; l.start(t); l.stop(t + dur + 0.05); }
+            out.connect(dest);
+            s.start(t, Math.random()); s.stop(t + dur + 0.05);
+        }
+        // louder when close; muffled through the walls when you are inside and it is outside
+        function spot(pos, vol = 1) {
+            if (!audio() || !sndPref.sfx) return null;
+            let v = vol, pan = 0;
+            if (pos) {
+                const d = Math.hypot(pos.x - player.pos.x, pos.z - player.pos.z);
+                const apart = inHome(pos) !== inHome(player.pos);
+                v *= apart ? 0.12 : Math.pow(Math.max(0, 1 - d / 20), 1.4);
+                pan = apart ? 0 : clamp((pos.x - player.pos.x) / 9, -0.9, 0.9);
+            }
+            if (v < 0.02) return null;
+            const p = actx.createStereoPanner ? actx.createStereoPanner() : actx.createGain();
+            if (p.pan) p.pan.value = pan;
+            const g = actx.createGain(); g.gain.value = v;
+            p.connect(g).connect(sfxBus);
+            return p;
+        }
+        const r = (a, b) => a + Math.random() * (b - a);
+        // ---- the animals ----
+        const VOICES = {
+            cow(d, k) { const f0 = k.male ? 92 : 118, s = r(0.95, 1.05);
+                tone({ pts: [[0, f0 * s], [0.25, f0 * 1.12 * s], [1.0, f0 * 0.82 * s], [1.3, f0 * 0.75 * s]], dur: 1.35, vol: 0.22, filter: 'lowpass', q: 4, fpts: [[0, 300], [0.3, 950], [1.0, 520], [1.3, 300]], vib: { rate: 5, depth: 3 }, dest: d });
+                tone({ type: 'square', pts: [[0, f0 * 2 * s], [0.3, f0 * 2.2 * s], [1.3, f0 * 1.6 * s]], dur: 1.3, vol: 0.03, filter: 'bandpass', q: 6, fpts: [[0, 700], [0.4, 1100], [1.3, 600]], dest: d }); },
+            goat(d, k) { const f0 = (k.male ? 260 : 330) * r(0.95, 1.08);
+                tone({ pts: [[0, f0], [0.15, f0 * 1.12], [0.7, f0 * 0.92]], dur: 0.75, vol: 0.5, filter: 'bandpass', q: 1.4, fpts: [[0, 1100], [0.3, 1500], [0.75, 900]], trem: { rate: 22, depth: 0.85 }, dest: d }); },
+            sheep(d, k) { const f0 = (k.male ? 190 : 235) * r(0.95, 1.05);
+                tone({ pts: [[0, f0], [0.2, f0 * 1.08], [0.95, f0 * 0.9]], dur: 1.0, vol: 0.26, filter: 'lowpass', q: 3, fpts: [[0, 700], [0.3, 1500], [1.0, 600]], trem: { rate: 13, depth: 0.7 }, dest: d }); },
+            chicken(d, k) {
+                if (k.male && k.crow) {
+                    // ku-ku-ruyuuuk
+                    tone({ pts: [[0, 520], [0.12, 600]], dur: 0.14, vol: 0.22, filter: 'bandpass', q: 2, fpts: [[0, 1300], [0.14, 1500]], dest: d });
+                    tone({ pts: [[0, 560], [0.12, 640]], dur: 0.14, at: 0.2, vol: 0.22, filter: 'bandpass', q: 2, fpts: [[0, 1300], [0.14, 1500]], dest: d });
+                    tone({ pts: [[0, 600], [0.25, 980], [0.9, 860], [1.25, 560]], dur: 1.3, at: 0.42, vol: 0.3, filter: 'bandpass', q: 1.6, fpts: [[0, 1400], [0.4, 2000], [1.25, 1200]], vib: { rate: 7, depth: 18 }, dest: d });
+                    return;
+                }
+                const n = 3 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < n; i++) {
+                    const f = r(650, 900) * (k.male ? 0.8 : 1);
+                    tone({ type: 'triangle', pts: [[0, f], [0.08, f * 0.7]], dur: 0.09, at: i * r(0.11, 0.16), vol: 0.12, dest: d });
+                    noise({ dur: 0.03, at: i * 0.13, vol: 0.04, f: 2500, q: 2, dest: d });
+                }
+            },
+            cat(d, k) {
+                if (k.asleep || Math.random() < 0.35) { noise({ dur: 1.6, vol: 0.22, filter: 'lowpass', f: 220, q: 1, trem: 24, dest: d }); return; }
+                tone({ type: 'triangle', pts: [[0, 520], [0.2, 860], [0.55, 640], [0.75, 440]], dur: 0.78, vol: 0.45, filter: 'bandpass', q: 2, fpts: [[0, 900], [0.25, 1900], [0.75, 900]], dest: d });
+                tone({ type: 'sine', pts: [[0, 1040], [0.2, 1720], [0.75, 880]], dur: 0.75, vol: 0.03, dest: d });
+            },
+            dog(d, k) {
+                const barks = k.asleep ? 0 : 2;
+                for (let i = 0; i < barks; i++) {
+                    noise({ dur: 0.12, at: i * 0.22, vol: 0.2, f: 900, q: 0.8, dest: d });
+                    tone({ pts: [[0, 330], [0.05, 360], [0.13, 170]], dur: 0.15, at: i * 0.22, vol: 0.26, filter: 'lowpass', q: 2, fpts: [[0, 1500], [0.13, 600]], dest: d });
+                }
+                if (k.asleep) noise({ dur: 1.2, vol: 0.06, filter: 'lowpass', f: 300, trem: 2, dest: d });
+            },
+        };
+        // "cow", "cow:f", "chicken:m:crow" … played at a place
+        function voice(spec, pos, vol = 1) {
+            const [kind, sex, extra] = String(spec).split(':');
+            if (!VOICES[kind]) return;
+            const asleep = state.minutes >= 20 * 60;
+            const d = spot(pos, vol * (asleep && extra !== 'crow' ? 0.5 : 1));
+            if (!d) return;
+            VOICES[kind](d, { male: sex === 'm', crow: extra === 'crow', asleep });
+        }
+        // ---- small effects ----
+        function chime(freqs, dur = 0.1, type = 'triangle', vol = 0.07) {
+            if (!audio() || !sndPref.sfx) return;
+            const t0 = actx.currentTime;
+            freqs.forEach((f, i) => {
+                const o = actx.createOscillator(), g = actx.createGain();
+                o.type = type; o.frequency.value = f;
+                const s = t0 + i * dur;
+                g.gain.setValueAtTime(0.0001, s);
+                g.gain.exponentialRampToValueAtTime(vol, s + 0.015);
+                g.gain.exponentialRampToValueAtTime(0.0001, s + dur * 1.6);
+                o.connect(g).connect(sfxBus);
+                o.start(s); o.stop(s + dur * 1.7);
+            });
+        }
+        function splash(pos) { const d = spot(pos, 1); if (d) { noise({ dur: 0.45, vol: 0.12, filter: 'bandpass', f: 2600, f2: 900, q: 0.7, dest: d }); noise({ dur: 0.2, at: 0.05, vol: 0.06, filter: 'highpass', f: 4000, dest: d }); } }
+        function whoosh() { const d = spot(null, 1); if (d) noise({ dur: 0.5, vol: 0.07, filter: 'lowpass', f: 300, f2: 1600, q: 0.8, dest: d }); }
+
+        // ---- the soundtrack: a 4-bar phrase played twice, then a new one; key and pace follow the hour ----
+        const MOODS = {
+            day: { bpm: 92, root: 60, chords: [[0, 4, 7], [9, 12, 16], [5, 9, 12], [7, 11, 14]], scale: [0, 2, 4, 7, 9, 12, 14, 16], density: 0.62, shaker: true },
+            evening: { bpm: 76, root: 57, chords: [[0, 3, 7], [8, 12, 15], [3, 7, 10], [10, 14, 17]], scale: [0, 3, 5, 7, 10, 12, 15], density: 0.45 },
+            night: { bpm: 62, root: 53, chords: [[0, 4, 7, 11], [5, 9, 12, 16], [2, 5, 9, 12], [7, 11, 14, 17]], scale: [0, 2, 4, 7, 9, 12], density: 0.22, crickets: true },
+        };
+        const mus = { next: 0, step: 0, phrase: null, plays: 0, mood: null };
+        const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+        function currentMood() { const h = state.minutes / 60; return h >= 6 && h < 17 ? 'day' : h >= 17 && h < 20.5 ? 'evening' : 'night'; }
+        function newPhrase(m) {
+            // a gentle random walk over the scale, 8 eighth-notes a bar, some rests
+            const bars = [];
+            let idx = 2 + Math.floor(Math.random() * 3);
+            for (let b = 0; b < 4; b++) {
+                const notes = [];
+                for (let s = 0; s < 8; s++) {
+                    const strong = s % 2 === 0;
+                    if (Math.random() < (strong ? m.density + 0.15 : m.density * 0.6)) { idx = clamp(idx + Math.round(r(-2.4, 2.4)), 0, m.scale.length - 1); notes.push(m.scale[idx]); }
+                    else notes.push(null);
+                }
+                bars.push(notes);
+            }
+            bars[3][6] = bars[3][7] = null; bars[3][4] = 0; // settle home at the end
+            return bars;
+        }
+        function pluck(f, t, vol, dur = 0.6) {
+            const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain();
+            o.type = 'triangle'; o2.type = 'sine'; o.frequency.value = f; o2.frequency.value = f * 2;
+            g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            const g2 = actx.createGain(); g2.gain.value = 0.25;
+            o.connect(g); o2.connect(g2).connect(g); g.connect(musicBus); g.connect(echoIn);
+            o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+        }
+        function pad(freqs, t, dur, vol, cutoff) {
+            const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff; f.connect(musicBus);
+            const g = actx.createGain(); g.connect(f);
+            g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35); g.gain.setValueAtTime(vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
+            for (const fr of freqs) for (const det of [-6, 6]) { const o = actx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr; o.detune.value = det; o.connect(g); o.start(t); o.stop(t + dur + 0.5); }
+        }
+        function bass(f, t, vol, dur) {
+            const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f;
+            g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            o.connect(g).connect(musicBus); o.start(t); o.stop(t + dur + 0.05);
+        }
+        function musicTick() {
+            if (!actx || !sndPref.music || actx.state !== 'running') { if (actx) mus.next = actx.currentTime + 0.1; return; }
+            const inside = inHome(player.pos);
+            while (mus.next < actx.currentTime + 0.3) {
+                const step = mus.step % 32, bar = Math.floor(step / 8), s = step % 8;
+                if (step === 0) {
+                    // a new mood or a fresh tune every other time round
+                    const mood = currentMood();
+                    if (mood !== mus.mood || !mus.phrase || mus.plays >= 2) { mus.mood = mood; mus.phrase = newPhrase(MOODS[mood]); mus.plays = 0; }
+                    mus.plays++;
+                }
+                const m = MOODS[mus.mood], t = mus.next, beat = 60 / m.bpm, chord = m.chords[bar];
+                if (s === 0) {
+                    pad(chord.map(n => midi(m.root - 12 + n)), t, beat * 4, inside ? 0.022 : 0.028, inside ? 700 : 1100);
+                    bass(midi(m.root - 24 + chord[0]), t, 0.12, beat * 1.6);
+                }
+                if (s === 4 && mus.mood !== 'night') bass(midi(m.root - 24 + chord[0] + 7), t, 0.08, beat * 1.2);
+                const n = mus.phrase[bar][s];
+                if (n !== null) pluck(midi(m.root + n), t, mus.mood === 'night' ? 0.05 : 0.07, mus.mood === 'night' ? 1.0 : 0.6);
+                if (m.shaker && !inside && s % 2 === 1) noise({ dur: 0.05, vol: 0.012, filter: 'highpass', f: 6000, at: t - actx.currentTime, dest: musicBus });
+                if (m.crickets && !inside && Math.random() < 0.18) for (let i = 0; i < 3; i++) tone({ type: 'sine', pts: [[0, 4300], [0.04, 4200]], dur: 0.04, at: t - actx.currentTime + i * 0.06, vol: 0.012, dest: musicBus });
+                mus.next += beat / 2;
+                mus.step++;
+            }
+        }
+        // the 🎵 and 🔊 buttons
+        function setSound(k, on) {
+            sndPref[k] = on;
+            try { localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); } catch (e) { }
+            if (audio()) { const bus = k === 'music' ? musicBus : sfxBus; bus.gain.setTargetAtTime(on ? (k === 'music' ? MUSIC_VOL : 1) : 0, actx.currentTime, 0.1); }
+            $('musicBtn').textContent = sndPref.music ? '🎵' : '🔇';
+            $('sfxBtn').textContent = sndPref.sfx ? '🔊' : '🔈';
+            $('musicBtn').title = sndPref.music ? 'Matikan musik' : 'Nyalakan musik';
+            $('sfxBtn').title = sndPref.sfx ? 'Matikan efek suara' : 'Nyalakan efek suara';
+        }
+        $('musicBtn').addEventListener('click', () => setSound('music', !sndPref.music));
+        $('sfxBtn').addEventListener('click', () => setSound('sfx', !sndPref.sfx));
+        setSound('music', sndPref.music); setSound('sfx', sndPref.sfx);
+        // animals near you speak up now and then
+        let ambientT = 6;
+        function ambientAnimals(dt) {
+            if (!started || !actx || !sndPref.sfx) return;
+            ambientT -= dt;
+            if (ambientT > 0) return;
+            ambientT = r(7, 16);
+            if (inHome(player.pos) || state.minutes >= 20 * 60) return;
+            const near = animals.filter(a => a.pos.distanceTo(player.pos) < 14);
+            if (!near.length) return;
+            const a = near[Math.floor(Math.random() * near.length)];
+            voice(`${a.kind}:${a.sex || ''}`, a.pos, 0.55);
+        }
+        // the rooster greets every new morning
+        function morningCrow() { const j = animals.find(a => a.kind === 'chicken' && a.sex === 'm'); if (j) setTimeout(() => voice('chicken:m:crow', j.pos, inHome(player.pos) ? 4 : 1), 900); }
 
         // The porch bench by the door: room for two
         const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
@@ -2954,6 +3189,7 @@
             if (travelling) return;
             travelling = true;
             standUp();
+            whoosh();
             $('fadeText').textContent = text || '';
             $('fade').classList.add('show', 'quick');
             setTimeout(() => {
@@ -3506,14 +3742,14 @@
                     if (!d.petted) {
                         d.petted = true;
                         d.friend = Math.min(500, d.friend + 20);
-                        emitEvent(PET_LINES[a.kind](a.name, a.sex), 'hearts', at, who);
+                        emitEvent(PET_LINES[a.kind](a.name, a.sex), 'hearts', at, who, `${a.kind}:${a.sex || ''}`);
                     } else if (d.product) {
                         const need = a.product === 'wool' ? 'gunting' : 'pemeras';
                         if (x !== need) { emitEvent(`Untuk ${a.verb.toLowerCase()} ${a.name}, ${toolHint(need)} dulu.`, 'none', null, who); return; }
                         if (!addBag(who, a.product, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                         d.product = false;
                         const p = PRODUCTS[a.product];
-                        emitEvent(`Dapat ${p.icon} ${p.label} dari ${a.name}!`, 'icon:' + p.icon, at, who);
+                        emitEvent(`Dapat ${p.icon} ${p.label} dari ${a.name}!`, 'icon:' + p.icon, at, who, `${a.kind}:${a.sex || ''}`);
                     } else {
                         emitEvent(`${a.name} sudah senang hari ini ❤`, 'heart1', at, who);
                     }
@@ -3566,7 +3802,7 @@
                     if (!state.eggs[i]) return;
                     if (!addBag(who, 'egg', 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     state.eggs[i] = null;
-                    emitEvent('Dapat 🥚 Telur!', 'icon:🥚', [pos.x, 0.6, pos.z], who);
+                    emitEvent('Dapat 🥚 Telur!', 'icon:🥚', [pos.x, 0.6, pos.z], who, 'chicken:f');
                 },
             }));
             list.push(...homeInteractables());
@@ -3606,8 +3842,9 @@
         }
 
         // Something happened on the farm: shown on both screens, with the actor's name for the other player
-        function emitEvent(text, fx, at, who) {
+        function emitEvent(text, fx, at, who, v) {
             const e = { n: ++net.evN, t: String(text).slice(0, 90), f: fx, at: at ? at.map(v => Math.round(v * 100) / 100) : null, w: who };
+            if (v) e.v = v; // an animal voice to play where it happened
             net.events.push(e);
             if (net.events.length > 6) net.events.shift();
             showEvent(e);
@@ -3618,7 +3855,8 @@
             else if (e.f === 'heart1' && at) spawnHearts(at, 1);
             else if (typeof e.f === 'string' && e.f.startsWith('icon:') && at) { spawnIcon(at, e.f.slice(5)); chime([523, 784]); }
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
-            else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); chime([880, 1046], 0.06, 'sine', 0.05); }
+            else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
+            if (e.v) voice(e.v, at);
             const mine = e.w === USER;
             toast(mine || !e.w ? e.t : `${partnerName()}: ${e.t}`);
         }
@@ -3826,6 +4064,7 @@
                     player.pos.copy(WAKE[USER]); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
                     $('fade').classList.remove('show');
                     toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
+                    morningCrow();
                 }, 1200);
             }
             if (Number.isInteger(w.day)) state.day = w.day;
@@ -3976,6 +4215,7 @@
                 $('fade').classList.remove('show');
                 sleeping = false;
                 toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day}`);
+                morningCrow();
                 if (nSold) emitEvent(`🧺 Kotak pengiriman: ${nSold} barang terjual semalam · +${sold.toLocaleString('id-ID')} G`, 'sell', null, '');
                 morningSave();
             }, 1700);
@@ -4179,6 +4419,7 @@
 
             grassTime.value = elapsed;
             updatePlayer(dt);
+            ambientAnimals(dt);
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
             updatePlants(elapsed);
@@ -4239,7 +4480,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get state() { return state; }, makeFarmer, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
