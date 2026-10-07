@@ -3865,6 +3865,7 @@
         }
         let slotWrites = Promise.resolve();
         function uploadSlot(i) {
+            if (i === 0 && relay.clients.length) publishSave();
             const rec = slots[i];
             if (!net.db || !rec) return;
             slotWrites = slotWrites.then(() => net.db.doc('slots/s' + (i + 1)).set({ json: rec.json, at: rec.at, by: rec.by, day: rec.day, gold: rec.gold })).catch(() => {
@@ -4304,9 +4305,9 @@
                 loadSharedSlots();
                 setInterval(tryLease, 4000);
             }
-            try { net.backend = room ? await roomBackend(room) : IN_CLAUDE ? null : await peerBackend(); } catch (e) { net.backend = null; }
+            try { net.backend = room ? await roomBackend(room) : IN_CLAUDE ? null : await webBackend(); } catch (e) { net.backend = null; }
             net.status = net.backend ? '' : 'Mode online tidak tersedia di sini. Farm tetap tersimpan di perangkat ini.';
-            setInterval(sendMine, 100);
+            setInterval(sendMine, room ? 100 : 150);
             renderTitle(); renderBadge();
         }
 
@@ -4354,6 +4355,75 @@
             return { send: o => r.presence(o).catch(() => { }) };
         }
 
+        // On the open web two routes run side by side and whichever reaches your friend carries the game:
+        // a relay through public MQTT brokers (plain secure websockets, so it works on mobile data and
+        // behind any router) and a direct PeerJS link. The relay also keeps the shared save, so the newest
+        // save reaches the other device even when you never play at the same time.
+        const RELAY_TOPIC = 'wadimar-playground/farmora/v3/7hq2k9x4';
+        const RELAY_URLS = (() => {
+            const q = new URLSearchParams(location.search).get('mqtt');
+            if (q === 'none') return [];
+            return q ? q.split(',') : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+        })();
+        function loadScript(src, ready) {
+            return new Promise((res, rej) => {
+                if (ready()) return res();
+                const sc = document.createElement('script');
+                sc.src = src; sc.onload = () => ready() ? res() : rej(); sc.onerror = () => rej();
+                document.head.append(sc);
+            });
+        }
+        const relay = { clients: [], saveSeen: false };
+        // a friend's presence can come in over both routes: keep only the newest message from their current tab
+        const heardFrom = { tb: null, sq: 0 };
+        function heard(o) {
+            if (!o || typeof o !== 'object') return;
+            if (o.tb !== heardFrom.tb) { heardFrom.tb = o.tb; heardFrom.sq = 0; }
+            if (!(o.sq > heardFrom.sq)) return;
+            heardFrom.sq = o.sq;
+            net.lastHeard = Date.now();
+            onPartner(o);
+        }
+        async function webBackend() {
+            const routes = [];
+            const [mq, pj] = await Promise.allSettled([relayBackend(), peerBackend()]);
+            if (mq.status === 'fulfilled' && mq.value) routes.push(mq.value);
+            if (pj.status === 'fulfilled' && pj.value) routes.push(pj.value);
+            if (!routes.length) return null;
+            // a quiet friend has closed the game: they are turu
+            setInterval(() => { if (net.connected && Date.now() - (net.lastHeard || 0) > 6000) onPartner(null); }, 1000);
+            return { send: o => { for (const r of routes) r.send(o); } };
+        }
+        async function relayBackend() {
+            if (!RELAY_URLS.length) return null;
+            await loadScript('https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js', () => window.mqtt);
+            const me = `${RELAY_TOPIC}/p/${USER}`, them = `${RELAY_TOPIC}/p/${OTHER}`, saveT = `${RELAY_TOPIC}/save`;
+            for (const url of RELAY_URLS) {
+                let c;
+                try { c = window.mqtt.connect(url, { clientId: `farmora-${USER}-${net.tab}-${relay.clients.length}`, clean: true, keepalive: 30, connectTimeout: 8000, reconnectPeriod: 4000 }); } catch (e) { continue; }
+                c.on('connect', () => {
+                    c.subscribe([them, saveT], { qos: 0 });
+                    // the broker hands over the stored save right after subscribing; then offer ours if it is newer
+                    setTimeout(() => publishSave(c), 2500);
+                });
+                c.on('message', (topic, buf) => {
+                    let o; try { o = JSON.parse(buf.toString()); } catch (e) { return; }
+                    if (topic === them) heard(o);
+                    else if (topic === saveT && o && mergeSlot(0, o)) { uploadSlot(0); toast(`💾 Save terbaru (Hari ${slots[0].day}, ${slots[0].by}) dimuat dari penyimpanan online.`); }
+                });
+                c.on('error', () => { });
+                relay.clients.push(c);
+            }
+            return { send: o => { const m = JSON.stringify(o); for (const c of relay.clients) if (c.connected) c.publish(me, m, { qos: 0 }); } };
+        }
+        // keep the shared save on the relay (a retained message) whenever ours is the newest
+        function publishSave(only) {
+            const rec = slots[0];
+            if (!rec || rec.by === 'save lama') return;
+            const m = JSON.stringify({ json: rec.json, at: rec.at, by: rec.by, day: rec.day, gold: rec.gold });
+            for (const c of only ? [only] : relay.clients) if (c.connected) c.publish(`${RELAY_TOPIC}/save`, m, { qos: 1, retain: true });
+        }
+
         function loadPeerJs() {
             return new Promise((res, rej) => {
                 if (window.Peer) return res();
@@ -4372,8 +4442,8 @@
                 if (conn && conn.open && conn !== c) { c.close(); return; }
                 conn = c;
                 c.lastMsg = Date.now();
-                c.on('data', m => { c.lastMsg = Date.now(); if (m && m.t === 'p') onPartner(m.d); });
-                c.on('close', () => { if (conn === c) { conn = null; onPartner(null); } });
+                c.on('data', m => { c.lastMsg = Date.now(); if (m && m.t === 'p') heard(m.d); });
+                c.on('close', () => { if (conn === c) conn = null; });
             };
             return new Promise((res, rej) => {
                 const peer = new Peer(idOf(USER), PEER_OPTS);
@@ -4383,18 +4453,20 @@
                     const call = () => { if (!conn || !conn.open) wire(peer.connect(idOf(OTHER), { reliable: true })); };
                     call(); setInterval(call, 6000);
                     // a closed tab does not always say goodbye: a quiet friend has gone to sleep
-                    setInterval(() => { if (conn && Date.now() - conn.lastMsg > 5000) { const c = conn; conn = null; try { c.close(); } catch (e) { } onPartner(null); } }, 1000);
+                    setInterval(() => { if (conn && Date.now() - conn.lastMsg > 5000) { const c = conn; conn = null; try { c.close(); } catch (e) { } } }, 1000);
                     res({ send: o => { if (conn && conn.open) conn.send({ t: 'p', d: o }); } });
                 });
                 peer.on('connection', c => wire(c));
                 peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { } });
                 peer.on('error', e => { if (!opened) { rej(e); } }); // peer-unavailable just means the friend is turu
+                setTimeout(() => { if (!opened) rej({ type: 'timeout' }); }, 12000);
             });
         }
 
         function sendMine() {
             if (!net.backend) return;
-            const o = { app: 'farmora', v: 3, user: USER, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
+            sendMine.sq = (sendMine.sq || 0) + 1;
+            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0], here: started ? 1 : 0 };
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
