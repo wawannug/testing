@@ -172,7 +172,8 @@
         .viewfinder { position: relative; border-radius: 12px; overflow: hidden; background: var(--booth-2); aspect-ratio: 4 / 3; max-width: 100%; }
         .viewfinder video, .viewfinder .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .viewfinder video.mirror { transform: scaleX(-1); }
-        .viewfinder.duo video { width: 50%; }
+        .viewfinder.duo video, .viewfinder.duo #rimg { width: 50%; }
+        .viewfinder #rimg { position: absolute; top: 0; height: 100%; object-fit: cover; transform: scaleX(-1); }
         .viewfinder.duo .left { left: 0; right: auto; }
         .viewfinder.duo .right { left: 50%; right: auto; }
         .viewfinder .tag { position: absolute; bottom: 10px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
@@ -377,6 +378,7 @@
                     <div class="viewfinder" id="viewfinder">
                         <video id="video" class="mirror" playsinline muted autoplay></video>
                         <video id="rvideo" class="mirror" playsinline autoplay hidden></video>
+                        <img id="rimg" alt="" hidden>
                         <span class="tag left" id="tagL" hidden></span>
                         <span class="tag right" id="tagR" hidden></span>
                         <img class="still" id="still" alt="" hidden>
@@ -631,14 +633,17 @@
         function layoutViewfinder() {
             const vf = $('#viewfinder'), duoOn = st.mode === 'duo';
             vf.classList.toggle('duo', duoOn);
-            const rv = $('#rvideo');
-            rv.hidden = !duoOn;
+            const rv = $('#rvideo'), ri = $('#rimg');
+            // the partner's live video, or (when the direct video link fails) small pictures over the relay
+            rv.hidden = !duoOn || (!duo.remote && duo.pvAt > 0);
+            ri.hidden = !duoOn || !!duo.remote || !duo.pvAt;
             for (const id of ['#tagL', '#tagR']) $(id).hidden = !duoOn;
-            video.classList.remove('left', 'right'); rv.classList.remove('left', 'right');
+            video.classList.remove('left', 'right'); rv.classList.remove('left', 'right'); ri.classList.remove('left', 'right');
             if (!duoOn) return;
             const meLeft = duo.role === 'host';
             video.classList.add(meLeft ? 'left' : 'right');
             rv.classList.add(meLeft ? 'right' : 'left');
+            ri.classList.add(meLeft ? 'right' : 'left');
             $('#tagL').textContent = meLeft ? 'Kamu' : 'Pasangan';
             $('#tagR').textContent = meLeft ? 'Pasangan' : 'Kamu';
         }
@@ -693,7 +698,7 @@
             $('#duoStatus').hidden = !duoOn;
             if (duoOn) {
                 $('#duoStatus').className = 'status ' + (duo.connected ? 'ok' : 'wait');
-                $('#duoStatus').textContent = duo.connected ? (duo.remote ? '💞 Terhubung, kalian saling kelihatan' : '💞 Terhubung, menunggu video pasangan…') : '… Pasangan terputus, menunggu kembali';
+                $('#duoStatus').textContent = duo.connected ? (duo.remote ? '💞 Terhubung, kalian saling kelihatan' : duo.pvAt ? '💞 Terhubung lewat relay, pratinjau pasangan berupa gambar' : '💞 Terhubung, menunggu video pasangan…') : '… Pasangan terputus, menunggu kembali';
                 $('#boothHint').textContent = `Kalian berdua menghitung mundur bersama ${st.timer} detik. Siapa pun boleh menekan tombol jepret.`;
             }
             $('#micBtn').hidden = !duoOn || !duo.local || !duo.local.getAudioTracks().length;
@@ -785,10 +790,80 @@
         for (const id of ['#fileIn', '#camIn']) $(id).addEventListener('change', e => { loadFile(e.target.files[0], uploadTarget); e.target.value = ''; });
         $('#uploadBtn').addEventListener('click', () => { uploadTarget = Math.max(0, st.shots.findIndex(s => !s)); if (st.shots.every(Boolean)) uploadTarget = 0; $('#fileIn').click(); });
 
-        // ---------- Berdua online (WebRTC via PeerJS) ----------
-        const duo = { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, waiters: {}, error: '' };
+        // ---------- Relay through public MQTT brokers ----------
+        // Plain secure websockets, so it works on mobile data and strict Wi-Fi where a direct WebRTC link
+        // often fails. Each side publishes to <topic>/<its id>; both brokers carry every message (whichever
+        // gets through wins, repeats are dropped) and big messages travel in pieces.
+        const RELAY_URLS = (() => {
+            const q = new URLSearchParams(location.search).get('mqtt');
+            if (q === 'none') return [];
+            return q ? q.split(',') : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+        })();
+        function loadMqtt() {
+            return new Promise((res, rej) => {
+                if (window.mqtt) return res();
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js';
+                sc.onload = () => window.mqtt ? res() : rej(new Error('mqtt')); sc.onerror = () => rej(new Error('mqtt'));
+                document.head.append(sc);
+            });
+        }
+        const RELAY_PIECE = 48000;
+        async function openRelay(topic, onMsg) {
+            if (!RELAY_URLS.length) return null;
+            await loadMqtt();
+            const me = Math.random().toString(36).slice(2, 10);
+            let seq = 0;
+            const seen = new Map(), parts = new Map();
+            const got = (t, buf) => {
+                if (t === topic + '/' + me) return;
+                let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+                if (!m || typeof m.s !== 'string' || !Number.isInteger(m.q)) return;
+                const key = m.s + ':' + m.q;
+                if (seen.has(key)) return;
+                seen.set(key, 1); if (seen.size > 800) seen.delete(seen.keys().next().value);
+                if (m.n) {
+                    const pk = m.s + ':' + m.id;
+                    let p = parts.get(pk); if (!p) parts.set(pk, p = { got: 0, d: [] });
+                    if (typeof m.d !== 'string' || p.d[m.k] !== undefined) return;
+                    p.d[m.k] = m.d; p.got++;
+                    if (p.got < m.n) return;
+                    parts.delete(pk);
+                    let d; try { d = JSON.parse(p.d.join('')); } catch (e) { return; }
+                    onMsg(d, m.s);
+                    return;
+                }
+                onMsg(m.d, m.s);
+            };
+            const clients = [];
+            RELAY_URLS.forEach((url, i) => {
+                try {
+                    const c = window.mqtt.connect(url, { clientId: 'wp-' + me + '-' + i, clean: true, keepalive: 30, connectTimeout: 8000, reconnectPeriod: 4000 });
+                    c.on('connect', () => c.subscribe(topic + '/+', { qos: 1 }));
+                    c.on('message', got);
+                    c.on('error', () => { });
+                    clients.push(c);
+                } catch (e) { }
+            });
+            const pub = (o, qos) => { const s = JSON.stringify(o); for (const c of clients) if (c.connected) c.publish(topic + '/' + me, s, { qos }); };
+            return {
+                me,
+                // qos 1 for things that must arrive; 0 for a stream where a newer message replaces a lost one
+                send(data, qos = 1) {
+                    const s = JSON.stringify(data);
+                    if (s.length <= RELAY_PIECE) { pub({ s: me, q: ++seq, d: data }, qos); return; }
+                    const id = ++seq, n = Math.ceil(s.length / RELAY_PIECE);
+                    for (let k = 0; k < n; k++) pub({ s: me, q: ++seq, id, k, n, d: s.slice(k * RELAY_PIECE, (k + 1) * RELAY_PIECE) }, 1);
+                },
+                connected: () => clients.some(c => c.connected),
+                close() { for (const c of clients) { try { c.end(true); } catch (e) { } } },
+            };
+        }
+
+        // ---------- Berdua online (WebRTC via PeerJS, with the relay alongside) ----------
+        const duo = { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, waiters: {}, error: '', relay: null, rSeen: 0, pvAt: 0, timers: [] };
         const PEER_OPTS = (() => {
-            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }] } };
             const q = new URLSearchParams(location.search).get('peerhost'); // a self-hosted PeerServer, e.g. ?peerhost=localhost:9000
             if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
             return o;
@@ -824,7 +899,7 @@
                     h('div', { class: 'actions' }, h('button', { class: 'btn primary', onclick: createDuo }, 'Buat ruang foto')),
                     h('div', { class: 'actions' }, input, h('button', { class: 'btn', onclick: () => joinDuo(input.value) }, 'Gabung')),
                     duo.error ? h('p', { class: 'status', style: 'color:var(--cherry-dark)', text: duo.error }) : null,
-                    h('p', { class: 'note', text: 'Butuh izin kamera dan mikrofon. Koneksi langsung antar perangkat; di beberapa jaringan kantor atau seluler koneksi bisa gagal.' })].filter(Boolean));
+                    h('p', { class: 'note', text: 'Butuh izin kamera dan mikrofon. Kalau video langsung tidak bisa tersambung (misalnya di data seluler), kalian tetap terhubung lewat relay: foto tetap jadi, pratinjau pasangan tampil sebagai gambar yang diperbarui terus.' })].filter(Boolean));
                 return;
             }
             const link = location.origin + location.pathname + '?join=' + duo.code;
@@ -850,8 +925,76 @@
                 try { duo.local = await getStream(false); toast('Mikrofon tidak tersedia, lanjut tanpa suara'); }
                 catch (e2) { duo.error = 'Kamera belum diizinkan. Izinkan akses kamera di browser, lalu coba lagi.'; renderHome(); return false; }
             }
-            try { await loadPeerJs(); } catch (e) { duo.error = 'Gagal memuat modul koneksi. Periksa internet, lalu coba lagi.'; renderHome(); return false; }
+            const [pj, mq] = await Promise.allSettled([loadPeerJs(), loadMqtt()]);
+            if (pj.status === 'rejected' && mq.status === 'rejected') { duo.error = 'Gagal memuat modul koneksi. Periksa internet, lalu coba lagi.'; renderHome(); return false; }
+            duo.hasPeer = pj.status === 'fulfilled';
             return true;
+        }
+
+        // the relay room for this code: heartbeats tell us the partner is there; it also carries every
+        // message when the direct link is down, and small preview pictures when there is no live video
+        async function startRelay(code) {
+            if (duo.relay) duo.relay.close();
+            duo.relay = null;
+            let rl = null;
+            try { rl = await openRelay('wadimar-playground/fotoin/v1/' + code.toLowerCase(), onRelay); } catch (e) { rl = null; }
+            if (!rl || duo.code !== code) { if (rl) rl.close(); return; }
+            duo.relay = rl;
+        }
+        function onRelay(m) {
+            if (!m || typeof m !== 'object') return;
+            if (m.t === 'hi') {
+                if (m.role === duo.role) return;
+                duo.rSeen = Date.now();
+                if (!duo.connected) partnerUp();
+                return;
+            }
+            if (m.t === 'pv') {
+                if (typeof m.d === 'string' && m.d.startsWith('data:image/jpeg;base64,') && m.d.length < 200000) {
+                    const first = !duo.pvAt;
+                    duo.pvAt = Date.now();
+                    $('#rimg').src = m.d;
+                    if (first) layoutViewfinder();
+                }
+                return;
+            }
+            onDuoMessage(m);
+        }
+        function duoTick() {
+            if (!duo.role) return;
+            if (duo.relay) duo.relay.send({ t: 'hi', role: duo.role }, 0);
+            const direct = duo.conn && duo.conn.open;
+            if (duo.connected && !direct && Date.now() - duo.rSeen > 9000) partnerDown();
+        }
+        // when there is no live video, send a small picture of yourself a few times a second
+        const pvCanvas = document.createElement('canvas');
+        function sendPreview() {
+            if (!duo.connected || duo.remote || !duo.relay || $('#booth').hidden || !video.videoWidth) return;
+            const w = 240, h2 = Math.round(w * video.videoHeight / video.videoWidth);
+            pvCanvas.width = w; pvCanvas.height = h2;
+            pvCanvas.getContext('2d').drawImage(video, 0, 0, w, h2);
+            duo.relay.send({ t: 'pv', d: pvCanvas.toDataURL('image/jpeg', 0.5) }, 0);
+        }
+        function startDuoTimers() {
+            duo.timers.forEach(clearInterval);
+            duo.timers = [setInterval(duoTick, 2000), setInterval(sendPreview, 450)];
+        }
+        function partnerUp() {
+            if (duo.connected) return;
+            duo.connected = true;
+            duo.rSeen = Date.now();
+            duo.error = '';
+            toast('Pasangan terhubung 💞');
+            if (duo.role === 'host') sendCfg();
+            renderHome(); renderBooth();
+        }
+        function partnerDown() {
+            if (!duo.connected) return;
+            duo.connected = false; duo.remote = null; duo.pvAt = 0;
+            busy = false;
+            toast('Pasangan keluar dari ruang');
+            layoutViewfinder();
+            renderHome(); renderBooth();
         }
 
         function newPeer(id) {
@@ -870,14 +1013,17 @@
             duo.role = 'host';
             const tryOpen = () => {
                 duo.code = Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+                startRelay(duo.code);
+                if (!duo.hasPeer) { duo.peer = { destroy() { } }; return; }
                 duo.peer = newPeer(peerId(duo.code));
                 duo.peer.on('open', () => renderHome());
                 duo.peer.on('error', e => {
-                    if (e.type === 'unavailable-id') { duo.peer.destroy(); tryOpen(); return; }
+                    if (e.type === 'unavailable-id') { duo.peer.destroy(); tryOpen(); renderHome(); return; }
                     duoError(e);
                 });
             };
             tryOpen();
+            startDuoTimers();
             renderHome();
         }
 
@@ -886,16 +1032,24 @@
             if (code.length !== 4) { toast('Kode ruang terdiri dari 4 huruf'); return; }
             if (!await prepareDuo()) return;
             duo.role = 'guest'; duo.code = code;
-            duo.peer = newPeer(null);
-            duo.peer.on('open', () => {
-                attachConn(duo.peer.connect(peerId(code), { reliable: true }));
-                attachCall(duo.peer.call(peerId(code), duo.local));
-            });
-            duo.peer.on('error', duoError);
+            startRelay(code);
+            startDuoTimers();
+            if (duo.hasPeer) {
+                duo.peer = newPeer(null);
+                duo.peer.on('open', () => {
+                    attachConn(duo.peer.connect(peerId(code), { reliable: true }));
+                    attachCall(duo.peer.call(peerId(code), duo.local));
+                });
+                duo.peer.on('error', duoError);
+            } else duo.peer = { destroy() { } };
+            // nobody answered on either route: the code is probably wrong
+            setTimeout(() => { if (duo.role === 'guest' && duo.code === code && !duo.connected) { leaveDuo(true); duo.error = 'Belum tersambung ke ruang ' + code + '. Pastikan kodenya benar dan halaman pasanganmu masih terbuka, lalu coba lagi.'; renderHome(); } }, 25000);
             renderHome();
         }
 
         function duoError(e) {
+            // the relay keeps working when the direct link (or its server) fails, so those errors are not final
+            if (duo.relay || RELAY_URLS.length) { if (duo.connected) return; if (e && (e.type === 'peer-unavailable' || e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error' || e.type === 'socket-closed')) return; }
             const msg = e && e.type === 'peer-unavailable' ? 'Kode ruang tidak ditemukan. Pastikan pasanganmu sudah membuat ruang dan halamannya masih terbuka.'
                 : e && e.type === 'network' ? 'Koneksi ke server ruang terputus. Periksa internet.'
                     : 'Koneksi gagal (' + (e && e.type || 'tidak diketahui') + '). Coba lagi.';
@@ -908,6 +1062,7 @@
             duo.call = call;
             call.on('stream', s => {
                 duo.remote = s;
+                layoutViewfinder();
                 const rv = $('#rvideo');
                 rv.srcObject = s;
                 rv.play().catch(() => { rv.muted = true; rv.play().catch(() => { }); toast('Ketuk 🔈 untuk mendengar pasangan'); });
@@ -918,20 +1073,14 @@
 
         function attachConn(c) {
             duo.conn = c;
-            c.on('open', () => {
-                duo.connected = true;
-                toast('Pasangan terhubung 💞');
-                if (duo.role === 'host') sendCfg();
-                renderHome(); renderBooth();
-            });
+            c.on('open', () => { partnerUp(); });
             c.on('data', onDuoMessage);
             c.on('close', () => {
-                duo.connected = false; duo.remote = null;
-                busy = false;
-                toast('Pasangan keluar dari ruang');
-                renderHome(); renderBooth();
-                if (duo.role === 'guest') { duo.conn = null; }
-                else duo.conn = null;
+                if (duo.conn === c) duo.conn = null;
+                duo.remote = null;
+                // still there over the relay? then carry on without the direct link
+                if (duo.relay && Date.now() - duo.rSeen < 9000) { layoutViewfinder(); renderBooth(); return; }
+                partnerDown();
             });
         }
 
@@ -939,12 +1088,17 @@
             try { duo.conn && duo.conn.close(); } catch (e) { }
             try { duo.call && duo.call.close(); } catch (e) { }
             try { duo.peer && duo.peer.destroy(); } catch (e) { }
+            try { duo.relay && duo.relay.close(); } catch (e) { }
+            duo.timers.forEach(clearInterval);
             if (duo.local) duo.local.getTracks().forEach(t => t.stop());
-            Object.assign(duo, { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, error: '' });
+            Object.assign(duo, { peer: null, conn: null, call: null, role: null, code: '', connected: false, local: null, remote: null, frames: {}, error: '', relay: null, rSeen: 0, pvAt: 0, timers: [] });
             if (!silent) renderHome();
         }
 
-        function duoSend(msg) { if (duo.conn && duo.conn.open) duo.conn.send(msg); }
+        function duoSend(msg) {
+            if (duo.conn && duo.conn.open) duo.conn.send(msg);
+            else if (duo.relay) duo.relay.send(msg);
+        }
         function sendCfg() { if (st.mode === 'duo' && duo.role === 'host') duoSend({ t: 'cfg', layout: st.layout, timer: st.timer, gap: st.gap }); }
 
         function onDuoMessage(m) {
@@ -1291,7 +1445,7 @@
         (async () => {
             try { downloads = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { downloads = null; }
         })();
-        window.fotoin = { st };
+        window.fotoin = { st, duo };
     </script>
 </body>
 

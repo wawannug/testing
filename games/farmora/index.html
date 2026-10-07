@@ -4305,7 +4305,7 @@
         const IN_CLAUDE = !!(window.claude && window.claude.use);
         const net = { mode: 'idle', connected: false, partner: null, backend: null, db: null, myQ: 0, lastQ: 0, acts: [], evN: 0, events: [], seenEv: -1, tab: Math.random().toString(36).slice(2, 8), hostSince: Date.now(), lostAt: 0, leaseHeld: false, status: 'Menyambung…' };
         const PEER_OPTS = (() => {
-            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }] } };
             const q = new URLSearchParams(location.search).get('peerhost');
             if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
             return o;

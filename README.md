@@ -131,7 +131,7 @@ Ular tangga 3D kooperatif untuk pasangan: papan klasik 10×10 berisi 100 kotak d
 - **Berdua di 1 HP:** jalan di mana saja. Jawaban rahasia diisi bergiliran, dengan layar "jangan intip".
 - **Online berdua:** satu orang membuat ruangan, pasangannya bergabung dengan kode 4 huruf.
   - Di link claude.ai: memakai fitur ruangan real-time milik artifact. Kedua pemain harus login, dan link harus sudah dibagikan ke pasangan.
-  - Di versi web (GitHub Pages): memakai PeerJS (WebRTC). Ada tombol untuk menyalin link undangan.
+  - Di versi web (GitHub Pages): tersambung lewat dua jalur sekaligus, relay internet melalui broker MQTT publik (tetap jalan di data seluler dan Wi-Fi yang ketat) dan koneksi langsung PeerJS (WebRTC). Ada tombol untuk menyalin link undangan.
 
 ---
 
@@ -154,7 +154,7 @@ Pilih **Mode → Berdua online 💞**. Satu orang menekan **Buat ruang foto** la
 - setiap foto berisi kalian berdua berdampingan: pembuat ruang di kiri, pasangan di kanan;
 - masing-masing bisa menghias dan mengunduh stripnya sendiri.
 
-Koneksinya memakai WebRTC melalui [PeerJS](https://peerjs.com/): server perantara gratis, dan video mengalir langsung antar perangkat. Di sebagian jaringan seluler atau kantor yang ketat, koneksi langsung bisa gagal. Mengatasinya butuh server TURN, yang belum dipasang.
+Video mengalir langsung antar perangkat lewat WebRTC melalui [PeerJS](https://peerjs.com/), dengan server TURN publik (Open Relay) sebagai cadangan. Bersamaan dengan itu, kedua HP juga tersambung lewat relay internet (broker MQTT publik). Jadi kalau koneksi langsung gagal, misalnya di data seluler, kalian tetap terhubung: hitung mundur dan foto berdua tetap jalan, dan pratinjau pasangan tampil sebagai gambar kecil yang diperbarui beberapa kali per detik.
 
 **Penting:** kamera dan mode berdua tidak jalan di link artifact claude.ai, karena link itu memblokir kamera dan WebRTC. Pakai versi web, misalnya GitHub Pages:
 1. Buka **Settings → Pages** di repo ini.

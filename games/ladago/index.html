@@ -946,7 +946,7 @@
                     h('button', { class: 'btn', id: 'joinBtn', onclick: joinRoom }, 'Gabung'))),
                 ...saved.map(([code]) => h('button', { class: 'btn small', onclick: () => resumeRoom(code) }, `Lanjutkan ruangan ${code}`)),
                 lastGuest && lastGuest.code && Date.now() - lastGuest.at < 86400000 ? h('button', { class: 'btn small', onclick: () => { $('#joinCode').value = lastGuest.code; joinRoom(); } }, `Gabung lagi ke ${lastGuest.code}`) : null,
-                h('p', { class: 'note', text: IN_CLAUDE ? 'Kalian berdua perlu login ke claude.ai, dan link ini harus sudah dibagikan ke pasanganmu.' : 'Koneksi langsung antar perangkat lewat internet. Di sebagian jaringan kantor atau seluler yang ketat, koneksi bisa gagal.' }),
+                h('p', { class: 'note', text: IN_CLAUDE ? 'Kalian berdua perlu login ke claude.ai, dan link ini harus sudah dibagikan ke pasanganmu.' : 'Tersambung lewat dua jalur sekaligus: relay internet (tetap jalan di data seluler) dan koneksi langsung antar perangkat.' }),
             ].filter(Boolean));
         }
 
@@ -955,8 +955,149 @@
 
         async function enterRoom(code, role) {
             net.code = code;
-            net.r = IN_CLAUDE ? await net.room.join('ladago-' + code.toLowerCase()) : await peerRoom(code, role);
+            net.r = IN_CLAUDE ? await net.room.join('ladago-' + code.toLowerCase()) : await webRoom(code, role);
         }
+
+        // On the open web two routes run side by side: the MQTT relay and a direct PeerJS link.
+        // Whichever reaches your partner carries the game; their newest presence wins.
+        async function webRoom(code, role) {
+            const routes = [], handlers = [];
+            let mine = {};
+            const latest = new Map(); // route -> { presence, at }
+            const emit = () => {
+                let best = null;
+                for (const v of latest.values()) if (v.presence && (!best || v.at > best.at)) best = v;
+                const peers = [{ sameTab: true, isMe: true, presence: mine }];
+                if (best) peers.push({ sameTab: false, isMe: false, presence: best.presence });
+                handlers.forEach(h => h({ peers, joined: [], left: [], updated: [] }));
+            };
+            const add = rt => {
+                routes.push(rt);
+                rt.onPeers(ch => {
+                    const p = ch.peers.find(x => !x.sameTab);
+                    latest.set(rt, { presence: p ? p.presence : null, at: Date.now() });
+                    emit();
+                });
+                if (Object.keys(mine).length) rt.presence(mine).catch(() => { }); // catch up a route that came late
+            };
+            const room = {
+                presence(patch) {
+                    mine = { ...mine };
+                    for (const k in patch) { if (patch[k] === null) delete mine[k]; else mine[k] = patch[k]; }
+                    return Promise.all(routes.map(rt => rt.presence(patch).catch(() => { }))).then(() => { });
+                },
+                onPeers(h) { handlers.push(h); setTimeout(emit, 0); return () => { }; },
+            };
+            const peerP = peerRoom(code, role);
+            let relay = null;
+            try { relay = await relayRoom(code); } catch (e) { relay = null; }
+            if (relay) {
+                add(relay);
+                peerP.then(add, () => { }); // the direct link joins in when (if) it opens
+                return room;
+            }
+            add(await peerP); // no relay: the direct link is all we have (a taken code rejects here)
+            return room;
+        }
+        // the relay as a room: send your whole presence on every change and every 2 s; quiet for 8 s = gone
+        async function relayRoom(code) {
+            let mine = {}, theirs = null, seenAt = 0;
+            const handlers = [];
+            const emitPeers = () => {
+                const peers = [{ sameTab: true, isMe: true, presence: mine }];
+                if (theirs) peers.push({ sameTab: false, isMe: false, presence: theirs });
+                handlers.forEach(h => h({ peers, joined: [], left: [], updated: [] }));
+            };
+            const relay = await openRelay('wadimar-playground/ladago/v1/' + code.toLowerCase(), m => {
+                if (!m || m.t !== 'p' || !m.d || typeof m.d !== 'object') return;
+                theirs = m.d; seenAt = Date.now(); emitPeers();
+            });
+            if (!relay) return null;
+            setInterval(() => {
+                relay.send({ t: 'p', d: mine }, 0);
+                if (theirs && Date.now() - seenAt > 8000) { theirs = null; emitPeers(); }
+            }, 2000);
+            return {
+                presence(patch) {
+                    mine = { ...mine };
+                    for (const k in patch) { if (patch[k] === null) delete mine[k]; else mine[k] = patch[k]; }
+                    relay.send({ t: 'p', d: mine });
+                    return Promise.resolve();
+                },
+                onPeers(h) { handlers.push(h); setTimeout(emitPeers, 0); return () => { }; },
+                close: () => relay.close(),
+            };
+        }
+        // ---------- Relay through public MQTT brokers ----------
+        // Plain secure websockets, so it works on mobile data and strict Wi-Fi where a direct WebRTC link
+        // often fails. Each side publishes to <topic>/<its id>; both brokers carry every message (whichever
+        // gets through wins, repeats are dropped) and big messages travel in pieces.
+        const RELAY_URLS = (() => {
+            const q = new URLSearchParams(location.search).get('mqtt');
+            if (q === 'none') return [];
+            return q ? q.split(',') : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+        })();
+        function loadMqtt() {
+            return new Promise((res, rej) => {
+                if (window.mqtt) return res();
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js';
+                sc.onload = () => window.mqtt ? res() : rej(new Error('mqtt')); sc.onerror = () => rej(new Error('mqtt'));
+                document.head.append(sc);
+            });
+        }
+        const RELAY_PIECE = 48000;
+        async function openRelay(topic, onMsg) {
+            if (!RELAY_URLS.length) return null;
+            await loadMqtt();
+            const me = Math.random().toString(36).slice(2, 10);
+            let seq = 0;
+            const seen = new Map(), parts = new Map();
+            const got = (t, buf) => {
+                if (t === topic + '/' + me) return;
+                let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+                if (!m || typeof m.s !== 'string' || !Number.isInteger(m.q)) return;
+                const key = m.s + ':' + m.q;
+                if (seen.has(key)) return;
+                seen.set(key, 1); if (seen.size > 800) seen.delete(seen.keys().next().value);
+                if (m.n) {
+                    const pk = m.s + ':' + m.id;
+                    let p = parts.get(pk); if (!p) parts.set(pk, p = { got: 0, d: [] });
+                    if (typeof m.d !== 'string' || p.d[m.k] !== undefined) return;
+                    p.d[m.k] = m.d; p.got++;
+                    if (p.got < m.n) return;
+                    parts.delete(pk);
+                    let d; try { d = JSON.parse(p.d.join('')); } catch (e) { return; }
+                    onMsg(d, m.s);
+                    return;
+                }
+                onMsg(m.d, m.s);
+            };
+            const clients = [];
+            RELAY_URLS.forEach((url, i) => {
+                try {
+                    const c = window.mqtt.connect(url, { clientId: 'wp-' + me + '-' + i, clean: true, keepalive: 30, connectTimeout: 8000, reconnectPeriod: 4000 });
+                    c.on('connect', () => c.subscribe(topic + '/+', { qos: 1 }));
+                    c.on('message', got);
+                    c.on('error', () => { });
+                    clients.push(c);
+                } catch (e) { }
+            });
+            const pub = (o, qos) => { const s = JSON.stringify(o); for (const c of clients) if (c.connected) c.publish(topic + '/' + me, s, { qos }); };
+            return {
+                me,
+                // qos 1 for things that must arrive; 0 for a stream where a newer message replaces a lost one
+                send(data, qos = 1) {
+                    const s = JSON.stringify(data);
+                    if (s.length <= RELAY_PIECE) { pub({ s: me, q: ++seq, d: data }, qos); return; }
+                    const id = ++seq, n = Math.ceil(s.length / RELAY_PIECE);
+                    for (let k = 0; k < n; k++) pub({ s: me, q: ++seq, id, k, n, d: s.slice(k * RELAY_PIECE, (k + 1) * RELAY_PIECE) }, 1);
+                },
+                connected: () => clients.some(c => c.connected),
+                close() { for (const c of clients) { try { c.end(true); } catch (e) { } } },
+            };
+        }
+
 
         function copyText(text) {
             if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Disalin 📋'), () => toast(text));
@@ -965,7 +1106,7 @@
 
         // On the open web: PeerJS data channel that offers the two room calls this game uses
         const PEER_OPTS = (() => {
-            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } };
+            const o = { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }] } };
             const q = new URLSearchParams(location.search).get('peerhost'); // a self-hosted PeerServer, e.g. ?peerhost=localhost:9000
             if (q) { const [host, port] = q.split(':'); Object.assign(o, { host, port: +port || 9000, path: '/', secure: location.protocol === 'https:' }); }
             return o;
@@ -1013,9 +1154,11 @@
                 });
                 peer.on('connection', c => { if (conn && conn.open) { c.close(); return; } wire(c); });
                 peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { } });
+                setTimeout(() => { if (!opened) { try { peer.destroy(); } catch (x) { } rej({ type: 'timeout' }); } }, 12000);
                 peer.on('error', e => {
                     if (!opened) { try { peer.destroy(); } catch (x) { } rej(e); return; }
-                    if (e.type === 'peer-unavailable') toast('Ruangan dengan kode itu tidak ditemukan. Pastikan pasanganmu sudah membuat ruangan.');
+                    // with the relay running, a missing PeerJS room is not final: the partner may only be on the relay
+                    if (e.type === 'peer-unavailable' && !RELAY_URLS.length) toast('Ruangan dengan kode itu tidak ditemukan. Pastikan pasanganmu sudah membuat ruangan.');
                 });
             });
         }
