@@ -2813,7 +2813,21 @@
             voice(`${a.kind}:${a.sex || ''}`, a.pos, 0.55);
         }
         // the rooster greets every new morning
-        function morningCrow() { const j = animals.find(a => a.kind === 'chicken' && a.sex === 'm'); if (j) setTimeout(() => voice('chicken:m:crow', j.pos, inHome(player.pos) ? 4 : 1), 900); }
+        // at 05:00 the rooster wakes the farm: heard everywhere, a little louder when you are near him
+        let crowDay = 0;
+        function morningCrow() {
+            const j = animals.find(a => a.kind === 'chicken' && a.sex === 'm');
+            if (!j) return;
+            const near = sceneOf(j.pos) === sceneOf(player.pos) && j.pos.distanceTo(player.pos) < 12;
+            voice('chicken:m:crow', near ? j.pos : null, near ? 1.2 : 0.55);
+            setTimeout(() => voice('chicken:m:crow', near ? j.pos : null, near ? 1 : 0.4), 2600);
+            toast(`🐓 Kukuruyuk! ${j.name} berkokok, pukul 05:00. Peternakan mulai bangun.`);
+        }
+        function crowCheck() {
+            if (!started || sleeping || crowDay === state.day) return;
+            if (state.minutes >= FARM_WAKE && state.minutes < FARM_WAKE + 10) { crowDay = state.day; morningCrow(); }
+            else if (state.minutes >= FARM_WAKE + 10) crowDay = state.day; // joined later in the morning
+        }
 
         // The porch bench by the door: room for two
         const TURU_SPOT = new THREE.Vector3(HOUSE_DOOR.x - 2.8, 0, HOUSE_DOOR.z + 0.45);
@@ -4561,7 +4575,6 @@
                     player.pos.copy(WAKE[USER]); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
                     $('fade').classList.remove('show');
                     toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
-                    morningCrow();
                 }, 1200);
             }
             if (Number.isInteger(w.day)) state.day = w.day;
@@ -4808,7 +4821,6 @@
                 toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day} · ${weatherName(state.weather, newSeason)}`);
                 if (newSeason !== oldSeason) emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, '');
                 if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
-                morningCrow();
                 if (nSold) emitEvent(`🧺 Kotak pengiriman: ${nSold} barang terjual semalam · +${sold.toLocaleString('id-ID')} G`, 'sell', null, '');
                 morningSave();
             }, 1700);
@@ -5019,6 +5031,7 @@
                 if (state.minutes >= BED_MIN) sleep(true);
             }
             if (net.mode === 'host') deliverOrders();
+            crowCheck();
             pkgMesh.visible = pkgCount() > 0;
             EGG_POS.forEach((v, i) => {
                 const e = state.eggs[i], m = eggMeshes[i];
