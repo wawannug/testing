@@ -1957,11 +1957,12 @@
             if (botItem && botItem.legs === 'auto') botItem = { ...botItem, legs: girl ? 'skirt' : 'long' };
             const shoes = o.s === 'none' ? null : CLOTH[o.s], head = o.h && CLOTH[o.h];
             const rig = new THREE.Group(); g.add(rig);
+            f.skirt = null;
             const scale = girl ? 1.02 : 1.08;
             rig.scale.setScalar(scale);
             blob(g, 0.6, 0.6);
             const hipY = girl ? 0.88 : 0.92, shY = girl ? 1.38 : 1.42, shX = girl ? 0.175 : 0.2;
-            f.hip = hipY * scale; // used to seat the body on chairs and mats
+            f.hip = hipY * scale; f.hipY = hipY; f.sc = scale; // used to seat the body on chairs and mats
             // swimwear: a one-piece for her, trunks for him
             const swim = topItem.kind === 'renang';
             const topMat = swim && !girl ? mat(skin) : clothMat(topItem.c, topItem.pat, topItem.c2);
@@ -1992,8 +1993,10 @@
             const neck = mesh(CYL, skinMat, body); neck.scale.set(0.042, 0.13, 0.042); neck.position.y = shY + 0.06;
             // skirts hang from the waist
             if (botItem.legs === 'skirt' || botItem.legs === 'longskirt') {
-                const sk = mesh(SKIRT[botItem.legs], botMat, body);
-                sk.position.y = hipY + 0.06 - (botItem.legs === 'skirt' ? 0.22 : 0.4);
+                // hung from a pivot at the waist on the legs' side, so it stays with the legs when the body bows
+                f.skirt = new THREE.Group(); f.skirt.position.y = hipY + 0.06; rig.add(f.skirt);
+                const sk = mesh(SKIRT[botItem.legs], botMat, f.skirt);
+                sk.position.y = -(botItem.legs === 'skirt' ? 0.22 : 0.4);
                 sk.scale.z = 0.8;
             }
             details(body, topItem, botItem, { hipY, shY, girl, skin });
@@ -2137,6 +2140,10 @@
             }
             f.body.position.y = moving ? Math.abs(sn) * 0.035 - 0.015 : 0;
             f.body.rotation.y = lerp(f.body.rotation.y, moving ? sn * 0.07 : 0, k);
+            // undo whatever a prayer pose bent
+            f.body.rotation.x = 0; f.body.position.z = 0; f.head.rotation.set(0, 0, 0);
+            for (let i = 0; i < 2; i++) { f.arms[i].rotation.z = i ? -0.06 : 0.06; f.arms[i].rotation.y = 0; }
+            if (f.skirt) f.skirt.rotation.x = 0;
             const pb = ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
             for (const e of f.eyes) e.scale.y = e.scale.x * pb;
         }
@@ -2835,8 +2842,8 @@
             dining: [seat(F1, 5.4, 2.95, 0, 5.4, 2.2), seat(F1, 6.6, 2.95, 0, 6.6, 2.2), seat(F1, 5.4, 4.65, Math.PI, 5.4, 5.4), seat(F1, 6.6, 4.65, Math.PI, 6.6, 5.4)],
             armL: seat(F1, -1.6, 3.4, Math.PI / 2, -1.6, 4.3),
             armR: seat(F1, 1.6, 3.4, -Math.PI / 2, 1.6, 4.3),
-            sajadah0: seat(F1, -0.9, -5.0, -Math.PI / 2, 0.2, -5.0, 2),
-            sajadah1: seat(F1, -0.9, -3.2, -Math.PI / 2, 0.2, -3.2, 2),
+            sajadah0: seat(F1, -0.4, -5.0, -Math.PI / 2, 0.2, -5.0, 2),
+            sajadah1: seat(F1, -0.4, -3.2, -Math.PI / 2, 0.2, -3.2, 2),
             balc0: seat(F2, -5.9, 5.3, 0, -5.9, 4.3),
             balc1: seat(F2, -4.1, 5.3, 0, -4.1, 4.3),
             balcBench: [seat(F2, 4.1, 5.65, 0, 4.1, 4.6), seat(F2, 4.9, 5.65, 0, 4.9, 4.6)],
@@ -3433,13 +3440,59 @@
                 f.body.rotation.y = 0; f.body.position.y = 0;
                 return;
             }
-            // seat the hips on the chair with the shins hanging down (k 1), or sit back on the heels on the mat (k 2)
-            f.pos.y = k === 2 ? 0.2 - f.hip : 0.47 - (f.hip - 0.08);
+            if (k === 2) { prayPose(f); return; }
+            // seat the hips on the chair with the shins hanging down
+            f.pos.y = 0.47 - (f.hip - 0.08);
             f.legs.forEach(l => { l.rotation.x = -1.45; });
-            f.knees.forEach(n => { n.rotation.x = k === 2 ? 2.85 : 1.5; });
+            f.knees.forEach(n => { n.rotation.x = 1.5; });
             f.arms.forEach(a => { a.rotation.x = -0.25; });
             f.elbows.forEach(e => { e.rotation.x = -0.9; });
             f.body.rotation.y = 0; f.body.position.y = 0;
+        }
+        // Prayer on the mat, facing qibla: takbir, standing, ruku', i'tidal, two sujud with sitting between,
+        // twice over, then the final sitting with the salam to the right and left; afterwards stay seated.
+        // A pose: leg (thigh), knee, tilt (upper body bowing from the hip), arm, elbow, fold (forearms across
+        // the chest), head (nod), turn (salam), y (0 standing, 1 kneeling on the knees, 2 sitting on the heels)
+        const PP = {
+            takbir: { leg: 0, knee: 0, tilt: 0, arm: -0.35, elbow: -2.5, fold: 0, head: 0, turn: 0, y: 0 },
+            qiyam: { leg: 0, knee: 0, tilt: 0.04, arm: -0.3, elbow: -1.75, fold: 1, head: 0.25, turn: 0, y: 0 },
+            ruku: { leg: 0, knee: 0, tilt: 1.45, arm: -1.25, elbow: 0, fold: 0, head: -0.1, turn: 0, y: 0 },
+            itidal: { leg: 0, knee: 0, tilt: 0, arm: 0, elbow: -0.08, fold: 0, head: 0, turn: 0, y: 0 },
+            sujud: { leg: -0.5, knee: 2.05, tilt: 2.0, arm: -2.05, elbow: -1.05, fold: 0, head: -0.3, turn: 0, y: 1 },
+            duduk: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.15, turn: 0, y: 2 },
+            salamR: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: -1.0, y: 2 },
+            salamL: { leg: -1.45, knee: 2.85, tilt: 0.05, arm: -0.25, elbow: -0.9, fold: 0, head: 0.1, turn: 1.0, y: 2 },
+        };
+        const RAKAAT = [['takbir', 1.4], ['qiyam', 3.5], ['ruku', 2.4], ['itidal', 1.6], ['sujud', 2.4], ['duduk', 1.6], ['sujud', 2.4]];
+        const PRAYER = [...RAKAAT, ...RAKAAT.slice(1), ['duduk', 3.5], ['salamR', 1.4], ['duduk', 0.6], ['salamL', 1.4], ['duduk', 1]];
+        const PRAY_MOVE = 0.55; // seconds to move from one pose into the next
+        function prayPose(f) {
+            if (f.prayLast == null || elapsed - f.prayLast > 0.5) f.prayStart = elapsed;
+            f.prayLast = elapsed;
+            let t = elapsed - f.prayStart, a = PP.duduk, b = PP.duduk, u = 1;
+            for (let i = 0; i < PRAYER.length; i++) {
+                const [key, d] = PRAYER[i];
+                if (t < d) { a = i ? PP[PRAYER[i - 1][0]] : PP.itidal; b = PP[key]; u = Math.min(1, t / PRAY_MOVE); break; }
+                t -= d;
+            }
+            u = u * u * (3 - 2 * u);
+            const v = {};
+            for (const k of Object.keys(b)) v[k] = a[k] + (b[k] - a[k]) * u;
+            // height of the feet: standing, on the knees (the knee caps touch the mat), or seated on the heels
+            const ys = [0, f.sc * (0.08 - f.hipY + 0.02 + 0.42 * Math.cos(PP.sujud.leg)), 0.2 - f.hip];
+            const yi = Math.min(1, Math.floor(v.y)), yf = v.y - yi;
+            f.pos.y = ys[yi] + (ys[yi + 1] - ys[yi]) * yf;
+            f.legs.forEach(l => { l.rotation.x = v.leg; });
+            f.knees.forEach(n => { n.rotation.x = v.knee; });
+            // bow from the hip joint: rotate the upper body about the hip instead of the feet
+            const h = f.hipY;
+            f.body.rotation.x = v.tilt;
+            f.body.position.set(0, h - h * Math.cos(v.tilt), -h * Math.sin(v.tilt));
+            // folding the hands on the chest: twist each arm about itself so the bent forearm points inward
+            f.arms.forEach((m, i) => { m.rotation.x = v.arm; m.rotation.y = (i ? 1 : -1) * 1.0 * v.fold; m.rotation.z = (i ? -1 : 1) * (0.06 - 0.12 * v.fold); });
+            f.elbows.forEach(e => { e.rotation.x = v.elbow; });
+            if (f.skirt) f.skirt.rotation.x = v.leg * 0.55;
+            f.head.rotation.set(v.head, v.turn, 0);
         }
         // a bench or sofa for two: take the free place nearest to you
         const seatTaken = s => net.connected && partnerF.live && partnerF.netT && partnerF.netT[4] && Math.hypot(partnerF.netT[0] - s.x, partnerF.netT[1] - s.z) < 0.4;
@@ -4817,7 +4870,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
