@@ -326,6 +326,9 @@
         .itemgrid .item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; font: inherit; background: var(--paper); border: 2px solid var(--wood); border-radius: 8px; padding: 4px 2px; cursor: pointer; color: var(--ink); }
         .itemgrid .item span { font-size: 24px; }
         .itemgrid .item b { position: absolute; top: 1px; right: 4px; font-size: 12px; }
+        .itemgrid .item.on { background: #ffe08a; border-color: #d18a1a; }
+        .itemgrid .item:disabled { opacity: .45; cursor: default; }
+        .kithint { font-size: 13px; font-weight: 600; margin: 2px 0 0; }
         .itemgrid .item small { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slotbtn { font-size: 14px; text-align: left; }
         .outfitrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -574,7 +577,7 @@
             <p style="font-size:13px;margin:0">🪏 Ambil cangkul di kotak perkakas 🧰, lalu cangkul tanah kosong di mana saja (bingkai hijau = bisa). Tanah yang sudah dicangkul bisa ditanami sayur, tanaman hias, atau bibit buah. Pohon buah besar butuh lahan 3×3 kotak (kotak tengah dicangkul, 8 kotak di sekitarnya kosong); tanaman buah kecil seperti salak, nanas, stroberi, semangka, dan melon cukup 1 kotak.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁. 🧰 Kotak perkakas di depan rumah berisi cangkul (olah Lahan di timur ladang), beliung (batu di barat), kapak (pohon kayu), pancing (kolam), dan sabit (rumput liar).</p>
-            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
+            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -2027,6 +2030,65 @@
             { key: 'sop', label: 'Sayur sop', icon: '🍲', price: 950, need: { wortel: 1, kol: 1, seledri: 1 } },
             { key: 'ikanbakar', label: 'Ikan bakar', icon: '🍢', price: 280, need: { ikanmas: 1, cabai: 1 } },
         ];
+        // ---------- Groceries from the market, cookware, and home cooking ----------
+        // market-only groceries: [key, label, icon, buy price online, price the shipping bin pays]
+        for (const [k, label, icon, buy, sell] of [
+            ['beras', 'Beras', '🌾', 40, 24], ['bawangmerah', 'Bawang merah', '🧅', 30, 18], ['bawangputih', 'Bawang putih', '🧄', 30, 18],
+            ['garam', 'Garam', '🧂', 15, 8], ['gula', 'Gula', '🍬', 25, 15], ['minyak', 'Minyak goreng', '🫗', 35, 20], ['kecap', 'Kecap manis', '🍶', 30, 18],
+            ['tepung', 'Tepung terigu', '🥣', 30, 18], ['tahu', 'Tahu', '🧈', 25, 15], ['tempe', 'Tempe', '🟫', 25, 15], ['mi', 'Mi telur', '🍝', 30, 18],
+            ['kacang', 'Kacang tanah', '🥜', 35, 20], ['rempah', 'Bumbu rempah', '🫚', 30, 18], ['ayam', 'Daging ayam', '🍗', 120, 75], ['sapi', 'Daging sapi', '🥩', 220, 140],
+            ['teh', 'Teh', '🫖', 25, 15], ['kopi', 'Bubuk kopi', '🫘', 45, 28],
+        ]) { PRODUCTS[k] = { label, icon, price: sell }; SUPPLIES[k] = { label, icon, price: buy, ing: true, note: 'Bahan dapur dari pasar' }; }
+        // farm produce is on sale online too, dearer than what the shipping bin pays for it
+        for (const k of ['egg', 'milk', 'tomat', 'cabai', 'kangkung', 'sawi', 'kol', 'wortel', 'timun', 'terong', 'daunbawang', 'seledri', 'ikanmas', 'nila', 'gurame', 'pisang', 'kelapa', 'mangga', 'alpukat', 'jambu'])
+            SUPPLIES[k] = { label: PRODUCTS[k].label, icon: PRODUCTS[k].icon, price: Math.ceil(PRODUCTS[k].price * 1.6 / 5) * 5, ing: true, note: 'Hasil kebun & peternakan, juga dijual di pasar' };
+        // cookware: bought once, kept on the kitchen rack (or in the bag) and never used up
+        const COOKWARE = [
+            ['pisau', 'Pisau & talenan', '🔪', 60, 'Untuk memotong: salad'],
+            ['wajan', 'Wajan', '🍳', 150, 'Menggoreng & menumis'],
+            ['panci', 'Panci', '🍲', 180, 'Merebus, sup, dan minuman'],
+            ['cobek', 'Cobek & ulekan', '🥣', 120, 'Menghaluskan sambal & bumbu kacang'],
+            ['kukusan', 'Kukusan (dandang)', '♨️', 220, 'Mengukus: pepes'],
+            ['panggangan', 'Panggangan arang', '🔥', 300, 'Membakar: sate & ikan bakar'],
+            ['penanak', 'Penanak nasi', '🍚', 450, 'Menanak nasi lebih praktis'],
+            ['blender', 'Blender', '🥤', 500, 'Membuat jus'],
+        ];
+        const COOK_KEYS = COOKWARE.map(c => c[0]);
+        for (const [k, label, icon, price, note] of COOKWARE) SUPPLIES['k_' + k] = { label, icon, price, cook: k, note };
+        const isCook = k => typeof k === 'string' && k.startsWith('k_');
+        const STARTER_KIT = { k_pisau: 1, k_wajan: 1, k_panci: 1 };
+        // each dish needs its ingredients and one of its cookware
+        const COOK_OF = { dadar: ['wajan'], puding: ['panci'], tumis: ['wajan'], salad: ['pisau'], jus: ['blender'], sambal: ['cobek'], sop: ['panci'], ikanbakar: ['panggangan'] };
+        for (const [key, label, icon, need, tools] of [
+            ['nasi', 'Nasi putih', '🍚', { beras: 1 }, ['penanak', 'panci']],
+            ['nasgor', 'Nasi goreng', '🍛', { nasi: 1, egg: 1, bawangmerah: 1, kecap: 1, cabai: 1 }, ['wajan']],
+            ['uduk', 'Nasi uduk', '🍙', { beras: 1, kelapa: 1, rempah: 1 }, ['penanak', 'panci']],
+            ['bubur', 'Bubur ayam', '🍥', { beras: 1, ayam: 1, daunbawang: 1, garam: 1 }, ['panci']],
+            ['migoreng', 'Mi goreng', '🥡', { mi: 1, egg: 1, sawi: 1, kecap: 1 }, ['wajan']],
+            ['miayam', 'Mi ayam', '🍜', { mi: 1, ayam: 1, sawi: 1, bawangputih: 1 }, ['panci']],
+            ['soto', 'Soto ayam', '🥣', { ayam: 1, rempah: 1, bawangputih: 1, seledri: 1 }, ['panci']],
+            ['opor', 'Opor ayam', '🫕', { ayam: 1, kelapa: 1, rempah: 1, bawangmerah: 1 }, ['panci']],
+            ['rendang', 'Rendang', '🍖', { sapi: 2, kelapa: 1, rempah: 1, cabai: 2 }, ['wajan']],
+            ['sate', 'Sate ayam', '🍡', { ayam: 1, kacang: 1, kecap: 1 }, ['panggangan']],
+            ['gado', 'Gado-gado', '🥙', { kol: 1, timun: 1, tahu: 1, kacang: 1, egg: 1 }, ['cobek']],
+            ['lodeh', 'Sayur lodeh', '🍵', { terong: 1, kelapa: 1, bawangmerah: 1 }, ['panci']],
+            ['tempegoreng', 'Tempe goreng', '🍘', { tempe: 1, minyak: 1, bawangputih: 1, garam: 1 }, ['wajan']],
+            ['bakwan', 'Bakwan sayur', '🧆', { tepung: 1, kol: 1, wortel: 1, minyak: 1 }, ['wajan']],
+            ['martabak', 'Martabak telur', '🫓', { tepung: 1, egg: 2, daunbawang: 1, minyak: 1 }, ['wajan']],
+            ['pisgor', 'Pisang goreng', '🥮', { pisang: 1, tepung: 1, minyak: 1 }, ['wajan']],
+            ['kolak', 'Kolak pisang', '🍯', { pisang: 1, kelapa: 1, gula: 1 }, ['panci']],
+            ['pepes', 'Pepes ikan', '🫔', { nila: 1, rempah: 1, tomat: 1 }, ['kukusan']],
+            ['guramegoreng', 'Gurame goreng', '🍤', { gurame: 1, minyak: 1, garam: 1, bawangputih: 1 }, ['wajan']],
+            ['rujak', 'Rujak buah', '🍧', { mangga: 1, jambu: 1, timun: 1, gula: 1, cabai: 1 }, ['cobek']],
+            ['esteh', 'Es teh manis', '🧋', { teh: 1, gula: 1 }, ['panci']],
+            ['kopisusu', 'Kopi susu', '☕', { kopi: 1, milk: 1, gula: 1 }, ['panci']],
+            ['jusalpukat', 'Jus alpukat', '🧃', { alpukat: 1, milk: 1, gula: 1 }, ['blender']],
+        ]) {
+            // a dish sells for about half again what its ingredients fetch raw
+            const raw = Object.entries(need).reduce((t, [k, n]) => t + (PRODUCTS[k] || RECIPES.find(r => r.key === k)).price * n, 0);
+            RECIPES.push({ key, label, icon, price: Math.max(40, Math.ceil(raw * 1.45 / 10) * 10), need });
+            COOK_OF[key] = tools;
+        }
         for (const r of RECIPES) PRODUCTS[r.key] = { label: r.label, icon: r.icon, price: r.price };
         // One verse a day in the musholla, in turn
         const AYAT = [
@@ -2068,6 +2130,8 @@
         // drawn icons for the tools (nicer than emoji, and there is no emoji for a hoe or a watering can)
         const TOOL_SVG = {"t_penyiram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M19 27c0-13 21-13 21 0\" fill=\"none\" stroke=\"#21706a\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#21706a\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#5fd0c2\" stroke-width=\"3\" stroke-linecap=\"round\"/><ellipse cx=\"57.5\" cy=\"22.5\" rx=\"4.2\" ry=\"6.4\" transform=\"rotate(45 57.5 22.5)\" fill=\"#ffd25e\" stroke=\"#21706a\" stroke-width=\"2\"/><path d=\"M13 27h30a4 4 0 0 1 4 4v19a7 7 0 0 1-7 7H16a7 7 0 0 1-7-7V31a4 4 0 0 1 4-4z\" fill=\"#4cc3b5\" stroke=\"#21706a\" stroke-width=\"2.6\"/><rect x=\"13\" y=\"31\" width=\"5\" height=\"18\" rx=\"2.5\" fill=\"#fff\" opacity=\".45\"/><circle cx=\"29\" cy=\"42\" r=\"5\" fill=\"#ff8fb3\"/><circle cx=\"29\" cy=\"42\" r=\"2\" fill=\"#ffd25e\"/><path d=\"M9 51h38\" stroke=\"#21706a\" stroke-width=\"2\" opacity=\".35\"/><path d=\"M60 31q2.4 3.6 0 5.2-2.4-1.6 0-5.2z\" fill=\"#58b7f2\"/><path d=\"M54 33q2 3 0 4.4-2-1.4 0-4.4z\" fill=\"#58b7f2\"/></svg>", "t_cangkul": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M52 6 24 46\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M52 6 24 46\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 40 30 46 27 60 4 56z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M8 45 27 50\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".6\"/><rect x=\"20\" y=\"39\" width=\"10\" height=\"10\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_beliung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M38 22 14 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M38 22 14 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 30C14 14 28 8 40 10c12 2 18 12 20 24-6-8-12-14-20-15-10-1-22 3-34 11z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M14 22c8-6 16-8 24-7\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><rect x=\"33\" y=\"12\" width=\"11\" height=\"11\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_kapak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M40 10 16 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M40 10 16 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M33 8c8-6 20-4 26 6-3 9-12 16-22 15z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M50 10c4 2 6 5 7 8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".7\"/><rect x=\"31\" y=\"12\" width=\"9\" height=\"12\" rx=\"2\" transform=\"rotate(27 35 18)\" fill=\"#e05a4e\" stroke=\"#7a2a24\" stroke-width=\"1.8\"/></svg>", "t_pancing": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M8 58 54 6\" stroke=\"#5a3a1c\" stroke-width=\"4.6\" stroke-linecap=\"round\"/><path d=\"M8 58 54 6\" stroke=\"#d9a35c\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M8 58 20 44\" stroke=\"#2d6cdf\" stroke-width=\"6\" stroke-linecap=\"round\"/><circle cx=\"23\" cy=\"48\" r=\"5.5\" fill=\"#ffd25e\" stroke=\"#7a5a12\" stroke-width=\"2\"/><circle cx=\"23\" cy=\"48\" r=\"1.8\" fill=\"#7a5a12\"/><path d=\"M54 6c3 10 4 20 2 30\" fill=\"none\" stroke=\"#6f7a85\" stroke-width=\"1.4\"/><circle cx=\"56\" cy=\"40\" r=\"4.6\" fill=\"#fff\" stroke=\"#b3261e\" stroke-width=\"2\"/><path d=\"M51.4 40a4.6 4.6 0 0 1 9.2 0z\" fill=\"#e53935\"/></svg>", "t_sabit": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M30 44 14 60\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M30 44 14 60\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M30 44C14 30 22 6 46 6c10 0 16 6 16 13-6-7-14-9-22-6-12 5-14 18-6 27z\" fill=\"#c4ccd4\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M44 10c-12 1-18 9-17 18\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><circle cx=\"30\" cy=\"44\" r=\"3.4\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.6\"/></svg>"};
         const TOOL_IMG = {};
+        // drawn cookware too
+        Object.assign(TOOL_SVG, {"k_pisau": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"5\" y=\"30\" width=\"46\" height=\"27\" rx=\"6\" fill=\"#d39a5e\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><circle cx=\"44\" cy=\"37\" r=\"3\" fill=\"#8a5a2b\"/><path d=\"M12 47 L44 15 Q50 10 54 14 L22 50 Z\" fill=\"#e3e8ec\" stroke=\"#6b7680\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M44 15 L54 5 Q59 3 60 8 L54 14 Z\" fill=\"#3b2a1e\" stroke=\"#2a1d14\" stroke-width=\"2\" stroke-linejoin=\"round\"/></svg>", "k_wajan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M4 30 H46 Q44 52 25 52 Q6 52 4 30 Z\" fill=\"#3a3f45\" stroke=\"#1f2327\" stroke-width=\"3\" stroke-linejoin=\"round\"/><ellipse cx=\"25\" cy=\"30\" rx=\"21\" ry=\"5\" fill=\"#59616a\" stroke=\"#1f2327\" stroke-width=\"3\"/><rect x=\"45\" y=\"26\" width=\"17\" height=\"6\" rx=\"3\" fill=\"#8a5a2b\" stroke=\"#5e3a17\" stroke-width=\"2\"/><path d=\"M14 22 q3 -6 0 -12 M25 22 q3 -6 0 -12 M36 22 q3 -6 0 -12\" fill=\"none\" stroke=\"#b9c3cc\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>", "k_panci": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"12\" y=\"26\" width=\"40\" height=\"28\" rx=\"5\" fill=\"#c7cfd6\" stroke=\"#5f6b75\" stroke-width=\"3\"/><rect x=\"3\" y=\"31\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#3b2a1e\"/><rect x=\"51\" y=\"31\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#3b2a1e\"/><path d=\"M9 26 Q32 12 55 26 Z\" fill=\"#dfe5ea\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"15\" r=\"4\" fill=\"#3b2a1e\"/><rect x=\"16\" y=\"40\" width=\"32\" height=\"3\" fill=\"#aab4bd\"/></svg>", "k_cobek": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M4 36 H60 Q56 56 32 56 Q8 56 4 36 Z\" fill=\"#6f6a66\" stroke=\"#3d3936\" stroke-width=\"3\" stroke-linejoin=\"round\"/><ellipse cx=\"32\" cy=\"36\" rx=\"28\" ry=\"6\" fill=\"#8c8580\" stroke=\"#3d3936\" stroke-width=\"3\"/><ellipse cx=\"32\" cy=\"36\" rx=\"18\" ry=\"3\" fill=\"#d6452f\"/><path d=\"M30 34 L50 8\" stroke=\"#3d3936\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M30 34 L50 8\" stroke=\"#8c8580\" stroke-width=\"6\" stroke-linecap=\"round\"/></svg>", "k_kukusan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M14 26 H50 L54 56 H10 Z\" fill=\"#c7cfd6\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M12 38 H52\" stroke=\"#5f6b75\" stroke-width=\"2.5\"/><path d=\"M10 26 Q32 10 54 26 Z\" fill=\"#dfe5ea\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"15\" r=\"3.5\" fill=\"#3b2a1e\"/><path d=\"M20 9 q-3 -4 0 -8 M44 9 q-3 -4 0 -8\" fill=\"none\" stroke=\"#9fb3c4\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>", "k_panggangan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M6 34 H58 L52 54 H12 Z\" fill=\"#4a4f55\" stroke=\"#22262a\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M14 54 L10 62 M50 54 L54 62\" stroke=\"#22262a\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M14 34 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0\" fill=\"#f2702a\" stroke=\"#c43d1d\" stroke-width=\"2\"/><path d=\"M6 30 H58\" stroke=\"#8d969e\" stroke-width=\"3\"/><path d=\"M8 22 L56 14 M8 28 L56 20\" stroke=\"#c89b63\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"24\" cy=\"19\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"34\" cy=\"17.5\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"28\" cy=\"24.5\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"38\" cy=\"23\" r=\"3.5\" fill=\"#a0522d\"/></svg>", "k_penanak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"8\" y=\"22\" width=\"48\" height=\"34\" rx=\"12\" fill=\"#f4f1ea\" stroke=\"#7a7268\" stroke-width=\"3\"/><path d=\"M10 28 Q32 6 54 28 Z\" fill=\"#e7e1d6\" stroke=\"#7a7268\" stroke-width=\"3\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"12\" width=\"12\" height=\"5\" rx=\"2.5\" fill=\"#7a7268\"/><rect x=\"22\" y=\"38\" width=\"20\" height=\"10\" rx=\"3\" fill=\"#cfd8dc\" stroke=\"#7a7268\" stroke-width=\"2\"/><circle cx=\"28\" cy=\"43\" r=\"2.5\" fill=\"#e74c3c\"/><circle cx=\"36\" cy=\"43\" r=\"2.5\" fill=\"#2ecc71\"/></svg>", "k_blender": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M18 6 H46 L42 42 H22 Z\" fill=\"#dff3ff\" fill-opacity=\".85\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M20 22 H44 L42 42 H22 Z\" fill=\"#7cc35a\"/><path d=\"M46 12 H52 V30 H44\" fill=\"none\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><rect x=\"14\" y=\"42\" width=\"36\" height=\"16\" rx=\"4\" fill=\"#3a3f45\" stroke=\"#1f2327\" stroke-width=\"2\"/><circle cx=\"32\" cy=\"50\" r=\"3.5\" fill=\"#e74c3c\"/><rect x=\"16\" y=\"3\" width=\"32\" height=\"5\" rx=\"2\" fill=\"#3a3f45\"/></svg>"});
         for (const [k, v] of Object.entries(TOOL_SVG)) TOOL_IMG[k] = 'data:image/svg+xml,' + encodeURIComponent(v);
         const escHTML = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
         // an item's picture as HTML, or as an element
@@ -2609,6 +2673,7 @@
         // ⚡ energy: farm work uses it, food, hugs and sleep bring it back
         const ENERGY_MAX = 200;
         const FOOD_ENERGY = { dadar: 20, puding: 25, tumis: 30, salad: 30, jus: 25, sambal: 15, sop: 45, ikanbakar: 35 };
+        const foodEnergy = k => FOOD_ENERGY[k] || (PRODUCTS[k] ? clamp(Math.round(8 + PRODUCTS[k].price / 20), 8, 60) : 20);
         const otherOf = u => u === NA ? NW : NA;
         const energyOf = u => state.en && Number.isFinite(state.en[u]) ? state.en[u] : ENERGY_MAX;
         const addEnergy = (u, n) => { state.en ||= {}; state.en[u] = clamp(energyOf(u) + n, 0, ENERGY_MAX); };
@@ -2664,7 +2729,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools() }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2677,7 +2742,7 @@
             // bags and boxes; older saves had one shared inventory, which goes into the storage chest
             st.bags = saved.bags ? { [NA]: toSlots(saved.bags[NA]), [NW]: toSlots(saved.bags[NW]) } : base.bags;
             const sv = saved.store || {};
-            st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin), tools: sv.tools ? cleanTools(sv.tools) : freshTools() };
+            st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin), tools: sv.tools ? cleanTools(sv.tools) : freshTools(), kit: sv.kit ? cleanItems(sv.kit) : { ...STARTER_KIT } };
             // the tool jobs on the farm (older saves start them fresh)
             // hoed ground and planted fruit trees
             st.tiles = {};
@@ -2914,7 +2979,7 @@
             // the round action button shows what is in your hands
             $('actBtn').innerHTML = held && ITEMS[held] ? iconHTML(held) : '✋';
             $('eatBtn').hidden = !dish;
-            if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${FOOD_ENERGY[dish.key] || 20} ⚡`;
+            if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${foodEnergy(dish.key)} ⚡`;
             const en = Math.round(energyOf(USER));
             $('energyNum').textContent = `⚡ ${en}`;
             $('energyFill').style.width = `${en / ENERGY_MAX * 100}%`;
@@ -4098,8 +4163,8 @@
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
         let shopTab = 'alat', shopSlot = 'top';
         function openShop() {
-            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['baju', '👕 Pakaian']];
-            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree : !!s.plant && GDEF[s.plant].type === shopTab);
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['bahan', '🧂 Bahan masak'], ['dapur', '🍳 Alat masak'], ['baju', '👕 Pakaian']];
+            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'bahan' ? !!s.ing : shopTab === 'dapur' ? !!s.cook : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree && !s.ing && !s.cook : !!s.plant && GDEF[s.plant].type === shopTab);
             const own = ownedClothes(USER);
             const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
             const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
@@ -4110,11 +4175,14 @@
                     if (got || pend) b.disabled = true;
                     return el('div', { class: 'shopitem' }, swatch(c), el('span', { class: 'nm' }, el('b', { text: c.label }), el('small', { text: SLOT_INFO[c.slot] })), b);
                 }
-                const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.note;
+                const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.ing ? `${s.note} · kalau dijual lagi ${PRODUCTS[k].price} G` : s.note;
+                const owned = s.cook && ownsCook(USER, s.cook);
+                const btn = el('button', { class: 'btn', onclick: () => buy(k) }, owned ? 'Sudah punya ✓' : `${s.price} G`);
+                if (owned) btn.disabled = true;
                 return el('div', { class: 'shopitem' },
-                    el('span', { class: 'ic', text: g ? g.icon : s.tree ? FDEF[s.tree].icon : s.icon }),
-                    el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${sub} · di tas ${have(USER, k)}` })),
-                    el('button', { class: 'btn', onclick: () => buy(k) }, `${s.price} G`));
+                    s.cook ? el('span', { class: 'ic' }, iconEl(k)) : el('span', { class: 'ic', text: g ? g.icon : s.tree ? FDEF[s.tree].icon : s.icon }),
+                    el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${sub} · ${s.cook ? (owned ? 'ada di dapur/tas' : 'belum punya') : 'di tas ' + have(USER, k)}` })),
+                    btn);
             }));
             openDlg('💻 Toko Online Farmora', [
                 el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pesanan diantar kurir ke depan rumah sekitar 2 jam (waktu game) setelah dibeli.` }),
@@ -4128,21 +4196,77 @@
             const s = SUPPLIES[k];
             if (state.gold < s.price) { toast(`Uangnya belum cukup untuk ${s.label} (${s.price} G) 💸`); return; }
             if (s.cloth && (ownedClothes(USER).has(s.cloth) || clothPending(USER, s.cloth))) return;
+            if (s.cook && ownsCook(USER, s.cook)) return;
             sendAct('buy', k);
             setTimeout(() => { if (dlgOpen()) openShop(); }, 350);
         }
+        // cookware you can use: on the kitchen rack, or in your own bag
+        const ownsCook = (u, t) => have(u, 'k_' + t) > 0 || (state.store.kit && state.store.kit['k_' + t] || 0) > 0;
+        const INGREDIENTS = [...new Set(RECIPES.flatMap(r => Object.keys(r.need)))];
+        const recipeLine = r => Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label}${n > 1 ? ' ×' + n : ''}`).join(' + ');
+        const toolsLine = r => (COOK_OF[r.key] || []).map(t => SUPPLIES['k_' + t].label).join(' / ');
+        let kit = { tool: null, ing: {} }, kitTab = 'masak';
+        function kitMatch() {
+            const chosen = Object.entries(kit.ing).filter(([, n]) => n > 0);
+            if (!kit.tool || !chosen.length) return null;
+            return RECIPES.find(r => (COOK_OF[r.key] || []).includes(kit.tool) && Object.keys(r.need).length === chosen.length && chosen.every(([k, n]) => r.need[k] === n)) || null;
+        }
         function openKitchen() {
-            const have = k => haveAll(k);
-            openDlg('🍳 Dapur', [
-                el('p', { class: 'small-note', text: 'Masak hasil kebun dan peternakan jadi makanan yang lebih mahal. Bahan diambil dari tas dan kulkas.' }),
-                el('div', { class: 'shoplist' }, RECIPES.map(r => {
-                    const ok = Object.entries(r.need).every(([k, n]) => have(k) >= n);
-                    const need = Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label} ${have(k)}/${n}`).join(' · ');
-                    const b = el('button', { class: 'btn', onclick: () => { sendAct('cook', r.key); setTimeout(() => { if (dlgOpen()) openKitchen(); }, 350); } }, 'Masak');
-                    if (!ok) b.disabled = true;
-                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: r.icon }), el('span', { class: 'nm' }, el('b', { text: `${r.label} · ${r.price} G` }), el('small', { text: need })), b);
-                })),
+            const avail = k => haveAll(k), used = k => kit.ing[k] || 0;
+            if (kit.tool && !ownsCook(USER, kit.tool)) kit.tool = null;
+            for (const k of Object.keys(kit.ing)) if (avail(k) < kit.ing[k]) { kit.ing[k] = avail(k); if (!kit.ing[k]) delete kit.ing[k]; }
+            const tabs = el('div', { class: 'tabs' }, [['masak', '🍳 Masak'], ['resep', '📖 Buku resep']].map(([k, t]) => el('button', { class: 'btn' + (k === kitTab ? ' on' : ''), onclick: () => { kitTab = k; openKitchen(); } }, t)),
+                el('button', { class: 'btn', onclick: () => openStorage('kit') }, '🗄️ Rak alat masak'));
+            if (kitTab === 'resep') {
+                const list = el('div', { class: 'shoplist' }, RECIPES.map(r => {
+                    const okIng = Object.entries(r.need).every(([k, n]) => avail(k) >= n), tl = (COOK_OF[r.key] || []).find(t => ownsCook(USER, t));
+                    const need = Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label} ${avail(k)}/${n}`).join(' · ');
+                    const b = el('button', { class: 'btn', onclick: () => { kit = { tool: tl || null, ing: { ...r.need } }; kitTab = 'masak'; openKitchen(); } }, 'Pakai');
+                    if (!okIng || !tl) b.disabled = true;
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: r.icon }),
+                        el('span', { class: 'nm' }, el('b', { text: `${r.label} · ${r.price} G · +${foodEnergy(r.key)} ⚡` }), el('small', { text: need }), el('small', { text: `${tl ? '✓' : '✗'} ${toolsLine(r)}` })), b);
+                }));
+                openDlg('🍳 Dapur · Buku resep', [el('p', { class: 'small-note', text: 'Semua resep masakan rumahan. Bahan diambil dari tas dan kulkas; bahan pasar dan alat masak bisa dibeli lewat laptop 💻.' }), tabs, list]);
+                liveDlg = openKitchen;
+                return;
+            }
+            // cookware row
+            const toolGrid = el('div', { class: 'itemgrid' }, COOK_KEYS.map(t => {
+                const own = ownsCook(USER, t), k = 'k_' + t;
+                const b = el('button', { class: 'item' + (kit.tool === t ? ' on' : ''), title: SUPPLIES[k].label, onclick: () => { kit.tool = kit.tool === t ? null : t; openKitchen(); } }, iconEl(k), el('small', { text: own ? SUPPLIES[k].label : 'belum punya' }));
+                if (!own) b.disabled = true;
+                return b;
+            }));
+            // what is in the pan
+            const chosen = Object.entries(kit.ing).filter(([, n]) => n > 0);
+            const pan = el('div', { class: 'itemgrid' }, chosen.length ? chosen.map(([k, n]) => el('button', { class: 'item on', title: 'Keluarkan', onclick: () => { kit.ing[k]--; if (!kit.ing[k]) delete kit.ing[k]; openKitchen(); } }, iconEl(k), el('b', { text: String(n) }), el('small', { text: ITEMS[k].label })))
+                : el('p', { class: 'small-note', text: 'Ketuk bahan di bawah untuk memasukkannya.' }));
+            const r = kitMatch();
+            let hint;
+            if (r) hint = `✨ Jadi: ${r.icon} ${r.label} · jual ${r.price} G · +${foodEnergy(r.key)} ⚡`;
+            else if (!kit.tool && !chosen.length) hint = 'Pilih alat masak dan bahan, atau ambil kombinasinya dari 📖 Buku resep.';
+            else {
+                const near = RECIPES.filter(x => chosen.every(([k, n]) => (x.need[k] || 0) >= n) && (!kit.tool || (COOK_OF[x.key] || []).includes(kit.tool))).slice(0, 3);
+                hint = near.length ? '🤔 Belum pas. Mungkin: ' + near.map(x => {
+                    const miss = Object.entries(x.need).filter(([k, n]) => used(k) < n).map(([k, n]) => `${PRODUCTS[k].label}${n - used(k) > 1 ? ' ×' + (n - used(k)) : ''}`);
+                    const tl = kit.tool ? '' : ` · pakai ${toolsLine(x)}`;
+                    return `${x.icon} ${x.label}${miss.length ? ' (kurang ' + miss.join(', ') + ')' : ''}${tl}`;
+                }).join(' · ') : '❌ Tidak ada resep dengan kombinasi ini.';
+            }
+            // ingredients from the bag and the fridge
+            const left = INGREDIENTS.filter(k => avail(k) - used(k) > 0);
+            const ingGrid = el('div', { class: 'itemgrid' }, left.length ? left.map(k => el('button', { class: 'item', title: ITEMS[k].label, onclick: () => { kit.ing[k] = used(k) + 1; openKitchen(); } }, iconEl(k), el('b', { text: String(avail(k) - used(k)) }), el('small', { text: ITEMS[k].label })))
+                : el('p', { class: 'small-note', text: 'Belum ada bahan masak di tas atau kulkas. Panen, beternak, memancing, atau beli bahan di laptop 💻.' }));
+            openDlg('🍳 Dapur', [tabs,
+                el('div', { class: 'stor kitchen' },
+                    el('div', { class: 'storcol' }, el('b', { text: '🍳 Alat masak · pilih satu' }), toolGrid, el('b', { text: `🥘 Di ${kit.tool ? SUPPLIES['k_' + kit.tool].label.toLowerCase() : 'dapur'} · ketuk untuk keluarkan` }), pan, el('p', { class: 'kithint', text: hint })),
+                    el('div', { class: 'storcol' }, el('b', { text: '🎒 Bahan di tas & kulkas · ketuk untuk masukkan' }), ingGrid)),
+            ], [
+                { t: r ? `🔥 Masak ${r.label}` : 'Masak', big: true, keep: true, f: () => { const m = kitMatch(); if (!m) { toast('Kombinasinya belum pas dengan resep mana pun 🤔'); return; } sendAct('cook', m.key); setTimeout(() => { if (dlgOpen()) openKitchen(); }, 350); } },
+                { t: 'Kosongkan', keep: true, f: () => { kit.ing = {}; openKitchen(); } },
+                { t: 'Tutup' },
             ]);
+            liveDlg = openKitchen;
         }
         const haveAll = k => have(USER, k) + (state.store.fridge[k] || 0);
         function chooseSeed(cb) {
@@ -4208,6 +4332,7 @@
             fridge: { title: '🧊 Kulkas', name: 'Kulkas', note: 'Bahan di kulkas ikut dipakai saat memasak.' },
             chest: { title: '📦 Kotak penyimpanan', name: 'Kotak', note: 'Simpan apa saja di sini, dipakai bersama.' },
             bin: { title: '🧺 Kotak pengiriman', name: 'Akan dijual', note: 'Barang di sini terjual saat kalian tidur.' },
+            kit: { title: '🗄️ Rak alat masak', name: 'Rak dapur', note: 'Alat masak di rak ini (atau di tasmu) dipakai saat memasak dan tidak habis. Alat baru dari toko online datang lewat paket ke tasmu, simpan di sini.' },
             tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🪏 cangkul (olah tanah di mana saja), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
         };
         function openStorage(c) {
@@ -4215,6 +4340,8 @@
             let bag = bagItems(USER);
             // the tool chest takes and gives tools, so list the chest tools you carry
             if (c === 'tools') { bag = {}; for (const x of bagOf(USER)) if (x && chestTool(x[0])) bag[x[0]] = (bag[x[0]] || 0) + x[1]; }
+            else if (c === 'kit') { bag = {}; for (const x of bagOf(USER)) if (x && isCook(x[0])) bag[x[0]] = (bag[x[0]] || 0) + x[1]; }
+            else for (const k of Object.keys(bag)) if (isCook(k)) delete bag[k];
             const grid = (items, dir) => el('div', { class: 'itemgrid' }, Object.keys(items).length
                 ? Object.entries(items).map(([k, n]) => el('button', { class: 'item', title: ITEMS[k].label, onclick: () => move(c, dir, k, moveOne ? 1 : n) }, iconEl(k), el('b', { text: String(n) }), el('small', { text: ITEMS[k].label })))
                 : el('p', { class: 'small-note', text: dir === 'out' ? 'Masih kosong' : 'Tas kosong' }));
@@ -4572,6 +4699,7 @@
                 if (!box || !ITEMS[k]) return;
                 // tools: only chest tools, only to and from the tool chest, one of each in a bag
                 if (c === 'tools' ? !chestTool(k) : isTool(k)) return;
+                if ((c === 'kit') !== isCook(k)) return;
                 if (c === 'tools' && dir === 'out') { if (have(who, k) > 0 || !box[k]) return; if (!toHotbar(who, k)) { emitEvent(FULL_MSG, 'none', null, who); return; } box[k]--; if (!box[k]) delete box[k]; emitEvent(`Mengambil ${ITEMS[k].icon} ${ITEMS[k].label} dari kotak perkakas`, 'none', null, who); return; }
                 if (dir === 'in') {
                     if (c === 'bin' && !PRODUCTS[k]) return;
@@ -4598,6 +4726,7 @@
                 const r = RECIPES.find(r => r.key === k);
                 const fr = state.store.fridge, avail = i => have(who, i) + (fr[i] || 0);
                 if (!r || !Object.entries(r.need).every(([i, n]) => avail(i) >= n)) return;
+                if (!(COOK_OF[k] || []).some(t => ownsCook(who, t))) { emitEvent(`Butuh ${COOK_OF[k].map(t => SUPPLIES['k_' + t].label).join(' atau ')} untuk memasak ${r.label}. Beli lewat laptop 💻`, 'none', null, who); return; }
                 for (const [i, n] of Object.entries(r.need)) {
                     const fromBag = Math.min(n, have(who, i));
                     if (fromBag) takeBag(who, i, fromBag);
@@ -4616,7 +4745,7 @@
             eat(who, k) {
                 const r = RECIPES.find(r => r.key === k);
                 if (!r || !takeBag(who, k)) return;
-                const n = FOOD_ENERGY[k] || 20;
+                const n = foodEnergy(k);
                 addEnergy(who, n);
                 emitEvent(`Makan ${r.icon} ${r.label}, enak! +${n} ⚡`, 'icon:' + r.icon, null, who);
             },
@@ -4990,7 +5119,7 @@
         // holding a cooked dish with nothing else to do here: eat it
         const EAT_HERE = {
             id: 'eat', local: true, reach: 0, get pos() { return player.pos; },
-            label: () => { const k = heldItem(), r = RECIPES.find(r => r.key === k); return r ? `Makan ${r.icon} ${r.label} · +${FOOD_ENERGY[k] || 20} ⚡ (energi ${Math.round(energyOf(USER))})` : ''; },
+            label: () => { const k = heldItem(), r = RECIPES.find(r => r.key === k); return r ? `Makan ${r.icon} ${r.label} · +${foodEnergy(k)} ⚡ (energi ${Math.round(energyOf(USER))})` : ''; },
             act: () => { const k = heldItem(); if (RECIPES.some(r => r.key === k)) sendAct('eat', k); },
         };
         const INTERACTABLES = interactables();
@@ -5386,7 +5515,7 @@
                 state.looks[USER] = { o: look.o };
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
-                    st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools)],
+                    st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit)],
                     ti: encTiles(), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
@@ -5478,7 +5607,7 @@
             if (Number.isFinite(w.gold)) state.gold = w.gold;
             if (WEATHER_INFO[w.we]) state.weather = w.we;
             if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
-            if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]) };
+            if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]), kit: decItems(w.st[4]) };
             if (typeof w.ti === 'string') state.tiles = decTiles(w.ti);
             if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && FRUIT_DEFS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: FRUIT_DEFS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
             if (Array.isArray(w.rk) && w.rk.length === ROCK_POS.length) state.rocks = w.rk.map(v => v ? 1 : 0);
@@ -6128,7 +6257,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
