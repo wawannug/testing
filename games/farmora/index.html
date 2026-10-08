@@ -342,6 +342,8 @@
         #joy, #actBtn { display: none; }
         #eatBtn { position: fixed; right: 22px; bottom: 128px; z-index: 6; font-size: 17px; padding: 10px 14px; border-radius: 999px; }
         #eatBtn[hidden] { display: none; }
+        #sleepNote { position: fixed; left: 50%; top: 86px; transform: translateX(-50%); z-index: 6; padding: 8px 14px; font-size: 14px; font-weight: 600; max-width: 88vw; text-align: center; }
+        #sleepNote[hidden] { display: none; }
 
         @media (max-width: 760px) {
             #startScreen { align-items: flex-end; background: linear-gradient(180deg, rgba(30, 50, 20, 0) 25%, rgba(30, 50, 20, .35)); padding-top: 42vh; }
@@ -493,6 +495,7 @@
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
     <button id="eatBtn" class="btn" hidden>🍽️ Makan</button>
+    <div id="sleepNote" class="panel" hidden></div>
 
     <div id="netBadge" class="panel" title="Ketuk untuk melihat status pasanganmu"></div>
     <div id="saveFlag">💾 Tersimpan</div>
@@ -3578,6 +3581,7 @@
         function standUp() {
             const s = player.sit;
             player.prayDone = null; // stopping halfway does not count as a prayer
+            player.zz = false; player.lieAt = null;
             if (!s) return;
             player.sit = null;
             player.pos.set(s.sx, 0, s.sz);
@@ -4059,11 +4063,52 @@
         function askSleep() {
             const lie = () => sitOn(BED[USER]);
             openDlg('🛏️ Tempat tidur', [el('p', { text: `Mau tidur sekarang? Hari berganti untuk kalian berdua${state.minutes < 18 * 60 ? ', sisa hari ini dilewati' : ''}. Atau rebahan dulu sebentar.` })], [
-                { t: '💾 Tidur dan simpan progres', big: true, f: () => openSaveDialog(i => { lie(); pendingSlot = i; sendAct('sleep'); }) },
-                { t: 'Tidur tanpa menyimpan', f: () => { lie(); pendingSlot = -1; sendAct('sleep'); } },
+                { t: '💾 Tidur dan simpan progres', big: true, f: () => openSaveDialog(i => { lie(); pendingSlot = i; fallAsleep(); }) },
+                { t: 'Tidur tanpa menyimpan', f: () => { lie(); pendingSlot = -1; fallAsleep(); } },
                 { t: '🛌 Rebahan saja', f: lie },
                 { t: 'Batal' },
             ]);
+        }
+        // The day only moves on when both of you sleep (a partner who is not in the game is already turu).
+        // Until then you lie asleep in bed; moving wakes you up again.
+        function fallAsleep(dozed) {
+            player.zz = true;
+            const waiting = net.connected && partnerF.live && !(net.partner && net.partner.zz);
+            toast(dozed ? `😴 Kamu ketiduran setelah rebahan 1 jam (tanpa menyimpan).${waiting ? ` Menunggu ${OTHER} tidur juga…` : ''}`
+                : waiting ? `💤 Kamu sudah tidur. Hari berganti setelah ${OTHER} juga tidur.` : '💤 Selamat tidur…');
+            renderSleepNote();
+        }
+        function renderSleepNote() {
+            const waiting = player.zz && !sleeping && net.connected && partnerF.live && !(net.partner && net.partner.zz);
+            $('sleepNote').hidden = !waiting;
+            if (waiting) $('sleepNote').textContent = `💤 Kamu tidur · menunggu ${OTHER} tidur juga (gerak untuk bangun)`;
+        }
+        // the host turns the page when everyone is asleep; lying down for an hour of game time makes you doze off
+        function bedCheck() {
+            if (!started || sleeping) return;
+            if (player.sit && player.sit.k === 3 && !player.zz) {
+                if (player.lieAt == null) player.lieAt = absMin();
+                else if (absMin() - player.lieAt >= 60) { pendingSlot = -1; fallAsleep(true); }
+            } else if (!player.sit) player.lieAt = null;
+            if (!player.sit && player.zz) { player.zz = false; renderSleepNote(); }
+            renderSleepNote();
+            if (net.mode === 'guest' || !player.zz) return;
+            const partnerAsleep = !(net.connected && partnerF.live) || !!(net.partner && net.partner.zz);
+            if (partnerAsleep) sleep(false);
+        }
+        // good morning: what the shipping bin sold last night
+        function showRecap(rc) {
+            if (!rc || !Number.isInteger(rc.d)) return;
+            const items = (Array.isArray(rc.it) ? rc.it : []).filter(x => Array.isArray(x) && PRODUCTS[x[0]]);
+            const body = items.length ? [
+                el('p', { class: 'small-note', text: 'Isi kotak pengiriman yang terjual semalam:' }),
+                el('div', { class: 'shoplist' }, items.map(([k, n, g]) => el('div', { class: 'shopitem' },
+                    el('span', { class: 'ic', text: PRODUCTS[k].icon }),
+                    el('span', { class: 'nm' }, el('b', { text: PRODUCTS[k].label }), el('small', { text: `${n} × ${PRODUCTS[k].price.toLocaleString('id-ID')} G` })),
+                    el('b', { text: `+${(+g || 0).toLocaleString('id-ID')} G` })))),
+                el('p', { text: `Total penjualan: +${(+rc.t || 0).toLocaleString('id-ID')} G · Uang sekarang: 💰 ${(+rc.g || 0).toLocaleString('id-ID')} G` }),
+            ] : [el('p', { text: 'Kemarin tidak ada barang di kotak pengiriman 🧺, jadi tidak ada penjualan.' }), el('p', { class: 'small-note', text: `Uang sekarang: 💰 ${(+rc.g || 0).toLocaleString('id-ID')} G` })];
+            openDlg(`📊 Rekap penjualan · Hari ${rc.d}`, body, [{ t: '☀️ Mulai hari baru', big: true }]);
         }
         function morningSave() { if (pendingSlot >= 0) { const i = pendingSlot; pendingSlot = -1; writeSlot(i); } }
 
@@ -4669,7 +4714,7 @@
         function sendMine() {
             if (!net.backend) return;
             sendMine.sq = (sendMine.sq || 0) + 1;
-            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -4681,7 +4726,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin)],
-                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
+                    eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
@@ -4728,6 +4773,8 @@
                 else if (net.mode === 'guest' && USER < OTHER) becomeHost(); // nobody runs the farm: one of us takes it
             }
             partnerF.live = !!o.here;
+            if (o.zz && !onPartner.zz && started && !sleeping) toast(player.zz ? `${OTHER} juga tidur 💤` : `💤 ${OTHER} sudah tidur. Tidurlah juga di kasur supaya hari berganti.`);
+            onPartner.zz = !!o.zz;
             if (Array.isArray(o.p)) partnerF.netT = o.p.map(Number);
             if (net.mode === 'host' && Array.isArray(o.acts)) {
                 // a friend who reopened the game numbers their actions from the start again
@@ -4760,6 +4807,7 @@
                     standUp(); buildHome();
                     player.pos.copy(WAKE[USER]); player.heading = player.targetHeading = 0; camTarget.copy(player.pos);
                     $('fade').classList.remove('show');
+                    showRecap(w.rc);
                     toast(`☀️ Selamat pagi! ${DAY_NAMES[(w.day - 1) % 7]}, Hari ${w.day}`);
                 }, 1200);
             }
@@ -4978,7 +5026,10 @@
                 settleAnimals();
                 // the shipping bin is sold overnight
                 let sold = 0, nSold = 0;
-                for (const [k, n] of Object.entries(state.store.bin)) { sold += (PRODUCTS[k] ? PRODUCTS[k].price : 0) * n; nSold += n; }
+                const lines = [];
+                for (const [k, n] of Object.entries(state.store.bin)) { const g = (PRODUCTS[k] ? PRODUCTS[k].price : 0) * n; sold += g; nSold += n; lines.push([k, n, g]); }
+                lines.sort((a, b) => b[2] - a[2]);
+                state.recap = { d: state.day, it: lines.slice(0, 30), t: sold, g: state.gold + sold };
                 state.store.bin = {};
                 state.gold += sold;
                 // fruit trees rest in winter; the rooftop garden grows in every season
@@ -5003,6 +5054,7 @@
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
+                showRecap(state.recap);
                 camTarget.copy(player.pos);
                 updateHud();
                 $('fade').classList.remove('show');
@@ -5010,7 +5062,7 @@
                 toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day} · ${weatherName(state.weather, newSeason)}`);
                 if (newSeason !== oldSeason) emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, '');
                 if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
-                if (nSold) emitEvent(`🧺 Kotak pengiriman: ${nSold} barang terjual semalam · +${sold.toLocaleString('id-ID')} G`, 'sell', null, '');
+                if (nSold) chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
                 morningSave();
             }, 1700);
         }
@@ -5238,6 +5290,7 @@
                 if (state.minutes >= BED_MIN) sleep(true);
             }
             if (net.mode === 'host') { deliverOrders(); rainWaters(); }
+            bedCheck();
             crowCheck();
             pkgMesh.visible = pkgCount() > 0;
             EGG_POS.forEach((v, i) => {
@@ -5318,7 +5371,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
