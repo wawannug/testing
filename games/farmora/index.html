@@ -329,9 +329,12 @@
         .itemgrid .item.on { background: #ffe08a; border-color: #d18a1a; }
         .itemgrid .item:disabled { opacity: .45; cursor: default; }
         .cathead { text-align: left; font-size: 15px; margin-top: 6px; }
-        .fishwrap { display: flex; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; }
-        .fishcv { height: min(400px, 48vh); width: auto; border-radius: 10px; touch-action: none; }
-        .fishhold { width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        #fishHud { position: fixed; left: calc(50% + 70px); top: 50%; transform: translateY(-58%); z-index: 30; pointer-events: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,.35)); }
+        #fishHud[hidden] { display: none; }
+        #fishHud .fishcv { display: block; height: min(340px, 46vh); width: auto; border-radius: 10px; }
+        #fishHud .fishx { position: absolute; top: -10px; right: -10px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #5e3a17; background: #fff3dc; font: 700 14px sans-serif; color: #5e3a17; pointer-events: auto; cursor: pointer; }
+        #actBtn.fishing { animation: rodPulse .5s ease-in-out infinite alternate; }
+        @keyframes rodPulse { from { box-shadow: 0 0 0 0 rgba(255,210,63,.9); } to { box-shadow: 0 0 0 12px rgba(255,210,63,0); } }
         .kithint { font-size: 13px; font-weight: 600; margin: 2px 0 0; }
         .itemgrid .item small { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slotbtn { font-size: 14px; text-align: left; }
@@ -5268,6 +5271,7 @@
             fishFx.bob.visible = fishFx.line.visible = !!(out && fishing);
             fishFx.bang.visible = !!(fishing && fishing.phase === 'bite');
             fishFx.ripple.visible = fishFx.bob.visible;
+            $('actBtn').classList.toggle('fishing', !!(fishing && (fishing.phase === 'bite' || fishing.phase === 'reel')));
             if (!fishFx.bob.visible) return;
             // rings spread from the float; quick and big when a fish bites
             const rp = ((elapsed - f.t0) * (f.phase === 'wait' ? 0.6 : 2.2)) % 1;
@@ -5289,48 +5293,50 @@
             if (g.y < 0) { g.y = 0; g.v = -g.v * 0.3; }
             if (g.y > 1 - g.bar) { g.y = 1 - g.bar; g.v = Math.min(0, g.v); }
             // the fish darts about: harder fish change their minds more often and further
-            const k = d.d / 100, rate = (0.5 + k * 2.6) * (d.m === 'dart' ? 1.15 : d.m === 'smooth' ? 0.7 : 1);
+            const k = d.d / 100, rate = (0.4 + k * 1.8) * (d.m === 'dart' ? 1.1 : d.m === 'smooth' ? 0.7 : 1);
             if (Math.random() < rate * dt) {
-                let t = clamp(g.fy + (Math.random() - 0.5) * (0.35 + k * 0.9), 0.03, 0.97);
+                let t = clamp(g.fy + (Math.random() - 0.5) * (0.3 + k * 0.7), 0.03, 0.97);
                 if (d.m === 'sinker') t = t * 0.75; else if (d.m === 'floater') t = 0.25 + t * 0.75;
                 g.tgt = t;
             }
-            const pull = (2.5 + k * 10) * (d.m === 'dart' ? 1.0 : d.m === 'smooth' ? 0.75 : 1);
-            g.fv += ((g.tgt - g.fy) * pull - g.fv) * Math.min(1, dt * (2.5 + k * 6));
+            const pull = (2 + k * 7) * (d.m === 'smooth' ? 0.75 : 1);
+            g.fv += ((g.tgt - g.fy) * pull - g.fv) * Math.min(1, dt * (2.5 + k * 4.5));
             g.fy = clamp(g.fy + g.fv * dt, 0.03, 0.97);
             // the catch meter fills while the fish is in the bar and drains when it is out
             const inBar = g.fy >= g.y && g.fy <= g.y + g.bar;
-            g.p = clamp(g.p + (inBar ? 0.28 : -(0.14 + k * 0.25)) * dt, 0, 1);
+            g.p = clamp(g.p + (inBar ? 0.3 : -(0.08 + k * 0.17)) * dt, 0, 1);
             return inBar;
         }
         const FISH_IMG = {};
+        let reelEnd = 0;
+        const reeling = () => !!(fishing && fishing.phase === 'reel');
+        // the little reel panel beside the farmer (like Stardew Valley); only the ✕ takes taps
+        function fishHud() {
+            if (fishHud.h) return fishHud.h;
+            const cv = el('canvas', { class: 'fishcv' });
+            const x = el('button', { class: 'fishx', title: 'Lepaskan' }, '✕');
+            x.addEventListener('click', () => { fishing = null; toast('Ikannya dilepas 🐟'); });
+            const box = el('div', { id: 'fishHud' }, cv, x);
+            box.hidden = true; document.body.append(box);
+            return fishHud.h = { el: box, cv };
+        }
         function reel(f) {
             const d = FISH_DEF[f.key], W = 150, H = 400, TOP = 14, BOT = H - 14, SPAN = BOT - TOP;
             const img = FISH_IMG[f.key] ||= Object.assign(new Image(), { src: TOOL_IMG[f.key] || '' });
-            const g = f.game = { bar: d.d < 30 ? 0.3 : 0.26, y: 0, v: 0, fy: 0.25, fv: 0, tgt: 0.4, p: 0.3, hold: false, t: 0 };
+            const g = f.game = { bar: 0.36 - d.d / 100 * 0.06, y: 0, v: 0, fy: 0.25, fv: 0, tgt: 0.4, p: 0.3, hold: false, t: 0 };
             f.phase = 'reel';
-            const cv = el('canvas', { class: 'fishcv', width: String(W), height: String(H) });
-            const hold = v => e => { if (e && e.cancelable) e.preventDefault(); g.hold = v; };
-            const btn = el('button', { class: 'btn big fishhold' }, '⬆️ Tahan untuk menarik');
-            for (const n of [cv, btn]) {
-                n.addEventListener('pointerdown', hold(true)); n.addEventListener('pointerup', hold(false));
-                n.addEventListener('pointercancel', hold(false)); n.addEventListener('pointerleave', hold(false));
-                n.addEventListener('contextmenu', e => e.preventDefault());
-            }
+            const hud = fishHud(), cv = hud.cv;
+            cv.width = W; cv.height = H;
             const KEYS = ['Space', 'ArrowUp', 'KeyW', 'KeyE', 'Enter'];
-            const kd = e => { if (KEYS.includes(e.code)) { e.preventDefault(); g.hold = true; } }, ku = e => { if (KEYS.includes(e.code)) g.hold = false; };
+            const kd = e => { if (KEYS.includes(e.code)) { e.preventDefault(); g.hold = true; } else if (e.code === 'Escape') { fishing = null; toast('Ikannya dilepas 🐟'); } }, ku = e => { if (KEYS.includes(e.code)) g.hold = false; };
             window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
-            const done = () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); };
-            const warn = d.d >= 80 ? '⭐ Tarikannya kuat sekali! Sepertinya ikan langka…' : d.d >= 55 ? '💪 Tarikannya kuat!' : 'Tarikannya ringan.';
-            openDlg('🎣 Tarik ikannya!', [
-                el('p', { class: 'small-note', text: `Tahan tombol (atau layar, Spasi) supaya bar hijau naik; lepas supaya turun. Jaga ikan tetap di dalam bar hijau sampai meteran penuh. ${warn}` }),
-                el('div', { class: 'fishwrap' }, cv), btn,
-            ], [{ t: 'Lepaskan', f: () => { fishing = null; toast('Ikannya dilepas 🐟'); } }]);
+            const done = () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); hud.el.hidden = true; reelEnd = performance.now(); };
+            hud.el.hidden = false;
             const ctx = cv.getContext('2d');
             const yOf = v => BOT - v * SPAN;
             let last = performance.now();
             const step = now => {
-                if (fishing !== f || !dlgOpen() || f.phase !== 'reel') { done(); if (fishing === f && f.phase === 'reel') fishing = null; return; }
+                if (fishing !== f || f.phase !== 'reel') { done(); return; }
                 // physics in steady 1/60 s steps, so a slow phone plays at the same speed
                 let acc = Math.min(0.25, (now - last) / 1000), inBar = false; last = now;
                 while (acc > 1e-4) { const h = Math.min(1 / 60, acc); inBar = fishStep(g, d, h); acc -= h; }
@@ -5349,8 +5355,8 @@
                 ctx.restore();
                 ctx.fillStyle = '#5e3a17'; ctx.fillRect(110, TOP, 26, SPAN);
                 ctx.fillStyle = `hsl(${Math.round(g.p * 120)}, 75%, 50%)`; ctx.fillRect(113, BOT - g.p * SPAN, 20, g.p * SPAN);
-                if (g.p >= 1) { done(); fishing = null; closeDlg(); sendAct('catch', f.key); return; }
-                if (g.p <= 0) { done(); f.phase = 'lost'; fishing = null; closeDlg(); toast('Yah, ikannya lepas 🐟💨 Lempar lagi?'); return; }
+                if (g.p >= 1) { done(); fishing = null; sendAct('catch', f.key); return; }
+                if (g.p <= 0) { done(); f.phase = 'lost'; fishing = null; toast('Yah, ikannya lepas 🐟💨 Lempar lagi?'); return; }
                 requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
@@ -5508,7 +5514,7 @@
         }
 
         function interact() {
-            if (!started || sleeping || travelling || dlgOpen()) return;
+            if (!started || sleeping || travelling || dlgOpen() || reeling() || performance.now() - reelEnd < 500) return;
             if (fishing && (fishing.phase === 'wait' || fishing.phase === 'bite')) { fishPull(); lastPrompt = null; return; }
             if (!focus) return;
             const it = focus;
@@ -6256,8 +6262,11 @@
             const end = e => { for (const t of e.changedTouches) if (t.identifier === joy.id) { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ''; } };
             base.addEventListener('touchend', end);
             base.addEventListener('touchcancel', end);
-            $('actBtn').addEventListener('touchstart', e => { e.preventDefault(); interact(); }, { passive: false });
-            $('actBtn').addEventListener('click', interact);
+            $('actBtn').addEventListener('touchstart', e => { e.preventDefault(); if (reeling()) fishing.game.hold = true; else interact(); }, { passive: false });
+            for (const ev of ['touchend', 'touchcancel']) $('actBtn').addEventListener(ev, () => { if (reeling()) fishing.game.hold = false; });
+            $('actBtn').addEventListener('click', () => { if (!reeling()) interact(); });
+            $('actBtn').addEventListener('mousedown', () => { if (reeling()) fishing.game.hold = true; });
+            for (const ev of ['mouseup', 'mouseleave']) $('actBtn').addEventListener(ev, () => { if (reeling()) fishing.game.hold = false; });
         }
 
         // Menus
@@ -6384,7 +6393,8 @@
             }
             const len = Math.hypot(ix, iz);
             const helpOpen = !$('helpScreen').classList.contains('hidden');
-            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging();
+            if (reeling()) clearGoal();
+            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging() && !reeling();
             if (moving && player.sit) standUp();
             if (moving) {
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
@@ -6474,7 +6484,7 @@
             }
 
             syncTool();
-            focus = started && !sleeping && !travelling && !dlgOpen() ? findFocus() : null;
+            focus = started && !sleeping && !travelling && !dlgOpen() && !reeling() ? findFocus() : null;
             updateTileMark();
             const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
             if (html !== lastPrompt) {
