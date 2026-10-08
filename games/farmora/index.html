@@ -2319,7 +2319,7 @@
         ];
         const GDEF = Object.fromEntries(GARDEN.map(g => [g.key, g]));
         const SUPPLIES = {
-            pot: { label: 'Pot', icon: '🪴', price: 60, note: 'Taruh di rak taman atap atau di mana saja di farm (bukan di air/kandang); untuk sayur & tanaman hias' },
+            pot: { label: 'Pot', icon: '🪴', price: 60, note: 'Taruh di rak taman atap atau di mana saja di farm (bukan di air/kandang); bisa diangkat dan dipindah; untuk sayur & tanaman hias' },
             pupuk: { label: 'Pupuk', icon: '🧪', price: 25, note: 'Tanaman tumbuh 1,5× lebih cepat' },
         };
         for (const g of GARDEN) SUPPLIES['b_' + g.key] = { label: (g.type === 'veg' ? 'Benih ' : 'Bibit ') + g.label, icon: '🌱', price: g.seed, plant: g.key };
@@ -3830,9 +3830,9 @@
             if (isBarn(f)) return r ? r.n : '🏚️ Kandang';
             return `${r ? r.n : '🏠 Rumah'} · ${f === F1 ? 'Lantai 1' : f === F2 ? 'Lantai 2' : 'Rooftop'}`;
         }
-        // Rooftop pot racks: 4 rows of 6
+        // Rooftop pot racks: two double racks (2 rows of 6 side by side), with a walkway between and around them
         const POT_POS = [];
-        for (const z of [-2.6, -0.6, 1.4, 3.4]) for (const x of [-2.6, -1.1, 0.4, 1.9, 3.4, 4.9]) POT_POS.push(HV(RF, x, z));
+        for (const z of [-3.0, -2.2, 1.0, 1.8]) for (const x of [-2.6, -1.1, 0.4, 1.9, 3.4, 4.9]) POT_POS.push(HV(RF, x, z));
         // Places to sit: h = facing, s = where you stand up, k = 1 sit / 2 kneel
         const seat = (f, x, z, h, sx, sz, k = 1, y) => ({ x: f + x, z, h, sx: f + sx, sz, k, y });
         // lying down (k 3): head toward the back (north), face up
@@ -4228,9 +4228,9 @@
             const umb = mesh(new THREE.ConeGeometry(1.2, 0.45, 12), mat(0xe85d4a), g); umb.position.set(7.0, 2.45, 3.2);
             table(g, 7.0, 3.75, 0.45, 0.4, 0.45, 0xffffff, 0xdddddd);
             // pot racks: low wooden pallets with a marked place for each pot
-            for (const z of [-2.6, -0.6, 1.4, 3.4]) {
-                box(8.8, 0.12, 0.8, 0x9a6b42, 1.15, 0.06, z, g);
-                col(f, -3.25, 5.55, z - 0.36, z + 0.36);
+            for (const z of [-2.6, 1.4]) {
+                box(8.8, 0.12, 1.6, 0x9a6b42, 1.15, 0.06, z, g);
+                col(f, -3.25, 5.55, z - 0.76, z + 0.76);
             }
             textPlate(g, 'Kebun Atap Farmora', 1.15, 0.9, -6.85, 2.2);
             for (let i = 0; i < POT_SLOTS; i++) {
@@ -5639,6 +5639,9 @@
             POT_POS.forEach((pos, i) => add('pot:' + i, pos, 1.2, {
                 label() {
                     const p = state.pots[i];
+                    if (carriedBy(USER)) return p ? 'Sudah ada pot di sini' : 'Taruh pot yang kamu bawa di sini 🪴';
+                    if (p && !p.s && tool === 'tangan' && !(heldItem() || '').startsWith('b_')) return 'Pot kosong · tanam benih 🌱 atau ✋ angkat';
+                    if (p && p.s && tool === 'tangan' && p.p < GDEF[p.s].days) return `✋ Angkat pot ${GDEF[p.s].icon} ${GDEF[p.s].label} untuk dipindah`;
                     if (!p) return have(USER, 'pot') > 0 ? `Taruh pot di sini 🪴 (di tas ${have(USER, 'pot')})` : 'Tempat pot kosong · bawa pot di tas 🪴';
                     if (!p.s) return 'Tanam benih di pot 🌱';
                     const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
@@ -5648,9 +5651,38 @@
                     if (rainOnRoof()) return `${d.icon} ${d.label} · disiram hujan 🌧️ · siap ${left} hari lagi`;
                     return `${d.icon} ${d.label} · siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
                 },
-                choose(cb) { const p = state.pots[i]; if (p && !p.s) chooseSeed(cb); else cb(tool); },
+                choose(cb) {
+                    const p = state.pots[i], h = heldItem() || '';
+                    if (carriedBy(USER)) { if (!p) cb('drop'); else toast('Sudah ada pot di sini · cari tempat kosong'); return; }
+                    if (p && !p.s) {
+                        if (h.startsWith('b_') && GDEF[h.slice(2)]) { cb(h.slice(2)); return; }
+                        if (tool === 'tangan') { openDlg('🪴 Pot kosong', [el('p', { text: 'Mau diapakan pot ini?' })], [{ t: '🌱 Tanam benih', big: true, f: () => chooseSeed(cb) }, { t: '✋ Angkat ke tas', f: () => cb('lift') }, { t: 'Batal' }]); return; }
+                        chooseSeed(cb); return;
+                    }
+                    if (p && p.s && tool === 'tangan' && p.p < GDEF[p.s].days) { cb('lift'); return; }
+                    cb(tool);
+                },
                 act(who, _pos, x) {
                     const p = state.pots[i], at = [pos.x, 1.0, pos.z];
+                    if (x === 'drop') {
+                        const held = carriedBy(who);
+                        if (!held || p) return;
+                        state.pots[i] = held.s ? { s: held.s, w: held.w, p: held.p, f: held.f, dry: held.dry } : {};
+                        state.fpots.splice(state.fpots.indexOf(held), 1);
+                        emitEvent('Menaruh pot di rak taman atap 🪴', 'icon:🪴', at, who); return;
+                    }
+                    if (x === 'lift') {
+                        if (!p || carriedBy(who)) return;
+                        if (!p.s) {
+                            if (bagRoom(who, 'pot') < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                            addBag(who, 'pot', 1); state.pots[i] = null;
+                            emitEvent('Pot kosong masuk tas 🪴', 'icon:🪴', at, who); return;
+                        }
+                        if (state.fpots.length >= FPOT_MAX) { emitEvent('Terlalu banyak pot di luar rak', 'none', null, who); return; }
+                        state.fpots.push({ x: 0, z: 0, s: p.s, w: p.w, p: p.p, f: p.f, dry: p.dry, c: who });
+                        state.pots[i] = null;
+                        emitEvent('Mengangkat pot 🪴 · taruh di rak lain, atau bawa ke farm', 'none', null, who); return;
+                    }
                     if (!p) {
                         if (!takeBag(who, 'pot')) { emitEvent('Tidak ada pot di tasmu. Ambil dari kotak penyimpanan atau beli lewat laptop 💻', 'none', null, who); return; }
                         state.pots[i] = {};
