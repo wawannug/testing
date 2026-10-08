@@ -5201,7 +5201,7 @@
             // 🎣 the ponds, when you hold the fishing rod
             for (const pd of [POND, DUCK_POND]) L.push({
                 id: 'fish', pos: new THREE.Vector3(pd.x, 0, pd.z), reach: pd.r + 1.3, local: true, when: () => tool === 'pancing',
-                label: () => `Memancing di kolam 🎣 (energi ${Math.round(energyOf(USER))})`,
+                label: () => !fishing ? `Lempar kail 🎣 (energi ${Math.round(energyOf(USER))})` : fishing.phase === 'bite' ? '❗ Ikan makan umpan! TARIK SEKARANG!' : '🎣 Tunggu pelampung bergerak… tekan saat ❗ muncul',
                 act: () => startFishing(new THREE.Vector3(pd.x, 0, pd.z)),
             });
             return L;
@@ -5218,38 +5218,67 @@
             for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
             return pool[0].key;
         }
+        // casting happens out on the pond, no window: a float bobs on the water, a ❗ pops up over your head
+        // when a fish takes the bait, and you strike with the action button (the rod, bottom right)
+        const fishFx = (() => {
+            const bob = new THREE.Group();
+            ball(0.07, 0.06, 0.07, 0xe53935, 0, 0.03, 0, bob); ball(0.07, 0.04, 0.07, 0xfafafa, 0, -0.02, 0, bob);
+            cap(0.008, 0.12, 0x2b2b2b, 0, 0.12, 0, bob);
+            bob.scale.setScalar(1.7); bob.visible = false; scene.add(bob);
+            const ripple = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.22, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false }));
+            ripple.visible = false; scene.add(ripple);
+            const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+            const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0xf5f5f5, transparent: true, opacity: 0.85 }));
+            line.visible = false; line.frustumCulled = false; scene.add(line);
+            const bang = canvasSprite(c => { c.fillStyle = '#ffd23f'; c.strokeStyle = '#8b2b10'; c.lineWidth = 8; c.beginPath(); c.arc(64, 64, 52, 0, Math.PI * 2); c.fill(); c.stroke(); c.fillStyle = '#c62828'; c.font = 'bold 86px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('!', 64, 70); }, 0.75);
+            bang.visible = false; scene.add(bang);
+            return { bob, line, bang, ripple };
+        })();
+        function stopFishing(msg) { fishing = null; if (msg) toast(msg); }
         function startFishing(at) {
             if (energyOf(USER) < 2) { toast('Capek sekali 😩 Makan atau tidur dulu untuk isi energi ⚡'); return; }
             player.targetHeading = Math.atan2(at.x - player.pos.x, at.z - player.pos.z);
-            const f = fishing = { phase: 'wait', at, big: at.x === POND.x && at.z === POND.z };
-            const view = () => {
-                if (fishing !== f) return;
-                const txt = { wait: '🎣 Kail dilempar… tunggu sampai ikan menggigit, lalu tarik!', bite: '‼️ Ikan menggigit! TARIK SEKARANG!', early: 'Terlalu cepat ditarik, ikannya kabur 🐟💨', lost: 'Yah, ikannya lepas 🐟💨' }[f.phase];
-                const again = f.phase === 'early' || f.phase === 'lost';
-                openDlg('🎣 Memancing', [el('p', { class: f.phase === 'bite' ? 'pintar' : '', text: txt })], [
-                    again ? { t: '🎣 Lempar lagi', big: true, keep: true, f: () => { closeDlg(); startFishing(at); } } : { t: f.phase === 'bite' ? '🐟 Tarik!' : 'Tarik', big: true, keep: true, f: pull },
-                    { t: 'Berhenti', f: () => { fishing = null; } },
-                ]);
-            };
-            f.view = view;
-            const pull = () => {
-                if (fishing !== f) return;
-                if (f.phase === 'bite') {
-                    clearTimeout(f.t);
-                    f.key = rollFish(f.big);
-                    if (f.key === 'sepatu') { fishing = null; closeDlg(); sendAct('catch', 'sepatu'); return; }
-                    reel(f);
-                    return;
-                }
-                if (f.phase === 'wait') { clearTimeout(f.t); f.phase = 'early'; view(); }
-            };
-            view();
+            const pr = at === POND || (at.x === POND.x && at.z === POND.z) ? POND : DUCK_POND;
+            const dx = player.pos.x - pr.x, dz = player.pos.z - pr.z, dl = Math.hypot(dx, dz) || 1;
+            const f = fishing = { phase: 'wait', at, big: pr === POND, from: player.pos.clone(), t0: elapsed, bob: new THREE.Vector3(pr.x + dx / dl * pr.r * 0.55, 0.06, pr.z + dz / dl * pr.r * 0.55) };
+            splash(f.bob); whoosh();
             f.t = setTimeout(() => {
                 if (fishing !== f) return;
-                if (!dlgOpen()) { fishing = null; return; } // closed the window: stopped fishing
-                f.phase = 'bite'; view(); chime([880, 1175], 0.06, 'square', 0.05);
-                f.t = setTimeout(() => { if (fishing === f && f.phase === 'bite') { if (!dlgOpen()) { fishing = null; return; } f.phase = 'lost'; view(); } }, 1400);
-            }, 1500 + Math.random() * 3500);
+                f.phase = 'bite'; f.biteAt = elapsed;
+                chime([880, 1175], 0.06, 'square', 0.05); splash(f.bob);
+                try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) { }
+                f.t = setTimeout(() => { if (fishing === f && f.phase === 'bite') stopFishing('Yah, ikannya lepas 🐟💨 Lempar lagi?'); }, 1400);
+            }, 1800 + Math.random() * 4500);
+        }
+        // the action button while the line is out
+        function fishPull() {
+            const f = fishing;
+            if (!f) return;
+            clearTimeout(f.t);
+            if (f.phase === 'wait') { stopFishing('Terlalu cepat ditarik, ikannya kabur 🐟💨'); return; }
+            if (f.phase !== 'bite') return;
+            f.key = rollFish(f.big);
+            if (f.key === 'sepatu') { stopFishing(); sendAct('catch', 'sepatu'); return; }
+            reel(f);
+        }
+        function updateFishingFx() {
+            const f = fishing, out = f && (f.phase === 'wait' || f.phase === 'bite' || f.phase === 'reel');
+            // walking off or going inside reels the line in
+            if (f && (f.phase === 'wait' || f.phase === 'bite') && (player.pos.distanceTo(f.from) > 0.35 || travelling || sleeping)) { clearTimeout(f.t); stopFishing('Berhenti memancing'); }
+            fishFx.bob.visible = fishFx.line.visible = !!(out && fishing);
+            fishFx.bang.visible = !!(fishing && fishing.phase === 'bite');
+            fishFx.ripple.visible = fishFx.bob.visible;
+            if (!fishFx.bob.visible) return;
+            // rings spread from the float; quick and big when a fish bites
+            const rp = ((elapsed - f.t0) * (f.phase === 'wait' ? 0.6 : 2.2)) % 1;
+            fishFx.ripple.position.set(f.bob.x, 0.07, f.bob.z); fishFx.ripple.scale.setScalar(1 + rp * (f.phase === 'wait' ? 1.5 : 3.5)); fishFx.ripple.material.opacity = 0.6 * (1 - rp);
+            const bite = f.phase === 'bite' || f.phase === 'reel';
+            fishFx.bob.position.set(f.bob.x + (bite ? Math.sin(elapsed * 31) * 0.03 : 0), bite ? -0.02 + Math.sin(elapsed * 23) * 0.04 : 0.06 + Math.sin((elapsed - f.t0) * 2.6) * 0.02, f.bob.z);
+            // the line runs from the rod tip in your right hand to the float
+            const h = player.heading, tip = new THREE.Vector3(player.pos.x + Math.sin(h) * 0.9 - Math.cos(h) * 0.25, 1.75, player.pos.z + Math.cos(h) * 0.9 + Math.sin(h) * 0.25);
+            const p = fishFx.line.geometry.attributes.position;
+            p.setXYZ(0, tip.x, tip.y, tip.z); p.setXYZ(1, fishFx.bob.position.x, fishFx.bob.position.y + 0.1, fishFx.bob.position.z); p.needsUpdate = true;
+            fishFx.bang.position.set(player.pos.x, 2.75 + Math.abs(Math.sin(elapsed * 9)) * 0.12, player.pos.z);
         }
         // one step of the reeling mini-game; true while the fish is inside the green bar
         function fishStep(g, d, dt) {
@@ -5296,7 +5325,7 @@
             openDlg('🎣 Tarik ikannya!', [
                 el('p', { class: 'small-note', text: `Tahan tombol (atau layar, Spasi) supaya bar hijau naik; lepas supaya turun. Jaga ikan tetap di dalam bar hijau sampai meteran penuh. ${warn}` }),
                 el('div', { class: 'fishwrap' }, cv), btn,
-            ], [{ t: 'Lepaskan', f: () => { fishing = null; } }]);
+            ], [{ t: 'Lepaskan', f: () => { fishing = null; toast('Ikannya dilepas 🐟'); } }]);
             const ctx = cv.getContext('2d');
             const yOf = v => BOT - v * SPAN;
             let last = performance.now();
@@ -5321,7 +5350,7 @@
                 ctx.fillStyle = '#5e3a17'; ctx.fillRect(110, TOP, 26, SPAN);
                 ctx.fillStyle = `hsl(${Math.round(g.p * 120)}, 75%, 50%)`; ctx.fillRect(113, BOT - g.p * SPAN, 20, g.p * SPAN);
                 if (g.p >= 1) { done(); fishing = null; closeDlg(); sendAct('catch', f.key); return; }
-                if (g.p <= 0) { done(); f.phase = 'lost'; f.view(); return; }
+                if (g.p <= 0) { done(); f.phase = 'lost'; fishing = null; closeDlg(); toast('Yah, ikannya lepas 🐟💨 Lempar lagi?'); return; }
                 requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
@@ -5479,7 +5508,9 @@
         }
 
         function interact() {
-            if (!started || sleeping || travelling || dlgOpen() || !focus) return;
+            if (!started || sleeping || travelling || dlgOpen()) return;
+            if (fishing && (fishing.phase === 'wait' || fishing.phase === 'bite')) { fishPull(); lastPrompt = null; return; }
+            if (!focus) return;
             const it = focus;
             if (!it.local) player.targetHeading = Math.atan2(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
             // moving, sitting and menus happen on this device; farm changes go through the host
@@ -6427,6 +6458,7 @@
             weatherAudio();
             updatePlants(elapsed);
             updatePTrees(elapsed);
+            updateFishingFx();
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
@@ -6485,7 +6517,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, view() { f.phase = "lost"; } }; reel(f); } }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
