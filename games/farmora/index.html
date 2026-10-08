@@ -1508,7 +1508,11 @@
         const TILE_MAX = 60, PTREE_MAX = 12;
         const tileKey = (x, z) => x + ',' + z;
         const treeSpan = f => BIG_TREE(f) ? 1 : 0;
-        const TREE_GROW = f => BIG_TREE(f) ? 6 : 3;
+        // days of daily watering from sapling to the first fruit: at least a month, at most a year (6 seasons × 30 days)
+        const TREE_DAYS = { stroberi: 30, semangka: 35, melon: 35, pepaya: 60, pisang: 60, jambu: 75, anggur: 90, nanas: 100, salak: 120, jeruk: 120,
+            apel: 140, pir: 140, alpukat: 150, mangga: 150, rambutan: 150, sawo: 150, kelapa: 180, durian: 180, manggis: 180, duku: 180 };
+        const TREE_GROW = f => TREE_DAYS[f.key] || 90;
+        const daysText = n => n >= 30 ? `${n} hari (±${Math.round(n / 30)} bulan)` : `${n} hari`;
         const SMALL_K = { salak: 0.55, bed: 0.3, berry: 0.3, pineapple: 0.32 };
         const groundMemo = new Map();
         // why this square can never be hoed ('' when it can)
@@ -1562,10 +1566,11 @@
             for (const t of state.ptrees) {
                 const f = FDEF[t.k];
                 if (!f) continue;
-                if (winter) { t.w = false; continue; }
+                // grown trees rest in winter; saplings keep growing as long as they are watered
+                if (winter && t.g >= TREE_GROW(f)) { t.w = false; continue; }
                 if (t.w) {
                     t.dry = 0;
-                    if (t.g < TREE_GROW(f)) t.g++;
+                    if (t.g < TREE_GROW(f)) { if (++t.g >= TREE_GROW(f)) t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); }
                     else if (t.r === 0 && ++t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; }
                 } else t.dry++;
                 t.w = false;
@@ -2009,7 +2014,7 @@
         const BIG_TREE = f => ['tree', 'palm', 'banana', 'papaya', 'vine'].includes(f.kind);
         const FDEF = Object.fromEntries(FRUIT_DEFS.map(f => [f.key, f]));
         const FKEYS = FRUIT_DEFS.map(f => f.key);
-        for (const f of FRUIT_DEFS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: BIG_TREE(f) ? `Pohon buah · butuh lahan 3×3 kotak · berbuah ${f.yield[0]}–${f.yield[1]} ${f.label.toLowerCase()} tiap ${f.cycle} hari` : `Tanaman buah kecil · butuh 1 kotak lahan · berbuah tiap ${f.cycle} hari` };
+        for (const f of FRUIT_DEFS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: `${BIG_TREE(f) ? 'Pohon buah · butuh lahan 3×3 kotak' : 'Tanaman buah kecil · butuh 1 kotak lahan'} · berbuah pertama setelah ${daysText(TREE_GROW(f))} disiram tiap hari, lalu ${f.yield[0]}–${f.yield[1]} buah tiap ${f.cycle} hari` };
         // Plants sell from the shipping bin; ornamental plants are sold together with their pot
         for (const g of GARDEN) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
@@ -4502,7 +4507,7 @@
                         const s = treeSpan(f);
                         for (let dx = -s; dx <= s; dx++) for (let dz = -s; dz <= s; dz++) delete state.tiles[tileKey(ix + dx, iz + dz)];
                         state.ptrees.push({ k: f.key, x: ix, z: iz, g: 0, w: isWet(), p: 0, r: 0, dry: 0 });
-                        emitEvent(`Menanam bibit ${f.icon} ${f.label}! Siram tiap hari, ${TREE_GROW(f)} hari lagi tumbuh besar 🌳`, 'icon:🌳', at, who); return;
+                        emitEvent(`Menanam bibit ${f.icon} ${f.label}! Siram tiap hari, berbuah pertama setelah ${daysText(TREE_GROW(f))} 🌳`, 'icon:🌳', at, who); return;
                     }
                     const d = arg.startsWith('b_') && GDEF[arg.slice(2)];
                     if (!d) { emitEvent('Tanah sudah dicangkul · pilih benih atau bibit untuk ditanam 🌱', 'none', null, who); return; }
@@ -4547,7 +4552,7 @@
                     if (wood) addBag(who, 'kayu', 2);
                     emitEvent(`Menebang ${f.label} 🪓${wood ? ' · dapat 🪵 Kayu ×2' : ''} · lahannya kosong lagi`, 'icon:🪓', at, who); return;
                 }
-                if (seasonOf(state.day).key === 'dingin') { emitEvent(`${f.label} sedang istirahat di musim dingin ❄️`, 'none', null, who); return; }
+                if (seasonOf(state.day).key === 'dingin' && t.g >= TREE_GROW(f)) { emitEvent(`${f.label} sedang istirahat di musim dingin ❄️`, 'none', null, who); return; }
                 if (t.w) { emitEvent(`${f.label} sudah disiram hari ini 🌱`, 'none', null, who); return; }
                 if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
                 if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
@@ -5033,7 +5038,7 @@
             const opts = plantTab === 'pohon'
                 ? FRUIT_DEFS.filter(f => have(USER, 'p_' + f.key) > 0).map(f => {
                     const why = treeWhy(f, ix, iz);
-                    const b = el('button', { class: 'btn', onclick: () => { closeDlg(); send('p_' + f.key); } }, `${f.icon} ${f.label}`, el('small', { text: ` ×${have(USER, 'p_' + f.key)} · ${BIG_TREE(f) ? 'lahan 3×3' : '1 kotak'}${why ? ' · ' + why : ''}` }));
+                    const b = el('button', { class: 'btn', onclick: () => { closeDlg(); send('p_' + f.key); } }, `${f.icon} ${f.label}`, el('small', { text: ` ×${have(USER, 'p_' + f.key)} · ${BIG_TREE(f) ? 'lahan 3×3' : '1 kotak'} · berbuah ±${Math.max(1, Math.round(TREE_GROW(f) / 30))} bln${why ? ' · ' + why : ''}` }));
                     if (why) b.disabled = true;
                     return b;
                 })
@@ -5041,7 +5046,7 @@
                     el('button', { class: 'btn', onclick: () => { closeDlg(); send('b_' + g.key); } }, `${g.icon} ${g.label}`, el('small', { text: ` ×${have(USER, 'b_' + g.key)} · ${g.days} hari` })));
             openDlg('🌱 Tanam apa di sini?', [
                 el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === plantTab ? ' on' : ''), onclick: () => { plantTab = k; openPlantMenu(ix, iz, send); } }, t))),
-                plantTab === 'pohon' ? el('p', { class: 'small-note', text: 'Pohon buah besar (mangga, durian, kelapa, pisang, pepaya, jeruk, anggur, dll.) butuh lahan 3×3 kotak: kotak tengah dicangkul, 8 kotak di sekelilingnya kosong. Tanaman buah kecil (salak, nanas, stroberi, semangka, melon) cukup 1 kotak.' }) : null,
+                plantTab === 'pohon' ? el('p', { class: 'small-note', text: 'Pohon buah besar (mangga, durian, kelapa, pisang, pepaya, jeruk, anggur, dll.) butuh lahan 3×3 kotak: kotak tengah dicangkul, 8 kotak di sekelilingnya kosong. Tanaman buah kecil (salak, nanas, stroberi, semangka, melon) cukup 1 kotak. Dari bibit sampai berbuah butuh 1 bulan sampai 1 tahun (180 hari), asal disiram tiap hari.' }) : null,
                 opts.length ? el('div', { class: 'seedgrid' }, opts) : el('p', { class: 'small-note', text: 'Belum ada di tasmu. Beli lewat laptop 💻 di rumah, atau ambil dari kotak penyimpanan 📦.' }),
             ].filter(Boolean));
         }
@@ -5059,8 +5064,8 @@
                     const name = `${f.icon} ${f.label}`, G = TREE_GROW(f);
                     if (t.r > 0) return `Panen ${name} (${t.r})`;
                     if (tool === 'kapak') return `Tebang ${f.label} 🪓`;
-                    if (seasonOf(state.day).key === 'dingin') return `${name} · ❄️ istirahat di musim dingin`;
-                    const stage = t.g < G ? `🌱 tumbuh besar ${G - t.g} hari lagi` : `berbuah ${Math.max(1, f.cycle - t.p)} hari lagi`;
+                    if (seasonOf(state.day).key === 'dingin' && t.g >= G) return `${name} · ❄️ istirahat di musim dingin`;
+                    const stage = t.g < G ? `🌱 bibit · berbuah pertama ${daysText(G - t.g)} lagi` : `berbuah ${Math.max(1, f.cycle - t.p)} hari lagi`;
                     if (isWet()) return `${name} · disiram hujan 🌧️ · ${stage}`;
                     if (!t.w) return tool === 'penyiram' ? `Siram ${name}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${myWater()}/${WATER_MAX}` : `${name} perlu disiram · ${toolHint('penyiram')}`;
                     return `${name} · ${stage}`;
