@@ -273,6 +273,8 @@
         #flash { position: fixed; inset: 0; background: #eef4ff; opacity: 0; pointer-events: none; transition: opacity .25s; }
         #fade.soft { background: rgba(13, 16, 34, .55); transition: opacity .6s; font-size: 54px; }
         #clock .loc { font-size: 12.5px; font-weight: 600; margin-top: 2px; opacity: .85; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* phones: the button row takes the top line, the clock sits right under it */
+        @media (max-width: 560px) { #clock { top: 66px; } }
         @media (max-width: 480px) {
             #clock { min-width: 0; max-width: 150px; padding: 6px 10px; }
             #clock .time { font-size: 22px; }
@@ -342,7 +344,7 @@
         #joy, #actBtn { display: none; }
         #eatBtn { position: fixed; right: 22px; bottom: 128px; z-index: 6; font-size: 17px; padding: 10px 14px; border-radius: 999px; }
         #eatBtn[hidden] { display: none; }
-        #sleepNote { position: fixed; left: 50%; top: 86px; transform: translateX(-50%); z-index: 6; padding: 8px 14px; font-size: 14px; font-weight: 600; max-width: 88vw; text-align: center; }
+        #sleepNote { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%); z-index: 6; padding: 8px 14px; font-size: 14px; font-weight: 600; max-width: 88vw; text-align: center; }
         #sleepNote[hidden] { display: none; }
 
         @media (max-width: 760px) {
@@ -5216,6 +5218,13 @@
         // phones change the visible size without always saying so (address bar, keyboard, rotating,
         // switching apps): check every frame so the picture never stays stretched or zoomed
         const view = { w: 0, h: 0, dpr: 0 };
+        // the partner badge always sits just below the clock, whatever its height
+        function placeBadge() {
+            const b = $('netBadge'), c = $('clock');
+            if (!b || !c) return;
+            const top = Math.round(c.getBoundingClientRect().bottom + 8);
+            if (b.style.top !== top + 'px') b.style.top = top + 'px';
+        }
         function fitView() {
             const w = window.innerWidth, h = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, LITE ? 1.5 : 2);
             if (w === view.w && h === view.h && dpr === view.dpr) return;
@@ -5280,6 +5289,7 @@
         function tick() {
             requestAnimationFrame(tick);
             fitView();
+            placeBadge();
             const dt = Math.min(clock.getDelta(), 0.05);
             elapsed += dt;
             const helpOpen = !$('helpScreen').classList.contains('hidden');
