@@ -2598,6 +2598,8 @@
             const place = placeName(player.pos);
             const bag = bagOf(USER);
             const held = heldItem(), dish = started && RECIPES.find(r => r.key === held);
+            // the round action button shows what is in your hands
+            $('actBtn').textContent = held && ITEMS[held] ? ITEMS[held].icon : '✋';
             $('eatBtn').hidden = !dish;
             if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${FOOD_ENERGY[dish.key] || 20} ⚡`;
             const en = Math.round(energyOf(USER));
