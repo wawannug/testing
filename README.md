@@ -46,6 +46,16 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Duduk & rebahan:** sofa depan TV, bangku teras, bangku balkon, dan bangku pergola muat 2 orang berjejer; kursi ruang makan bisa diduduki (sekalian makan). Duduk di sofa ruang keluarga otomatis menyalakan TV. Di rooftop ada 2 kursi santai untuk rebahan. Di kasur ada pilihan **Rebahan saja**; bergerak berarti bangun.
 - **Hewan tidur** mulai pukul 20:00 sampai pagi: diam di tempat dengan 💤. Anjing tidak lagi terus mengikuti pemain.
 
+## Perkakas 🧰
+- **Kotak perkakas** (kotak merah di samping kotak penyimpanan, depan rumah) berisi 2 buah dari tiap alat, satu untuk masing-masing pemain. Ambil alat dari sini; alat langsung masuk ke toolbar (barang lain di toolbar digeser ke tas kalau penuh). Kembalikan alat ke kotak ini kalau tasmu penuh. **Penyiram** selalu ada di tasmu, jadi tidak disimpan di kotak.
+- 🪏 **Cangkul:** olah 8 petak **Lahan** di timur ladang (ada papan "Lahan"). Setelah dicangkul, petak bisa ditanami benih, disiram, dipupuk, dan dipanen seperti pot rooftop; hujan ikut menyiramnya.
+- ⛏️ **Beliung:** pecahkan 6 batu besar di sebelah barat (selatan rumah, dekat kandang ayam). Dapat 🪨 batu, kadang 🟠 bijih tembaga, ⚙️ besi, atau 🟡 emas. Batu yang pecah sebagian muncul lagi tiap pagi.
+- 🪓 **Kapak:** tebang 6 pohon kayu (pojok barat laut, pojok tenggara, dan dekat ladang). 3 ayunan untuk menumbangkan pohon (🪵 kayu ×3), lalu bersihkan tunggulnya (🪵 kayu ×1). Pohon tumbuh lagi setelah beberapa hari.
+- 🎣 **Pancing:** pegang pancing di dekat kolam besar atau kolam bebek, tekan tombol aksi, tunggu sampai muncul "Ikan menggigit!", lalu tarik tepat waktu. Hasilnya 🐟 ikan mas, 🐠 nila, 🐡 gurame, atau kadang 👢 sepatu bot tua. Ikan mas bisa dimasak jadi 🍢 **Ikan bakar** (+35 ⚡).
+- 🌾 **Sabit:** potong rumput liar yang tumbuh di sekitar farm (bertambah tiap malam). Dapat 🌿 rumput, kadang benih kangkung liar.
+- Semua hasilnya bisa dijual di kotak pengiriman atau diberikan ke pasangan. Kerja dengan alat memakai energi: cangkul 2, beliung 4, kapak 4, pancing 2, sabit 1.
+- Alat yang dipilih terlihat di tangan kanan karaktermu (juga oleh pasangan) dan diayunkan saat dipakai. Ikon alat di toolbar dan tombol aksi digambar khusus, termasuk penyiram baru berbentuk gembor.
+
 ## Cara bergerak 🕹️👆
 - Ada 2 pilihan, ganti dengan tombol di kanan atas (di samping 💾). Pilihan tersimpan di perangkat masing-masing.
   - **🕹️ Joystick:** geser joystick di kiri bawah (di komputer: WASD atau tombol panah).
