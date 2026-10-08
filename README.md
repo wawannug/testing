@@ -46,6 +46,11 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Duduk & rebahan:** sofa depan TV, bangku teras, bangku balkon, dan bangku pergola muat 2 orang berjejer; kursi ruang makan bisa diduduki (sekalian makan). Duduk di sofa ruang keluarga otomatis menyalakan TV. Di rooftop ada 2 kursi santai untuk rebahan. Di kasur ada pilihan **Rebahan saja**; bergerak berarti bangun.
 - **Hewan tidur** mulai pukul 20:00 sampai pagi: diam di tempat dengan 💤. Anjing tidak lagi terus mengikuti pemain.
 
+## Cara bergerak 🕹️👆
+- Ada 2 pilihan, ganti dengan tombol di kanan atas (di samping 💾). Pilihan tersimpan di perangkat masing-masing.
+  - **🕹️ Joystick:** geser joystick di kiri bawah (di komputer: WASD atau tombol panah).
+  - **👆 Ketuk tujuan:** joystick disembunyikan. Ketuk tanah atau tempat yang ingin dituju, lalu muncul lingkaran putih di sana dan karaktermu berjalan sendiri ke situ (berlari kalau jauh). Berhenti sendiri kalau sudah sampai atau terhalang pagar/dinding; ketuk tempat lain untuk mengganti tujuan.
+
 ## Energi, makan, dan interaksi berdua ⚡🤗
 - **Energi ⚡ (0–200)** tampil di bawah jumlah gold. Kerja di farm memakai energi: siram atau panen pohon dan pot (2), elus, perah, atau cukur hewan (2), ambil telur (1), isi ember (1), dan memasak (3). Kalau energi habis, kamu tidak bisa bekerja dan jalan lebih pelan; makan atau tidur dulu.
 - **Tidur** di kasur mengisi energi penuh. Kalau tertidur otomatis pukul 00:00, energi terisi minimal 140.

@@ -344,6 +344,7 @@
         #joy, #actBtn { display: none; }
         #eatBtn { position: fixed; right: 22px; bottom: 128px; z-index: 6; font-size: 17px; padding: 10px 14px; border-radius: 999px; }
         #eatBtn[hidden] { display: none; }
+        body.tapmove #joy { display: none !important; }
         #sleepNote { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%); z-index: 6; padding: 8px 14px; font-size: 14px; font-weight: 600; max-width: 88vw; text-align: center; }
         #sleepNote[hidden] { display: none; }
 
@@ -506,6 +507,7 @@
 
     <div id="topRight">
         <a class="btn" id="menuBtn" href="../../index.html" title="Kembali ke menu">☰ Menu</a>
+        <button class="btn" id="moveBtn" title="Cara bergerak: joystick atau ketuk tujuan">🕹️</button>
         <button class="btn" id="saveBtn" title="Simpan progres">💾</button>
         <button class="btn" id="musicBtn" title="Musik">🎵</button>
         <button class="btn" id="sfxBtn" title="Efek suara">🔊</button>
@@ -5150,6 +5152,54 @@
         window.addEventListener('blur', () => keys.clear());
         window.addEventListener('wheel', e => { zoom = clamp(zoom + Math.sign(e.deltaY) * 0.1, 0.6, 1.6); }, { passive: true });
 
+        // ---- two ways to move: the joystick, or tap the ground where you want to go ----
+        const MOVE_KEY = 'farmora.move';
+        let moveMode = (() => { try { return localStorage.getItem(MOVE_KEY) === 'tap' ? 'tap' : 'joy'; } catch (e) { return 'joy'; } })();
+        const goalCheck = { t: 0, p: new THREE.Vector3() };
+        const goalMark = new THREE.Mesh(new THREE.RingGeometry(0.22, 0.36, 28), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false }));
+        goalMark.rotation.x = -Math.PI / 2; goalMark.visible = false; goalMark.renderOrder = 5;
+        function clearGoal() { player.goal = null; goalMark.visible = false; }
+        function applyMoveMode() {
+            document.body.classList.toggle('tapmove', moveMode === 'tap');
+            $('moveBtn').textContent = moveMode === 'tap' ? '👆' : '🕹️';
+            if (moveMode !== 'tap') clearGoal();
+        }
+        $('moveBtn').addEventListener('click', () => {
+            moveMode = moveMode === 'tap' ? 'joy' : 'tap';
+            try { localStorage.setItem(MOVE_KEY, moveMode); } catch (e) { }
+            applyMoveMode();
+            toast(moveMode === 'tap' ? '👆 Ketuk tanah atau tempat tujuan, karaktermu berjalan sendiri ke sana.' : '🕹️ Bergerak dengan joystick (atau tombol panah/WASD).');
+        });
+        applyMoveMode();
+        const rayc = new THREE.Raycaster(), ndc = new THREE.Vector2(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hitP = new THREE.Vector3();
+        function walkTo(cx, cy) {
+            if (!started || sleeping || travelling || dlgOpen()) return;
+            const r = renderer.domElement.getBoundingClientRect();
+            ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+            rayc.setFromCamera(ndc, camera);
+            if (!rayc.ray.intersectPlane(groundPlane, hitP)) return;
+            if (player.sit) standUp();
+            player.goal = hitP.clone().setY(0);
+            player.goalFar = player.pos.distanceTo(player.goal) > 6;
+            goalCheck.t = 0; goalCheck.p.copy(player.pos);
+            const sc = sceneOf(player.goal);
+            if (goalMark.parent !== sc) sc.add(goalMark);
+            goalMark.position.set(player.goal.x, 0.04, player.goal.z);
+            goalMark.visible = true;
+        }
+        {
+            // a short tap (not a drag) on the scene itself
+            const cv = renderer.domElement;
+            let down = null;
+            cv.addEventListener('pointerdown', e => { down = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() }; });
+            cv.addEventListener('pointerup', e => {
+                const d = down; down = null;
+                if (moveMode !== 'tap' || !d || d.id !== e.pointerId) return;
+                if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 14 || performance.now() - d.t > 500) return;
+                walkTo(e.clientX, e.clientY);
+            });
+        }
+
         // Touch joystick
         const joy = { x: 0, y: 0, id: null };
         {
@@ -5280,12 +5330,25 @@
             if (keys.has('KeyW') || keys.has('ArrowUp')) iz -= 1;
             if (keys.has('KeyS') || keys.has('ArrowDown')) iz += 1;
             ix += joy.x; iz += joy.y;
+            // tap-to-walk: head for the chosen spot until there, blocked, or steered by hand
+            if (Math.hypot(ix, iz) > 0.1) clearGoal();
+            else if (player.goal) {
+                const dx = player.goal.x - player.pos.x, dz = player.goal.z - player.pos.z, d = Math.hypot(dx, dz);
+                if (d < 0.2 || sceneOf(player.goal) !== sceneOf(player.pos)) clearGoal();
+                else {
+                    ix = dx / d; iz = dz / d;
+                    if (Math.min(1, d / 0.6) < 1) { ix *= Math.max(0.35, d / 0.6); iz *= Math.max(0.35, d / 0.6); }
+                    // stuck against a fence or a wall: give up
+                    goalCheck.t += dt;
+                    if (goalCheck.t > 0.6) { if (player.pos.distanceTo(goalCheck.p) < 0.12) clearGoal(); goalCheck.t = 0; goalCheck.p.copy(player.pos); }
+                }
+            }
             const len = Math.hypot(ix, iz);
             const helpOpen = !$('helpScreen').classList.contains('hidden');
             let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging();
             if (moving && player.sit) standUp();
             if (moving) {
-                const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null;
+                const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
                 const tired = energyOf(USER) < 10;
                 const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len);
                 player.pos.x += ix / len * sp * dt;
@@ -5410,7 +5473,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
