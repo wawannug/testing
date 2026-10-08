@@ -1231,6 +1231,17 @@
             { key: 'stroberi', label: 'Stroberi', icon: '🍓', price: 25, cycle: 1, yield: [3, 6], kind: 'berry', at: [-4, 16.4] },
             { key: 'nanas', label: 'Nanas', icon: '🍍', price: 180, cycle: 5, yield: [1, 2], kind: 'pineapple', at: [0, 16.4] },
         ];
+        // fruit that only grows from saplings you plant yourself
+        const SAPLING_FRUITS = [
+            { key: 'nangka', label: 'Nangka', icon: '🍈', price: 260, cycle: 6, yield: [1, 2], kind: 'tree', at: [0, 0], tree: { r: 1.4, y: 2.6, trunk: 1.2, leaf: 0x2f6b30, shape: 'oval' }, fruit: 'nangka' },
+            { key: 'sirsak', label: 'Sirsak', icon: '🍏', price: 120, cycle: 4, yield: [1, 3], kind: 'tree', at: [0, 0], tree: { r: 1.0, y: 2.1, trunk: 0.85, leaf: 0x3f8a3a, shape: 'cone' }, fruit: 'sirsak' },
+            { key: 'belimbing', label: 'Belimbing', icon: '⭐', price: 40, cycle: 3, yield: [3, 5], kind: 'tree', at: [0, 0], tree: { r: 1.05, y: 2.0, trunk: 0.85, leaf: 0x5aa040, shape: 'spread' }, fruit: 'belimbing' },
+            { key: 'kelengkeng', label: 'Kelengkeng', icon: '🫒', price: 45, cycle: 4, yield: [4, 6], kind: 'tree', at: [0, 0], tree: { r: 1.35, y: 2.3, trunk: 1.0, leaf: 0x3a7a35, shape: 'round' }, fruit: 'kelengkeng' },
+            { key: 'jambuair', label: 'Jambu air', icon: '🍒', price: 35, cycle: 3, yield: [3, 6], kind: 'tree', at: [0, 0], tree: { r: 1.1, y: 2.2, trunk: 0.9, leaf: 0x4a9a3e, shape: 'round' }, fruit: 'jambuair' },
+            { key: 'markisa', label: 'Markisa', icon: '🫐', price: 50, cycle: 3, yield: [3, 5], kind: 'vine', at: [0, 0], fruit: 'markisa' },
+            { key: 'buahnaga', label: 'Buah naga', icon: '🐉', price: 90, cycle: 3, yield: [2, 3], kind: 'dragon', at: [0, 0], fruit: 'buahnaga' },
+        ];
+        const ALL_FRUITS = [...FRUIT_DEFS, ...SAPLING_FRUITS];
         const WELLS = [new THREE.Vector3(-8, 0, 10.4), new THREE.Vector3(-3.5, 0, -18.5)];
 
         const stripeMat = (() => {
@@ -1255,6 +1266,13 @@
                 case 'durian': b(0.15, 0.17, 0.15, 0x9aa83a, 0, 0, 0, 0.7); spike(0x7d8a2a, 18, 0.15, 0.03); break;
                 case 'manggis': b(0.08, 0.075, 0.08, 0x5b1e4a, 0, 0, 0, 0.3); b(0.05, 0.02, 0.05, 0x5a8a3a, 0, 0.07, 0); break;
                 case 'jambu': b(0.085, 0.09, 0.085, 0xb8d86a); break;
+                case 'nangka': b(0.16, 0.24, 0.15, 0x8fa83a, 0, -0.08, 0, 0.8); spike(0x7a9030, 14, 0.15, 0.02); break;
+                case 'sirsak': b(0.1, 0.14, 0.1, 0x4f8a3a, 0, 0, 0, 0.6); spike(0x3f7030, 12, 0.1, 0.018); break;
+                case 'belimbing': for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; b(0.035, 0.11, 0.035, 0xf2d23a, Math.cos(a) * 0.035, 0, Math.sin(a) * 0.035, 0.35); } break;
+                case 'kelengkeng': for (const [x, y] of [[0, 0], [0.05, -0.03], [-0.05, -0.03], [0, -0.07], [0.03, -0.1], [-0.03, -0.1]]) b(0.035, 0.035, 0.035, 0xc9a66a, x, y, 0, 0.6); break;
+                case 'jambuair': b(0.06, 0.075, 0.06, 0xe8455a, 0, 0, 0, 0.25); b(0.07, 0.03, 0.07, 0xe8455a, 0, -0.06, 0, 0.25); break;
+                case 'markisa': b(0.065, 0.07, 0.065, 0x5a2a5a, 0, 0, 0, 0.4); break;
+                case 'buahnaga': b(0.08, 0.1, 0.08, 0xe83a8a, 0, 0, 0, 0.35); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; b(0.02, 0.035, 0.02, 0x7fbf3a, Math.cos(a) * 0.075, 0.03, Math.sin(a) * 0.075); } break;
                 case 'rambutan': b(0.065, 0.075, 0.065, 0xd8322a, 0, 0, 0, 0.6); spike(0x7fbf3a, 12, 0.065, 0.014); break;
                 case 'duku': for (const [x, y] of [[0, 0], [0.06, -0.04], [-0.06, -0.04], [0, -0.08], [0.03, -0.12]]) b(0.045, 0.045, 0.045, 0xd9c27a, x, y, 0, 0.6); break;
                 case 'sawo': b(0.07, 0.08, 0.07, 0x8a6a45, 0, 0, 0, 0.8); break;
@@ -1369,12 +1387,26 @@
                 cap(0.07, 2.0, 0x6b4a2a, 0, 1.0, 0, g).rotation.z = 0.08;
                 const lm = leaf(0x5fa83c);
                 for (let i = 0; i < 9; i++) { const m = mesh(ICO, lm, sway); m.scale.set(0.6, 0.22, 0.6); m.position.set((i % 3 - 1) * 0.75, 2.35, (Math.floor(i / 3) - 1) * 0.75); }
-                for (let i = 0; i < Math.max(...f.yield) + 2; i++) {
+                if (f.key !== 'anggur') for (let i = 0; i < Math.max(...f.yield) + 1; i++) slot(sway, (i % 3 - 1) * 0.7, 2.0, i % 2 ? 0.5 : -0.5);
+                else for (let i = 0; i < Math.max(...f.yield) + 2; i++) {
                     const cl = new THREE.Group(); cl.position.set((i % 3 - 1) * 0.7, 2.05, (i % 2 ? 0.5 : -0.5)); sway.add(cl);
                     for (let k = 0; k < 10; k++) { const r = 0.045, row = Math.floor(k / 4); const s = mesh(SPH, mat(0x6a2a7a, 0.3), cl); s.scale.setScalar(r); s.position.set(((k % 4) - 1.5) * 0.06 * (1 - row * 0.3), -row * 0.07, ((k % 2) - 0.5) * 0.05); }
                     cl.scale.setScalar(1.5); cl.visible = false; slots.push(cl);
                 }
                 top = 3.1;
+            } else if (f.kind === 'dragon') {
+                // dragon fruit: a climbing cactus draped over a wooden post
+                box(0.14, 1.4, 0.14, C.darkWood, 0, 0.7, 0, g);
+                const lm = leaf(0x5f9f4a);
+                for (let i = 0; i < 6; i++) {
+                    const arm = new THREE.Group(); arm.position.y = 1.35; arm.rotation.y = i / 6 * Math.PI * 2; sway.add(arm);
+                    const a = mesh(SPH, lm, arm); a.scale.set(0.07, 0.07, 0.38); a.position.set(0, 0.05, 0.3); a.rotation.x = 0.5;
+                    const d = mesh(SPH, lm, arm); d.scale.set(0.06, 0.32, 0.06); d.position.set(0, -0.2, 0.6);
+                    if (i < Math.max(...f.yield)) slot(arm, 0, -0.5, 0.62);
+                }
+                cap(0.07, 1.0, 0x5f9f4a, 0.09, 0.6, 0, g);
+                top = 1.9;
+                addCircleCollider(f.at[0], f.at[1], 0.25);
             } else {
                 // beds: watermelon, melon, strawberries, pineapples
                 box(3.4, 0.16, 3.0, C.tilled, 0, 0.08, 0, g);
@@ -1512,11 +1544,11 @@
         const tileKey = (x, z) => x + ',' + z;
         const treeSpan = f => BIG_TREE(f) ? 1 : 0;
         // days of daily watering from sapling to the first fruit: at least a month, at most a year (6 seasons × 30 days)
-        const TREE_DAYS = { stroberi: 30, semangka: 35, melon: 35, pepaya: 60, pisang: 60, jambu: 75, anggur: 90, nanas: 100, salak: 120, jeruk: 120,
+        const TREE_DAYS = { nangka: 180, sirsak: 150, belimbing: 120, kelengkeng: 150, jambuair: 120, markisa: 90, buahnaga: 60, stroberi: 30, semangka: 35, melon: 35, pepaya: 60, pisang: 60, jambu: 75, anggur: 90, nanas: 100, salak: 120, jeruk: 120,
             apel: 140, pir: 140, alpukat: 150, mangga: 150, rambutan: 150, sawo: 150, kelapa: 180, durian: 180, manggis: 180, duku: 180 };
         const TREE_GROW = f => TREE_DAYS[f.key] || 90;
         const daysText = n => n >= 30 ? `${n} hari (±${Math.round(n / 30)} bulan)` : `${n} hari`;
-        const SMALL_K = { salak: 0.55, bed: 0.3, berry: 0.3, pineapple: 0.32 };
+        const SMALL_K = { salak: 0.55, bed: 0.3, berry: 0.3, pineapple: 0.32, dragon: 0.8 };
         const groundMemo = new Map();
         // why this square can never be hoed ('' when it can)
         function groundWhy(ix, iz) {
@@ -1972,7 +2004,7 @@
             gurame: { label: 'Ikan gurame', icon: '🐡', price: 160 },
             sepatu: { label: 'Sepatu bot tua', icon: '👢', price: 2 },
         };
-        for (const f of FRUIT_DEFS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
+        for (const f of ALL_FRUITS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
         // ---------- Rooftop garden, shop and kitchen data ----------
         // days = nights of watering until ready, roughly following each plant's real growing time
         const GARDEN = [
@@ -2005,6 +2037,27 @@
             { key: 'palem', label: 'Palem', icon: '🌴', type: 'hias', days: 9, seed: 110, price: 480, yield: 1, m: { t: 'palm', c: 0x4f9a3f } },
             { key: 'kaktus', label: 'Kaktus', icon: '🌵', type: 'hias', days: 10, seed: 50, price: 440, yield: 1, m: { t: 'cactus', c: 0x4f9a5a, fc: 0xff6fa5 } },
             { key: 'sukulen', label: 'Sukulen', icon: '🌱', type: 'hias', days: 8, seed: 60, price: 360, yield: 1, m: { t: 'rosette', c: 0x8fc7a0 } },
+            { key: 'bawangmerah', label: 'Bawang merah', icon: '🧅', type: 'veg', days: 6, seed: 30, price: 45, yield: 3, m: { t: 'stalk', c: 0x4f9a3a, base: 0xb0505e, n: 8, h: 0.4 } },
+            { key: 'bawangputih', label: 'Bawang putih', icon: '🧄', type: 'veg', days: 7, seed: 35, price: 50, yield: 3, m: { t: 'stalk', c: 0x5aa040, base: 0xf2efe6, n: 7, h: 0.42 } },
+            { key: 'jahe', label: 'Jahe', icon: '🫚', type: 'veg', days: 8, seed: 30, price: 60, yield: 2, m: { t: 'stalk', c: 0x4f8f3a, n: 6, h: 0.6, tuft: 0x5fa040 } },
+            { key: 'kunyit', label: 'Kunyit', icon: '🟠', type: 'veg', days: 8, seed: 30, price: 60, yield: 2, m: { t: 'leafy', c: 0x5aa040, n: 5, len: 0.45, wid: 0.14, tilt: 0.5 } },
+            { key: 'lengkuas', label: 'Lengkuas', icon: '🫚', type: 'veg', days: 9, seed: 30, price: 60, yield: 2, m: { t: 'stalk', c: 0x3f8a35, n: 5, h: 0.75, tuft: 0x4f9a3a } },
+            { key: 'serai', label: 'Serai', icon: '🎍', type: 'veg', days: 6, seed: 25, price: 50, yield: 2, m: { t: 'stalk', c: 0x8fc05a, base: 0xe8eecf, n: 12, h: 0.62 } },
+            { key: 'padi', label: 'Padi', icon: '🌾', type: 'veg', days: 10, seed: 30, price: 24, yield: 4, out: 'beras', m: { t: 'stalk', c: 0x9fbf4a, n: 14, h: 0.6, tuft: 0xe0c060 } },
+            { key: 'jagung', label: 'Jagung', icon: '🌽', type: 'veg', days: 9, seed: 35, price: 50, yield: 2, m: { t: 'corn', c: 0x5fa83c } },
+            { key: 'singkong', label: 'Singkong', icon: '🥔', type: 'veg', days: 10, seed: 30, price: 55, yield: 3, m: { t: 'root', c: 0x4f8f3a, root: 0xc8a070 } },
+            { key: 'ubi', label: 'Ubi jalar', icon: '🍠', type: 'veg', days: 8, seed: 30, price: 50, yield: 3, m: { t: 'root', c: 0x5a9a3a, root: 0xc0587a } },
+            { key: 'kacang', label: 'Kacang tanah', icon: '🥜', type: 'veg', days: 8, seed: 30, price: 35, yield: 3, m: { t: 'root', c: 0x6aaa45, root: 0xd8b07a } },
+            { key: 'kedelai', label: 'Kedelai', icon: '🫛', type: 'veg', days: 8, seed: 30, price: 40, yield: 3, m: { t: 'flower', c: 0x4f8f3a, fc: 0x9fbf5a, n: 8, fr: 0.04 } },
+            { key: 'tebu', label: 'Tebu', icon: '🎋', type: 'veg', days: 12, seed: 40, price: 60, yield: 2, m: { t: 'stalk', c: 0x8a7a4a, n: 4, h: 1.0, tuft: 0x5fae45 } },
+            { key: 'kacangpanjang', label: 'Kacang panjang', icon: '🫛', type: 'veg', days: 6, seed: 30, price: 50, yield: 3, m: { t: 'fruiting', c: 0x4f8f3a, fruit: 'kacangpanjang' } },
+            { key: 'buncis', label: 'Buncis', icon: '🫛', type: 'veg', days: 5, seed: 30, price: 55, yield: 3, m: { t: 'fruiting', c: 0x5a9a3a, fruit: 'buncis' } },
+            { key: 'labusiam', label: 'Labu siam', icon: '🫑', type: 'veg', days: 7, seed: 35, price: 60, yield: 2, m: { t: 'fruiting', c: 0x5fa83c, fruit: 'labusiam' } },
+            { key: 'kemangi', label: 'Kemangi', icon: '🌿', type: 'veg', days: 4, seed: 20, price: 60, yield: 1, m: { t: 'leafy', c: 0x4f9f3a, n: 10, len: 0.2, wid: 0.1, tilt: 0.6 } },
+            { key: 'teh', label: 'Teh', icon: '🫖', type: 'veg', days: 14, seed: 50, price: 30, yield: 3, m: { t: 'flower', c: 0x2f6b2f, fc: 0x7fbf4a, n: 10, fr: 0.04 } },
+            { key: 'kopi', label: 'Kopi', icon: '🫘', type: 'veg', days: 16, seed: 60, price: 45, yield: 3, m: { t: 'flower', c: 0x2f5a2f, fc: 0xc0392b, n: 10, fr: 0.035 } },
+            { key: 'sedapmalam', label: 'Sedap malam', icon: '💐', type: 'hias', days: 7, seed: 90, price: 380, yield: 1, m: { t: 'spike', c: 0x6f9f5a, fc: 0xffffff } },
+            { key: 'kenanga', label: 'Kenanga', icon: '🌻', type: 'hias', days: 8, seed: 100, price: 400, yield: 1, m: { t: 'flower', c: 0x3f7f35, fc: 0xe8d84a, n: 8, fr: 0.05 } },
             { key: 'peacelily', label: 'Peace lily', icon: '💮', type: 'hias', days: 6, seed: 90, price: 370, yield: 1, m: { t: 'bigleaf', c: 0x245a2c, n: 7, len: 0.33, wid: 0.11, tilt: 0.9, spathe: 0xfafafa } },
         ];
         const GDEF = Object.fromEntries(GARDEN.map(g => [g.key, g]));
@@ -2015,11 +2068,11 @@
         for (const g of GARDEN) SUPPLIES['b_' + g.key] = { label: (g.type === 'veg' ? 'Benih ' : 'Bibit ') + g.label, icon: '🌱', price: g.seed, plant: g.key };
         // fruit tree saplings: big trees need 3×3 tiles, small fruit plants one tile
         const BIG_TREE = f => ['tree', 'palm', 'banana', 'papaya', 'vine'].includes(f.kind);
-        const FDEF = Object.fromEntries(FRUIT_DEFS.map(f => [f.key, f]));
-        const FKEYS = FRUIT_DEFS.map(f => f.key);
-        for (const f of FRUIT_DEFS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: `${BIG_TREE(f) ? 'Pohon buah · butuh lahan 3×3 kotak' : 'Tanaman buah kecil · butuh 1 kotak lahan'} · berbuah pertama setelah ${daysText(TREE_GROW(f))} disiram tiap hari, lalu ${f.yield[0]}–${f.yield[1]} buah tiap ${f.cycle} hari` };
+        const FDEF = Object.fromEntries(ALL_FRUITS.map(f => [f.key, f]));
+        const FKEYS = ALL_FRUITS.map(f => f.key);
+        for (const f of ALL_FRUITS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: `${BIG_TREE(f) ? 'Pohon buah · butuh lahan 3×3 kotak' : 'Tanaman buah kecil · butuh 1 kotak lahan'} · berbuah pertama setelah ${daysText(TREE_GROW(f))} disiram tiap hari, lalu ${f.yield[0]}–${f.yield[1]} buah tiap ${f.cycle} hari` };
         // Plants sell from the shipping bin; ornamental plants are sold together with their pot
-        for (const g of GARDEN) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
+        for (const g of GARDEN) if (!g.out) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
             { key: 'dadar', label: 'Telur dadar', icon: '🍳', price: 160, need: { egg: 2 } },
             { key: 'puding', label: 'Puding susu', icon: '🍮', price: 260, need: { milk: 1, egg: 1 } },
@@ -2038,9 +2091,13 @@
             ['tepung', 'Tepung terigu', '🥣', 30, 18], ['tahu', 'Tahu', '🧈', 25, 15], ['tempe', 'Tempe', '🟫', 25, 15], ['mi', 'Mi telur', '🍝', 30, 18],
             ['kacang', 'Kacang tanah', '🥜', 35, 20], ['rempah', 'Bumbu rempah', '🫚', 30, 18], ['ayam', 'Daging ayam', '🍗', 120, 75], ['sapi', 'Daging sapi', '🥩', 220, 140],
             ['teh', 'Teh', '🫖', 25, 15], ['kopi', 'Bubuk kopi', '🫘', 45, 28],
-        ]) { PRODUCTS[k] = { label, icon, price: sell }; SUPPLIES[k] = { label, icon, price: buy, ing: true, note: 'Bahan dapur dari pasar' }; }
+        ]) {
+            const own = PRODUCTS[k]; // grown on the farm too
+            if (!own) PRODUCTS[k] = { label, icon, price: sell };
+            SUPPLIES[k] = { label: PRODUCTS[k].label, icon: PRODUCTS[k].icon, price: own ? Math.max(buy, Math.ceil(own.price * 1.6 / 5) * 5) : buy, ing: true, note: own ? 'Bisa ditanam sendiri, juga dijual di pasar' : 'Bahan dapur dari pasar' };
+        }
         // farm produce is on sale online too, dearer than what the shipping bin pays for it
-        for (const k of ['egg', 'milk', 'tomat', 'cabai', 'kangkung', 'sawi', 'kol', 'wortel', 'timun', 'terong', 'daunbawang', 'seledri', 'ikanmas', 'nila', 'gurame', 'pisang', 'kelapa', 'mangga', 'alpukat', 'jambu'])
+        for (const k of ['egg', 'milk', 'tomat', 'cabai', 'kangkung', 'sawi', 'kol', 'wortel', 'timun', 'terong', 'daunbawang', 'seledri', 'ikanmas', 'nila', 'gurame', 'pisang', 'kelapa', 'mangga', 'alpukat', 'jambu', 'jagung', 'singkong', 'ubi', 'kacangpanjang', 'buncis', 'labusiam', 'kemangi', 'kedelai', 'jahe', 'kunyit', 'lengkuas', 'serai', 'tebu', 'nangka', 'semangka', 'melon'])
             SUPPLIES[k] = { label: PRODUCTS[k].label, icon: PRODUCTS[k].icon, price: Math.ceil(PRODUCTS[k].price * 1.6 / 5) * 5, ing: true, note: 'Hasil kebun & peternakan, juga dijual di pasar' };
         // cookware: bought once, kept on the kitchen rack (or in the bag) and never used up
         const COOKWARE = [
@@ -2083,13 +2140,33 @@
             ['esteh', 'Es teh manis', '🧋', { teh: 1, gula: 1 }, ['panci']],
             ['kopisusu', 'Kopi susu', '☕', { kopi: 1, milk: 1, gula: 1 }, ['panci']],
             ['jusalpukat', 'Jus alpukat', '🧃', { alpukat: 1, milk: 1, gula: 1 }, ['blender']],
+            ['perkedeljagung', 'Perkedel jagung', '🧇', { jagung: 1, tepung: 1, egg: 1, minyak: 1 }, ['wajan']],
+            ['jagungbakar', 'Jagung bakar', '🌽', { jagung: 1, kecap: 1, cabai: 1 }, ['panggangan']],
+            ['buburjagung', 'Bubur jagung manis', '🫙', { jagung: 1, kelapa: 1, gula: 1 }, ['panci']],
+            ['singkonggoreng', 'Singkong goreng', '🍟', { singkong: 1, minyak: 1, bawangputih: 1, garam: 1 }, ['wajan']],
+            ['getuk', 'Getuk singkong', '🍰', { singkong: 2, gula: 1, kelapa: 1 }, ['kukusan']],
+            ['tape', 'Tape singkong', '🧉', { singkong: 1, gula: 1 }, ['kukusan']],
+            ['kolakubi', 'Kolak ubi', '🥧', { ubi: 1, kelapa: 1, gula: 1 }, ['panci']],
+            ['sayurasem', 'Sayur asem', '🍲', { kacangpanjang: 1, labusiam: 1, jagung: 1, tomat: 1 }, ['panci']],
+            ['tumisbuncis', 'Tumis buncis', '🥘', { buncis: 1, wortel: 1, bawangputih: 1 }, ['wajan']],
+            ['gudeg', 'Gudeg', '🍱', { nangka: 1, kelapa: 1, gula: 1, egg: 1 }, ['panci']],
+            ['nasikuning', 'Nasi kuning', '🌕', { beras: 1, kunyit: 1, kelapa: 1 }, ['penanak', 'panci']],
+            ['wedangjahe', 'Wedang jahe', '🥃', { jahe: 1, gula: 1 }, ['panci']],
+            ['esbuah', 'Es buah', '🍨', { semangka: 1, melon: 1, gula: 1 }, ['pisau']],
         ]) {
             // a dish sells for about half again what its ingredients fetch raw
             const raw = Object.entries(need).reduce((t, [k, n]) => t + (PRODUCTS[k] || RECIPES.find(r => r.key === k)).price * n, 0);
             RECIPES.push({ key, label, icon, price: Math.max(40, Math.ceil(raw * 1.45 / 10) * 10), need });
             COOK_OF[key] = tools;
         }
-        for (const r of RECIPES) PRODUCTS[r.key] = { label: r.label, icon: r.icon, price: r.price };
+        // turning crops into kitchen staples: these make an ingredient, not a dish to eat
+        for (const [key, label, out, n, need, tools] of [
+            ['r_rempah', 'Bumbu rempah', 'rempah', 2, { jahe: 1, kunyit: 1, lengkuas: 1, serai: 1 }, ['cobek']],
+            ['r_gula', 'Gula dari tebu', 'gula', 2, { tebu: 2 }, ['panci']],
+            ['r_tempe', 'Tempe dari kedelai', 'tempe', 2, { kedelai: 2 }, ['kukusan']],
+            ['r_tahu', 'Tahu dari kedelai', 'tahu', 2, { kedelai: 2, garam: 1 }, ['panci']],
+        ]) { RECIPES.push({ key, label, icon: PRODUCTS[out].icon, price: PRODUCTS[out].price * n, need, out, n }); COOK_OF[key] = tools; }
+        for (const r of RECIPES) if (!r.out) PRODUCTS[r.key] = { label: r.label, icon: r.icon, price: r.price };
         // One verse a day in the musholla, in turn
         const AYAT = [
             { ar: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا', id: 'Maka sesungguhnya bersama kesulitan ada kemudahan. Sesungguhnya bersama kesulitan ada kemudahan.', ref: 'QS. Al-Insyirah: 5–6' },
@@ -3882,8 +3959,13 @@
             } else if (t === 'fruiting') {
                 const stake = mesh(CYL, mat(0xa07a4a), g); stake.scale.set(0.015, 0.8, 0.015); stake.position.y = 0.4;
                 bush(g, m.c, 0.2, 0.32);
-                const fr = { tomat: [0xe8402e, 0.065, 0.065, 5], cabai: [0xd62818, 0.025, 0.08, 8], terong: [0x5b2a6e, 0.05, 0.12, 3], timun: [0x3f7f2f, 0.045, 0.13, 3] }[m.fruit];
+                const fr = { tomat: [0xe8402e, 0.065, 0.065, 5], cabai: [0xd62818, 0.025, 0.08, 8], terong: [0x5b2a6e, 0.05, 0.12, 3], timun: [0x3f7f2f, 0.045, 0.13, 3], kacangpanjang: [0x6fae3a, 0.012, 0.2, 6], buncis: [0x5f9f3a, 0.018, 0.1, 6], labusiam: [0xa8d86a, 0.07, 0.09, 3] }[m.fruit];
                 sprinkle(ripe, fr[3], 0.22, 0.22, 0.5, (x, y, z) => ball(fr[1], fr[2], fr[1], fr[0], x, y, z, ripe));
+            } else if (t === 'corn') {
+                cap(0.03, 0.95, m.c, 0, 0.5, 0, g);
+                for (let i = 0; i < 6; i++) blade(g, 0.42, 0.06, m.c, i * 2.4, 0.95, 0.15 + i * 0.12);
+                ball(0.04, 0.09, 0.04, 0xe8d08a, 0, 1.02, 0, g);
+                for (const sd of [1, -1]) { ball(0.05, 0.12, 0.05, 0x8fbf5a, 0.08 * sd, 0.52, 0.03, ripe).rotation.z = -0.35 * sd; ball(0.04, 0.1, 0.04, 0xf2c94c, 0.07 * sd, 0.58, 0.05, ripe).rotation.z = -0.35 * sd; }
             } else if (t === 'flower') {
                 bush(g, m.c, 0.2, 0.3);
                 if (m.top) for (let i = 0; i < m.n; i++) ball(m.fr, m.fr * 0.7, m.fr, m.fc, Math.cos(i * 2.4) * 0.14, 0.55 + (i % 3) * 0.04, Math.sin(i * 2.4) * 0.14, ripe);
@@ -4224,7 +4306,7 @@
                     const b = el('button', { class: 'btn', onclick: () => { kit = { tool: tl || null, ing: { ...r.need } }; kitTab = 'masak'; openKitchen(); } }, 'Pakai');
                     if (!okIng || !tl) b.disabled = true;
                     return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: r.icon }),
-                        el('span', { class: 'nm' }, el('b', { text: `${r.label} · ${r.price} G · +${foodEnergy(r.key)} ⚡` }), el('small', { text: need }), el('small', { text: `${tl ? '✓' : '✗'} ${toolsLine(r)}` })), b);
+                        el('span', { class: 'nm' }, el('b', { text: r.out ? `${r.label} → ${PRODUCTS[r.out].label} ×${r.n}` : `${r.label} · ${r.price} G · +${foodEnergy(r.key)} ⚡` }), el('small', { text: need }), el('small', { text: `${tl ? '✓' : '✗'} ${toolsLine(r)}` })), b);
                 }));
                 openDlg('🍳 Dapur · Buku resep', [el('p', { class: 'small-note', text: 'Semua resep masakan rumahan. Bahan diambil dari tas dan kulkas; bahan pasar dan alat masak bisa dibeli lewat laptop 💻.' }), tabs, list]);
                 liveDlg = openKitchen;
@@ -4243,7 +4325,7 @@
                 : el('p', { class: 'small-note', text: 'Ketuk bahan di bawah untuk memasukkannya.' }));
             const r = kitMatch();
             let hint;
-            if (r) hint = `✨ Jadi: ${r.icon} ${r.label} · jual ${r.price} G · +${foodEnergy(r.key)} ⚡`;
+            if (r) hint = r.out ? `✨ Jadi: ${r.icon} ${PRODUCTS[r.out].label} ×${r.n} (bahan masak)` : `✨ Jadi: ${r.icon} ${r.label} · jual ${r.price} G · +${foodEnergy(r.key)} ⚡`;
             else if (!kit.tool && !chosen.length) hint = 'Pilih alat masak dan bahan, atau ambil kombinasinya dari 📖 Buku resep.';
             else {
                 const near = RECIPES.filter(x => chosen.every(([k, n]) => (x.need[k] || 0) >= n) && (!kit.tool || (COOK_OF[x.key] || []).includes(kit.tool))).slice(0, 3);
@@ -4644,10 +4726,10 @@
                 }
                 const d = GDEF[p.s];
                 if (p.p >= d.days) {
-                    if (bagRoom(who, d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                    addBag(who, d.key, d.yield);
+                    if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    addBag(who, d.out || d.key, d.yield);
                     state.tiles[k] = { e: state.day };
-                    emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
+                    emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!${d.out ? ` · jadi ${PRODUCTS[d.out].icon} ${PRODUCTS[d.out].label}` : ''}`, 'icon:' + d.icon, at, who); return;
                 }
                 if (!p.w) {
                     if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
@@ -4732,9 +4814,9 @@
                     if (fromBag) takeBag(who, i, fromBag);
                     if (n - fromBag) { fr[i] -= n - fromBag; if (!fr[i]) delete fr[i]; }
                 }
-                const inBag = addBag(who, r.key, 1);
-                if (!inBag) fr[r.key] = (fr[r.key] || 0) + 1;
-                emitEvent(`Memasak ${r.icon} ${r.label}!${inBag ? '' : ' Tas penuh, masakan disimpan di kulkas.'}`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
+                const ok = r.out || r.key, cnt = r.n || 1, inBag = addBag(who, ok, cnt);
+                if (inBag < cnt) fr[ok] = (fr[ok] || 0) + cnt - inBag;
+                emitEvent(`${r.out ? 'Membuat' : 'Memasak'} ${r.icon} ${r.label}${cnt > 1 ? ' ×' + cnt : ''}!${inBag >= cnt ? '' : ' Tas penuh, sisanya disimpan di kulkas.'}`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
             },
             catch(who) {
                 // what bites: mostly carp and tilapia, now and then a gourami, sometimes an old boot
@@ -4870,8 +4952,8 @@
                     }
                     const d = GDEF[p.s];
                     if (p.p >= d.days) {
-                        if (bagRoom(who, d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                        addBag(who, d.key, d.yield);
+                        if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                        addBag(who, d.out || d.key, d.yield);
                         state.pots[i] = d.type === 'hias' ? null : {};
                         emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
                     }
@@ -5165,7 +5247,7 @@
         function openPlantMenu(ix, iz, send) {
             const tabs = [['veg', '🥬 Sayur'], ['hias', '🌸 Tanaman hias'], ['pohon', '🌳 Pohon buah']];
             const opts = plantTab === 'pohon'
-                ? FRUIT_DEFS.filter(f => have(USER, 'p_' + f.key) > 0).map(f => {
+                ? ALL_FRUITS.filter(f => have(USER, 'p_' + f.key) > 0).map(f => {
                     const why = treeWhy(f, ix, iz);
                     const b = el('button', { class: 'btn', onclick: () => { closeDlg(); send('p_' + f.key); } }, `${f.icon} ${f.label}`, el('small', { text: ` ×${have(USER, 'p_' + f.key)} · ${BIG_TREE(f) ? 'lahan 3×3' : '1 kotak'} · berbuah ±${Math.max(1, Math.round(TREE_GROW(f) / 30))} bln${why ? ' · ' + why : ''}` }));
                     if (why) b.disabled = true;
@@ -5175,7 +5257,7 @@
                     el('button', { class: 'btn', onclick: () => { closeDlg(); send('b_' + g.key); } }, `${g.icon} ${g.label}`, el('small', { text: ` ×${have(USER, 'b_' + g.key)} · ${g.days} hari` })));
             openDlg('🌱 Tanam apa di sini?', [
                 el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === plantTab ? ' on' : ''), onclick: () => { plantTab = k; openPlantMenu(ix, iz, send); } }, t))),
-                plantTab === 'pohon' ? el('p', { class: 'small-note', text: 'Pohon buah besar (mangga, durian, kelapa, pisang, pepaya, jeruk, anggur, dll.) butuh lahan 3×3 kotak: kotak tengah dicangkul, 8 kotak di sekelilingnya kosong. Tanaman buah kecil (salak, nanas, stroberi, semangka, melon) cukup 1 kotak. Dari bibit sampai berbuah butuh 1 bulan sampai 1 tahun (180 hari), asal disiram tiap hari.' }) : null,
+                plantTab === 'pohon' ? el('p', { class: 'small-note', text: 'Pohon buah besar (mangga, durian, kelapa, pisang, pepaya, jeruk, anggur, dll.) butuh lahan 3×3 kotak: kotak tengah dicangkul, 8 kotak di sekelilingnya kosong. Tanaman buah kecil (salak, nanas, stroberi, semangka, melon, buah naga) cukup 1 kotak. Dari bibit sampai berbuah butuh 1 bulan sampai 1 tahun (180 hari), asal disiram tiap hari.' }) : null,
                 opts.length ? el('div', { class: 'seedgrid' }, opts) : el('p', { class: 'small-note', text: 'Belum ada di tasmu. Beli lewat laptop 💻 di rumah, atau ambil dari kotak penyimpanan 📦.' }),
             ].filter(Boolean));
         }
@@ -5609,7 +5691,7 @@
             if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
             if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]), kit: decItems(w.st[4]) };
             if (typeof w.ti === 'string') state.tiles = decTiles(w.ti);
-            if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && FRUIT_DEFS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: FRUIT_DEFS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
+            if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && ALL_FRUITS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: ALL_FRUITS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
             if (Array.isArray(w.rk) && w.rk.length === ROCK_POS.length) state.rocks = w.rk.map(v => v ? 1 : 0);
             if (Array.isArray(w.lg) && w.lg.length === WOOD_POS.length) state.logs = w.lg.map(v => ({ s: Array.isArray(v) ? +v[0] || 0 : 0, hp: Array.isArray(v) ? +v[1] || 0 : 3, d: 0 }));
             if (Array.isArray(w.wq) && w.wq.length === WEED_POS.length) state.weeds = w.wq.map(v => v ? 1 : 0);
@@ -6256,7 +6338,7 @@
             renderer.render(indoors ? homeScene : scene, camera);
         }
         camTarget.copy(player.pos);
-        $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
+        $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
         window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
