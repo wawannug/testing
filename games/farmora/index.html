@@ -328,6 +328,7 @@
         .itemgrid .item b { position: absolute; top: 1px; right: 4px; font-size: 12px; }
         .itemgrid .item.on { background: #ffe08a; border-color: #d18a1a; }
         .itemgrid .item:disabled { opacity: .45; cursor: default; }
+        .cathead { text-align: left; font-size: 15px; margin-top: 6px; }
         .kithint { font-size: 13px; font-weight: 600; margin: 2px 0 0; }
         .itemgrid .item small { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slotbtn { font-size: 14px; text-align: left; }
@@ -4232,10 +4233,14 @@
         const dlgOpen = () => !$('dlg').classList.contains('hidden');
         function openDlg(title, body, buttons = [{ t: 'Tutup' }]) {
             liveDlg = null;
-            const card = $('dlgCard');
+            const card = $('dlgCard'), SCROLLERS = '.shoplist, .itemgrid, .seedgrid, .clothgrid, .storcol';
+            // the same window drawn again (a tap, or the clock ticking) keeps where you had scrolled to
+            const keep = dlgOpen() && card.dataset.title === title ? [card.scrollTop, ...[...card.querySelectorAll(SCROLLERS)].map(e => e.scrollTop)] : null;
+            card.dataset.title = title;
             card.replaceChildren(el('h2', { text: title }), ...[].concat(body),
                 el('div', { class: 'row' }, buttons.map(b => el('button', { class: 'btn' + (b.big ? ' big' : ''), onclick: () => { if (!b.keep) closeDlg(); if (b.f) b.f(); } }, b.t))));
             $('dlg').classList.remove('hidden');
+            if (keep) { card.scrollTop = keep[0]; [...card.querySelectorAll(SCROLLERS)].forEach((e, i) => { if (keep[i + 1]) e.scrollTop = keep[i + 1]; }); }
             keys.clear();
         }
         function closeDlg() { liveDlg = null; $('dlg').classList.add('hidden'); }
@@ -4287,7 +4292,17 @@
         const INGREDIENTS = [...new Set(RECIPES.flatMap(r => Object.keys(r.need)))];
         const recipeLine = r => Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label}${n > 1 ? ' ×' + n : ''}`).join(' + ');
         const toolsLine = r => (COOK_OF[r.key] || []).map(t => SUPPLIES['k_' + t].label).join(' / ');
-        let kit = { tool: null, ing: {} }, kitTab = 'masak';
+        let kit = { tool: null, ing: {} }, kitTab = 'masak', bookCat = 'berat';
+        const RECIPE_CATS = [['berat', '🍚 Makanan berat'], ['lauk', '🍗 Lauk & sayur'], ['camilan', '🍟 Camilan'], ['penutup', '🍮 Penutup'], ['minuman', '🥤 Minuman'], ['olahan', '🫚 Olahan bahan'], ['semua', '📚 Semua']];
+        const CAT_OF = {};
+        for (const [c, ks] of Object.entries({
+            berat: 'nasi nasgor uduk nasikuning bubur migoreng miayam soto gudeg',
+            lauk: 'dadar tumis sop ikanbakar opor rendang sate gado lodeh tempegoreng pepes guramegoreng sayurasem tumisbuncis sambal salad',
+            camilan: 'bakwan martabak pisgor perkedeljagung jagungbakar singkonggoreng rujak',
+            penutup: 'puding kolak getuk tape kolakubi buburjagung esbuah',
+            minuman: 'jus esteh kopisusu jusalpukat wedangjahe',
+        })) for (const k of ks.split(' ')) CAT_OF[k] = c;
+        const catOf = r => r.out ? 'olahan' : CAT_OF[r.key] || 'lauk';
         function kitMatch() {
             const chosen = Object.entries(kit.ing).filter(([, n]) => n > 0);
             if (!kit.tool || !chosen.length) return null;
@@ -4300,15 +4315,21 @@
             const tabs = el('div', { class: 'tabs' }, [['masak', '🍳 Masak'], ['resep', '📖 Buku resep']].map(([k, t]) => el('button', { class: 'btn' + (k === kitTab ? ' on' : ''), onclick: () => { kitTab = k; openKitchen(); } }, t)),
                 el('button', { class: 'btn', onclick: () => openStorage('kit') }, '🗄️ Rak alat masak'));
             if (kitTab === 'resep') {
-                const list = el('div', { class: 'shoplist' }, RECIPES.map(r => {
+                const row = r => {
                     const okIng = Object.entries(r.need).every(([k, n]) => avail(k) >= n), tl = (COOK_OF[r.key] || []).find(t => ownsCook(USER, t));
                     const need = Object.entries(r.need).map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label} ${avail(k)}/${n}`).join(' · ');
                     const b = el('button', { class: 'btn', onclick: () => { kit = { tool: tl || null, ing: { ...r.need } }; kitTab = 'masak'; openKitchen(); } }, 'Pakai');
                     if (!okIng || !tl) b.disabled = true;
                     return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: r.icon }),
                         el('span', { class: 'nm' }, el('b', { text: r.out ? `${r.label} → ${PRODUCTS[r.out].label} ×${r.n}` : `${r.label} · ${r.price} G · +${foodEnergy(r.key)} ⚡` }), el('small', { text: need }), el('small', { text: `${tl ? '✓' : '✗'} ${toolsLine(r)}` })), b);
-                }));
-                openDlg('🍳 Dapur · Buku resep', [el('p', { class: 'small-note', text: 'Semua resep masakan rumahan. Bahan diambil dari tas dan kulkas; bahan pasar dan alat masak bisa dibeli lewat laptop 💻.' }), tabs, list]);
+                };
+                const cats = bookCat === 'semua' ? RECIPE_CATS.slice(0, -1) : RECIPE_CATS.filter(([c]) => c === bookCat);
+                const list = el('div', { class: 'shoplist' }, cats.map(([c, t]) => {
+                    const rs = RECIPES.filter(r => catOf(r) === c);
+                    return [bookCat === 'semua' ? el('b', { class: 'cathead', text: `${t} (${rs.length})` }) : null, ...rs.map(row)];
+                }).flat());
+                const chips = el('div', { class: 'tabs chips' }, RECIPE_CATS.map(([c, t]) => el('button', { class: 'btn' + (c === bookCat ? ' on' : ''), onclick: () => { bookCat = c; openKitchen(); const l = $('dlgCard').querySelector('.shoplist'); if (l) l.scrollTop = 0; } }, t)));
+                openDlg('🍳 Dapur · Buku resep', [el('p', { class: 'small-note', text: 'Semua resep masakan rumahan. Bahan diambil dari tas dan kulkas; bahan pasar dan alat masak bisa dibeli lewat laptop 💻.' }), tabs, chips, list]);
                 liveDlg = openKitchen;
                 return;
             }
