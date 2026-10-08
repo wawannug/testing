@@ -251,6 +251,8 @@
         .row2 .btn { flex: 1 1 auto; }
         .saveinfo { font-size: 14px; font-weight: 600; }
         .small-note { font-size: 12.5px; opacity: .8; margin: 0; }
+        .npcline { font-size: 16px; line-height: 1.45; background: var(--paper-2); border: 2px solid #c79a5b; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+        .npchearts { margin: 2px 0; letter-spacing: 1px; font-size: 14px; }
         .warn { font-size: 13px; color: #8a3a12; font-weight: 600; margin: 0; }
 
         #netBadge {
@@ -590,7 +592,7 @@
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
             <p style="font-size:13px;margin:0">🪏 Ambil cangkul di kotak perkakas 🧰, lalu cangkul tanah kosong di mana saja (bingkai hijau = bisa). Tanah yang sudah dicangkul bisa ditanami sayur, tanaman hias, atau bibit buah. Pohon buah besar butuh lahan 3×3 kotak (kotak tengah dicangkul, 8 kotak di sekitarnya kosong); tanaman buah kecil seperti salak, nanas, stroberi, semangka, dan melon cukup 1 kotak.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
-            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁. 🧰 Kotak perkakas di depan rumah berisi cangkul (olah tanah di mana saja), beliung (batu di barat), kapak (pohon kayu), pancing (tahan lalu lepas untuk melempar kail ke danau atau kolam bebek; danau tidak bisa dilewati), dan sabit (rumput liar). 🪴 Pot bisa ditaruh di mana saja di farm (bukan di air atau kandang) dan dipindah dengan ✋ tangan; isinya sayur atau tanaman hias. 🚿 Mandi di kamar mandi lantai 1. 🏘️ Gerbang selatan farm menuju Desa (toko bibit, toko hewan, pasar, toko bangunan, warung, klinik). 🔨 Meja kerja di sebelah kotak perkakas untuk membuat pagar, jalan batu, kursi, lampu, dan lainnya.</p>
+            <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁. 🧰 Kotak perkakas di depan rumah berisi cangkul (olah tanah di mana saja), beliung (batu di barat), kapak (pohon kayu), pancing (tahan lalu lepas untuk melempar kail ke danau atau kolam bebek; danau tidak bisa dilewati), dan sabit (rumput liar). 🪴 Pot bisa ditaruh di mana saja di farm (bukan di air atau kandang) dan dipindah dengan ✋ tangan; isinya sayur atau tanaman hias. 🚿 Mandi di kamar mandi lantai 1. 🌾 Gerbang selatan farm menuju Lembah Persawahan (Desa Lembah Sari): Toko Tani, Pasar Tani (jual hasil panen), Penggilingan Padi (gabah jadi beras), Lumbung Desa, Balai Desa, Musala, Gereja, toko hewan, toko bangunan, warung, klinik, dan rumah warga. 13 warga punya kegiatan sehari-hari; ajak ngobrol dan beri hadiah untuk menambah keakraban ❤️. 🔨 Meja kerja di sebelah kotak perkakas untuk membuat pagar, jalan batu, kursi, lampu, dan lainnya.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
@@ -1017,50 +1019,199 @@
         box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, 23.2, scene);
         sign(3.2, 22.2, 'Ke Desa');
 
-        // ---------- 🏘️ The village, south of the farm (its own area of the map, like the barns) ----------
+        // ---------- 🌾 Lembah Persawahan: the village below the farm (its own area of the map, like the barns) ----------
+        // The farm gate leads down a lane to the main street with the shops. Below it the square, then the
+        // musala, the balai desa and the church on the second street, and the villagers' houses on a lane below.
+        // Every door faces south, toward the camera.
+        // Rice fields lie to the west, the river runs along the east.
         const TZ = -300;
-        const TOWN_B = { minX: -21.5, maxX: 21.5, minZ: TZ - 12.5, maxZ: TZ + 10 };
+        const S1 = TZ + 1.5, S2 = TZ + 17, S3 = TZ + 26.2; // main street, second street, the houses' lane (their z)
+        const LINKS = [-6.2, 6.2];                          // the two lanes joining them (their x)
+        const TOWN_B = { minX: -42, maxX: 37, minZ: TZ - 12.5, maxZ: TZ + 28.5 };
         const inTown = p => p.z < -150 && p.x < 150;
         const TOWN_GATE = new THREE.Vector3(0, 0, TZ - 11.8);
-        const TOWN = [
-            { id: 'bibit', name: 'Toko Bibit', icon: '🌱', wall: 0xb5e0a0, roof: 0x2f7a35, x: -17.5 },
-            { id: 'hewan', name: 'Toko Hewan', icon: '🐄', wall: 0xf0d49a, roof: 0x8a4a2a, x: -11 },
-            { id: 'pasar', name: 'Pasar', icon: '🧺', wall: 0xf7c08a, roof: 0xc0392b, x: -4.5 },
-            { id: 'bangunan', name: 'Toko Bangunan', icon: '🧱', wall: 0xc9d0d6, roof: 0x4a5562, x: 4.5 },
-            { id: 'warung', name: 'Warung Makan', icon: '🍜', wall: 0xf8e6c0, roof: 0x2f6fae, x: 11 },
-            { id: 'klinik', name: 'Klinik', icon: '🏥', wall: 0xfafafa, roof: 0xd9443a, x: 17.5 },
+        const VILLAGE = '🌾 Lembah Persawahan';
+        // every building: row n along the main street, row s along the second street, row h (houses) along the
+        // lane. f is where its inside is, like the floors of the house.
+        const VB = [
+            { id: 'giling', name: 'Penggilingan Padi', icon: '🏭', row: 'n', x: -25, w: 6, d: 4.4, wall: 0xe9dcc0, roof: 0x8a8f99, open: [7, 16] },
+            { id: 'bibit', name: 'Toko Tani', icon: '🌱', row: 'n', x: -17.5, wall: 0xb5e0a0, roof: 0x2f7a35, shop: 1, open: [7, 17] },
+            { id: 'hewan', name: 'Toko Hewan', icon: '🐄', row: 'n', x: -11, wall: 0xf0d49a, roof: 0x8a4a2a, shop: 1, open: [8, 16] },
+            { id: 'pasar', name: 'Pasar Tani', icon: '🧺', row: 'n', x: -4.5, wall: 0xf7c08a, roof: 0xc0392b, shop: 1, open: [6, 12] },
+            { id: 'bangunan', name: 'Toko Bangunan', icon: '🧱', row: 'n', x: 4.5, wall: 0xc9d0d6, roof: 0x4a5562, shop: 1, open: [8, 16] },
+            { id: 'warung', name: 'Warung Makan', icon: '🍜', row: 'n', x: 11, wall: 0xf8e6c0, roof: 0x2f6fae, shop: 1, open: [7, 21] },
+            { id: 'klinik', name: 'Klinik', icon: '🏥', row: 'n', x: 17.5, wall: 0xfafafa, roof: 0xd9443a, shop: 1, open: [8, 15] },
+            { id: 'lumbung', name: 'Lumbung Desa', icon: '🏚️', row: 's', x: -22, w: 5, wall: 0xb07a45, roof: 0x6e4723, open: [8, 15] },
+            { id: 'musala', name: 'Musala Al-Ikhlas', icon: '🕌', row: 's', x: -11, w: 5, wall: 0xf4f1e6, roof: 0x2f8a5a, open: [4, 21.5] },
+            { id: 'balai', name: 'Balai Desa', icon: '🏛️', row: 's', x: 0, w: 8, d: 5, wall: 0xf6ecd2, roof: 0xa8442f, open: [8, 14] },
+            { id: 'gereja', name: 'Gereja Katolik St. Yusuf', icon: '⛪', row: 's', x: 11, w: 5.5, d: 5, wall: 0xf7f3ea, roof: 0x7a5a8a, open: [5, 20] },
+            { id: 'h1', name: 'Rumah Pak Darto', icon: '🏠', row: 'h', x: -30, wall: 0xf2d7a8, roof: 0xb5543a, house: 1, faith: 'i' },
+            { id: 'h2', name: 'Rumah Pak Joko', icon: '🏠', row: 'h', x: -20, wall: 0xd8e8c8, roof: 0x5a7a3a, house: 1, faith: 'i' },
+            { id: 'h3', name: 'Rumah Ustaz Fikri', icon: '🏠', row: 'h', x: -10, wall: 0xe8f0f4, roof: 0x2f6b4a, house: 1, faith: 'i' },
+            { id: 'h4', name: 'Rumah Mas Bayu', icon: '🏠', row: 'h', x: 0, wall: 0xd6dde6, roof: 0x3f5f8a, house: 1, faith: 'i' },
+            { id: 'h5', name: 'Rumah Pak Lurah', icon: '🏠', row: 'h', x: 10, wall: 0xf6e3b4, roof: 0x9b2335, house: 1, faith: 'i' },
+            { id: 'h6', name: 'Rumah Pak Yohanes', icon: '🏠', row: 'h', x: 20, wall: 0xf4d6d0, roof: 0x8a4a5a, house: 1, faith: 'k' },
+            { id: 'h7', name: 'Pastoran', icon: '🏠', row: 'h', x: 30, wall: 0xefe8d8, roof: 0x6e4a7a, house: 1, faith: 'k' },
         ];
+        const VBI = {};
+        VB.forEach((b, i) => {
+            b.w ||= b.house ? 5.6 : 5; b.d ||= b.house ? 4.4 : 4;
+            b.z = b.row === 'n' ? TZ - 4.5 : b.row === 's' ? TZ + 12 : TZ + 21;
+            b.face = 0;
+            b.door = new THREE.Vector3(b.x, 0, b.z + b.d / 2 + 0.7);
+            b.via = [{ x: b.x, z: b.row === 'n' ? S1 : b.row === 's' ? S2 : S3 }];
+            b.f = 680 + i * 60;                   // its inside
+            b.inDoor = { x: b.f, z: 3.3 };
+            VBI[b.id] = b;
+        });
+        // places in the open air the villagers go to
+        const VOUT = {
+            square: { name: 'alun-alun', base: { x: 2.8, z: TZ + 4.6 }, via: [{ x: 2.8, z: S1 }] },
+            taman: { name: 'taman bermain', base: { x: 24, z: TZ + 8.6 }, via: [{ x: 24, z: S1 }] },
+            sawah: { name: 'sawah', base: { x: -33, z: TZ - 2 }, via: [{ x: -33, z: S1 }] },
+            gate: { name: 'luar desa', base: { x: 0, z: TZ - 11.4 }, via: [{ x: 0, z: S1 }] },
+        };
+        const TOWN = VB.filter(b => b.shop);
+        const isVRoom = f => f >= 680;
+        const vRoomOf = f => VB.find(b => b.f === f);
+        let paddyMesh = null;
         // built once everything it uses exists (called just before the interactables)
         function buildTown() {
-            // ground, the main street and the lane back to the farm gate
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 50).rotateX(-Math.PI / 2), mat(0x86c062)); ground.position.set(0, 0, TZ - 1); ground.receiveShadow = true; scene.add(ground);
-            const road = box(44, 0.04, 3.2, 0x9a9a92, 0, 0.02, TZ + 1.5, scene); road.receiveShadow = true; road.castShadow = false;
-            // the lane from the farm comes down from the north, between the shops, to the main street
-            const lane = box(3, 0.04, 12.2, 0x9a9a92, 0, 0.02, TZ - 5.4, scene); lane.receiveShadow = true; lane.castShadow = false;
-            for (const sx of [-1, 1]) box(0.3, 2.2, 0.3, C.darkWood, sx * 1.9, 1.1, TZ - 12.6, scene);
-            box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, TZ - 12.6, scene);
-            for (let x = -20; x <= 20; x += 2.5) box(1.2, 0.05, 0.15, 0xf2f2f2, x, 0.045, TZ + 1.5, scene).castShadow = false;
-            for (const t of TOWN) {
-                const g = new THREE.Group(); g.position.set(t.x, 0, TZ - 4.5); scene.add(g);
-                box(5, 3.0, 4, t.wall, 0, 1.5, 0, g);
-                const roof = gableRoof(5.6, 4.6, 1.5, t.roof); roof.rotation.y = Math.PI / 2; roof.position.y = 3.0; g.add(roof);
-                box(1.2, 2.0, 0.12, 0x6e4723, 0, 1.0, 2.02, g);
-                for (const sx of [-1.6, 1.6]) box(1.0, 0.8, 0.08, 0x9fd8ff, sx, 1.7, 2.03, g);
-                const aw = box(5.2, 0.12, 1.0, t.roof, 0, 2.55, 2.4, g); aw.rotation.x = 0.25;
-                textPlate(g, `${t.icon} ${t.name}`, 0, 2.95, 2.06, 3.6);
-                addBoxCollider(t.x - 2.5, t.x + 2.5, TZ - 6.5, TZ - 2.5);
+            const flat = (w, d, c, x, z, y = 0.02) => { const m = box(w, 0.04, d, c, x, y, z, scene); m.receiveShadow = true; m.castShadow = false; return m; };
+            // ground, streets, lanes and the footpaths to every door
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(130, 84).rotateX(-Math.PI / 2), mat(0x86c062)); ground.position.set(-2, 0, TZ + 7); ground.receiveShadow = true; scene.add(ground);
+            const ROAD = 0x9a9a92, PATH = 0xc9b48a;
+            flat(78, 3.2, ROAD, -1.5, S1);
+            flat(70, 2.6, ROAD, 0, S2);
+            flat(70, 2.0, PATH, 0, S3);
+            for (const x of LINKS) flat(2.2, S3 - S1, ROAD, x, (S1 + S3) / 2);
+            flat(3, 12.2, ROAD, 0, TZ - 5.4);
+            for (let x = -38; x <= 36; x += 2.5) flat(1.2, 0.15, 0xf2f2f2, x, S1, 0.045);
+            for (const b of VB) {
+                const pts = [{ x: b.door.x, z: b.door.z }, ...b.via];
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const a = pts[i], c = pts[i + 1], len = Math.hypot(c.x - a.x, c.z - a.z);
+                    if (len < 0.3) continue;
+                    flat(Math.abs(c.x - a.x) + 1.2, Math.abs(c.z - a.z) + 1.2, PATH, (a.x + c.x) / 2, (a.z + c.z) / 2, 0.015);
+                }
             }
-            // trees, lamps, benches and a little fountain for some life
-            for (const [x, z] of [[-21.5, TZ - 9], [21.5, TZ - 9], [-8, TZ - 10.5], [8, TZ - 10.5], [-20, TZ + 6], [20, TZ + 6], [-13, TZ + 8], [13, TZ + 8]]) roundTree(x, z, 1.1);
-            for (const x of [-14.2, -7.8, 7.8, 14.2]) { cap(0.05, 2.6, 0x2b2b2b, x, 1.3, TZ + 3.4, scene); ball(0.18, 0.18, 0.18, 0xfff1c9, x, 2.7, TZ + 3.4, scene); }
-            // the village square below the main street
+            // the gate from the farm road, with a welcome arch
+            for (const sx of [-1, 1]) box(0.3, 2.6, 0.3, C.darkWood, sx * 1.9, 1.3, TZ - 12.6, scene);
+            box(4.4, 0.3, 0.3, C.darkWood, 0, 2.7, TZ - 12.6, scene);
+            textPlate(scene, 'Desa Lembah Sari', 0, 3.15, TZ - 12.5, 3.4);
+            sign(2.8, TZ - 11.2, 'Ke Farm');
+            for (const b of VB) buildVBuilding(b);
+            // rice fields: flooded plots between raised paths, a hut and a scarecrow; an irrigation ditch
+            const PADDY = [{ x0: -42, x1: -31, z0: TZ - 12, z1: TZ - 1 }, { x0: -42, x1: -34, z0: TZ + 4, z1: TZ + 15.5 }];
+            const tuft = new THREE.ConeGeometry(0.09, 0.42, 5); tuft.translate(0, 0.21, 0);
+            const spots = [];
+            for (const p of PADDY) {
+                flat(p.x1 - p.x0, p.z1 - p.z0, 0x6f9c78, (p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2, 0.01);
+                for (let x = p.x0; x <= p.x1 + 0.01; x += 3.6) flat(0.35, p.z1 - p.z0, 0x7aa64e, x, (p.z0 + p.z1) / 2, 0.06);
+                for (let z = p.z0; z <= p.z1 + 0.01; z += 3.6) flat(p.x1 - p.x0, 0.35, 0x7aa64e, (p.x0 + p.x1) / 2, z, 0.06);
+                for (let x = p.x0 + 0.45; x < p.x1 - 0.2; x += 0.5) for (let z = p.z0 + 0.45; z < p.z1 - 0.2; z += 0.5) {
+                    const lx = (x - p.x0) % 3.6, lz = (z - p.z0) % 3.6;
+                    if (lx < 0.35 || lz < 0.35) continue;
+                    spots.push([x, z]);
+                }
+            }
+            paddyMesh = new THREE.InstancedMesh(tuft, new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 }), spots.length);
+            const mx = new THREE.Matrix4();
+            spots.forEach(([x, z], i) => { mx.makeScale(1, 0.8 + ((i * 37) % 10) / 25, 1); mx.setPosition(x, 0.02, z); paddyMesh.setMatrixAt(i, mx); });
+            paddyMesh.castShadow = false; paddyMesh.receiveShadow = true; scene.add(paddyMesh);
+            flat(0.8, 28, 0x5bb7ea, -30.4, TZ + 2, 0.03);
+            box(1.1, 0.5, 0.25, C.stone, -30.4, 0.25, TZ - 1.0, scene); box(0.9, 0.3, 0.06, C.darkWood, -30.4, 0.6, TZ - 1.0, scene);
+            {   // the hut on stilts
+                const g = new THREE.Group(); g.position.set(-36.5, 0, TZ - 9.6); scene.add(g);
+                for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g);
+                box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g);
+                const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r);
+                for (const sx of [-1, 1]) box(0.08, 0.9, 0.08, C.darkWood, sx * 0.9, 1.45, 0.7, g);
+                addBoxCollider(-37.6, -35.4, TZ - 10.4, TZ - 8.8);
+            }
+            {   // a scarecrow
+                const g = new THREE.Group(); g.position.set(-34.5, 0, TZ + 9.5); scene.add(g);
+                box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g);
+                box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g);
+                const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78;
+            }
+            // the river along the east edge, with reeds on its bank
+            const river = new THREE.Mesh(new THREE.PlaneGeometry(5, 50).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fa6d8, roughness: 0.15, metalness: 0.05 }));
+            river.position.set(40.5, 0.03, TZ + 7); scene.add(river);
+            flat(0.6, 50, 0xc9b48a, 37.7, TZ + 7, 0.025);
+            for (let z = TZ - 14; z < TZ + 30; z += 2.3) { const r = ball(0.18, 0.4, 0.18, 0x5f9a3f, 37.6 + ((z * 7) % 3) / 10, 0.3, z, scene); r.castShadow = false; }
+            // hills all around the valley
+            for (const [x, z, r, h, c] of [[-60, TZ - 30, 18, 9, 0x6fae55], [-25, TZ - 36, 16, 11, 0x5f9a4a], [8, TZ - 40, 20, 13, 0x6aa350], [40, TZ - 32, 17, 10, 0x5f9a4a], [66, TZ + 4, 18, 9, 0x6fae55], [-70, TZ + 20, 18, 8, 0x6aa350]]) {
+                const hill = mesh(new THREE.ConeGeometry(r, h, 18), mat(c), scene); hill.position.set(x, h / 2 - 0.2, z); hill.castShadow = false;
+            }
+            // trees, street lamps, the square and the playground
+            for (const [x, z, s] of [[-21.5, TZ - 9.5, 1.1], [-7.8, TZ - 10.5, 1], [7.8, TZ - 10.5, 1], [14.5, TZ - 9.5, 1.1], [24, TZ - 8, 1.2], [31, TZ - 6, 1], [-16.5, TZ + 12, 1], [16.8, TZ + 12.6, 1], [33, TZ + 10, 1.1], [35, TZ + 21, 1], [-36.5, TZ + 21, 1], [-25, TZ + 20.5, 0.9], [-15, TZ + 21, 0.9], [4.5, TZ + 21, 0.9], [15, TZ + 21, 0.9], [25, TZ + 20.5, 0.9], [-4.5, TZ + 21, 0.9]]) { roundTree(x, z, s); addCircleCollider(x, z, 0.35 * s); }
+            for (const x of [-30, -22, -14.2, -7.8, 7.8, 14.2, 22, 30]) { cap(0.05, 2.6, 0x2b2b2b, x, 1.3, TZ + 3.4, scene); ball(0.18, 0.18, 0.18, 0xfff1c9, x, 2.7, TZ + 3.4, scene); }
+            for (const x of [-25, -15, 15, 25]) { cap(0.05, 2.6, 0x2b2b2b, x, 1.3, S2 + 1.6, scene); ball(0.18, 0.18, 0.18, 0xfff1c9, x, 2.7, S2 + 1.6, scene); }
             const fz = TZ + 6.2;
             mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(0, 0.25, fz);
             const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(0, 0.52, fz); scene.add(fw);
             cap(0.12, 0.8, C.stone, 0, 0.9, fz, scene);
             addCircleCollider(0, fz, 1.5);
             for (const x of [-4.5, 4.5]) { box(1.4, 0.1, 0.45, C.wood, x, 0.45, fz, scene); for (const sx of [-0.55, 0.55]) box(0.08, 0.45, 0.4, C.darkWood, x + sx, 0.22, fz, scene); }
-            sign(2.8, TZ - 11.2, 'Ke Farm');
+            {   // playground: sand, a swing, a slide and a seesaw
+                const g = new THREE.Group(); g.position.set(24, 0, TZ + 11.5); scene.add(g);
+                box(8, 0.04, 6, 0xe8d6a8, 0, 0.02, 0, g).castShadow = false;
+                for (const sx of [-1.4, 1.4]) { const l = box(0.1, 2.0, 0.1, 0xd9443a, sx - 2, 1.0, 1.6, g); l.rotation.z = sx * 0.1; }
+                box(3.0, 0.1, 0.1, 0xd9443a, -2, 2.0, 1.6, g);
+                for (const sx of [-0.6, 0.6]) { box(0.02, 1.4, 0.02, 0x666666, sx - 2, 1.25, 1.6, g); box(0.5, 0.06, 0.25, 0x3f8fd6, sx - 2, 0.55, 1.6, g); }
+                const slide = box(0.7, 0.08, 2.6, 0xf2c94c, 2.2, 0.75, 1.0, g); slide.rotation.x = 0.55;
+                box(0.7, 1.5, 0.7, 0x3f8fd6, 2.2, 0.75, -0.4, g);
+                const saw = box(2.6, 0.08, 0.3, 0x4caf6a, 0, 0.42, -1.8, g); saw.rotation.z = 0.12; box(0.2, 0.4, 0.2, 0x6e4723, 0, 0.2, -1.8, g);
+                bench(scene, 24, TZ + 14.9, 1.8);
+                addBoxCollider(24 - 3.6, 24 - 0.4, TZ + 12.8, TZ + 13.4); addBoxCollider(24 + 1.8, 24 + 2.6, TZ + 10.8, TZ + 13.2);
+            }
+        }
+        // the outside of one village building
+        function buildVBuilding(b) {
+            const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.face; scene.add(g);
+            const { w, d } = b, hh = b.id === 'balai' ? 3.2 : b.id === 'gereja' ? 3.6 : b.house ? 2.7 : 3.0;
+            const y0 = b.id === 'lumbung' ? 0.7 : 0;
+            box(w, hh, d, b.wall, 0, y0 + hh / 2, 0, g);
+            if (y0) for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.25, y0, 0.25, C.darkWood, sx * (w / 2 - 0.2), y0 / 2, sz * (d / 2 - 0.2), g);
+            if (b.id === 'musala') {
+                box(w + 0.2, 0.2, d + 0.2, 0x2f8a5a, 0, hh, 0, g);
+                const dome = mesh(new THREE.SphereGeometry(1.35, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x2f8a5a), g); dome.position.y = hh + 0.1;
+                cap(0.04, 0.5, 0xd4af37, 0, hh + 1.7, 0, g);
+                const m = new THREE.Group(); m.position.set(w / 2 + 0.6, 0, -d / 2 + 0.6); g.add(m);
+                box(0.7, 4.6, 0.7, 0xf4f1e6, 0, 2.3, 0, m); box(0.9, 0.2, 0.9, 0x2f8a5a, 0, 4.0, 0, m);
+                const md = mesh(new THREE.SphereGeometry(0.42, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x2f8a5a), m); md.position.y = 4.6;
+                addBoxCollider(b.x + w / 2 + 0.2, b.x + w / 2 + 1.0, b.z - d / 2 + 0.2, b.z - d / 2 + 1.0);
+            } else if (b.id === 'gereja') {
+                const roof = gableRoof(d + 0.8, w + 0.5, 2.2, b.roof); roof.rotation.y = Math.PI / 2; roof.position.y = hh; g.add(roof);
+                const t = new THREE.Group(); t.position.set(0, 0, d / 2 + 0.6); g.add(t);
+                box(1.4, 5.6, 1.2, 0xf7f3ea, 0, 2.8, 0, t);
+                const sp = mesh(new THREE.ConeGeometry(1.0, 1.8, 4), mat(b.roof), t); sp.position.y = 6.5; sp.rotation.y = Math.PI / 4;
+                box(0.1, 0.9, 0.1, 0xd4af37, 0, 7.75, 0, t); box(0.5, 0.1, 0.1, 0xd4af37, 0, 7.95, 0, t);
+                const rose = mesh(new THREE.CircleGeometry(0.35, 20), new THREE.MeshStandardMaterial({ color: 0x7fb3e8, emissive: 0x3f6fae, emissiveIntensity: 0.4 }), t); rose.position.set(0, 4.2, 0.61);
+                addBoxCollider(b.x - 0.75, b.x + 0.75, b.z - d / 2 - 1.25, b.z - d / 2 + 0.05);
+            } else if (b.id === 'balai') {
+                const r1 = gableRoof(d + 1.2, w + 1.0, 1.0, b.roof); r1.rotation.y = Math.PI / 2; r1.position.y = hh; g.add(r1);
+                const r2 = gableRoof(d * 0.6, w * 0.55, 1.1, b.roof); r2.rotation.y = Math.PI / 2; r2.position.y = hh + 0.75; g.add(r2);
+                for (const sx of [-3.2, -1.6, 1.6, 3.2]) box(0.22, hh, 0.22, 0xffffff, sx, hh / 2, d / 2 + 0.55, g);
+                box(w + 0.6, 0.15, 1.3, 0xd8c8a8, 0, 0.08, d / 2 + 0.55, g);
+                // the red and white flag
+                const pole = new THREE.Group(); pole.position.set(-w / 2 - 0.9, 0, d / 2 + 1.0); g.add(pole); addCircleCollider(b.x - w / 2 - 0.9, b.z + d / 2 + 1.0, 0.12);
+                cap(0.04, 4.2, 0xdddddd, 0, 2.1, 0, pole);
+                box(0.9, 0.3, 0.02, 0xd9221f, 0.47, 3.85, 0, pole); box(0.9, 0.3, 0.02, 0xffffff, 0.47, 3.55, 0, pole);
+            } else {
+                const roof = gableRoof(d + 0.8, w + 0.5, b.house ? 1.3 : 1.5, b.roof); roof.rotation.y = Math.PI / 2; roof.position.y = y0 + hh; g.add(roof);
+            }
+            // the front: door, windows, an awning for the shops, the name above the door
+            const fz = d / 2 + 0.02;
+            box(1.2, 2.0, 0.12, b.house ? 0x8a5a3a : 0x6e4723, 0, y0 + 1.0, fz, g);
+            box(0.08, 0.08, 0.06, 0xf2c94c, 0.4, y0 + 1.0, fz + 0.07, g);
+            for (const sx of b.id === 'balai' ? [-2.6, 2.6] : [-1.6, 1.6]) box(1.0, 0.8, 0.08, 0x9fd8ff, sx * (w / 5.6 > 1 ? 1 : w / 5.6 * 1.05), y0 + 1.7, fz + 0.01, g);
+            if (b.house) { for (const sx of [-1.6, 1.6]) box(1.1, 0.18, 0.25, 0x8a5a3a, sx, 1.22, fz + 0.12, g); for (const sx of [-1.95, -1.6, -1.25, 1.25, 1.6, 1.95]) ball(0.11, 0.1, 0.11, [0xf27ba5, 0xf2c94c, 0xd9534a][Math.abs(Math.round(sx * 10)) % 3], sx, 1.38, fz + 0.12, g); }
+            if (y0) { for (let i = 0; i < 3; i++) box(1.2, 0.12, 0.35, C.darkWood, 0, (i + 1) * y0 / 3.4, fz + 0.4 + (2 - i) * 0.32, g); }
+            textPlate(g, `${b.icon} ${b.name.replace('Gereja Katolik', 'Gereja')}`, 0, y0 + (b.house ? 2.3 : 2.5), fz + 0.04, b.house ? 2.6 : 3.4);
+            if (b.id === 'giling') { for (const [x, z] of [[2.2, fz + 0.6], [2.7, fz + 0.5], [2.45, fz + 0.9]]) ball(0.28, 0.32, 0.24, 0xd8c08a, x, 0.3, z, g); cap(0.12, 1.4, 0x6e737c, -2.2, hh + 0.9, -0.8, g); }
+            addBoxCollider(b.x - w / 2, b.x + w / 2, b.z - d / 2, b.z + d / 2);
         }
         sign(-13.4, 0.4, 'Ayam');
         sign(5.6, 0.6, 'Sapi');
@@ -2300,7 +2451,7 @@
             { key: 'kunyit', label: 'Kunyit', icon: '🟠', type: 'veg', days: 8, seed: 30, price: 60, yield: 2, m: { t: 'leafy', c: 0x5aa040, n: 5, len: 0.45, wid: 0.14, tilt: 0.5 } },
             { key: 'lengkuas', label: 'Lengkuas', icon: '🫚', type: 'veg', days: 9, seed: 30, price: 60, yield: 2, m: { t: 'stalk', c: 0x3f8a35, n: 5, h: 0.75, tuft: 0x4f9a3a } },
             { key: 'serai', label: 'Serai', icon: '🎍', type: 'veg', days: 6, seed: 25, price: 50, yield: 2, m: { t: 'stalk', c: 0x8fc05a, base: 0xe8eecf, n: 12, h: 0.62 } },
-            { key: 'padi', label: 'Padi', icon: '🌾', type: 'veg', days: 10, seed: 30, price: 24, yield: 4, out: 'beras', m: { t: 'stalk', c: 0x9fbf4a, n: 14, h: 0.6, tuft: 0xe0c060 } },
+            { key: 'padi', label: 'Padi', icon: '🌾', type: 'veg', days: 10, seed: 30, price: 24, yield: 4, out: 'gabah', m: { t: 'stalk', c: 0x9fbf4a, n: 14, h: 0.6, tuft: 0xe0c060 } },
             { key: 'jagung', label: 'Jagung', icon: '🌽', type: 'veg', days: 9, seed: 35, price: 50, yield: 2, m: { t: 'corn', c: 0x5fa83c } },
             { key: 'singkong', label: 'Singkong', icon: '🥔', type: 'veg', days: 10, seed: 30, price: 55, yield: 3, m: { t: 'root', c: 0x4f8f3a, root: 0xc8a070 } },
             { key: 'ubi', label: 'Ubi jalar', icon: '🍠', type: 'veg', days: 8, seed: 30, price: 50, yield: 3, m: { t: 'root', c: 0x5a9a3a, root: 0xc0587a } },
@@ -2351,7 +2502,7 @@
         // ---------- Groceries from the market, cookware, and home cooking ----------
         // market-only groceries: [key, label, icon, buy price online, price the shipping bin pays]
         for (const [k, label, icon, buy, sell] of [
-            ['beras', 'Beras', '🌾', 40, 24], ['bawangmerah', 'Bawang merah', '🧅', 30, 18], ['bawangputih', 'Bawang putih', '🧄', 30, 18],
+            ['beras', 'Beras', '🍚', 40, 24], ['bawangmerah', 'Bawang merah', '🧅', 30, 18], ['bawangputih', 'Bawang putih', '🧄', 30, 18],
             ['garam', 'Garam', '🧂', 15, 8], ['gula', 'Gula', '🍬', 25, 15], ['minyak', 'Minyak goreng', '🫗', 35, 20], ['kecap', 'Kecap manis', '🍶', 30, 18],
             ['tepung', 'Tepung terigu', '🥣', 30, 18], ['tahu', 'Tahu', '🧈', 25, 15], ['tempe', 'Tempe', '🟫', 25, 15], ['mi', 'Mi telur', '🍝', 30, 18],
             ['kacang', 'Kacang tanah', '🥜', 35, 20], ['rempah', 'Bumbu rempah', '🫚', 30, 18], ['ayam', 'Daging ayam', '🍗', 120, 75], ['sapi', 'Daging sapi', '🥩', 220, 140],
@@ -2454,6 +2605,7 @@
         ];
         const POT_SLOTS = 48;
         // Everything a bag or a box can hold, and the tools in your hands
+        PRODUCTS.gabah = { label: 'Gabah', icon: '🌾', price: 14 }; // harvested rice, milled into beras at the Penggilingan Padi
         const ITEMS = { ...PRODUCTS, ...SUPPLIES };
         const BAG_MAX = 30, HOTBAR = 10, STACK = 99;
         const TOOLS = {
@@ -2715,7 +2867,7 @@
         function buildFarmer(f, look) {
             const g = f.group;
             while (g.children.length) g.remove(g.children[0]);
-            const girl = look.g === 'f', skin = SKIN[look.n] || 0xe0ac84;
+            const girl = look.g === 'f', skin = look.skin || SKIN[look.n] || 0xe0ac84;
             const o = cleanOutfit(look.o, look.g);
             const full = o.f && CLOTH[o.f];
             const parts = full ? fullParts(full) : null;
@@ -2726,7 +2878,7 @@
             if (look.bath) { topItem = { kind: 'kaos', sleeve: 'none', c: skin }; botItem = { legs: 'brief', c: skin }; shoes = null; head = null; }
             const rig = new THREE.Group(); g.add(rig);
             f.skirt = null;
-            const scale = girl ? 1.02 : 1.08;
+            const scale = (girl ? 1.02 : 1.08) * (look.kid ? 0.72 : 1);
             rig.scale.setScalar(scale);
             blob(g, 0.6, 0.6);
             const hipY = girl ? 0.88 : 0.92, shY = girl ? 1.38 : 1.42, shX = girl ? 0.175 : 0.2;
@@ -2797,7 +2949,7 @@
             const hijab = head && head.kind === 'hijab';
             // hair and headwear sit in their own group so a mukena can cover them during prayer
             const hairG = new THREE.Group(); hd.add(hairG);
-            if (!hijab) hair(hairG, girl, head);
+            if (!hijab) hair(hairG, girl, head, look.hair);
             if (head) hat(hairG, head, girl);
             f.mukena = null; f.mukOn = false;
             if (girl) {
@@ -2829,14 +2981,14 @@
             return { top, bot };
         }
         const capGeo = (r, len) => geoCache[`c${r}|${len}`] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
-        function hair(hd, girl, head) {
+        function hair(hd, girl, head, hc = HAIR) {
             const covered = head && ['cap', 'kupluk', 'peci'].includes(head.kind);
-            ball(0.107, covered ? 0.07 : 0.088, 0.117, HAIR, 0, 0.045, -0.012, hd);
+            ball(0.107, covered ? 0.07 : 0.088, 0.117, hc, 0, 0.045, -0.012, hd);
             if (girl) {
-                ball(0.1, 0.2, 0.055, HAIR, 0, -0.11, -0.075, hd);              // long hair down the back
-                for (const sx of [1, -1]) ball(0.028, 0.12, 0.04, HAIR, 0.092 * sx, -0.06, 0.02, hd);
-                if (!covered) ball(0.092, 0.032, 0.05, HAIR, 0, 0.08, 0.07, hd); // bangs
-            } else if (!covered) ball(0.09, 0.028, 0.05, HAIR, 0, 0.085, 0.07, hd);
+                ball(0.1, 0.2, 0.055, hc, 0, -0.11, -0.075, hd);              // long hair down the back
+                for (const sx of [1, -1]) ball(0.028, 0.12, 0.04, hc, 0.092 * sx, -0.06, 0.02, hd);
+                if (!covered) ball(0.092, 0.032, 0.05, hc, 0, 0.08, 0.07, hd); // bangs
+            } else if (!covered) ball(0.09, 0.028, 0.05, hc, 0, 0.085, 0.07, hd);
         }
         function hat(hd, it, girl) {
             const m = mat(it.c);
@@ -3147,7 +3299,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -3195,6 +3347,7 @@
             st.trough = fullTroughs();
             if (saved.trough) for (const k of FEED_KINDS) if (Number.isFinite(saved.trough[k])) st.trough[k] = clamp(Math.floor(saved.trough[k]), 0, herdOf(k));
             st.poop = (Array.isArray(saved.poop) ? saved.poop : []).filter(p => p && FEED_KINDS.includes(p.k) && Number.isFinite(p.x) && Number.isFinite(p.z)).slice(0, POOP_MAX * FEED_KINDS.length).map(p => ({ k: p.k, x: +p.x, z: +p.z }));
+            st.npc = cleanNpc(saved.npc); st.lumbung = cleanLumbung(saved.lumbung);
             return st;
         }
         let state = freshState();
@@ -3820,8 +3973,8 @@
         const F1 = 200, F2 = 260, RF = 320;
         const inHome = p => p.x > 150;
         const floorOf = p => Math.round((p.x - F1) / 60) * 60 + F1;
-        const isBarn = f => f >= BARNS.chicken.x;
-        const halfOf = f => isBarn(f) ? { x: 4.6, z: 3.6 } : HOME_HALF;
+        const isBarn = f => f >= BARNS.chicken.x && f <= BARNS.duck.x;
+        const halfOf = f => isBarn(f) || isVRoom(f) ? { x: 4.6, z: 3.6 } : HOME_HALF;
         // the cat and dog spend nights and bad weather in the family room
         const PET_HOME = { out: new THREE.Vector3(HOUSE_DOOR.x + 0.9, 0, HOUSE_DOOR.z + 1.0), in: new THREE.Vector3(F1 - 6.9, 0, 4.4), area: { minX: F1 - 7.8, maxX: F1 - 6.2, minZ: 2.4, maxZ: 6.0 } };
         const HV = (f, x, z) => new THREE.Vector3(f + x, 0, z);
@@ -3842,8 +3995,9 @@
             ...Object.values(BARNS).map(b => ({ f: b.x, n: `${b.icon} ${b.label}`, x: [-5, 5], z: [-4, 4] })),
         ];
         function placeName(p) {
-            if (inTown(p)) { const t = TOWN.find(t => Math.abs(p.x - t.x) < 2.6 && p.z < TZ - 1.5); return t ? `${t.icon} ${t.name}` : '🏘️ Desa'; }
+            if (inTown(p)) { const b = VB.find(b => Math.abs(p.x - b.x) < b.w / 2 + 0.6 && Math.abs(p.z - b.door.z) < 1.6); return b ? `${b.icon} ${b.name}` : VILLAGE; }
             if (!inHome(p)) return '🌾 Farm';
+            if (isVRoom(floorOf(p))) { const b = vRoomOf(floorOf(p)); return b ? `${b.icon} ${b.name}` : VILLAGE; }
             const f = floorOf(p), x = p.x - f;
             const r = ROOMS.find(r => r.f === f && x >= r.x[0] && x <= r.x[1] && p.z >= r.z[0] && p.z <= r.z[1]);
             if (isBarn(f)) return r ? r.n : '🏚️ Kandang';
@@ -3905,7 +4059,7 @@
             homeKey.shadow.bias = -0.0005; homeKey.shadow.normalBias = 0.03;
             homeScene.add(homeHemi, homeKey, homeKey.target);
             homeGlass = new THREE.MeshStandardMaterial({ color: 0xbfe6ff, roughness: 0.2, emissive: 0x6fb6e8, emissiveIntensity: 0.35 });
-            buildFloor1(); buildFloor2(); buildRoof(); buildBarns();
+            buildFloor1(); buildFloor2(); buildRoof(); buildBarns(); buildVillageRooms();
         }
 
         // --- small building blocks, in each floor's own coordinates ---
@@ -4001,7 +4155,9 @@
             const c = document.createElement('canvas'); c.width = 256; c.height = 64;
             const t = c.getContext('2d');
             t.fillStyle = '#fbefd0'; t.fillRect(0, 0, 256, 64); t.strokeStyle = '#8b5a2b'; t.lineWidth = 8; t.strokeRect(4, 4, 248, 56);
-            t.fillStyle = '#4a2f14'; t.font = '700 30px Fredoka, sans-serif'; t.textAlign = 'center'; t.textBaseline = 'middle'; t.fillText(text, 128, 34);
+            let fs = 30; t.font = `700 ${fs}px Fredoka, sans-serif`;
+            while (fs > 14 && t.measureText(text).width > 232) { fs -= 2; t.font = `700 ${fs}px Fredoka, sans-serif`; } // long names shrink to fit
+            t.fillStyle = '#4a2f14'; t.textAlign = 'center'; t.textBaseline = 'middle'; t.fillText(text, 128, 34);
             const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
             const m = new THREE.Mesh(PLANE, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
             m.scale.set(w, w / 4, 1); m.position.set(x, y, z); m.rotation.y = rotY; g.add(m);
@@ -4758,6 +4914,13 @@
             let body = [], tabs = null;
             if (id === 'klinik') {
                 body = Object.entries(CLINIC).map(([k, c]) => row(c.icon, c.label, `${c.note} · energi sekarang ${Math.round(energyOf(USER))}/${ENERGY_MAX}`, c.price, () => { sendAct('clinic', k); setTimeout(() => { if (dlgOpen()) openTownShop(id); }, 350); }));
+            } else if (id === 'pasar' && (townTab.pasar || 'beli') === 'jual') {
+                // Bu Sari buys your harvest, a little better than the shipping bin
+                const sell = [...new Set(bagOf(USER).filter(x => x && pasarBuys(x[0])).map(x => x[0]))];
+                body = sell.length ? sell.map(k => {
+                    const n = have(USER, k), pr = pasarPrice(k), go = c => { sendAct('pasarjual', `${k}|${c}`); setTimeout(() => { if (dlgOpen()) openTownShop(id); }, 350); };
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic' }, iconEl(k)), el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `${pr} G satuan · di tas ${n}` })), el('button', { class: 'btn', onclick: () => go(1) }, 'Jual 1'), el('button', { class: 'btn', onclick: () => go(n) }, `Semua · ${pr * n} G`));
+                }) : [el('p', { class: 'small-note', text: 'Belum ada hasil panen di tasmu yang dibeli pasar (sayur, buah, gabah, beras).' })];
             } else {
                 let keys = id === 'bangunan' ? Object.keys(BUILDER) : id === 'warung' ? DISHES().map(r => r.key) : Object.keys(SUPPLIES).filter(k => townPrice(id, k));
                 if (id === 'bibit') {
@@ -4772,16 +4935,630 @@
                     return row(s && s.feed ? BARNS[s.feed].icon : s && s.tree ? FDEF[s.tree].icon : iconEl(k), it.label, sub, p, () => buyIt(k), full);
                 });
             }
-            openDlg(`${t.icon} ${t.name}`, [el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · ${id === 'klinik' ? 'Klinik desa, buka setiap hari.' : 'Barang langsung masuk tas, lebih murah dari toko online.'}` }), tabs, el('div', { class: 'shoplist' }, body)].filter(Boolean));
+            if (id === 'pasar') { const cur = townTab.pasar ||= 'beli'; tabs = el('div', { class: 'tabs chips' }, [['beli', '🛒 Beli bahan'], ['jual', '💰 Jual hasil panen']].map(([c, l]) => el('button', { class: 'btn' + (c === cur ? ' on' : ''), onclick: () => { townTab.pasar = c; openTownShop(id); } }, l))); }
+            const kp = KEEPER[id];
+            openDlg(`${t.icon} ${t.name}`, [el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · ${kp ? kp.name + ' · ' : ''}${id === 'klinik' ? 'Klinik desa, tutup hari Minggu.' : id === 'pasar' ? 'Pasar buka 06:00–12:00. Hasil panen dibeli 10% lebih mahal dari kotak pengiriman.' : 'Barang langsung masuk tas, lebih murah dari toko online.'}` }), tabs, el('div', { class: 'shoplist' }, body)].filter(Boolean));
             liveDlg = () => openTownShop(id);
+        }
+        // ---------- 🌾 inside the village buildings ----------
+        // Every room is 10 × 8 like a barn and is seen from the south (the front wall is low, with the doorway).
+        // spots are where the villagers stand, sit, sleep or pray (x local, k: 0 stand, 1 sit, 2 pray, 3 lie)
+        const vSpot = (b, key, x, z, h, k = 0, y) => { (b.spots ||= {})[key] = { x: b.f + x, z, h, k, y }; };
+        function vRoom(b, floorC, wallC, floorC2) {
+            const f = b.f, g = floorGroup(f);
+            if (floorC2) { box(10, 0.1, 8, floorC, 0, -0.05, 0, g).castShadow = false; tiles(g, -5, 5, -4, 4, floorC, floorC2); }
+            else planks(g, -5, 5, -4, 4, floorC, new THREE.Color(floorC).offsetHSL(0, 0, -0.05).getHex());
+            wall(g, f, 'x', -4, -5, 5, 2.6, [], wallC);
+            wall(g, f, 'z', -5, -4, 4, 2.6, [], wallC);
+            wall(g, f, 'z', 5, -4, 4, 2.6, [], wallC);
+            wall(g, f, 'x', 4, -5, 5, 0.45, [[0, 1.8]], wallC);
+            rug(g, 0, 3.55, 1.6, 0.7, 0x8a5a3a, 0xb98557);
+            return g;
+        }
+        const shelf = (g, f, x, z, w, colors, rot = 0) => {
+            const s = new THREE.Group(); s.position.set(x, 0, z); s.rotation.y = rot; g.add(s);
+            // an open shelf: back board, two sides, three boards with goods on them
+            box(w, 1.8, 0.06, 0x6e4723, 0, 0.9, -0.2, s);
+            for (const sx of [-1, 1]) box(0.06, 1.8, 0.45, 0x8a5a3a, sx * (w / 2 - 0.03), 0.9, 0, s);
+            for (let r = 0; r < 3; r++) { box(w - 0.1, 0.05, 0.42, 0xb07a45, 0, 0.4 + r * 0.55, 0.02, s); for (let i = 0; i < Math.floor((w - 0.2) / 0.32); i++) box(0.22, 0.26, 0.22, colors[(i + r * 2) % colors.length], -w / 2 + 0.3 + i * 0.32, 0.56 + r * 0.55, 0.04, s); }
+            if (rot) col(f, x - 0.3, x + 0.3, z - w / 2, z + w / 2); else col(f, x - w / 2, x + w / 2, z - 0.3, z + 0.3);
+        };
+        const counter = (g, f, x, z, w, c = 0xb07a45) => { box(w, 0.95, 0.65, c, x, 0.48, z, g); box(w + 0.1, 0.06, 0.75, 0xe8d8b8, x, 0.98, z, g); col(f, x - w / 2, x + w / 2, z - 0.35, z + 0.35); };
+        const sack = (g, x, z, c = 0xd8c08a, r = 0) => { const s = ball(0.26, 0.32, 0.22, c, x, 0.3, z, g); s.rotation.y = r; box(0.2, 0.05, 0.18, new THREE.Color(c).offsetHSL(0, 0, -0.1).getHex(), x, 0.62, z, g).rotation.y = r; };
+        function vBed(g, f, x, z, w, sheet) {
+            box(w, 0.35, 2.0, 0x8a5a3a, x, 0.18, z, g); box(w - 0.1, 0.18, 1.9, 0xfaf6ee, x, 0.44, z, g);
+            box(w - 0.15, 0.06, 1.2, sheet, x, 0.55, z + 0.3, g); box(w + 0.05, 0.8, 0.1, 0x6e4723, x, 0.5, z - 1.0, g);
+            for (let i = 0; i < Math.round(w / 0.8); i++) box(0.55, 0.12, 0.32, 0xffffff, x - w / 2 + 0.4 + i * 0.8, 0.58, z - 0.72, g);
+            col(f, x - w / 2, x + w / 2, z - 1.05, z + 1.0);
+        }
+        function buildVillageRooms() {
+            for (const b of VB) {
+                const f = b.f;
+                b.spots = {};
+                if (b.house) { vHouse(b); continue; }
+                const keeper = () => vSpot(b, 'work', 0, -2.5, 0);
+                if (b.id === 'bibit') {
+                    const g = vRoom(b, 0xc9a87a, 0xe8f2d8); counter(g, f, 0, -1.6, 3.2); keeper();
+                    shelf(g, f, -3.3, -3.6, 2.6, [0x4caf6a, 0xf2c94c, 0xd9534a, 0x8fd06a, 0xf27ba5]); shelf(g, f, 3.3, -3.6, 2.6, [0x7aa64e, 0xe8c66a, 0x9fd8c4]);
+                    for (const [x, z] of [[-4.2, -1.6], [-4.2, -0.9], [-3.6, -1.25]]) sack(g, x, z, 0xb5d08a);
+                    for (const [x, z] of [[3.6, 1.0], [4.2, 1.0], [3.9, 1.6], [4.4, 1.6]]) { pottedPlant(g, x, z, 0.55, 0x4caf6a); }
+                    for (let i = 0; i < 4; i++) box(0.05, 1.3, 0.05, 0x8a5a3a, -4.85, 1.2, -1.6 + i * 0.5, g);
+                    textPlate(g, '🌱 Toko Tani', 0, 2.25, -3.85, 2.8);
+                } else if (b.id === 'hewan') {
+                    const g = vRoom(b, 0xc9a464, 0xf2e2bd); counter(g, f, 0, -1.6, 3.0); keeper();
+                    for (const [x, y, z] of [[-4.2, 0.3, -3.2], [-4.2, 0.9, -3.2], [-3.2, 0.3, -3.2], [4.2, 0.3, -3.2]]) box(0.95, 0.6, 0.7, C.straw, x, y, z, g);
+                    col(f, -4.8, -2.7, -3.6, -2.8); col(f, 3.7, 4.8, -3.6, -2.8);
+                    for (const [x, z] of [[3.0, -3.3], [3.5, -2.9]]) sack(g, x, z);
+                    { const c = new THREE.Group(); c.position.set(-3.6, 0, 1.2); g.add(c); box(1.4, 0.06, 1.0, 0xc9a464, 0, 0.03, 0, c); for (const [x, z] of [[-0.7, 0], [0.7, 0]]) box(0.04, 0.5, 1.0, 0xcccccc, x, 0.25, z, c); for (const z of [-0.5, 0.5]) box(1.4, 0.5, 0.04, 0xcccccc, 0, 0.25, z, c); for (let i = 0; i < 4; i++) ball(0.09, 0.08, 0.09, 0xf2d64c, -0.4 + i * 0.27, 0.1, (i % 2) * 0.3 - 0.15, c); col(f, -4.35, -2.85, 0.65, 1.75); }
+                    textPlate(g, '🐄 Toko Hewan', 0, 2.25, -3.85, 2.4);
+                } else if (b.id === 'pasar') {
+                    const g = vRoom(b, 0xb8a888, 0xf7e2c8, 0xc8b898);
+                    const stall = (x, z, piles) => { table(g, x, z, 2.0, 0.9, 0.8, 0xb07a45); piles.forEach((c, i) => ball(0.28, 0.16, 0.28, c, x - 0.6 + i * 0.6, 0.92, z, g)); col(f, x - 1.0, x + 1.0, z - 0.45, z + 0.45); };
+                    stall(0, -1.7, [0xd9443a, 0x4caf6a, 0xf2c94c]); stall(-3.3, -1.0, [0x7aa64e, 0xe85d4a, 0xf2a03d]); stall(3.3, -1.0, [0xf2c94c, 0x9cc95a, 0x8a5a3a]);
+                    for (const [x, z] of [[-4.3, 1.4], [-3.7, 1.6], [4.3, 1.4]]) { const k = mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.3, 14), mat(0xc8955a), g); k.position.set(x, 0.15, z); }
+                    box(0.35, 0.3, 0.3, 0x6e8ea8, 1.0, 0.98, -1.7, g);
+                    keeper();
+                    textPlate(g, '🧺 Pasar Tani', 0, 2.25, -3.85, 2.6);
+                } else if (b.id === 'bangunan') {
+                    const g = vRoom(b, 0xa8a8a0, 0xdfe3e6, 0xb8b8b0); counter(g, f, 0, -1.6, 3.0); keeper();
+                    for (let i = 0; i < 5; i++) box(2.2, 0.12, 0.3, 0xc8955a, -3.6, 0.1 + i * 0.13, -3.2, g);
+                    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) box(0.4, 0.2, 0.2, 0xb5543a, 3.0 + j * 0.42, 0.1 + i * 0.21, -3.3, g);
+                    for (const [x, z] of [[3.8, -1.2], [4.3, -1.2], [4.05, -0.7]]) sack(g, x, z, 0x9a9a92);
+                    for (const [x, c] of [[-4.2, 0xd9534a], [-3.8, 0x3f8fd6], [-3.4, 0xf2c94c]]) { const p = mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.3, 12), mat(c), g); p.position.set(x, 0.15, 1.2); }
+                    col(f, -4.8, -2.4, -3.5, -2.9); col(f, 2.7, 4.6, -3.5, -2.9);
+                    textPlate(g, '🧱 Toko Bangunan', 0, 2.25, -3.85, 2.2);
+                } else if (b.id === 'warung') {
+                    const g = vRoom(b, 0xc9a87a, 0xfaeed2); counter(g, f, 0, -2.0, 3.6, 0x8a5a3a); vSpot(b, 'work', 0, -2.9, 0);
+                    box(1.2, 0.5, 0.5, new THREE.MeshStandardMaterial({ color: 0xdff2ff, transparent: true, opacity: 0.5 }), -1.0, 1.25, -2.0, g);
+                    for (let i = 0; i < 4; i++) ball(0.1, 0.06, 0.1, [0xe8c66a, 0xd9534a, 0x7aa64e][i % 3], -1.35 + i * 0.23, 1.1, -2.0, g);
+                    frame(g, 2.6, 1.7, -3.88, 1.6, 1.0, 0x2b2b2b);
+                    let si = 0;
+                    for (const tx of [-2.6, 2.6]) {
+                        table(g, tx, 0.8, 1.4, 0.9, 0.75, 0xd8b88a); col(f, tx - 0.7, tx + 0.7, 0.35, 1.25);
+                        for (const [dx, h] of [[-0.95, Math.PI / 2], [0.95, -Math.PI / 2]]) { chair(g, tx + dx, 0.8, h); vSpot(b, 'seat' + si++, tx + dx, 0.8, h, 1); }
+                    }
+                    b.seats = [0, 1, 2, 3].map(i => seat(f, b.spots['seat' + i].x - f, 0.8, b.spots['seat' + i].h, b.spots['seat' + i].x - f + (i % 2 ? 0.6 : -0.6), 1.6, 1));
+                    textPlate(g, '🍜 Warung Bu Siti', 0, 2.25, -3.85, 2.2);
+                } else if (b.id === 'klinik') {
+                    const g = vRoom(b, 0xe8eef2, 0xf4f8fa, 0xd8e2e8); counter(g, f, -1.0, -1.6, 2.6, 0xf2f2f2); vSpot(b, 'work', -1.0, -2.5, 0);
+                    box(2.0, 0.55, 0.9, 0xf2f2f2, 3.4, 0.4, -2.6, g); box(1.9, 0.12, 0.8, 0x9fd8c4, 3.4, 0.72, -2.6, g); col(f, 2.4, 4.4, -3.1, -2.1);
+                    box(0.05, 1.9, 1.6, 0xb8e0e8, 2.3, 1.0, -2.4, g);
+                    box(1.0, 1.6, 0.4, 0xffffff, -4.3, 0.8, -3.6, g); box(0.3, 0.3, 0.05, 0xd9443a, -4.3, 1.4, -3.38, g); col(f, -4.8, -3.8, -3.85, -3.35);
+                    bench(g, -3.6, 1.6, 1.8); col(f, -4.5, -2.7, 1.3, 1.9);
+                    b.seats = [seat(f, -4.0, 1.55, 0, -4.0, 2.4, 1), seat(f, -3.2, 1.55, 0, -3.2, 2.4, 1)];
+                    textPlate(g, '🏥 Klinik Desa', 0, 2.25, -3.85, 2.6);
+                } else if (b.id === 'giling') {
+                    const g = vRoom(b, 0x9a9a92, 0xe6dccb, 0xaaa69c);
+                    // the huller: a hopper on top, the motor and belt at the side, a chute pouring rice into a sack
+                    box(1.8, 1.3, 1.2, 0x3f7fb5, -0.6, 0.65, -2.6, g);
+                    const hop = mesh(new THREE.CylinderGeometry(0.6, 0.25, 0.7, 4), mat(0x6e8ea8), g); hop.position.set(-0.6, 1.65, -2.6); hop.rotation.y = Math.PI / 4;
+                    box(0.8, 0.6, 0.8, 0x2b2b2b, 1.1, 0.3, -2.8, g); box(0.06, 0.9, 0.2, 0x111111, 0.6, 0.8, -2.8, g);
+                    const ch = box(0.3, 0.1, 0.9, 0x9a9a92, -0.6, 0.75, -1.7, g); ch.rotation.x = -0.4;
+                    sack(g, -0.6, -1.2, 0xf6f2e6);
+                    col(f, -1.6, 1.6, -3.3, -1.9);
+                    for (const [x, z, c] of [[-4.2, -3.2, 0xd8c08a], [-3.6, -3.3, 0xd8c08a], [-3.9, -2.7, 0xd8c08a], [-4.3, -2.3, 0xd8c08a], [3.6, -3.2, 0xf6f2e6], [4.2, -3.3, 0xf6f2e6], [3.9, -2.7, 0xf6f2e6]]) sack(g, x, z, c);
+                    col(f, -4.8, -3.2, -3.7, -2.0); col(f, 3.2, 4.7, -3.7, -2.3);
+                    box(0.6, 0.15, 0.6, 0x6e737c, 2.2, 0.08, -0.8, g); box(0.08, 0.9, 0.08, 0x6e737c, 2.2, 0.5, -1.05, g); box(0.3, 0.2, 0.05, 0xffffff, 2.2, 1.0, -1.05, g);
+                    vSpot(b, 'work', 0.4, -1.4, 0);
+                    textPlate(g, '🏭 Penggilingan Padi', 0, 2.25, -3.85, 2.8);
+                } else if (b.id === 'lumbung') {
+                    const g = vRoom(b, 0x8a6a42, 0xb98557);
+                    for (const x of [-2.5, 2.5]) { box(0.25, 2.6, 0.25, 0x6e4723, x, 1.3, -0.5, g); addCircleCollider(f + x, -0.5, 0.2); }
+                    for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) sack(g, -4.3 + i * 0.5, -3.3 + (r % 2) * 0.1, r === 2 ? 0xf6f2e6 : 0xd8c08a);
+                    for (let i = 0; i < 6; i++) sack(g, 1.8 + i * 0.5, -3.3, 0xd8c08a);
+                    col(f, -4.8, -1.4, -3.7, -2.8); col(f, 1.4, 4.8, -3.7, -2.8);
+                    table(g, 0, -1.6, 1.4, 0.7, 0.75, 0x8a5a3a); col(f, -0.7, 0.7, -1.95, -1.25); box(0.4, 0.05, 0.3, 0xf6f2e6, 0.1, 0.8, -1.6, g);
+                    chair(g, 0, -2.3, 0); vSpot(b, 'work', 0, -2.3, 0, 1);
+                    textPlate(g, '🏚️ Lumbung Desa', 0, 2.25, -3.85, 2.8);
+                } else if (b.id === 'musala') {
+                    const g = vRoom(b, 0xd8d0b8, 0xfaf8f0);
+                    box(8.6, 0.03, 6.4, 0x2f8a5a, 0.3, 0.03, -0.6, g).castShadow = false;
+                    for (let x = -3.4; x < 4.4; x += 1.1) box(0.05, 0.035, 6.2, 0xd4af37, x, 0.05, -0.6, g).castShadow = false;
+                    // the mihrab (prayer niche) in the west wall, facing the qibla, and the pulpit beside it
+                    box(0.12, 2.0, 1.4, 0xd4c8a0, -4.86, 1.0, -0.6, g); box(0.1, 1.6, 1.0, 0x2f8a5a, -4.8, 0.9, -0.6, g);
+                    for (let i = 0; i < 3; i++) box(0.4, 0.2, 0.7, 0x8a5a3a, -4.3, 0.1 + i * 0.2, 1.3 - i * 0.12, g); col(f, -4.6, -4.0, 0.9, 1.7);
+                    shelf(g, f, 3.5, -3.65, 1.8, [0x2f6b4a, 0x23466e, 0x7a1f2a]);
+                    const bd = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.9, 18), mat(0x8a5a3a), g); bd.rotation.z = Math.PI / 2; bd.position.set(3.8, 0.75, 2.6); box(0.9, 0.05, 0.9, 0x6e4723, 3.8, 0.3, 2.6, g); col(f, 3.3, 4.3, 2.1, 3.1);
+                    for (let i = 0; i < 3; i++) { box(0.15, 0.4, 0.15, 0xb8c2cc, 4.75, 1.0, -2.6 + i * 0.6, g); }
+                    vSpot(b, 'imam', -3.6, -0.6, -Math.PI / 2, 2);
+                    for (let i = 0; i < 8; i++) vSpot(b, 'pray' + i, -2.4 + Math.floor(i / 4) * 1.1, -2.1 + (i % 4) * 1.0, -Math.PI / 2, 2);
+                    // a low table for reading the Qur'an together in the afternoon
+                    box(1.6, 0.6, 0.6, 0x8a5a3a, 1.5, 0.3, 1.6, g); col(f, 0.7, 2.3, 1.3, 1.9);
+                    for (let i = 0; i < 3; i++) { box(0.42, 0.44, 0.4, 0xb07a45, 1.0 + i * 0.5, 0.22, 2.3, g); vSpot(b, 'ngaji' + i, 1.0 + i * 0.5, 2.3, Math.PI, 1); }
+                    vSpot(b, 'teach', 1.5, 0.9, 0, 1); box(0.42, 0.44, 0.4, 0xb07a45, 1.5, 0.22, 0.9, g);
+                    vSpot(b, 'read', 3.2, 0.2, -Math.PI / 2, 1); box(0.4, 0.44, 0.42, 0xb07a45, 3.2, 0.22, 0.2, g);
+                    b.mats = [seat(f, -2.4, 1.95, -Math.PI / 2, -1.6, 1.95, 2), seat(f, -2.4, 2.85, -Math.PI / 2, -1.6, 2.85, 2)];
+                    textPlate(g, '🕌 Musala Al-Ikhlas', 0, 2.25, -3.85, 2.2);
+                } else if (b.id === 'balai') {
+                    const g = vRoom(b, 0xc9a87a, 0xf6ecd2, 0xd8c098);
+                    // Garuda and the flag behind the village head's desk
+                    const gar = canvasSprite(c => { c.fillStyle = '#d4af37'; c.font = 'bold 96px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🦅', 64, 70); }, 0.9); gar.position.set(0, 2.0, -3.85); g.add(gar);
+                    cap(0.03, 2.0, 0xdddddd, 1.6, 1.0, -3.6, g); box(0.6, 0.2, 0.02, 0xd9221f, 1.92, 1.8, -3.6, g); box(0.6, 0.2, 0.02, 0xffffff, 1.92, 1.6, -3.6, g);
+                    table(g, 0, -2.6, 1.8, 0.8, 0.78, 0x6e4723); col(f, -0.9, 0.9, -3.0, -2.2); textPlate(g, 'Kepala Desa', 0, 0.95, -2.18, 0.8);
+                    chair(g, 0, -3.3, 0); vSpot(b, 'work', 0, -3.3, 0, 1);
+                    table(g, 0, 0.5, 4.2, 1.1, 0.78, 0xb07a45); col(f, -2.1, 2.1, -0.05, 1.05);
+                    b.seats = [];
+                    for (let i = 0; i < 4; i++) for (const side of [-1, 1]) {
+                        const x = -1.5 + i * 1.0, z = 0.5 + side * 0.85, h = side < 0 ? 0 : Math.PI;
+                        chair(g, x, z, h); b.seats.push(seat(f, x, z, h, x, z + side * 0.7, 1)); vSpot(b, 'seat' + (b.seats.length - 1), x, z, h, 1);
+                    }
+                    box(0.08, 1.2, 2.0, 0xc8955a, -4.88, 1.4, -1.2, g); for (let i = 0; i < 5; i++) box(0.02, 0.3, 0.28, [0xffffff, 0xf2c94c, 0x9fd8ff][i % 3], -4.82, 1.3 + (i % 2) * 0.35, -1.9 + i * 0.35, g);
+                    textPlate(g, '🏛️ Balai Desa', 0, 2.55, -3.85, 2.6);
+                } else if (b.id === 'gereja') {
+                    const g = vRoom(b, 0xd8c8a8, 0xfaf6ee, 0xe8dcc0);
+                    box(1.2, 0.03, 6.6, 0xa82a2a, 0, 0.04, 0.3, g).castShadow = false;
+                    box(2.4, 0.3, 1.2, 0xd8c8a8, 0, 0.15, -3.2, g);
+                    table(g, 0, -3.2, 1.6, 0.6, 1.0, 0xfaf6ee, 0xd4af37); col(f, -1.2, 1.2, -3.8, -2.6);
+                    box(0.12, 1.5, 0.12, 0x6e4723, 0, 2.0, -3.88, g); box(0.8, 0.12, 0.12, 0x6e4723, 0, 2.3, -3.88, g);
+                    for (const x of [-0.6, 0.6]) { cap(0.04, 0.25, 0xffffff, x, 1.2, -3.2, g); const fl = ball(0.03, 0.06, 0.03, new THREE.MeshStandardMaterial({ color: 0xffd36b, emissive: 0xffa020, emissiveIntensity: 1 }), x, 1.38, -3.2, g); fl.castShadow = false; }
+                    // a statue of Mother Mary in a corner, lit candles before her
+                    box(0.5, 0.6, 0.5, 0xd8c8a8, -4.3, 0.3, -3.3, g); cap(0.15, 0.7, 0x9fc8ec, -4.3, 0.95, -3.3, g); ball(0.1, 0.12, 0.1, 0xf2e2c8, -4.3, 1.42, -3.3, g); col(f, -4.6, -4.0, -3.6, -3.0);
+                    box(0.9, 0.5, 0.4, 0x6e4723, -4.3, 0.25, -2.4, g); for (let i = 0; i < 4; i++) cap(0.025, 0.12, 0xffffff, -4.6 + i * 0.2, 0.57, -2.4, g); col(f, -4.8, -3.8, -2.65, -2.15);
+                    for (const z of [-2.2, -0.2, 1.8]) for (const s of [-1, 1]) windowOn(g, s * 4.88, 1.6, z + 0.6, 0.8, 1.1, 'z');
+                    b.seats = []; let pi = 0;
+                    for (const z of [-1.4, -0.2, 1.0, 2.2]) for (const s of [-1, 1]) {
+                        const x = s * 2.3; box(2.6, 0.1, 0.5, 0x8a5a3a, x, 0.45, z, g); box(2.6, 0.5, 0.08, 0x8a5a3a, x, 0.75, z + 0.24, g);
+                        for (const sx of [-1, 1]) box(0.1, 0.45, 0.45, 0x6e4723, x + sx * 1.2, 0.22, z, g); col(f, x - 1.3, x + 1.3, z - 0.3, z + 0.3);
+                        for (const dx of [-0.6, 0.6]) { b.seats.push(seat(f, x + dx, z - 0.05, Math.PI, x + dx, z - 0.75, 1)); vSpot(b, 'pew' + pi++, x + dx, z - 0.05, Math.PI, 1); }
+                    }
+                    vSpot(b, 'altar', 0, -3.72, 0);
+                    textPlate(g, '⛪ Gereja Katolik St. Yusuf', 0, 2.55, -3.85, 2.8);
+                }
+            }
+        }
+        // a villager's house: kitchen, a dining table, a sofa with the TV, the beds, a prayer mat or a crucifix
+        function vHouse(b) {
+            const f = b.f, g = vRoom(b, 0xc9a87a, b.wall);
+            // kitchen along the back wall on the left
+            box(2.6, 0.9, 0.6, 0xe8e0d0, -3.6, 0.45, -3.6, g); box(2.7, 0.06, 0.66, 0x9a8a7a, -3.6, 0.92, -3.6, g);
+            box(0.6, 0.05, 0.4, 0x2b2b2b, -3.0, 0.97, -3.6, g); const pan = mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.12, 14), mat(0x555555), g); pan.position.set(-3.0, 1.05, -3.6);
+            box(0.7, 1.7, 0.6, 0xf4f4f4, -4.55, 0.85, -2.7, g);
+            col(f, -4.9, -2.3, -3.9, -3.3); col(f, -4.9, -4.2, -3.0, -2.4);
+            vSpot(b, 'cook', -3.4, -3.0, Math.PI);
+            // dining table and four chairs
+            table(g, -2.6, -0.4, 1.6, 0.9, 0.75, 0xb07a45); col(f, -3.4, -1.8, -0.85, 0.05);
+            b.seats = [];
+            [[-3.0, -1.15, 0], [-2.2, -1.15, 0], [-3.0, 0.35, Math.PI], [-2.2, 0.35, Math.PI]].forEach(([x, z, h], i) => { chair(g, x, z, h); vSpot(b, 'eat' + i, x, z, h, 1); b.seats.push(seat(f, x, z, h, x, z + (h ? 0.7 : -0.7), 1)); });
+            const teapot = ball(0.12, 0.1, 0.12, 0xf2f2f2, -2.6, 0.86, -0.4, g); teapot.castShadow = false;
+            // the living corner: a sofa facing the TV on the east wall
+            sofa(g, 2.0, 0.8, Math.PI / 2, [0x3f6fb5, 0x8a4a2a, 0x4caf6a, 0xb06fd8][VB.indexOf(b) % 4], 1.8); col(f, 1.55, 2.45, -0.1, 1.7);
+            box(0.1, 0.65, 1.1, 0x1a1a1a, 4.85, 1.2, 0.8, g); box(0.5, 0.5, 1.2, 0x8a5a3a, 4.6, 0.25, 0.8, g); col(f, 4.3, 4.9, 0.15, 1.45);
+            vSpot(b, 'sofa0', 2.05, 0.4, Math.PI / 2, 1); vSpot(b, 'sofa1', 2.05, 1.2, Math.PI / 2, 1);
+            b.seats.push(seat(f, 2.05, 0.4, Math.PI / 2, 2.8, 0.4, 1), seat(f, 2.05, 1.2, Math.PI / 2, 2.8, 1.2, 1));
+            rug(g, 3.2, 0.8, 1.6, 1.8, 0xd9b27a, 0xe8c896);
+            // beds along the back wall on the right: a double bed, and a small one when a child lives here
+            vBed(g, f, 2.0, -2.85, 1.7, [0xf6b8c8, 0x9cc8ec, 0xc8e6a8, 0xf2d27a][VB.indexOf(b) % 4]);
+            vSpot(b, 'bed0', 1.6, -1.95, 0, 3, 0.56); vSpot(b, 'bed1', 2.4, -1.95, 0, 3, 0.56);
+            vBed(g, f, 4.15, -2.85, 1.0, 0xf2c94c); vSpot(b, 'bed2', 4.15, -1.95, 0, 3, 0.56);
+            // a wardrobe, a family photo, plants
+            box(1.2, 1.9, 0.55, 0x8a5a3a, -4.6, 0.95, 2.2, g); col(f, -4.9, -4.3, 1.6, 2.8);
+            frame(g, 0.4, 1.8, -3.88, 0.7, 0.5, 0xe8d8b0);
+            pottedPlant(g, 4.4, 3.2, 0.6); pottedPlant(g, -4.4, 3.2, 0.5, 0x6fb84a);
+            if (b.faith === 'i') {
+                for (const [i, z] of [[0, 1.5], [1, 2.5]]) { box(1.1, 0.03, 0.7, 0x2f6b4a, -0.4, 0.04, z, g).castShadow = false; vSpot(b, 'mat' + i, -0.6, z, -Math.PI / 2, 2); }
+                textPlate(g, 'بسم الله', 0.4, 2.0, -3.88, 1.0);
+            } else {
+                box(0.08, 0.6, 0.06, 0x6e4723, -0.6, 1.9, -3.88, g); box(0.35, 0.06, 0.06, 0x6e4723, -0.6, 2.0, -3.88, g);
+                box(0.6, 0.6, 0.35, 0x8a5a3a, -0.6, 0.3, -3.65, g); cap(0.03, 0.15, 0xffffff, -0.75, 0.68, -3.65, g); cap(0.03, 0.15, 0xffffff, -0.45, 0.68, -3.65, g);
+                vSpot(b, 'mat0', -0.6, -2.6, Math.PI, 0); vSpot(b, 'mat1', -0.1, -2.6, Math.PI, 0);
+            }
+            vSpot(b, 'idle', 0.4, 1.8, 0);
+            textPlate(g, b.name, 0, 2.55, -3.85, 2.4);
+        }
+        // ---------- 🧑‍🌾 the villagers of Lembah Sari ----------
+        // Each villager lives in a house, works somewhere and follows a day plan (wake, pray, work, eat, stroll,
+        // sleep). Where they are is worked out from the game clock alone, so both players see them in the same
+        // place without sending anything. Friendship (0–1000, ten hearts) is shared, like the farm.
+        // hours: [open, close] on weekdays, Saturdays and Sundays (null = day off)
+        const NPCS = [
+            { id: 'darto', name: 'Pak Darto', role: 'Pemilik Toko Tani', g: 'm', faith: 'i', home: 'h1', slot: 0, job: 'bibit', saf: 0, ws: 0, early: 1, hours: [[7, 17], [7, 17], [8, 12]], skin: 0xc68a5e, hair: 0x9a9a9a, o: { t: 'batik-cokelat', b: 'panjang-krem', f: null, s: 'sandal', h: 'jerami' },
+                love: ['kopi', 'kopisusu', 'pisgor'], like: ['singkonggoreng', 'pisang', 'jagungbakar', 'teh'], hate: ['kaktus', 'lavender'],
+                lines: ['Bibit kangkung itu paling cepat, seminggu lebih sedikit sudah bisa dipanen.', 'Padi itu sabar, Nak. Disiram, dijaga dari burung, nanti dia membalas.', 'Dulu saya cuma punya sepetak sawah. Sekarang Alhamdulillah ada toko kecil ini.', 'Kalau mau tanaman cepat besar, jangan lupa pupuk. Tapi jangan berlebihan.', 'Dimas itu anak saya, kalau sore pasti main di taman.'],
+                close: ['Kamu sudah seperti anak sendiri. Mampir ke rumah kalau sempat, Bu Sari masak enak.', 'Rahasia petani: bangun sebelum subuh, tidur sesudah isya. Hehe.'] },
+            { id: 'sari', name: 'Bu Sari', role: 'Pedagang di Pasar Tani', g: 'f', faith: 'i', home: 'h1', slot: 1, job: 'pasar', hours: [[6, 12], [6, 12], [6, 12]], skin: 0xd9a077, o: { t: 'tunik-krem', b: 'rokpanjang-batik', f: null, s: 'sandal', h: 'hijab-navy' },
+                love: ['sayurasem', 'kolak'], like: ['kangkung', 'bayam', 'melati', 'kelapa'], hate: ['durian'],
+                lines: ['Pasar buka dari subuh sampai tengah hari. Sayur segar harus pagi-pagi!', 'Hasil panenmu boleh dijual ke sini, harganya lebih bagus dari kotak pengiriman.', 'Tomat lagi mahal, banyak yang cari buat sambal.', 'Saya beli sayur, buah, gabah, dan beras. Yang penting segar.', 'Sore hari saya di rumah, masak buat Pak Darto dan Dimas.'],
+                close: ['Ini saya sisihkan kabar: musim hujan nanti harga sayur naik, simpan sebagian ya.', 'Kamu itu rajin, ibu senang lihatnya.'] },
+            { id: 'dimas', name: 'Dimas', role: 'Anak SD, putra Pak Darto', g: 'm', faith: 'i', home: 'h1', slot: 2, kid: 1, skin: 0xd9a077, o: { t: 'kaosp-merah', b: 'pendek-biru', f: null, s: 'sneakers-putih', h: null },
+                love: ['martabak', 'esbuah', 'jagungbakar'], like: ['semangka', 'stroberi', 'pisang', 'puding'], hate: ['seledri', 'kol', 'brokoli'],
+                lines: ['Kak, tadi di sekolah aku dapat nilai seratus!', 'Sore ini aku main ayunan, Kakak ikut?', 'Habis Asar aku ngaji di musala sama Ustaz Fikri.', 'Kata Bapak, kalau besar aku harus jadi petani yang pintar.', 'Lala itu temanku, rumahnya dekat gereja.'],
+                close: ['Kakak teman terbaikku! Nanti kalau aku besar, aku mau punya kebun kayak Kakak.', 'Ssst, aku punya tempat rahasia di dekat sawah, ada capungnya banyak!'] },
+            { id: 'joko', name: 'Pak Joko', role: 'Pengelola Penggilingan Padi', g: 'm', faith: 'i', home: 'h2', slot: 0, job: 'giling', saf: 1, ws: 1, hours: [[7, 16], [7, 16], null], skin: 0xb57a4e, o: { t: 'kaosp-putih', b: 'panjang-abu', f: null, s: 'boots', h: 'topi-biru' },
+                love: ['nasgor', 'soto'], like: ['kopi', 'teh', 'singkong'], hate: ['lavender', 'mawar'],
+                lines: ['Padi dipanen jadi gabah dulu. Bawa ke sini, saya giling jadi beras.', 'Ongkos giling cuma 3 G sekarung, murah kan?', 'Mesin ini sudah dua puluh tahun, tapi masih kuat.', 'Kalau mesinnya bunyi keras, jangan kaget ya, hehe.', 'Istri saya, Bu Ratna, jaga Toko Hewan.'],
+                close: ['Gabahmu bagus-bagus, berasnya pulen. Kamu petani hebat.', 'Kalau ada apa-apa, panggil saja Pak Joko.'] },
+            { id: 'ratna', name: 'Bu Ratna', role: 'Penjaga Toko Hewan', g: 'f', faith: 'i', home: 'h2', slot: 1, job: 'hewan', hours: [[8, 16], [8, 16], null], skin: 0xe9b993, o: { f: 'gamis-hijausage', s: 'flat-hitam', h: 'hijab-mint' },
+                love: ['opor', 'mawar'], like: ['salak', 'kelapa', 'esteh'], hate: ['cabai', 'sambal'],
+                lines: ['Pakan di sini langsung masuk gudang kandangmu, tidak perlu diangkut.', 'Hewan yang sering dielus lebih cepat sayang sama pemiliknya.', 'Kandang yang bersih bikin hewan sehat. Jangan lupa disapu!', 'Anak ayam ini lucu ya? Sayang belum dijual.', 'Hari Minggu toko tutup, saya istirahat di rumah.'],
+                close: ['Hewan-hewanmu pasti bahagia punya pemilik sepertimu.', 'Ibu bangga sama kamu, telaten sekali.'] },
+            { id: 'fikri', name: 'Ustaz Fikri', role: 'Imam Musala Al-Ikhlas', g: 'm', faith: 'i', home: 'h3', slot: 0, skin: 0xd9a077, o: { f: 'kokosarung-putihhijau', s: 'sandal', h: 'peci' },
+                love: ['wedangjahe', 'kolak'], like: ['teh', 'sawo', 'jahe', 'kurma'], hate: ['tape'],
+                lines: ['Assalamualaikum. Salat berjamaah di musala pahalanya 27 derajat.', 'Habis Asar saya mengajar anak-anak mengaji. Dimas paling semangat.', 'Bekerja dengan jujur itu juga ibadah.', 'Kalau mau salat di sini, silakan. Tempat wudunya di sebelah kanan.', 'Bersyukur atas panen, sekecil apa pun.'],
+                close: ['Semoga Allah memberkahi kebunmu dan keluargamu.', 'Kamu orang baik. Desa ini senang kamu datang.'] },
+            { id: 'bayu', name: 'Mas Bayu', role: 'Penjaga Toko Bangunan', g: 'm', faith: 'i', home: 'h4', slot: 0, job: 'bangunan', saf: 2, ws: 2, hours: [[8, 16], [8, 16], null], skin: 0xc68a5e, o: { t: 'kaosp-biru', b: 'jeans-biru', f: null, s: 'boots', h: null },
+                love: ['sate', 'migoreng'], like: ['kopi', 'miayam', 'jusalpukat'], hate: ['bayam', 'kangkung'],
+                lines: ['Butuh kayu, batu, atau tanah liat? Semua ada di sini.', 'Pagar kayu buatan sendiri lebih awet, asal kayunya bagus.', 'Saya lagi menabung buat bangun rumah sendiri, hehe.', 'Kalau sore saya suka jalan ke alun-alun, cari angin.', 'Besi dan tembaga agak mahal, tapi bagus buat upgrade.'],
+                close: ['Kamu langganan terbaikku. Nanti kalau ada diskon, kamu yang pertama tahu.', 'Bro, kebunmu makin keren saja.'] },
+            { id: 'hasan', name: 'Pak Lurah Hasan', role: 'Kepala Desa Lembah Sari', g: 'm', faith: 'i', home: 'h5', slot: 0, job: 'balai', saf: 3, hours: [[8, 14], null, null], skin: 0xc68a5e, hair: 0x8a8a8a, o: { t: 'batik-biru', b: 'panjang-hitam', f: null, s: 'pantofel', h: 'peci' },
+                love: ['rendang', 'gudeg'], like: ['kopisusu', 'duku', 'manggis'], hate: ['sambal'],
+                lines: ['Selamat datang di Desa Lembah Sari. Kalau ada keperluan, Balai Desa buka pagi sampai siang.', 'Papan pengumuman di balai berisi jadwal semua tempat di desa.', 'Desa kita kecil, tapi warganya rukun, beda agama pun saling bantu.', 'Musim panen nanti kita adakan syukuran di alun-alun.', 'Lumbung desa itu tabungan pangan bersama. Titipkan gabahmu di sana.'],
+                close: ['Kamu sudah jadi warga kehormatan desa ini.', 'Saya dengar kebunmu jadi yang paling subur se-lembah.'] },
+            { id: 'siti', name: 'Bu Siti', role: 'Pemilik Warung Makan', g: 'f', faith: 'i', home: 'h5', slot: 1, job: 'warung', hours: [[7, 21], [7, 21], [7, 21]], skin: 0xd9a077, o: { t: 'tunik-ungu', b: 'rokpanjang-krem', f: null, s: 'sandal', h: 'hijab-merahmuda' },
+                love: ['anggrek', 'pepes'], like: ['kunyit', 'serai', 'lengkuas', 'kemangi'], hate: ['kaktus'],
+                lines: ['Mau makan apa? Semua masakan rumahan, bikin kenyang dan bertenaga.', 'Bumbu dapur yang segar bikin masakan lebih harum.', 'Warung buka dari pagi sampai malam, mampir saja.', 'Pak Lurah itu suami saya, sukanya rendang.', 'Siang hari warung paling ramai, semua orang makan di sini.'],
+                close: ['Buat kamu, porsinya saya lebihkan. Jangan bilang-bilang, ya.', 'Kamu mau belajar resep? Kapan-kapan ibu ajari.'] },
+            { id: 'yohanes', name: 'Pak Yohanes', role: 'Penjaga Lumbung Desa', g: 'm', faith: 'k', home: 'h6', slot: 0, job: 'lumbung', pew: 0, early: 1, hours: [[8, 15], [8, 12], null], skin: 0xb57a4e, o: { t: 'kemejap-birumuda', b: 'panjang-krem', f: null, s: 'sandal', h: 'jerami' },
+                love: ['jagungbakar', 'perkedeljagung'], like: ['jagung', 'kopi', 'gabah'], hate: ['melati'],
+                lines: ['Lumbung ini menyimpan cadangan pangan desa. Titipkan gabah atau berasmu di sini.', 'Tiap awal musim, lumbung membagi hasil ke yang menitip. Itu gotong royong.', 'Syalom! Hari Minggu pagi saya ke gereja bersama keluarga.', 'Dulu waktu kemarau panjang, lumbung inilah yang menolong desa.', 'Istri saya dokter di klinik, anak saya Lala.'],
+                close: ['Tuhan memberkati kerja kerasmu, sahabat.', 'Kamu orang yang bisa dipercaya. Lumbung ini aman bersamamu.'] },
+            { id: 'maria', name: 'dr. Maria', role: 'Dokter Klinik Desa', g: 'f', faith: 'k', home: 'h6', slot: 1, job: 'klinik', pew: 1, hours: [[8, 15], [8, 12], null], skin: 0xe9b993, o: { t: 'kemejal-putih', b: 'rokpanjang-krem', f: null, s: 'flat-hitam', h: null },
+                love: ['jusalpukat', 'salad'], like: ['brokoli', 'wortel', 'peacelily', 'apel'], hate: ['bakwan', 'tempegoreng'],
+                lines: ['Jangan lupa istirahat. Energi habis itu tanda badan minta tidur.', 'Makan sayur dan buah tiap hari, ya. Kamu kan petani, pasti ada.', 'Klinik buka pagi sampai sore, hari Minggu tutup.', 'Kalau capek sekali, periksa di sini, energimu dipulihkan.', 'Lala suka main ayunan sepulang sekolah.'],
+                close: ['Kamu pasien paling sehat yang pernah saya punya, hehe.', 'Terima kasih sudah menjaga kesehatan. Itu bikin saya senang.'] },
+            { id: 'lala', name: 'Lala', role: 'Anak SD, putri Pak Yohanes', g: 'f', faith: 'k', home: 'h6', slot: 2, kid: 1, pew: 2, skin: 0xe9b993, o: { f: 'dress-kuning', s: 'sandal', h: null },
+                love: ['puding', 'esbuah'], like: ['stroberi', 'melon', 'bougenville', 'mawar'], hate: ['terong', 'cabai'],
+                lines: ['Kakak, lihat! Aku bisa main ayunan tinggi sekali!', 'Mama itu dokter, kalau aku sakit langsung sembuh.', 'Hari Minggu aku ke gereja, nyanyi di paduan suara anak.', 'Dimas suka usil, tapi dia baik kok.', 'Aku mau jadi dokter juga kayak Mama!'],
+                close: ['Kakak baik banget! Ini, aku kasih senyum paling lebar!', 'Nanti kalau aku sudah jadi dokter, Kakak gratis periksa.'] },
+            { id: 'antonius', name: 'Romo Antonius', role: 'Pastor Gereja St. Yusuf', g: 'm', faith: 'k', home: 'h7', slot: 0, skin: 0xe0ac84, hair: 0xbababa, o: { t: 'kemejal-putih', b: 'panjang-hitam', f: null, s: 'pantofel', h: null },
+                love: ['kopi', 'getuk'], like: ['kenanga', 'pisang', 'sukun', 'teh'], hate: ['sambal'],
+                lines: ['Damai bagimu. Gereja terbuka untuk siapa saja yang ingin berdoa dengan tenang.', 'Misa hari Minggu pukul tujuh pagi. Setiap hari ada misa pagi juga.', 'Saya dan Ustaz Fikri sering ngopi bersama di warung Bu Siti.', 'Kerukunan itu seperti sawah: dirawat bersama, dipanen bersama.', 'Nyalakan lilin di depan patung Bunda Maria kalau ingin berdoa.'],
+                close: ['Doaku selalu untukmu dan kebunmu.', 'Kamu membawa sukacita ke desa ini.'] },
+        ];
+        const NPCI = Object.fromEntries(NPCS.map(n => [n.id, n]));
+        const KEEPER = Object.fromEntries(NPCS.filter(n => n.job).map(n => [n.job, n]));
+        const NPC_SPEED = 1.7; // map units per game minute (about a stroll)
+        const npcData = id => state.npc[id] ||= { f: 0, t: 0, g: 0, c: 0 };
+        const bitOf = u => u === NA ? 1 : 2;
+        const heartsOf = id => Math.floor(npcData(id).f / 100);
+        const wdOf = day => (day - 1) % 7;
+        // today's working hours of a villager, or null
+        const hoursOf = (n, day) => { if (!n.hours) return null; const wd = wdOf(day); return n.hours[wd === 6 ? 2 : wd === 5 ? 1 : 0]; };
+        // the day plan: a list of {t (minutes), a (what), p (place), s (spot)}; times only go forward
+        function npcPlan(n, day) {
+            if (n.plan && n.planDay === day) return n.plan;
+            const wd = wdOf(day), fri = wd === 4, sun = wd === 6;
+            const P = [], at = (h, a, p, s) => { const t = Math.round(h * 60); if (P.length && t <= P[P.length - 1].t) return; P.push({ t, a, p, s }); };
+            const H = n.home, i = n.slot, mus = n.faith === 'i', man = n.g === 'm', sofa = 'sofa' + (i % 2);
+            at(0, 'sleep', H, 'bed' + i);
+            if (n.kid) {
+                at(5.4, 'idle', H, 'idle'); at(6, 'eat', H, 'eat' + i);
+                if (!sun) { at(6.4, 'away', 'gate'); at(13, 'eat', H, 'eat' + i); at(14, 'play', 'taman'); }
+                else if (!mus) { at(6.55, 'pew', 'gereja', 'pew' + n.pew); at(8.6, 'play', 'taman'); at(11.8, 'eat', H, 'eat' + i); at(13, 'idle', H, sofa); at(14.5, 'play', 'taman'); }
+                else { at(7.5, 'play', 'taman'); at(11.8, 'eat', H, 'eat' + i); at(13, 'idle', H, sofa); at(14.5, 'play', 'taman'); }
+                if (mus) { at(15.45, 'ngaji', 'musala', 'ngaji0'); at(17, 'play', 'taman'); }
+                else { at(15.5, 'study', H, 'eat' + i); at(16.5, 'play', 'taman'); }
+                at(17.7, 'idle', H, sofa); at(18.5, 'eat', H, 'eat' + i); at(19.2, 'study', H, 'eat' + i); at(20.5, 'sleep', H, 'bed' + i);
+            } else if (n.id === 'fikri') {
+                at(4.1, 'imam', 'musala', 'imam'); at(4.9, 'idle', H, sofa); at(5.5, 'cook', H, 'cook'); at(6.2, 'eat', H, 'eat0');
+                at(7.5, 'read', 'musala', 'read'); at(fri ? 11.55 : 11.85, 'imam', 'musala', 'imam'); at(fri ? 12.8 : 12.4, 'eat', 'warung', 'seat3');
+                at(13.1, 'idle', H, sofa); at(15.1, 'imam', 'musala', 'imam'); at(15.45, 'teach', 'musala', 'teach'); at(17, 'stroll', 'square');
+                at(17.75, 'imam', 'musala', 'imam'); at(18.35, 'eat', H, 'eat0'); at(18.95, 'imam', 'musala', 'imam'); at(19.5, 'read', 'musala', 'read');
+                at(20.5, 'idle', H, sofa); at(21.5, 'sleep', H, 'bed0');
+            } else if (n.id === 'antonius') {
+                at(5, 'pray', H, 'mat0'); at(5.5, 'altar', 'gereja', 'altar');
+                if (sun) { at(9.5, 'eat', H, 'eat0'); at(10.5, 'stroll', 'square'); }
+                else { at(6.7, 'eat', H, 'eat0'); at(8, 'altar', 'gereja', 'altar'); }
+                at(12, 'eat', H, 'eat0'); at(13, 'idle', H, sofa); at(15.5, 'stroll', 'square'); at(17, 'altar', 'gereja', 'altar');
+                at(18, 'eat', H, 'eat0'); at(19, 'idle', H, sofa); at(21, 'sleep', H, 'bed0');
+            } else {
+                if (mus) { at(4.4, 'pray', man ? 'musala' : H, man ? 'pray' + n.saf : 'mat' + i); at(4.85, 'idle', H, sofa); }
+                else { at(5.0, 'pray', H, 'mat' + i); at(5.2, 'idle', H, sofa); }
+                if (!man) at(5.4, 'cook', H, 'cook'); else if (n.early) at(5.4, 'farm', 'sawah');
+                at(6.2, 'eat', H, 'eat' + i);
+                let t = 6.5;
+                if (sun && !mus) { at(6.55, 'pew', 'gereja', 'pew' + n.pew); t = 8.6; }
+                const hr = hoursOf(n, day), lunch = () => n.ws != null ? ['warung', 'seat' + n.ws] : [H, 'eat' + i];
+                let free = 8;
+                if (hr) {
+                    const [o, c] = hr;
+                    at(Math.max(t, o - 0.35), 'work', n.job, 'work');
+                    if (o < 12 && c > 12.6 && n.job !== 'warung') {
+                        if (mus && man) { at(fri ? 11.6 : 11.95, 'pray', 'musala', 'pray' + n.saf); at(fri ? 12.8 : 12.4, 'eat', ...lunch()); }
+                        else at(12, 'eat', ...lunch());
+                        at(fri && mus && man ? 13.25 : 12.9, 'work', n.job, 'work');
+                    }
+                    free = c;
+                } else at(Math.max(t, 8), 'idle', H, sofa);
+                if (free <= 17.6) {
+                    if (!hr) { at(9.5, 'stroll', 'square'); at(11.2, 'idle', H, sofa); if (mus && man) at(11.95, 'pray', 'musala', 'pray' + n.saf); at(12.5, 'eat', H, 'eat' + i); at(13.2, 'idle', H, sofa); }
+                    if (free <= 12.5) { at(free, 'idle', H, sofa); if (mus && man) { at(11.95, 'pray', 'musala', 'pray' + n.saf); } at(12.5, 'eat', H, 'eat' + i); at(13.2, 'idle', H, sofa); }
+                    if (free > 12.5 && free < 15.8) at(free, 'idle', H, sofa);
+                    at(Math.max(free, 15.8), n.early ? 'farm' : 'stroll', n.early ? 'sawah' : 'square');
+                    if (mus && man) { at(17.8, 'pray', 'musala', 'pray' + n.saf); at(18.4, 'eat', H, 'eat' + i); at(18.95, 'pray', 'musala', 'pray' + n.saf); at(19.4, 'idle', H, sofa); }
+                    else if (mus) { at(17.5, 'idle', H, sofa); at(17.9, 'pray', H, 'mat' + i); at(18.25, 'cook', H, 'cook'); at(18.6, 'eat', H, 'eat' + i); at(19.2, 'idle', H, sofa); }
+                    else { at(17.6, 'idle', H, sofa); if (!man) at(18.3, 'cook', H, 'cook'); at(18.7, 'eat', H, 'eat' + i); at(19.3, 'idle', H, sofa); }
+                    at(21.4 + (i % 2) * 0.2, 'sleep', H, 'bed' + i);
+                } else { at(free, 'idle', H, sofa); at(free + 0.5, 'sleep', H, 'bed' + i); }
+            }
+            for (const e of P) e.route = null;
+            n.plan = P; n.planDay = day;
+            return P;
+        }
+        // where an activity happens
+        const anchorOf = e => { const b = VBI[e.p]; if (b) return b.spots[e.s] || b.spots.idle || b.spots.work || { x: b.f, z: 0, h: Math.PI, k: 0 }; return { ...VOUT[e.p].base, h: 0, k: 0 }; };
+        // the walk between two activities: out through the door, along the streets, in through the other door
+        function vRoute(A, B) {
+            const pa = anchorOf(A), pb = anchorOf(B), ba = VBI[A.p], bb = VBI[B.p];
+            const pts = [{ x: pa.x, z: pa.z }];
+            if (A.p !== B.p) {
+                if (ba) pts.push({ x: ba.f, z: 3.3 }, { x: ba.door.x, z: ba.door.z, jump: 1 });
+                const va = ba ? ba.via : VOUT[A.p].via, vb = bb ? bb.via : VOUT[B.p].via;
+                pts.push(...va);
+                const sa = va[va.length - 1], sb = vb[vb.length - 1];
+                if (sa.z !== sb.z) { const cx = LINKS.reduce((m, x) => Math.abs(sa.x - x) + Math.abs(sb.x - x) < Math.abs(sa.x - m) + Math.abs(sb.x - m) ? x : m); pts.push({ x: cx, z: sa.z }, { x: cx, z: sb.z }); }
+                pts.push(...[...vb].reverse());
+                if (bb) pts.push({ x: bb.door.x, z: bb.door.z }, { x: bb.f, z: 3.3, jump: 1 });
+            }
+            pts.push({ x: pb.x, z: pb.z });
+            const cum = [0];
+            for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + (pts[i].jump ? 0 : Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z)));
+            return { pts, cum, len: cum[cum.length - 1] };
+        }
+        // where a villager is right now and what they are doing
+        function npcState(n, m) {
+            const P = npcPlan(n, state.day);
+            let i = P.length - 1; while (i > 0 && P[i].t > m) i--;
+            const e = P[i], prev = i > 0 ? P[i - 1] : e, end = i + 1 < P.length ? P[i + 1].t : 1440;
+            e.route ||= vRoute(prev, e);
+            const r = e.route, walked = (m - e.t) * NPC_SPEED;
+            if (walked < r.len) {
+                let j = 1; while (j < r.cum.length - 1 && r.cum[j] < walked) j++;
+                const a = r.pts[j - 1], b = r.pts[j], seg = r.cum[j] - r.cum[j - 1], u = seg > 0 ? (walked - r.cum[j - 1]) / seg : 1;
+                return { a: e.a, p: e.p, x: a.x + (b.x - a.x) * u, z: a.z + (b.z - a.z) * u, h: Math.atan2(b.x - a.x, b.z - a.z), k: 0, moving: true, sp: NPC_SPEED / 0.7, t0: e.t, walk: 1 };
+            }
+            const s = anchorOf(e), since = m - e.t - r.len / NPC_SPEED, left = end - m;
+            if (e.a === 'away') return { a: 'away', p: e.p, x: s.x, z: s.z, h: 0, k: 0, away: true, t0: e.t };
+            if (e.p === 'square' || e.p === 'taman' || e.p === 'sawah') {
+                // strolling round the fountain, children running round the playground, a farmer walking the dykes
+                const seed = NPCS.indexOf(n) * 1.7, blend = clamp(Math.min(since, left) / 2.5, 0, 1);
+                let x, z, h, sp;
+                if (e.p === 'square') { const ang = seed + m * 0.13; x = 2.9 * Math.cos(ang); z = TZ + 6.2 + 2.9 * Math.sin(ang); h = Math.atan2(-Math.sin(ang), Math.cos(ang)); sp = 0.55; }
+                else if (e.p === 'taman') { const ang = seed + m * 0.5; x = 24 + 2.3 * Math.cos(ang); z = TZ + 11.4 + 1.6 * Math.sin(ang); h = Math.atan2(-2.3 * Math.sin(ang), 1.6 * Math.cos(ang)); sp = 1.9; }
+                else { const u = Math.sin(seed + m * 0.06); x = -35.4 + 3.4 * u; z = TZ - 2.2 - (NPCS.indexOf(n) % 2) * 3.6; h = Math.cos(seed + m * 0.06) > 0 ? Math.PI / 2 : -Math.PI / 2; sp = 0.4; }
+                return { a: e.a, p: e.p, x: s.x + (x - s.x) * blend, z: s.z + (z - s.z) * blend, h, k: 0, moving: blend > 0.02, sp, t0: e.t };
+            }
+            return { a: e.a, p: e.p, x: s.x, z: s.z, h: s.h, k: s.k, y: s.y, moving: false, t0: e.t };
+        }
+        const ACT_TEXT = { sleep: 'tidur', pray: 'beribadah', imam: 'memimpin salat', eat: 'makan', idle: 'di rumah', cook: 'memasak', work: 'bekerja', stroll: 'jalan-jalan di alun-alun', play: 'bermain di taman', farm: 'di sawah', away: 'sedang sekolah', ngaji: 'mengaji', study: 'belajar', read: 'membaca di musala', teach: 'mengajar mengaji', pew: 'misa di gereja', altar: 'di gereja' };
+        const npcWhere = n => { const s = n.st; if (!s) return ''; if (s.walk) return 'sedang berjalan'; const b = VBI[s.p]; return `${ACT_TEXT[s.a] || s.a}${b ? ' · ' + b.name : VOUT[s.p] && s.a !== 'away' && s.a !== 'stroll' && s.a !== 'play' ? ' · ' + VOUT[s.p].name : ''}`; };
+        const atWork = n => !!(n && n.st && !n.st.walk && n.st.a === 'work' && n.st.p === n.job);
+        // is a building open now?
+        function vOpen(b) {
+            const m = state.minutes;
+            if (b.house) return m >= 360 && m < 1260 && NPCS.some(n => n.home === b.id && n.st && !n.st.walk && n.st.p === b.id && n.st.a !== 'sleep');
+            const kp = KEEPER[b.id], hr = kp ? hoursOf(kp, state.day) : b.open;
+            return !!hr && m >= hr[0] * 60 - 20 && m < hr[1] * 60;
+        }
+        function closedWhy(b) {
+            if (b.house) return 'pintunya tertutup, penghuninya sedang tidak di rumah atau sudah tidur';
+            const kp = KEEPER[b.id], hr = kp ? hoursOf(kp, state.day) : b.open;
+            return hr ? `tutup · buka ${fmtTime(hr[0] * 60)}–${fmtTime(hr[1] * 60)}` : `hari ini (${DAY_NAMES[wdOf(state.day)]}) tutup`;
+        }
+        function initVillage() {
+            buildHome();
+            for (const n of NPCS) {
+                n.f = makeFarmer({ n: n.id, g: n.g, o: n.o, skin: n.skin, hair: n.hair, kid: n.kid });
+                n.f.group.visible = false;
+                n.tag = nameTag(n.name); n.tag.position.y = n.kid ? 1.75 : 2.25; n.tag.scale.multiplyScalar(0.8); n.f.group.add(n.tag);
+                n.f.blinkSeed = NPCS.indexOf(n) * 0.7;
+            }
+        }
+        function updateNPCs(dt) {
+            const m = state.minutes, here = sceneOf(player.pos), floor = inHome(player.pos) ? floorOf(player.pos) : null;
+            for (const n of NPCS) {
+                const s = n.st = npcState(n, m), f = n.f;
+                const sc = s.x > 150 ? homeScene : scene;
+                const vis = started && !s.away && sc === here && (floor === null ? Math.hypot(s.x - player.pos.x, s.z - player.pos.z) < 42 : floorOf(s) === floor);
+                f.group.visible = vis;
+                if (!vis) continue;
+                if (f.group.parent !== sc) sc.add(f.group);
+                f.pos.set(s.x, 0, s.z);
+                let h = s.h;
+                // someone you are talking to turns to you (unless they are busy praying or lying down)
+                if (n.talkT && elapsed - n.talkT < 5 && !s.moving && s.k === 0) h = Math.atan2(player.pos.x - s.x, player.pos.z - s.z);
+                f.heading = s.k ? h : lerpAngle(f.heading, h, Math.min(1, dt * 8));
+                f.group.rotation.set(0, f.heading, 0);
+                if (s.moving) f.phase += dt * s.sp * 2.6;
+                animateFarmer(f, s.moving, dt);
+                f.head.rotation.set(0, 0, 0);
+                if (s.k === 1) sitPose(f, 1);
+                else if (s.k === 3) { sitPose(f, 3, s.y); for (const e of f.eyes) e.scale.y = e.scale.x * 0.1; }
+                else if (s.k === 2) { f.prayLast = elapsed; f.prayStart = elapsed - ((m - s.t0) * 0.7) % (PRAY_TIME + 3); sitPose(f, 2); }
+                if (s.a === 'cook') { f.arms[1].rotation.x = -0.9 + Math.sin(elapsed * 6) * 0.15; f.elbows[1].rotation.x = -0.8; }
+                if (s.a === 'altar') { const up = Math.sin(elapsed * 0.6) > 0.6; for (const a of f.arms) a.rotation.x = up ? -1.6 : -0.3; for (const e of f.elbows) e.rotation.x = up ? -0.3 : -1.2; }
+                if (s.a === 'read' || s.a === 'study' || s.a === 'teach') f.head.rotation.x = 0.35;
+                if (s.a === 'pew' || (s.a === 'pray' && n.faith === 'k')) { for (const a of f.arms) a.rotation.x = -0.9; for (const e of f.elbows) e.rotation.x = -1.4; f.head.rotation.x = 0.3; }
+                if (s.a === 'farm' && !s.moving) { f.body.rotation.x = 0.5; }
+                n.tag.visible = s.k !== 3 && Math.hypot(s.x - player.pos.x, s.z - player.pos.z) < 8;
+            }
+        }
+        // ---- talking to villagers ----
+        function npcLine(n) {
+            const s = n.st, d = npcData(n.id), h = heartsOf(n.id), m = state.minutes, first = !(d.t & bitOf(USER));
+            const nm = USER, mus = n.faith === 'i';
+            const greet = m < 600 ? 'Selamat pagi' : m < 900 ? 'Selamat siang' : m < 1080 ? 'Selamat sore' : 'Selamat malam';
+            const hello = n.kid ? `Halo, Kak ${nm}!` : mus && first && n.id !== 'dimas' ? `Assalamualaikum, ${nm}. ${greet}!` : !mus && first ? `Salam damai, ${nm}. ${greet}!` : `${greet}, ${nm}.`;
+            const pool = [...n.lines];
+            if (h >= 5) pool.push(...n.close);
+            if (isWet()) pool.push(n.kid ? 'Hujan-hujan begini nggak bisa main di luar, huhu.' : 'Hujan begini enaknya minum teh hangat di rumah.');
+            const se = seasonOf(state.day);
+            pool.push(n.kid ? `Sekarang ${se.label}, ya? Aku suka!` : `${se.icon} ${se.label} begini, jangan lupa sesuaikan tanamanmu.`);
+            if (s.a === 'eat') pool.unshift('Mari makan! Eh, sudah makan belum?');
+            if (s.a === 'stroll') pool.unshift('Jalan sore begini anginnya sejuk, ya.');
+            if (s.a === 'farm') pool.unshift('Padinya tumbuh bagus. Pematang harus rajin dicek supaya airnya tidak bocor.');
+            if (s.a === 'play') pool.unshift('Ayo main! Aku hitung sampai sepuluh, Kakak sembunyi!');
+            if (s.a === 'cook') pool.unshift('Lagi masak nih. Wangi, kan?');
+            if (s.a === 'idle' && m >= 1140) pool.unshift('Malam-malam begini enaknya istirahat. Hati-hati pulangnya, ya.');
+            n.talkN = (n.talkN || 0) + 1;
+            const line = pool[(state.day * 3 + n.talkN) % pool.length];
+            return first ? `${hello} ${line}` : line;
+        }
+        const giftable = k => k && !isTool(k) && ITEMS[k] && !k.startsWith('pk_');
+        function openNpcDlg(n) {
+            const s = n.st, d = npcData(n.id), b = bitOf(USER);
+            n.talkT = elapsed;
+            const line = npcLine(n);
+            if (!(d.t & b)) sendAct('npctalk', n.id);
+            const h = heartsOf(n.id), held = heldItem(), btns = [];
+            if (giftable(held) && !(d.g & b)) btns.push({ t: `🎁 Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, f: () => sendAct('npcgift', `${n.id}|${held}`) });
+            if (atWork(n) && VBI[n.job] && VBI[n.job].shop && inHome(player.pos) && floorOf(player.pos) === VBI[n.job].f) btns.push({ t: '🛒 Belanja', big: true, f: () => openTownShop(n.job) });
+            if (atWork(n) && n.job === 'giling') btns.push({ t: '🏭 Giling gabah', big: true, f: openGiling });
+            if (atWork(n) && n.job === 'lumbung') btns.push({ t: '🏚️ Buka lumbung', big: true, f: openLumbung });
+            btns.push({ t: 'Dah 👋' });
+            openDlg(`${n.kid ? '🧒' : n.g === 'f' ? '👩' : '👨'} ${n.name}`, [
+                el('p', { class: 'small-note', text: `${n.role} · ${npcWhere(n)}` }),
+                el('p', { class: 'npchearts', text: '❤️'.repeat(h) + '🤍'.repeat(10 - h) }),
+                el('p', { class: 'npcline', text: `“${line}”` }),
+                el('p', { class: 'small-note', text: d.g & b ? 'Sudah diberi hadiah hari ini 🎁' : giftable(held) ? 'Barang yang kamu pegang bisa diberikan sebagai hadiah.' : 'Pegang barang di toolbar untuk memberi hadiah 🎁 (sekali sehari).' }),
+            ], btns);
+        }
+        // the notice board in the balai desa: opening hours, this week's events and the villagers
+        function openBoard() {
+            const m = state.minutes, wd = wdOf(state.day);
+            const rows = VB.filter(b => !b.house).map(b => { const kp = KEEPER[b.id], hr = kp ? hoursOf(kp, state.day) : b.open; return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: b.icon }), el('span', { class: 'nm' }, el('b', { text: b.name }), el('small', { text: `${hr ? fmtTime(hr[0] * 60) + '–' + fmtTime(hr[1] * 60) : 'tutup hari ini'}${kp ? ' · ' + kp.name : ''}` })), el('b', { text: vOpen(b) ? '🟢 Buka' : '🔴 Tutup' })); });
+            const people = NPCS.map(n => el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: n.kid ? '🧒' : n.g === 'f' ? '👩' : '👨' }), el('span', { class: 'nm' }, el('b', { text: n.name }), el('small', { text: `${n.role} · ${npcWhere(n)}` })), el('small', { text: '❤️' + heartsOf(n.id) })));
+            openDlg('📋 Papan Pengumuman Desa', [
+                el('p', { class: 'small-note', text: `${DAY_NAMES[wd]}, Hari ${state.day} · ${seasonOf(state.day).icon} ${seasonOf(state.day).label} · pukul ${fmtTime(m)}` }),
+                el('p', { text: '📢 Kegiatan: 🕌 salat berjamaah 5 waktu di Musala Al-Ikhlas (Jumat siang salat Jumat) · ⛪ misa Minggu 07:00 dan misa pagi setiap hari di Gereja St. Yusuf · 🧺 Pasar Tani buka pagi 06:00–12:00 · 🏚️ Lumbung membagi hasil tiap awal musim · 📖 anak-anak mengaji tiap sore di musala.' }),
+                el('h4', { text: '🕒 Jadwal tempat' }), el('div', { class: 'shoplist' }, rows),
+                el('h4', { text: '👥 Warga desa' }), el('div', { class: 'shoplist' }, people),
+            ]);
+            liveDlg = openBoard;
+        }
+        // 🏭 the rice mill: gabah becomes beras for a small fee
+        const GILING_FEE = 3;
+        function openGiling() {
+            const n = have(USER, 'gabah');
+            openDlg('🏭 Penggilingan Padi', [
+                el('p', { text: `Pak Joko menggiling gabah menjadi beras. Ongkos ${GILING_FEE} G per gabah. Panen padi menghasilkan gabah.` }),
+                el('p', { class: 'small-note', text: `Gabah di tasmu: ${n} · 💰 ${state.gold.toLocaleString('id-ID')} G` }),
+            ], [
+                ...(n ? [{ t: `Giling semua (${n}) · ${n * GILING_FEE} G`, big: true, f: () => sendAct('giling', n) }, ...(n > 1 ? [{ t: `Giling 1 · ${GILING_FEE} G`, f: () => sendAct('giling', 1) }] : [])] : []),
+                { t: 'Tutup' },
+            ]);
+        }
+        // 🏚️ the village granary: keep grain safe, share comes back every new season
+        const LUMBUNG_KEYS = ['gabah', 'beras', 'jagung', 'kedelai', 'kacang', 'singkong', 'ubi'];
+        function openLumbung() {
+            const keys = LUMBUNG_KEYS.filter(k => ITEMS[k]);
+            const body = keys.map(k => {
+                const inB = have(USER, k), inL = state.lumbung[k] || 0;
+                const put = el('button', { class: 'btn', onclick: () => { sendAct('lumbung', `in|${k}|${inB}`); setTimeout(() => { if (dlgOpen()) openLumbung(); }, 350); } }, 'Titip semua');
+                const take = el('button', { class: 'btn', onclick: () => { sendAct('lumbung', `out|${k}|${Math.min(inL, 99)}`); setTimeout(() => { if (dlgOpen()) openLumbung(); }, 350); } }, 'Ambil');
+                if (!inB) put.disabled = true; if (!inL) take.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic' }, iconEl(k)), el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `di lumbung ${inL} · di tasmu ${inB}` })), put, take);
+            });
+            openDlg('🏚️ Lumbung Desa', [el('p', { class: 'small-note', text: 'Titipkan hasil panen biji-bijian di sini, aman dan tidak terhitung tas. Setiap awal musim lumbung membagi hasil: +5% dari yang dititipkan.' }), el('div', { class: 'shoplist' }, body)]);
+            liveDlg = openLumbung;
+        }
+        // what the Pasar Tani buys from you, and for how much
+        const pasarBuys = k => !!(PRODUCTS[k] && (GDEF[k] && GDEF[k].type !== 'hias' || FDEF[k] || k === 'gabah' || k === 'beras'));
+        const pasarPrice = k => Math.ceil(PRODUCTS[k].price * 1.1);
+        function villageInteractables() {
+            const L = [], add = (id, pos, reach, o) => L.push({ id, pos, reach, local: true, ...o });
+            for (const b of VB) {
+                add('vdoor:' + b.id, b.door, 1.5, { label: () => vOpen(b) ? (b.house ? `Bertamu ke ${b.name} 🚪` : `Masuk ${b.name} ${b.icon}`) : `${b.icon} ${b.name} · ${closedWhy(b).split(',')[0]}`, act: () => { if (vOpen(b)) travel(HV(b.f, 0, 2.9), Math.PI, `${b.icon} ${b.name}`); else toast(`${b.icon} ${b.name}: ${closedWhy(b)}`); } });
+                add('vexit:' + b.id, HV(b.f, 0, 3.6), 1.2, { label: () => 'Keluar 🚪', act: () => travel(new THREE.Vector3(b.door.x, 0, b.door.z + 0.4), 0, VILLAGE) });
+                const kp = KEEPER[b.id];
+                if (b.shop) add('vshop:' + b.id, HV(b.f, b.id === 'klinik' ? -1.0 : 0, b.id === 'warung' ? -1.2 : -0.85), 1.4, {
+                    label: () => atWork(kp) ? `Belanja di ${b.name} 🛒 · ${kp.name}` : `${kp.name} sedang ${ACT_TEXT[kp.st && kp.st.a] || 'pergi'} · tunggu sebentar`,
+                    act: () => { if (atWork(kp)) openTownShop(b.id); else toast(`${kp.name} sedang ${ACT_TEXT[kp.st && kp.st.a] || 'pergi'}. Tunggu sebentar, ya.`); },
+                });
+                if (b.id === 'giling') add('vgiling', HV(b.f, 0.4, -0.6), 1.3, { label: () => atWork(kp) ? 'Giling gabah jadi beras 🏭' : `${kp.name} sedang ${ACT_TEXT[kp.st && kp.st.a] || 'pergi'}`, act: () => { if (atWork(kp)) openGiling(); else toast('Mesin hanya dijalankan Pak Joko.'); } });
+                if (b.id === 'lumbung') add('vlumbung', HV(b.f, 0, -0.9), 1.3, { label: () => atWork(kp) ? 'Titip atau ambil di lumbung 🏚️' : `${kp.name} sedang ${ACT_TEXT[kp.st && kp.st.a] || 'pergi'}`, act: () => { if (atWork(kp)) openLumbung(); else toast('Lumbung dijaga Pak Yohanes, tunggu dia datang.'); } });
+                if (b.id === 'balai') { add('vboard', HV(b.f, -4.3, -1.2), 1.4, { label: () => 'Lihat papan pengumuman 📋', act: openBoard }); add('vbseat', HV(b.f, 0, 1.9), 1.6, seatsAct(b.seats, 'Duduk di ruang rapat 🪑')); }
+                if (b.id === 'musala') {
+                    b.mats.forEach((s, i) => add('vmat' + i, new THREE.Vector3(s.x + 0.4, 0, s.z), 0.9, { label: () => player.sit === s ? 'Selesai, berdiri' : 'Salat di musala 🤲', act: () => { if (player.sit === s) standUp(); else pray(s); } }));
+                    add('vwudu', HV(b.f, 4.3, -2.0), 1.1, { label: () => 'Berwudu 💧', act: () => { splash(player.pos); toast('Segar… sudah berwudu 💧 Silakan salat di sajadah.'); } });
+                }
+                if (b.id === 'gereja') {
+                    add('vpew', HV(b.f, 0, 0.5), 1.6, seatsAct(b.seats, 'Duduk dan berdoa dengan tenang 🙏'));
+                    add('vcandle', HV(b.f, -4.3, -1.8), 1.2, { label: () => 'Nyalakan lilin 🕯️', act: () => { chime([523, 659, 784], 0.12, 'sine', 0.04); toast('🕯️ Lilin menyala. Semoga doamu terkabul.'); } });
+                }
+                if (b.id === 'warung') for (const x of [-2.6, 2.6]) add('vwseat' + x, HV(b.f, x, 1.8), 1.3, seatsAct(b.seats, 'Duduk di meja warung 🪑'));
+                if (b.id === 'klinik') add('vkseat', HV(b.f, -3.6, 2.3), 1.2, seatsAct(b.seats, 'Duduk di ruang tunggu 🪑'));
+                if (b.house) {
+                    const host = () => NPCS.find(n => n.home === b.id && !n.kid && n.st && !n.st.walk && n.st.p === b.id && n.st.a !== 'sleep');
+                    add('vhseat:' + b.id, HV(b.f, -2.6, 1.0), 1.3, seatsAct(b.seats.slice(0, 4), 'Duduk di meja makan 🪑'));
+                    add('vhsofa:' + b.id, HV(b.f, 2.9, 0.8), 1.1, seatsAct(b.seats.slice(4), 'Duduk di sofa 🛋️'));
+                    add('vteh:' + b.id, HV(b.f, -1.5, -0.4), 1.2, {
+                        when: () => !!host(),
+                        label: () => { const h = host(); return npcData(h.id).c & bitOf(USER) ? `Ngobrol santai dengan ${h.name} ☕` : heartsOf(h.id) >= 2 ? `Minta teh hangat ke ${h.name} 🍵` : `${h.name} menyapamu dengan ramah 😊`; },
+                        act: () => { const h = host(); if (!h) return; if (heartsOf(h.id) < 2) { toast(`Kenali ${h.name} lebih dulu (2 ❤️) supaya disuguhi teh 🍵`); return; } sendAct('npcteh', h.id); },
+                    });
+                    add('vbed:' + b.id, HV(b.f, 2.6, -1.6), 0.9, { label: () => 'Kasur pemilik rumah', act: () => toast('Ini kasur pemilik rumah. Jangan tidur di rumah orang, ya 😄') });
+                }
+            }
+            for (const n of NPCS) add('npc:' + n.id, n.f.pos, 1.7, {
+                when: () => n.f.group.visible && n.st && n.st.k !== 3 && n.st.k !== 2 && n.st.a !== 'pew',
+                label: () => `Ngobrol dengan ${n.name} 💬`, act: () => openNpcDlg(n),
+            });
+            return L;
+        }
+        // the village's actions, run by the host like every farm change
+        const VILLAGE_ACTIONS = {
+            npctalk(who, id) { const n = NPCI[id]; if (!n) return; const d = npcData(id), b = bitOf(who); if (d.t & b) return; d.t |= b; d.f = Math.min(1000, d.f + 20); },
+            npcgift(who, x) {
+                const [id, k] = String(x).split('|'), n = NPCI[id];
+                if (!n || !giftable(k) || !have(who, k)) return;
+                const d = npcData(id), b = bitOf(who);
+                if (d.g & b) { emitEvent(`${n.name} sudah menerima hadiah darimu hari ini 🎁`, 'none', null, who); return; }
+                takeBag(who, k, 1); d.g |= b;
+                const love = n.love.includes(k), like = n.like.includes(k), hate = n.hate.includes(k);
+                d.f = clamp(d.f + (love ? 80 : like ? 45 : hate ? -25 : 20), 0, 1000);
+                const it = ITEMS[k], say = love ? `Wah, ${it.label}! Ini kesukaanku! Terima kasih banyak! 😍` : like ? `${it.label}? Terima kasih, aku suka! 😊` : hate ? `Eh… ${it.label}. Terima kasih, ya… 😅` : `Terima kasih atas ${it.label}-nya 🙂`;
+                const at = n.f ? [n.f.pos.x, 1.9, n.f.pos.z] : null;
+                emitEvent(`🎁 ${n.name}: “${say}”`.slice(0, 90), love ? 'hearts' : hate ? 'none' : 'heart1', at, who);
+            },
+            npcteh(who, id) {
+                const n = NPCI[id]; if (!n || heartsOf(id) < 2) return;
+                const d = npcData(id), b = bitOf(who);
+                if (d.c & b) { emitEvent(`${n.name}: “Tehnya sudah tadi, nanti kembung, hehe 🍵”`, 'none', null, who); return; }
+                d.c |= b; addEnergy(who, 15); d.f = Math.min(1000, d.f + 10);
+                emitEvent(`🍵 ${n.name} menyuguhkan teh hangat · +15 ⚡`, 'heart1', n.f ? [n.f.pos.x, 1.9, n.f.pos.z] : null, who);
+            },
+            giling(who, x) {
+                if (!atWork(KEEPER.giling)) return;
+                let n = Math.min(+x || 0, have(who, 'gabah'), Math.floor(state.gold / GILING_FEE));
+                if (n <= 0) { emitEvent(state.gold < GILING_FEE ? 'Uangnya tidak cukup untuk ongkos giling' : 'Tidak ada gabah di tasmu', 'none', null, who); return; }
+                n = Math.min(n, bagRoom(who, 'beras') + n);
+                takeBag(who, 'gabah', n); const got = addBag(who, 'beras', n); if (got < n) addBag(who, 'gabah', n - got);
+                state.gold -= got * GILING_FEE;
+                emitEvent(`🏭 ${got} gabah digiling jadi ${ITEMS.beras.icon} beras · ${got * GILING_FEE} G`, 'icon:🍚', null, who);
+            },
+            pasarjual(who, x) {
+                const [k, nn] = String(x).split('|');
+                if (!atWork(KEEPER.pasar) || !pasarBuys(k)) return;
+                const n = Math.min(+nn || 0, have(who, k));
+                if (n <= 0) return;
+                takeBag(who, k, n); state.gold += n * pasarPrice(k);
+                emitEvent(`🧺 Menjual ${n} ${ITEMS[k].icon} ${ITEMS[k].label} ke Bu Sari · +${n * pasarPrice(k)} G`, 'sell', null, who);
+            },
+            lumbung(who, x) {
+                const [dir, k, nn] = String(x).split('|');
+                if (!atWork(KEEPER.lumbung) || !LUMBUNG_KEYS.includes(k) || !ITEMS[k]) return;
+                if (dir === 'in') { const n = Math.min(+nn || 0, have(who, k), 999 - (state.lumbung[k] || 0)); if (n <= 0) return; takeBag(who, k, n); state.lumbung[k] = (state.lumbung[k] || 0) + n; emitEvent(`🏚️ Menitip ${n} ${ITEMS[k].label} di lumbung desa`, 'none', null, who); }
+                else { const n = Math.min(+nn || 0, state.lumbung[k] || 0, bagRoom(who, k)); if (n <= 0) { emitEvent(FULL_MSG, 'none', null, who); return; } state.lumbung[k] -= n; addBag(who, k, n); if (!state.lumbung[k]) delete state.lumbung[k]; emitEvent(`🏚️ Mengambil ${n} ${ITEMS[k].label} dari lumbung`, 'none', null, who); }
+            },
+        };
+        const cleanLumbung = o => { const r = {}; for (const k of LUMBUNG_KEYS) if (o && Number.isFinite(o[k]) && o[k] > 0) r[k] = Math.min(999, Math.floor(o[k])); return r; };
+        const cleanNpc = o => { const r = {}; for (const n of NPCS) { const v = o && o[n.id]; if (v && typeof v === 'object') r[n.id] = { f: clamp(+v.f || 0, 0, 1000), t: v.t | 0, g: v.g | 0, c: v.c | 0 }; } return r; };
+        // a new day: everyone can be talked to and given something again; a new season: the granary shares out
+        function villageNight(newSeason) {
+            for (const d of Object.values(state.npc)) { d.t = 0; d.g = 0; d.c = 0; }
+            if (newSeason) {
+                let n = 0;
+                for (const k of Object.keys(state.lumbung)) { const add = Math.floor(state.lumbung[k] / 20); if (add) { state.lumbung[k] = Math.min(999, state.lumbung[k] + add); n += add; } }
+                if (n) state.recapLumbung = n;
+            }
         }
         // ---- 🗺️ the map: the farm, the road south, and the village, with where you both are ----
         function openMap() {
-            const W = 300, S = 6, FH = 47 * S, GAP = 46, TH = 23 * S, H = FH + GAP + TH;
+            const W = 300, S = 6, VS = W / 80, FH = 47 * S, GAP = 46, TH = 43 * VS, H = FH + GAP + TH;
             const cv = el('canvas', { id: 'mapCv', width: String(W * 2), height: String(H * 2) });
             const c = cv.getContext('2d'); c.scale(2, 2);
             const fx = x => (x + 24.5) * S, fz = z => (z + 23.5) * S;                 // farm
-            const tx = x => (x + 25) * S, tz = z => FH + GAP + (z - (TZ - 12.5)) * S;  // village
+            const tx = x => (x + 42.5) * VS, tz = z => FH + GAP + (z - (TZ - 13)) * VS;  // village (43 tall)
             const rect = (x0, z0, x1, z1, col, X = fx, Z = fz) => { c.fillStyle = col; c.fillRect(X(x0), Z(z0), X(x1) - X(x0), Z(z1) - Z(z0)); };
             const label = (t, x, y, size = 10, col = '#3a2a12') => { c.font = `700 ${size}px Fredoka, sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y); };
             // farm
@@ -4801,16 +5578,31 @@
             for (const [t, p] of [['🧰', TOOLBOX], ['🔨', WORKBENCH], ['📦', CHEST], ['🧺', BIN], ...WELLS.map(w => ['🪣', w])]) label(t, fx(p.x), fz(p.z), 10);
             label('🌾 Farm', fx(-17), fz(-21), 12, '#1e3a12');
             // the road south to the village
-            c.fillStyle = '#b8b0a0'; c.fillRect(fx(-1.5), fz(23.5), 3 * S, GAP); label('⬇ Desa', fx(0) + 34, fz(23.5) + GAP / 2, 10);
-            // village
+            c.fillStyle = '#b8b0a0'; c.fillRect(fx(-1.5), fz(23.5), 3 * S, GAP / 2 + 9); c.fillRect(Math.min(fx(-1.5), (42.5 - 1.5) * VS), fz(23.5) + GAP / 2, Math.abs((42.5 - 1.5) * VS - fx(-1.5)) + 3 * S, 9); c.fillRect((42.5 - 1.5) * VS, fz(23.5) + GAP / 2, 3 * S, GAP / 2);
+            label('⬇ Lembah Persawahan', fx(0) + 70, fz(23.5) + GAP / 4, 10);
+            // village: rice fields, the river, streets and every building
             c.fillStyle = '#a6d486'; c.fillRect(0, FH + GAP, W, TH);
-            c.fillStyle = '#9a9a92'; c.fillRect(tx(-22), tz(TZ - 0.1), 44 * S, 3.2 * S); c.fillRect(tx(-1.5), tz(TZ - 11.5), 3 * S, 12.2 * S);
-            for (const t of TOWN) { const col = '#' + t.roof.toString(16).padStart(6, '0'); c.fillStyle = col; c.fillRect(tx(t.x - 2.5), tz(TZ - 6.5), 5 * S, 4 * S); label(t.icon, tx(t.x), tz(TZ - 4.5), 13); label(t.name.replace('Toko ', '').replace(' Makan', ''), tx(t.x), tz(TZ - 1.1) + 8, 8); }
-            c.fillStyle = '#5bb7ea'; c.beginPath(); c.arc(tx(0), tz(TZ + 6.2), 1.4 * S, 0, Math.PI * 2); c.fill();
-            label('🏘️ Desa Farmora', tx(-15), tz(TZ + 8), 12, '#1e3a12');
+            const vr = (x0, z0, x1, z1, col) => { c.fillStyle = col; c.fillRect(tx(x0), tz(z0), (x1 - x0) * VS, (z1 - z0) * VS); };
+            vr(-42, TZ - 12, -31, TZ - 1, '#7fb88a'); vr(-42, TZ + 4, -34, TZ + 15.5, '#7fb88a'); label('🌾', tx(-36.5), tz(TZ - 6.5), 12); label('🌾', tx(-38), tz(TZ + 10), 12);
+            vr(38, TZ - 13, 37.5 + 5, TZ + 27, '#5bb7ea');
+            vr(-40, S1 - 1.6, 37, S1 + 1.6, '#9a9a92'); vr(-35, S2 - 1.3, 35, S2 + 1.3, '#9a9a92'); vr(-35, S3 - 1, 35, S3 + 1, '#c9b48a'); vr(-1.5, TZ - 12, 1.5, S1, '#9a9a92');
+            for (const x of LINKS) vr(x - 1.1, S1, x + 1.1, S3, '#9a9a92');
+            vr(20, TZ + 8.5, 28, TZ + 14.5, '#e8d6a8'); label('🛝', tx(24), tz(TZ + 11.5), 11);
+            c.fillStyle = '#5bb7ea'; c.beginPath(); c.arc(tx(0), tz(TZ + 6.2), 1.5 * VS, 0, Math.PI * 2); c.fill();
+            for (const b of VB) { c.fillStyle = '#' + b.roof.toString(16).padStart(6, '0'); c.fillRect(tx(b.x - b.w / 2), tz(b.z - b.d / 2), b.w * VS, b.d * VS); label(b.icon, tx(b.x), tz(b.z), b.house ? 10 : 12); }
+            const SHORT = { giling: 'Giling', bibit: 'Tani', hewan: 'Hewan', pasar: 'Pasar', bangunan: 'Bangunan', warung: 'Warung', klinik: 'Klinik', lumbung: 'Lumbung', musala: 'Musala', balai: 'Balai Desa', gereja: 'Gereja' };
+            for (const b of VB.filter(b => !b.house)) label(SHORT[b.id], tx(b.x), tz(b.z) - 10, 7);
+            label('🌾 Lembah Persawahan', tx(-22), tz(TZ + 28.2), 11, '#1e3a12');
+            // the villagers out and about (inside a building: by its door)
+            for (const n of NPCS) {
+                const st = n.st; if (!st || st.away) continue;
+                const b = st.x > 150 ? vRoomOf(floorOf(st)) : null, x = b ? b.door.x : st.x, z = b ? b.door.z : st.z;
+                c.fillStyle = '#f2a03d'; c.strokeStyle = '#fff'; c.lineWidth = 1; c.beginPath(); c.arc(tx(x), tz(z), 3, 0, Math.PI * 2); c.fill(); c.stroke();
+            }
             // where you (and your partner) are; inside a building: at its door
             const spot = p => {
                 if (inTown(p)) return [tx(p.x), tz(p.z)];
+                if (isVRoom(floorOf(p))) { const b = vRoomOf(floorOf(p)); return b ? [tx(b.door.x), tz(b.door.z)] : null; }
                 if (!inHome(p)) return [fx(p.x), fz(p.z)];
                 if (isBarn(floorOf(p))) { const b = Object.values(BARNS).find(b => Math.abs(p.x - b.x) < 10); return b ? [fx(b.out.x), fz(b.out.z + (b.face ? 1.6 : -1.6))] : null; }
                 return [fx(HOUSE.x), fz(HOUSE.z)];
@@ -4826,7 +5618,7 @@
             if (partnerF && net.connected && partnerF.live) pin(partnerF.pos, partnerF.heading, '#d6457a', OTHER);
             pin(player.pos, player.heading, '#2f6fd0', `${USER} (kamu)`);
             const where = placeName(player.pos);
-            openDlg('🗺️ Peta', [el('p', { class: 'small-note', text: `Kamu sedang di: ${where}. Gerbang selatan farm menuju jalan ke Desa (ke bawah peta).` }), cv]);
+            openDlg('🗺️ Peta', [el('p', { class: 'small-note', text: `Kamu sedang di: ${where}. Gerbang selatan farm menuju Lembah Persawahan (ke bawah peta). Titik oranye: warga desa.` }), cv]);
         }
         function buy(k) {
             const s = SUPPLIES[k];
@@ -5585,9 +6377,9 @@
             const info = (label, text) => ({ local: true, label: () => label, act: () => toast(typeof text === 'function' ? text() : text) });
             // outside
             add('workbench', WORKBENCH, 1.5, { local: true, label: () => 'Meja kerja · buat barang 🔨', act: openCraft });
-            add('gotown', FARM_GATE, 1.8, { local: true, label: () => 'Pergi ke Desa 🏘️', act: () => travel(new THREE.Vector3(0, 0, TZ - 10.6), 0, '🏘️ Desa Farmora') });
+            add('gotown', FARM_GATE, 1.8, { local: true, label: () => 'Pergi ke Lembah Persawahan 🌾', act: () => travel(new THREE.Vector3(0, 0, TZ - 10.6), 0, '🌾 Lembah Persawahan · Desa Lembah Sari') });
             add('gofarm', TOWN_GATE, 1.8, { local: true, label: () => 'Pulang ke farm 🏡', act: () => travel(new THREE.Vector3(0, 0, 21.4), Math.PI, '🌾 Farm') });
-            for (const t of TOWN) add('shop:' + t.id, new THREE.Vector3(t.x, 0, TZ - 1.9), 1.5, { local: true, label: () => `Masuk ${t.name} ${t.icon}`, act: () => openTownShop(t.id) });
+            L.push(...villageInteractables());
             add('door', HOUSE_DOOR, 1.8, { local: true, label: () => 'Masuk rumah 🏠', act: () => travel(HV(F1, 0, 5.6), Math.PI, '') });
             add('pkg', PKG_POS, 1.5, {
                 when: () => pkgCount() > 0, label: () => `Ambil paket 📦 (${pkgCount()} barang)`,
@@ -6141,6 +6933,8 @@
             act: () => { const k = heldItem(); if (RECIPES.some(r => r.key === k)) sendAct('eat', k); },
         };
         buildTown();
+        initVillage();
+        Object.assign(ACTIONS, VILLAGE_ACTIONS);
         const INTERACTABLES = interactables();
         let focus = null;
         // the square of ground just in front of you
@@ -6608,7 +7402,8 @@
                     ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
-                    pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
+                    pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
+                    nc: NPCS.map(n => { const d = state.npc[n.id]; return d ? [d.f, d.t, d.g, d.c] : 0; }), lb: state.lumbung };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0, a.mode === 'eat' ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -6718,6 +7513,8 @@
             if (Array.isArray(w.pc)) state.pkgCloth = w.pc.filter(v => Array.isArray(v) && CLOTHES[v[0]] && CHARACTERS[v[1]]).map(v => [CLOTHES[v[0]].id, v[1]]);
             if (w.pkg && typeof w.pkg === 'object') { state.pkg = {}; for (const k of Object.keys(w.pkg)) if (SUPPLIES[k] && Number.isFinite(w.pkg[k])) state.pkg[k] = w.pkg[k]; }
             if (w.ib && typeof w.ib === 'object') for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.ib[u])) state.ib[u] = w.ib[u];
+            if (Array.isArray(w.nc)) NPCS.forEach((n, i) => { const v = w.nc[i]; if (Array.isArray(v)) state.npc[n.id] = { f: +v[0] || 0, t: v[1] | 0, g: v[2] | 0, c: v[3] | 0 }; });
+            if (w.lb && typeof w.lb === 'object') state.lumbung = cleanLumbung(w.lb);
             state.savedAt = o.at || state.savedAt;
             if (Array.isArray(o.a)) o.a.forEach((v, i) => { if (animals[i] && Array.isArray(v)) animals[i].netT = v.map(Number); });
             if (Array.isArray(o.ev)) for (const e of o.ev) { if (e && e.n > net.seenEv) { net.seenEv = e.n; showEvent(e); } }
@@ -6970,6 +7767,7 @@
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
+                villageNight(newSeason !== oldSeason);
                 state.day++;
                 state.minutes = WAKE_MIN;
                 // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
@@ -6984,6 +7782,7 @@
                 sleeping = false;
                 toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day} · ${weatherName(state.weather, newSeason)}`);
                 if (newSeason !== oldSeason) emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, '');
+                if (state.recapLumbung) { emitEvent(`🏚️ Lumbung desa membagi hasil awal musim: +${state.recapLumbung} biji-bijian`, 'none', null, ''); delete state.recapLumbung; }
                 if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
                 if (nSold) chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
                 morningSave();
@@ -7316,6 +8115,7 @@
             ambientAnimals(dt);
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
+            updateNPCs(dt);
             updateWeatherFx(dt, started && inHome(player.pos) && homeScene ? homeScene : scene);
             weatherAudio();
             updatePlants(elapsed);
@@ -7380,7 +8180,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { decoWhy, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { decoWhy, NPCS, VB, VBI, npcState, openNpcDlg, openBoard, get TZ() { return TZ; }, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
