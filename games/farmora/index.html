@@ -833,12 +833,7 @@
             m.receiveShadow = true;
             scene.add(m);
         }
-        const PATHS = [
-            [-11, -9, -11, 3],     // house -> main road
-            [-14, 22.5, 1, 3],     // main road east-west, past every pen gate
-            [-3, -1, 3, 10.5],     // to the field
-        ];
-        PATHS.forEach(p => pathStrip(...p));
+        const PATHS = []; // the old dirt paths are gone; stone and plank paths are crafted and laid by hand
 
         // Window material glows at night
         const windowMat = new THREE.MeshStandardMaterial({ color: 0x9fd8ff, roughness: 0.25, emissive: 0xffc35c, emissiveIntensity: 0 });
@@ -1012,6 +1007,54 @@
         fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 }, { side: 'n', a: 17.1, b: 19.9, door: 1 });
         fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 }, { side: 's', a: 17.1, b: 19.9, door: 1 });
         fenceRect(PEN_DUCK, { side: 'e', a: 10.4, b: 12.8 }, { side: 's', a: -18.4, b: -15.6, door: 1 });
+        // the farm boundary fence; the opening in the south leads to the village
+        const FARM_GATE = new THREE.Vector3(0, 0, 22.4);
+        fenceRect({ minX: -24.2, maxX: 24.2, minZ: -23.2, maxZ: 23.2 }, { side: 's', a: -1.8, b: 1.8, door: 1 });
+        for (const sx of [-1, 1]) { box(0.3, 2.2, 0.3, C.darkWood, sx * 1.9, 1.1, 23.2, scene); }
+        box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, 23.2, scene);
+        sign(3.2, 22.2, 'Ke Desa');
+
+        // ---------- 🏘️ The village, south of the farm (its own area of the map, like the barns) ----------
+        const TZ = -300;
+        const TOWN_B = { minX: -21.5, maxX: 21.5, minZ: TZ - 9.5, maxZ: TZ + 12.5 };
+        const inTown = p => p.z < -150 && p.x < 150;
+        const TOWN_GATE = new THREE.Vector3(0, 0, TZ + 11.8);
+        const TOWN = [
+            { id: 'bibit', name: 'Toko Bibit', icon: '🌱', wall: 0xb5e0a0, roof: 0x2f7a35, x: -16.5 },
+            { id: 'hewan', name: 'Toko Hewan', icon: '🐄', wall: 0xf0d49a, roof: 0x8a4a2a, x: -10 },
+            { id: 'pasar', name: 'Pasar', icon: '🧺', wall: 0xf7c08a, roof: 0xc0392b, x: -3.5 },
+            { id: 'bangunan', name: 'Toko Bangunan', icon: '🧱', wall: 0xc9d0d6, roof: 0x4a5562, x: 3.5 },
+            { id: 'warung', name: 'Warung Makan', icon: '🍜', wall: 0xf8e6c0, roof: 0x2f6fae, x: 10 },
+            { id: 'klinik', name: 'Klinik', icon: '🏥', wall: 0xfafafa, roof: 0xd9443a, x: 16.5 },
+        ];
+        // built once everything it uses exists (called just before the interactables)
+        function buildTown() {
+            // ground, the main street and the lane back to the farm gate
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 50).rotateX(-Math.PI / 2), mat(0x86c062)); ground.position.set(0, 0, TZ + 2); ground.receiveShadow = true; scene.add(ground);
+            const road = box(44, 0.04, 3.2, 0x9a9a92, 0, 0.02, TZ + 1.5, scene); road.receiveShadow = true; road.castShadow = false;
+            const lane = box(3, 0.04, 10.5, 0x9a9a92, 0, 0.02, TZ + 7.6, scene); lane.receiveShadow = true; lane.castShadow = false;
+            for (let x = -20; x <= 20; x += 2.5) box(1.2, 0.05, 0.15, 0xf2f2f2, x, 0.045, TZ + 1.5, scene).castShadow = false;
+            for (const t of TOWN) {
+                const g = new THREE.Group(); g.position.set(t.x, 0, TZ - 4.5); scene.add(g);
+                box(5, 3.0, 4, t.wall, 0, 1.5, 0, g);
+                const roof = gableRoof(5.6, 4.6, 1.5, t.roof); roof.rotation.y = Math.PI / 2; roof.position.y = 3.0; g.add(roof);
+                box(1.2, 2.0, 0.12, 0x6e4723, 0, 1.0, 2.02, g);
+                for (const sx of [-1.6, 1.6]) box(1.0, 0.8, 0.08, 0x9fd8ff, sx, 1.7, 2.03, g);
+                const aw = box(5.2, 0.12, 1.0, t.roof, 0, 2.55, 2.4, g); aw.rotation.x = 0.25;
+                textPlate(g, `${t.icon} ${t.name}`, 0, 2.95, 2.06, 3.6);
+                addBoxCollider(t.x - 2.5, t.x + 2.5, TZ - 6.5, TZ - 2.5);
+            }
+            // trees, lamps, benches and a little fountain for some life
+            for (const [x, z] of [[-21, TZ - 7], [21, TZ - 7], [-20, TZ + 5], [20, TZ + 5], [-12, TZ + 6.5], [12, TZ + 6.5], [-7, TZ + 10], [7, TZ + 10]]) roundTree(x, z, 1.1);
+            for (const x of [-13.2, -6.8, 0, 6.8, 13.2]) { cap(0.05, 2.6, 0x2b2b2b, x, 1.3, TZ + 3.4, scene); ball(0.18, 0.18, 0.18, 0xfff1c9, x, 2.7, TZ + 3.4, scene); }
+            const fz = TZ + 6.5;
+            mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(-4.5, 0.25, fz);
+            const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(-4.5, 0.52, fz); scene.add(fw);
+            cap(0.12, 0.8, C.stone, -4.5, 0.9, fz, scene);
+            addCircleCollider(-4.5, fz, 1.5);
+            for (const x of [4, 6]) { box(1.4, 0.1, 0.45, C.wood, x, 0.45, fz, scene); for (const sx of [-0.55, 0.55]) box(0.08, 0.45, 0.4, C.darkWood, x + sx, 0.22, fz, scene); }
+            sign(2.6, TZ + 11.4, 'Ke Farm');
+        }
         sign(-13.4, 0.4, 'Ayam');
         sign(5.6, 0.6, 'Sapi');
         sign(15.1, 0.6, 'Kambing');
@@ -2079,6 +2122,7 @@
             besi: { label: 'Bijih besi', icon: '⚙️', price: 120 },
             emas: { label: 'Bijih emas', icon: '🟡', price: 350 },
             kayu: { label: 'Kayu', icon: '🪵', price: 25 },
+            tanahliat: { label: 'Tanah liat', icon: '🟤', price: 15 },
             rumput: { label: 'Rumput', icon: '🌿', price: 8 },
             ikanmas: { label: 'Ikan mas', icon: '🐟', price: 70 },
             nila: { label: 'Ikan nila', icon: '🐠', price: 90 },
@@ -3645,6 +3689,7 @@
             ...Object.values(BARNS).map(b => ({ f: b.x, n: `${b.icon} ${b.label}`, x: [-5, 5], z: [-4, 4] })),
         ];
         function placeName(p) {
+            if (inTown(p)) { const t = TOWN.find(t => Math.abs(p.x - t.x) < 2.6 && p.z < TZ - 1.5); return t ? `${t.icon} ${t.name}` : '🏘️ Desa'; }
             if (!inHome(p)) return '🌾 Farm';
             const f = floorOf(p), x = p.x - f;
             const r = ROOMS.find(r => r.f === f && x >= r.x[0] && x <= r.x[1] && p.z >= r.z[0] && p.z <= r.z[1]);
@@ -4522,6 +4567,48 @@
                 list,
             ].filter(Boolean));
         }
+        // ---- the village shops: no courier, things go straight into your bag ----
+        const BUILDER = { kayu: 50, batu: 25, tanahliat: 35, tembaga: 120, besi: 240, pot: 55, pupuk: 22 };
+        const DISHES = () => RECIPES.filter(r => !r.out && r.key !== 'nasi');
+        function townPrice(shop, k) {
+            const s = SUPPLIES[k], r5 = v => Math.max(5, Math.ceil(v / 5) * 5);
+            if (shop === 'bibit') return s && (k.startsWith('b_') || k.startsWith('p_')) ? r5(s.price * 0.9) : 0;
+            if (shop === 'hewan') return s && s.feed ? r5(s.price * 0.85) : 0;
+            if (shop === 'pasar') return s && s.ing ? r5(s.price * 0.9) : 0;
+            if (shop === 'bangunan') return BUILDER[k] || 0;
+            if (shop === 'warung') { const r = DISHES().find(r => r.key === k); return r ? Math.ceil(r.price * 1.3 / 10) * 10 : 0; }
+            return 0;
+        }
+        const CLINIC = { periksa: { label: 'Periksa & istirahat', icon: '🩺', price: 150, note: 'Energi penuh lagi' }, pijat: { label: 'Pijat refleksi', icon: '💆', price: 60, note: '+60 energi' } };
+        let townTab = {};
+        function openTownShop(id) {
+            const t = TOWN.find(t => t.id === id);
+            const row = (icon, title, sub, price, onBuy, dis) => {
+                const b = el('button', { class: 'btn', onclick: onBuy }, `${price} G`);
+                if (dis || state.gold < price) b.disabled = true;
+                return el('div', { class: 'shopitem' }, typeof icon === 'string' ? el('span', { class: 'ic', text: icon }) : el('span', { class: 'ic' }, icon), el('span', { class: 'nm' }, el('b', { text: title }), el('small', { text: sub })), b);
+            };
+            const buyIt = k => { sendAct('townbuy', `${id}|${k}`); setTimeout(() => { if (dlgOpen()) openTownShop(id); }, 350); };
+            let body = [], tabs = null;
+            if (id === 'klinik') {
+                body = Object.entries(CLINIC).map(([k, c]) => row(c.icon, c.label, `${c.note} · energi sekarang ${Math.round(energyOf(USER))}/${ENERGY_MAX}`, c.price, () => { sendAct('clinic', k); setTimeout(() => { if (dlgOpen()) openTownShop(id); }, 350); }));
+            } else {
+                let keys = id === 'bangunan' ? Object.keys(BUILDER) : id === 'warung' ? DISHES().map(r => r.key) : Object.keys(SUPPLIES).filter(k => townPrice(id, k));
+                if (id === 'bibit') {
+                    const cats = [['veg', '🥬 Sayur'], ['hias', '🌸 Hias'], ['pohon', '🌳 Pohon buah']], cur = townTab.bibit ||= 'veg';
+                    tabs = el('div', { class: 'tabs chips' }, cats.map(([c, l]) => el('button', { class: 'btn' + (c === cur ? ' on' : ''), onclick: () => { townTab.bibit = c; openTownShop(id); } }, l)));
+                    keys = keys.filter(k => cur === 'pohon' ? k.startsWith('p_') : k.startsWith('b_') && GDEF[k.slice(2)].type === cur);
+                }
+                body = keys.map(k => {
+                    const it = ITEMS[k], p = townPrice(id, k), s = SUPPLIES[k];
+                    const sub = id === 'warung' ? `Masakan siap makan · +${foodEnergy(k)} ⚡ · di tas ${have(USER, k)}` : s && s.feed ? `Langsung masuk gudang pakan · ${state.feed[s.feed]}/${FEED_MAX}` : `${s && s.note ? s.note + ' · ' : ''}di tas ${have(USER, k)}`;
+                    const full = s && s.feed && state.feed[s.feed] + FEED_PACK > FEED_MAX;
+                    return row(s && s.feed ? BARNS[s.feed].icon : s && s.tree ? FDEF[s.tree].icon : iconEl(k), it.label, sub, p, () => buyIt(k), full);
+                });
+            }
+            openDlg(`${t.icon} ${t.name}`, [el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · ${id === 'klinik' ? 'Klinik desa, buka setiap hari.' : 'Barang langsung masuk tas, lebih murah dari toko online.'}` }), tabs, el('div', { class: 'shoplist' }, body)].filter(Boolean));
+            liveDlg = () => openTownShop(id);
+        }
         function buy(k) {
             const s = SUPPLIES[k];
             if (state.gold < s.price) { toast(`Uangnya belum cukup untuk ${s.label} (${s.price} G) 💸`); return; }
@@ -5005,6 +5092,25 @@
                 if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
+            townbuy(who, x) {
+                const [shop, k] = String(x).split('|'), price = townPrice(shop, k), s = SUPPLIES[k];
+                if (!price || !ITEMS[k] || state.gold < price) return;
+                if (s && s.feed) {
+                    if (state.feed[s.feed] + FEED_PACK > FEED_MAX) { emitEvent(`Gudang pakan kandang ${FEED_NAME[s.feed]} sudah penuh`, 'none', null, who); return; }
+                    state.gold -= price; state.feed[s.feed] += FEED_PACK;
+                    emitEvent(`Membeli ${s.label} · masuk gudang kandang 🌾 (${state.feed[s.feed]}/${FEED_MAX})`, 'sell', null, who); return;
+                }
+                if (bagRoom(who, k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                state.gold -= price; addBag(who, k, 1);
+                emitEvent(`Membeli ${ITEMS[k].icon} ${ITEMS[k].label} · ${price} G`, 'sell', null, who);
+            },
+            clinic(who, k) {
+                const c = CLINIC[k];
+                if (!c || state.gold < c.price) return;
+                state.gold -= c.price;
+                addEnergy(who, k === 'periksa' ? ENERGY_MAX : 60);
+                emitEvent(`${c.icon} ${c.label} di klinik · energi ${Math.round(energyOf(who))} ⚡`, 'none', null, who);
+            },
             // 🌾 feeding by hand: scoop portions from the barn's sacks, then put them in the trough (one per animal)
             feedtake(who, k) {
                 if (!FEED_KINDS.includes(k)) return;
@@ -5225,6 +5331,9 @@
             const add = (id, pos, reach, o) => L.push({ id, pos, reach, ...o });
             const info = (label, text) => ({ local: true, label: () => label, act: () => toast(typeof text === 'function' ? text() : text) });
             // outside
+            add('gotown', FARM_GATE, 1.8, { local: true, label: () => 'Pergi ke Desa 🏘️', act: () => travel(new THREE.Vector3(0, 0, TZ + 10.6), Math.PI, '🏘️ Desa Farmora') });
+            add('gofarm', TOWN_GATE, 1.8, { local: true, label: () => 'Pulang ke farm 🏡', act: () => travel(new THREE.Vector3(0, 0, 21.4), Math.PI, '🌾 Farm') });
+            for (const t of TOWN) add('shop:' + t.id, new THREE.Vector3(t.x, 0, TZ - 1.9), 1.5, { local: true, label: () => `Masuk ${t.name} ${t.icon}`, act: () => openTownShop(t.id) });
             add('door', HOUSE_DOOR, 1.8, { local: true, label: () => 'Masuk rumah 🏠', act: () => travel(HV(F1, 0, 5.6), Math.PI, '') });
             add('pkg', PKG_POS, 1.5, {
                 when: () => pkgCount() > 0, label: () => `Ambil paket 📦 (${pkgCount()} barang)`,
@@ -5745,6 +5854,7 @@
             label: () => { const k = heldItem(), r = RECIPES.find(r => r.key === k); return r ? `Makan ${r.icon} ${r.label} · +${foodEnergy(k)} ⚡ (energi ${Math.round(energyOf(USER))})` : ''; },
             act: () => { const k = heldItem(); if (RECIPES.some(r => r.key === k)) sendAct('eat', k); },
         };
+        buildTown();
         const INTERACTABLES = interactables();
         let focus = null;
         // the square of ground just in front of you
@@ -6849,8 +6959,9 @@
                     player.pos.x = clamp(player.pos.x, f - hh.x, f + hh.x);
                     player.pos.z = clamp(player.pos.z, -hh.z, hh.z);
                 } else {
-                    player.pos.x = clamp(player.pos.x, BOUNDS.minX, BOUNDS.maxX);
-                    player.pos.z = clamp(player.pos.z, BOUNDS.minZ, BOUNDS.maxZ);
+                    const B = inTown(player.pos) ? TOWN_B : BOUNDS;
+                    player.pos.x = clamp(player.pos.x, B.minX, B.maxX);
+                    player.pos.z = clamp(player.pos.z, B.minZ, B.maxZ);
                 }
             }
             if (!started) player.targetHeading = Math.sin(elapsed * 0.7) * 0.6;
