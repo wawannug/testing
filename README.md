@@ -90,7 +90,8 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
 ## Desa 🏘️ dan crafting 🔨
-- **Pagar keliling farm.** Seluruh batas farm dipagari kayu. Di sisi selatan ada **gerbang "Ke Desa"**; dekati lalu tekan tombol aksi untuk pergi ke desa (dan *Pulang ke farm* dari gerbang desa).
+- **Pagar keliling farm.** Seluruh batas farm dipagari kayu. Di sisi selatan (bawah) ada **gerbang "Ke Desa"**; dekati lalu tekan tombol aksi. Desa ada di selatan farm: kamu masuk dari gerbang di **atas** desa, berjalan turun lewat jalan di antara toko ke jalan utama, dan pulang lewat gerbang atas itu lagi (masuk farm dari gerbang selatan).
+- 🗺️ **Peta:** tombol *🗺️ Peta* di bawah jam (atau tombol M) menampilkan farm, jalan ke selatan, dan desa, beserta posisimu dan pasanganmu (panah = arah hadap). Kalau sedang di dalam rumah atau kandang, posisinya ditandai di bangunan itu.
 - **Jalan setapak lama dihapus**; sekarang farm berumput. Jalan bisa dibuat sendiri (jalan batu / papan) di meja kerja.
 - **Desa Farmora** punya jalan utama, air mancur, bangku, lampu, dan enam bangunan. Barang yang dibeli langsung masuk tas (tanpa kurir) dan lebih murah dari toko online:
   - 🌱 **Toko Bibit:** benih sayur, bibit hias, dan bibit pohon buah (±10% lebih murah).
