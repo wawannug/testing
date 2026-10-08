@@ -3162,7 +3162,8 @@
             const bag = bagOf(USER);
             const held = heldItem(), dish = started && RECIPES.find(r => r.key === held);
             // the round action button shows what is in your hands
-            $('actBtn').innerHTML = held && ITEMS[held] ? iconHTML(held) : '✋';
+            const ab = held && ITEMS[held] ? iconHTML(held) : '✋';
+            if (ab !== updateHud.ab) { $('actBtn').innerHTML = ab; updateHud.ab = ab; }
             $('eatBtn').hidden = !dish;
             if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${foodEnergy(dish.key)} ⚡`;
             const en = Math.round(energyOf(USER));
@@ -3187,7 +3188,9 @@
             hud.inv.innerHTML = cells.join('') + `<div class="slot bagbtn" data-bag="1" title="Buka tas">🎒<small>${bagCount(USER)}/${BAG_MAX}</small></div>`;
             // keep the prompt just above the toolbar, however tall it gets
             if (!LITE) hud.prompt.style.bottom = (hud.inv.offsetHeight + 22) + 'px';
-            if (liveDlg && dlgOpen()) liveDlg();
+            const dk = `${JSON.stringify(bag)}|${JSON.stringify(state.store)}|${state.gold}|${myWater()}|${selSlot}|${state.day}`;
+            if (liveDlg && dlgOpen() && dk !== updateHud.dk) liveDlg();
+            updateHud.dk = dk;
         }
         $('inventory').addEventListener('click', e => {
             const h = e.target.closest('[data-hot]');
@@ -3585,6 +3588,7 @@
         const seat = (f, x, z, h, sx, sz, k = 1, y) => ({ x: f + x, z, h, sx: f + sx, sz, k, y });
         // lying down (k 3): head toward the back (north), face up
         const SHOWER = seat(F1, -8.1, -6.1, 0, -7.6, -5.0, 4);
+        const TOILET = seat(F1, -4.0, -6.42, 0, -4.0, -5.6, 1);
         let showerGlass = [];
         const BED = { [NA]: seat(F2, -2.25, -4.5, 0, -3.25, -3.8, 3, 0.8), [NW]: seat(F2, -1.25, -4.5, 0, -0.25, -3.8, 3, 0.8) };
         const SEATS = {
@@ -4200,6 +4204,18 @@
             clearTimeout(startBath.t);
             startBath.t = setTimeout(() => { if (player.sit === SHOWER) standUp(); }, 7000);
         }
+        function startToilet() {
+            sitOn(TOILET);
+            buildFarmer(player, { ...look, bath: true });
+            // a frosted privacy blur over the lap, like the shower
+            // (seated, the body is lowered: the lap is at hip height in the farmer's own frame)
+            const veil = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.62, 0.95), new THREE.MeshStandardMaterial({ color: 0xf4fbff, transparent: true, opacity: 0.95, roughness: 1, depthWrite: false }));
+            veil.position.set(0, player.hip + 0.02, 0.22); player.group.add(veil);
+            player.bath = { t0: performance.now(), drip: Infinity, wc: true };
+            toast('Sebentar ya… 🚽');
+            clearTimeout(startBath.t);
+            startBath.t = setTimeout(() => { if (player.sit === TOILET) standUp(); }, 5000);
+        }
         function endBath() {
             player.bath = null;
             for (const m of showerGlass) m.opacity = 0.35;
@@ -4209,6 +4225,7 @@
         function standUp() {
             const s = player.sit;
             if (s && s === SHOWER) endBath();
+            if (s && s === TOILET) { player.bath = null; buildFarmer(player, look); splash(player.pos); toast('Lega… sudah disiram 🚽💧'); }
             player.prayDone = null; // stopping halfway does not count as a prayer
             player.zz = false; player.lieAt = null;
             if (!s) return;
@@ -4380,12 +4397,13 @@
             card.dataset.title = title;
             card.replaceChildren(el('h2', { text: title }), ...[].concat(body),
                 el('div', { class: 'row' }, buttons.map(b => el('button', { class: 'btn' + (b.big ? ' big' : ''), onclick: () => { if (!b.keep) closeDlg(); if (b.f) b.f(); } }, b.t))));
+            if ($('dlg').classList.contains('hidden')) openDlg.at = performance.now();
             $('dlg').classList.remove('hidden');
             if (keep) { card.scrollTop = keep[0]; [...card.querySelectorAll(SCROLLERS)].forEach((e, i) => { if (keep[i + 1]) e.scrollTop = keep[i + 1]; }); }
             keys.clear();
         }
         function closeDlg() { liveDlg = null; $('dlg').classList.add('hidden'); }
-        $('dlg').addEventListener('click', e => { if (e.target === $('dlg')) closeDlg(); });
+        $('dlg').addEventListener('click', e => { if (e.target === $('dlg') && performance.now() - (openDlg.at || 0) > 450) closeDlg(); });
 
         const absMin = () => state.day * 1440 + state.minutes;
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
@@ -5125,7 +5143,7 @@
             add('h:fridge', HV(F1, 7.8, -4.6), 1.0, { local: true, label: () => 'Buka kulkas 🧊', act: () => openStorage('fridge') });
             add('h:dine', HV(F1, 6, 3.8), 1.9, seatsAct(SEATS.dining, 'Duduk di meja makan 🍽️'));
             add('h:shower', HV(F1, -7.6, -5.0), 1.1, { local: true, label: () => player.sit === SHOWER ? 'Selesai mandi' : 'Mandi 🚿', act: () => { if (player.sit === SHOWER) standUp(); else startBath(); } });
-            add('h:toilet', HV(F1, -4.0, -5.7), 1.0, info('Pakai WC 🚽', 'Lega... jangan lupa disiram ya 🚽'));
+            add('h:toilet', HV(F1, -4.0, -5.7), 1.0, { local: true, label: () => player.sit === TOILET ? 'Selesai, siram 🚽' : 'Pakai kloset 🚽', act: () => { if (player.sit === TOILET) standUp(); else startToilet(); } });
             add('h:wcsink', HV(F1, -6.0, -5.9), 0.9, info('Cuci muka 🪥', 'Cuci muka dan gosok gigi 🪥'));
             // floor 2
             add('h:down2', HV(F2, -7.9, -2.3), 0.9, { local: true, label: () => 'Turun ke lantai 1 🪜', act: () => travel(HV(F1, -6.4, 2.6), 0, '') });
@@ -5500,18 +5518,18 @@
             if (g.y < 0) { g.y = 0; g.v = -g.v * 0.3; }
             if (g.y > 1 - g.bar) { g.y = 1 - g.bar; g.v = Math.min(0, g.v); }
             // the fish darts about: harder fish change their minds more often and further
-            const k = d.d / 100, rate = (0.4 + k * 1.8) * (d.m === 'dart' ? 1.1 : d.m === 'smooth' ? 0.7 : 1);
+            const k = d.d / 100, rate = (0.45 + k * 2.0) * (d.m === 'dart' ? 1.4 : d.m === 'smooth' ? 0.7 : 1);
             if (Math.random() < rate * dt) {
-                let t = clamp(g.fy + (Math.random() - 0.5) * (0.3 + k * 0.7), 0.03, 0.97);
+                let t = clamp(g.fy + (Math.random() - 0.5) * (0.32 + k * 0.8), 0.03, 0.97);
                 if (d.m === 'sinker') t = t * 0.75; else if (d.m === 'floater') t = 0.25 + t * 0.75;
                 g.tgt = t;
             }
-            const pull = (2 + k * 7) * (d.m === 'smooth' ? 0.75 : 1);
-            g.fv += ((g.tgt - g.fy) * pull - g.fv) * Math.min(1, dt * (2.5 + k * 4.5));
+            const pull = (2.2 + k * 8) * (d.m === 'dart' ? 1.25 : d.m === 'smooth' ? 0.75 : 1);
+            g.fv += ((g.tgt - g.fy) * pull - g.fv) * Math.min(1, dt * (2.5 + k * 5.5));
             g.fy = clamp(g.fy + g.fv * dt, 0.03, 0.97);
             // the catch meter fills while the fish is in the bar and drains when it is out
             const inBar = g.fy >= g.y && g.fy <= g.y + g.bar;
-            g.p = clamp(g.p + (inBar ? 0.3 : -(0.08 + k * 0.17)) * dt, 0, 1);
+            g.p = clamp(g.p + (inBar ? 0.3 : -(0.11 + k * 0.2)) * dt, 0, 1);
             return inBar;
         }
         const FISH_IMG = {};
@@ -5530,7 +5548,7 @@
         function reel(f) {
             const d = FISH_DEF[f.key], W = 150, H = 400, TOP = 14, BOT = H - 14, SPAN = BOT - TOP;
             const img = FISH_IMG[f.key] ||= Object.assign(new Image(), { src: TOOL_IMG[f.key] || '' });
-            const g = f.game = { bar: 0.36 - d.d / 100 * 0.06, y: 0, v: 0, fy: 0.25, fv: 0, tgt: 0.4, p: 0.3, hold: false, t: 0 };
+            const g = f.game = { bar: 0.33 - d.d / 100 * 0.06, y: 0, v: 0, fy: 0.25, fv: 0, tgt: 0.4, p: 0.3, hold: false, t: 0 };
             f.phase = 'reel';
             const hud = fishHud(), cv = hud.cv;
             cv.width = W; cv.height = H;
@@ -6518,6 +6536,8 @@
             $('actBtn').addEventListener('pointerdown', e => { e.preventDefault(); pressAct(); });
             for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('actBtn').addEventListener(ev, releaseAct);
             $('actBtn').addEventListener('contextmenu', e => e.preventDefault());
+            // no synthetic click after a tap: it would land on the window that just opened and close it
+            $('actBtn').addEventListener('touchstart', e => e.preventDefault(), { passive: false });
         }
 
         // Menus
@@ -6778,7 +6798,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
