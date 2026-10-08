@@ -976,7 +976,8 @@
         }
 
         // Fences
-        function fenceRect(r, gate) {
+        function fenceRect(r, ...gates) {
+            const inGap = (side, v) => gates.some(g => g.side === side && v > g.a && v < g.b);
             const sides = {
                 n: [[r.minX, r.minZ], [r.maxX, r.minZ]],
                 s: [[r.minX, r.maxZ], [r.maxX, r.maxZ]],
@@ -989,11 +990,12 @@
                 const n = Math.ceil(len / 1.6), step = len / n;
                 for (let i = 0; i <= n; i++) {
                     const px = alongX ? x0 + i * step : x0, pz = alongX ? z0 : z0 + i * step;
+                    if (inGap(side, alongX ? px : pz) && gates.some(g => g.door && g.side === side)) continue; // nothing standing in a doorway
                     box(0.18, 1.1, 0.18, C.darkWood, px, 0.55, pz, scene);
                 }
                 for (let i = 0; i < n; i++) {
                     const mid = (alongX ? x0 : z0) + (i + 0.5) * step;
-                    if (gate && gate.side === side && mid > gate.a && mid < gate.b) continue;
+                    if (inGap(side, mid) || gates.some(g => g.door && g.side === side && Math.abs(mid - (g.a + g.b) / 2) < step / 2 + 0.6)) continue;
                     const cx = alongX ? mid : x0, cz = alongX ? z0 : mid;
                     for (const y of [0.45, 0.85]) {
                         if (alongX) box(step, 0.1, 0.08, C.wood, cx, y, cz, scene);
@@ -1004,11 +1006,12 @@
                 }
             }
         }
-        fenceRect(PEN_CHICKEN, { side: 'e', a: 1.2, b: 3.6 });
-        fenceRect(PEN_COW, { side: 's', a: 7, b: 9.8 });
-        fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 });
-        fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 });
-        fenceRect(PEN_DUCK, { side: 'e', a: 10.4, b: 12.8 });
+        // the second opening is the barn door: the barn stands right behind that fence
+        fenceRect(PEN_CHICKEN, { side: 'e', a: 1.2, b: 3.6 }, { side: 'n', a: -18.4, b: -15.6, door: 1 });
+        fenceRect(PEN_COW, { side: 's', a: 7, b: 9.8 }, { side: 'n', a: 7.6, b: 10.4, door: 1 });
+        fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 }, { side: 'n', a: 17.1, b: 19.9, door: 1 });
+        fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 }, { side: 's', a: 17.1, b: 19.9, door: 1 });
+        fenceRect(PEN_DUCK, { side: 'e', a: 10.4, b: 12.8 }, { side: 's', a: -18.4, b: -15.6, door: 1 });
         sign(-13.4, 0.4, 'Ayam');
         sign(5.6, 0.6, 'Sapi');
         sign(15.1, 0.6, 'Kambing');
@@ -1016,16 +1019,18 @@
         sign(-13.4, 9.9, 'Bebek');
 
         // Feeding troughs along the back fence of each pen
-        function trough(x, z, w, d, feed) {
+        const OUT_TROUGH = {};
+        function trough(k, x, z, w, d, feed, ex, ez) {
             box(w, 0.45, d, C.darkWood, x, 0.23, z, scene);
-            box(w - 0.15, 0.08, d - 0.15, feed, x, 0.46, z, scene);
+            OUT_TROUGH[k] = { feed: box(w - 0.15, 0.08, d - 0.15, feed, x, 0.46, z, scene), pos: new THREE.Vector3(x, 0, z), eat: new THREE.Vector3(ex, 0, ez), w: Math.max(w, d) };
             addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2);
         }
-        trough(9, -7.55, 2.6, 0.45, C.straw);
-        trough(18.5, -7.55, 2.2, 0.45, C.straw);
-        trough(18.5, 11.55, 2.2, 0.45, 0x9cc95a);
-        trough(-19.55, 7.3, 0.45, 1.4, 0xe8d27a);
-        trough(-15, 13.85, 1.4, 0.45, 0xe8d27a);
+        // (kind, centre, size, feed colour, where an animal stands to eat)
+        trough('cow', 11.8, -7.55, 1.8, 0.45, C.straw, 11.8, -6.8);
+        trough('goat', 21.2, -7.55, 1.6, 0.45, C.straw, 21.2, -6.9);
+        trough('sheep', 21.2, 11.55, 1.6, 0.45, 0x9cc95a, 21.2, 10.9);
+        trough('chicken', -19.55, 6.3, 0.45, 1.4, 0xe8d27a, -19.0, 6.3);
+        trough('duck', -14.75, 13.85, 0.9, 0.45, 0xe8d27a, -14.75, 13.3);
 
         // Shipping bin
         const BIN = new THREE.Vector3(-6.5, 0, -10.2);
@@ -2898,7 +2903,7 @@
             if (id === 'cook') return 3;
             const p = String(id).split(':')[0];
             if (id === 'catch') return 2;
-            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, poop: 1, trough: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
+            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, poop: 1, trough: 1, trougho: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
         }
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
@@ -3101,7 +3106,7 @@
                         const [x, z, hh, m] = this.netT, k = Math.min(1, dt * 8);
                         if (Math.hypot(this.pos.x - x, this.pos.z - z) > 15) this.pos.set(x, 0, z); // went through a barn door
                         this.pos.x = lerp(this.pos.x, x, k); this.pos.z = lerp(this.pos.z, z, k);
-                        this.targetHeading = hh; moving = !!m;
+                        this.targetHeading = hh; moving = !!m; this.eating = !!this.netT[4];
                     }
                 } else {
                 // bedtime or bad weather: walk to the door and go in; fine again: come out
@@ -3110,7 +3115,24 @@
                     if (asleep) this.goInside(true);
                     else if (this.mode !== 'door') { this.mode = 'door'; this.target.copy(this.shelter.out); this.walkTime = 0; }
                 } else if (!shelter && this.inside) this.goOutside(false);
-                if (asleep) { this.mode = 'idle'; this.timer = rand(0.5, 2); }
+                const hungry = !this.pet && FEED_KINDS.includes(this.kind) && !this.data.ate && (state.trough[this.kind] || 0) > 0;
+                if (!asleep && hungry && !['door', 'toEat', 'eat'].includes(this.mode)) {
+                    // to the trough: the one in the barn when inside, the one by the fence when out
+                    const herd = animals.filter(a => a.kind === this.kind), i = herd.indexOf(this), off = (i - (herd.length - 1) / 2) * 0.6;
+                    const spot = this.inside ? HV(BARNS[this.kind].x, 0, -2.95) : OUT_TROUGH[this.kind].eat;
+                    const along = !this.inside && OUT_TROUGH[this.kind].pos.x !== spot.x ? [0, off] : [off, 0];
+                    this.target.set(spot.x + along[0], 0, spot.z + along[1]);
+                    this.mode = 'toEat'; this.walkTime = 0;
+                }
+                if (this.mode === 'eat') {
+                    this.timer -= dt;
+                    const tr = this.inside ? HV(BARNS[this.kind].x, 0, -3.5) : OUT_TROUGH[this.kind].pos;
+                    this.targetHeading = Math.atan2(tr.x - this.pos.x, tr.z - this.pos.z);
+                    if (this.timer <= 0) {
+                        if ((state.trough[this.kind] || 0) > 0 && !this.data.ate) { state.trough[this.kind]--; this.data.ate = true; this.data.fed = true; }
+                        this.mode = 'idle'; this.timer = rand(...this.idle);
+                    }
+                } else if (asleep) { this.mode = 'idle'; this.timer = rand(0.5, 2); }
                 else if (this.mode === 'idle') {
                     this.timer -= dt;
                     if (this.timer <= 0) this.pickTarget();
@@ -3118,6 +3140,7 @@
                     const dx = this.target.x - this.pos.x, dz = this.target.z - this.pos.z, d = Math.hypot(dx, dz);
                     this.walkTime += dt;
                     if (this.mode === 'door' && (d < 0.55 || this.walkTime > 8)) this.goInside(false);
+                    else if (this.mode === 'toEat' && (d < 0.2 || this.walkTime > 10)) { this.mode = 'eat'; this.timer = 3.5; }
                     else if ((this.mode === 'walk' && (d < 0.15 || this.walkTime > 10))) {
                         this.mode = 'idle';
                         this.timer = rand(...this.idle);
@@ -3135,6 +3158,7 @@
                     this.pos.z = clamp(this.pos.z, this.area.minZ, this.area.maxZ);
                 }
                 this.moving = moving;
+                this.eating = this.mode === 'eat';
                 }
                 if (this.pos.x < 150) {
                     this.pos.x = clamp(this.pos.x, BOUNDS.minX, BOUNDS.maxX);
@@ -3155,11 +3179,11 @@
                 });
                 this.body.position.y = moving ? Math.abs(Math.sin(this.phase)) * 0.05 : 0;
                 if (this.kind === 'chicken' || this.kind === 'duck') {
-                    const peck = !moving && Math.sin(t * 0.8 + this.seed) > 0.4;
+                    const peck = this.eating || (!moving && Math.sin(t * 0.8 + this.seed) > 0.4);
                     this.head.rotation.x = lerp(this.head.rotation.x, peck ? (Math.sin(t * 14) > 0 ? 0.9 : 0.3) : 0, Math.min(1, dt * 14));
                 } else if (this.kind === 'cow' || this.kind === 'sheep' || this.kind === 'goat') {
-                    const graze = !moving && Math.sin(t * 0.35 + this.seed) > 0.3;
-                    this.head.rotation.x = lerp(this.head.rotation.x, graze ? 0.6 : 0, Math.min(1, dt * 3));
+                    const graze = this.eating || (!moving && Math.sin(t * 0.35 + this.seed) > 0.3);
+                    this.head.rotation.x = lerp(this.head.rotation.x, this.eating ? 0.75 + Math.sin(t * 9) * 0.12 : graze ? 0.6 : 0, Math.min(1, dt * 5));
                     if (this.tail) this.tail.rotation.z = Math.sin(t * 2.5 + this.seed) * 0.3;
                 } else if (this.kind === 'dog') {
                     const near = player.pos.distanceTo(this.pos) < 4;
@@ -4190,7 +4214,7 @@
             updateTiles();
             updateFPots();
             updatePoop();
-            for (const k of FEED_KINDS) { const tr = barnTrough[k]; if (tr && tr.parent) { const n = state.trough[k] || 0; tr.visible = n > 0; tr.scale.set(Math.max(0.15, n / herdOf(k)), 1, 1); } }
+            for (const k of FEED_KINDS) { if (OUT_TROUGH[k]) OUT_TROUGH[k].feed.visible = (state.trough[k] || 0) > 0; const tr = barnTrough[k]; if (tr && tr.parent) { const n = state.trough[k] || 0; tr.visible = n > 0; tr.scale.set(Math.max(0.15, n / herdOf(k)), 1, 1); } }
         }
         function updatePots(force) {
             if (!homeScene) return;
@@ -5000,9 +5024,7 @@
                 takeBag(who, 'pk_' + k, m);
                 state.trough[k] += m;
                 // hungry animals tuck in straight away
-                let ate = 0;
-                for (const an of animals) if (an.kind === k && an.data.fed === false && state.trough[k] > 0) { state.trough[k]--; an.data.fed = true; ate++; }
-                emitEvent(`Menaruh pakan 🌾${ate ? ` · ${ate} ${FEED_NAME[k]} lapar langsung makan 😋` : ''} · wadah ${state.trough[k]}/${n}${state.trough[k] >= n ? ' (penuh)' : ''}`, 'icon:🌾', null, who);
+                emitEvent(`Menaruh pakan 🌾 · wadah ${state.trough[k]}/${n}${state.trough[k] >= n ? ' (penuh)' : ''} · ${FEED_NAME[k]} datang untuk makan`, 'icon:🌾', null, who);
             },
             // 🧹 sweeping a dropping out of a pen (now and then it makes a little fertilizer)
             poop(who, x) {
@@ -5230,6 +5252,10 @@
                 add('barn:' + k, b.out, 1.3, { local: true, label: () => `Masuk ${b.label.toLowerCase()} ${b.icon}`, act: () => travel(HV(b.x, 0, 2.9), Math.PI, '') });
                 if (FEED_KINDS.includes(k)) {
                     add('sack:' + k, HV(b.x + 2.3, 0, -2.3), 1.1, { label: () => `Ambil pakan dari gudang 🌾 (${state.feed[k]}/${FEED_MAX} porsi)`, act: who => ACTIONS.feedtake(who, k) });
+                    add('trougho:' + k, OUT_TROUGH[k].pos, OUT_TROUGH[k].w / 2 + 0.9, {
+                        label: () => { const n = herdOf(k), t = state.trough[k], c = have(USER, 'pk_' + k); return c && t < n ? `Taruh pakan di wadah 🌾 (terisi ${t}/${n} · bawa ${c})` : `Wadah pakan ${b.icon} · terisi ${t}/${n}${t < n ? ' · ambil pakan di karung dalam kandang' : ' · penuh'}`; },
+                        act: who => ACTIONS.feedput(who, k),
+                    });
                     add('trough:' + k, HV(b.x, 0, -2.9), 1.4, {
                         label: () => { const n = herdOf(k), t = state.trough[k], c = have(USER, 'pk_' + k); return c && t < n ? `Taruh pakan di wadah 🌾 (terisi ${t}/${n} · bawa ${c})` : `Wadah pakan ${b.icon} · terisi ${t}/${n}${t < n ? ' · ambil pakan di karung dulu' : ' · penuh'}`; },
                         act: who => ACTIONS.feedput(who, k),
@@ -6161,7 +6187,7 @@
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
                 const an = {};
-                for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [Math.round(d.friend * 10) / 10, d.petted ? 1 : 0, d.product ? 1 : 0, d.fed === false ? 0 : 1]; }
+                for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [Math.round(d.friend * 10) / 10, d.petted ? 1 : 0, d.product ? 1 : 0, d.fed === false ? 0 : 1, d.ate ? 1 : 0]; }
                 const tr = {};
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 state.looks[USER] = { o: look.o };
@@ -6172,7 +6198,7 @@
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
-                o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0]);
+                o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0, a.mode === 'eat' ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
                 o.hs = net.hostSince;
@@ -6267,7 +6293,7 @@
             if (Array.isArray(w.lg) && w.lg.length === WOOD_POS.length) state.logs = w.lg.map(v => ({ s: Array.isArray(v) ? +v[0] || 0 : 0, hp: Array.isArray(v) ? +v[1] || 0 : 3, d: 0 }));
             if (Array.isArray(w.wq) && w.wq.length === WEED_POS.length) state.weeds = w.wq.map(v => v ? 1 : 0);
             if (Array.isArray(w.eg)) state.eggs = w.eg.slice(0, EGG_MAX).map(e => Array.isArray(e) && e.every(Number.isFinite) ? e : null);
-            if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2], fed: v[3] !== 0 }); }
+            if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2], fed: v[3] !== 0, ate: !!v[4] }); }
             if (Array.isArray(w.fd)) FEED_KINDS.forEach((k, i) => { if (Number.isFinite(w.fd[i])) state.feed[k] = w.fd[i]; });
             if (Array.isArray(w.tg)) FEED_KINDS.forEach((k, i) => { if (Number.isFinite(w.tg[i])) state.trough[k] = w.tg[i]; });
             if (Array.isArray(w.pp)) state.poop = w.pp.filter(v => Array.isArray(v) && FEED_KINDS[v[0]]).map(v => ({ k: FEED_KINDS[v[0]], x: v[1] / 10, z: v[2] / 10 }));
@@ -6476,7 +6502,9 @@
                     const d = a.data;
                     if (a.pet) { d.petted = false; continue; }
                     let df = d.petted ? 0 : -5;
-                    if ((state.trough[a.kind] || 0) > 0) { state.trough[a.kind]--; d.fed = true; df += 1.5; } else { d.fed = false; df -= 10; }
+                    if (!d.ate && (state.trough[a.kind] || 0) > 0) { state.trough[a.kind]--; d.ate = true; }
+                    if (d.ate) { d.fed = true; df += 1.5; } else { d.fed = false; df -= 10; }
+                    d.ate = false;
                     df += dirty(a.kind) ? -3 : 1;
                     if (!a.product) df += 1; else if (LAYERS.has(a.kind) && !eggsLeft(a.kind)) df += 1;
                     d.friend = clamp(d.friend + df, 0, HEART_MAX * 100);
