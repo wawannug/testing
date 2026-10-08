@@ -408,6 +408,31 @@
             #prompt kbd { display: none; }
             .desktop-only { display: none; }
         }
+        /* phone turned sideways: little height, so everything gets compact and moves to the edges */
+        @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+            #clock { top: 8px; left: 8px; padding: 4px 10px; min-width: 0; max-width: 220px; line-height: 1.15; }
+            #clock .day { font-size: 12px; }
+            #clock .season { font-size: 10px; }
+            #clock .time { font-size: 17px; }
+            #clock .gold { font-size: 12px; margin-top: 0; }
+            #clock .energy { font-size: 11px; margin-top: 1px; }
+            #clock .ebar { width: 56px; height: 7px; }
+            #clock .loc { font-size: 10px; margin-top: 0; }
+            #topRight { top: 8px; right: 8px; gap: 5px; }
+            #topRight .btn { padding: 4px 10px; font-size: 13px; }
+            #netBadge { font-size: 11px; padding: 4px 8px; max-width: 210px; }
+            #toasts { top: 52px; }
+            #toasts .toast { font-size: 12px; padding: 5px 10px; }
+            #joy { width: 104px; height: 104px; left: 14px; bottom: 12px; }
+            #joyKnob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+            #actBtn { width: 68px; height: 68px; right: 16px; bottom: 14px; font-size: 26px; }
+            #inventory { top: auto; bottom: 8px; left: 50%; right: auto; transform: translateX(-50%); flex-direction: row; max-height: none; max-width: calc(100vw - 280px); overflow-x: auto; overflow-y: hidden; }
+            .slot { width: 38px; height: 38px; font-size: 18px; }
+            #itemName { left: 50%; right: auto; top: auto; bottom: 58px; transform: translateX(-50%); }
+            #prompt { bottom: 60px; font-size: 13px; }
+            #eatBtn { right: 14px; bottom: 92px; font-size: 13px; padding: 6px 10px; }
+            #sleepNote { bottom: 104px; font-size: 12px; }
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -5219,11 +5244,15 @@
         // switching apps): check every frame so the picture never stays stretched or zoomed
         const view = { w: 0, h: 0, dpr: 0 };
         // the partner badge always sits just below the clock, whatever its height
+        // (on a sideways phone there is no room below the clock, so it goes beside it)
+        const LANDSCAPE = matchMedia('(pointer: coarse) and (orientation: landscape) and (max-height: 520px)');
         function placeBadge() {
             const b = $('netBadge'), c = $('clock');
             if (!b || !c) return;
-            const top = Math.round(c.getBoundingClientRect().bottom + 8);
-            if (b.style.top !== top + 'px') b.style.top = top + 'px';
+            const r = c.getBoundingClientRect();
+            const top = Math.round(LANDSCAPE.matches ? r.top : r.bottom + 8) + 'px', left = Math.round(LANDSCAPE.matches ? r.right + 8 : r.left) + 'px';
+            if (b.style.top !== top) b.style.top = top;
+            if (b.style.left !== left) b.style.left = left;
         }
         function fitView() {
             const w = window.innerWidth, h = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, LITE ? 1.5 : 2);
