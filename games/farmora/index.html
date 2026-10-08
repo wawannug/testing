@@ -1610,6 +1610,18 @@
         }
         const potFront = () => { const h = player.heading; return [Math.round((player.pos.x + Math.sin(h) * 0.8) * 2) / 2, Math.round((player.pos.z + Math.cos(h) * 0.8) * 2) / 2]; };
         const carriedBy = who => (state.fpots || []).find(p => p.c === who);
+        const poopVis = [];
+        function updatePoop() {
+            while (poopVis.length > state.poop.length) scene.remove(poopVis.pop());
+            state.poop.forEach((p, i) => {
+                let g = poopVis[i];
+                if (!g) {
+                    g = poopVis[i] = new THREE.Group(); scene.add(g);
+                    ball(0.13, 0.06, 0.11, 0x6b4423, 0, 0.04, 0, g); ball(0.09, 0.05, 0.08, 0x5a3a1e, 0.02, 0.09, 0, g); ball(0.05, 0.04, 0.05, 0x4a2f18, 0.01, 0.13, 0, g);
+                }
+                g.position.set(p.x, 0, p.z); g.scale.setScalar(1.6);
+            });
+        }
         const fpotVis = [];
         function updateFPots() {
             while (fpotVis.length > state.fpots.length) { const v = fpotVis.pop(); scene.remove(v.g); }
@@ -2159,6 +2171,14 @@
         const FDEF = Object.fromEntries(ALL_FRUITS.map(f => [f.key, f]));
         const FKEYS = ALL_FRUITS.map(f => f.key);
         for (const f of ALL_FRUITS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: `${BIG_TREE(f) ? 'Pohon buah · butuh lahan 3×3 kotak' : 'Tanaman buah kecil · butuh 1 kotak lahan'} · berbuah pertama setelah ${daysText(TREE_GROW(f))} disiram tiap hari, lalu ${f.yield[0]}–${f.yield[1]} buah tiap ${f.cycle} hari` };
+        // 🌾 feed: every barn keeps its own store (500 portions); each animal eats one portion a night.
+        // A pack of portions costs about a quarter of what that animal produces in those days.
+        const FEED_MAX = 500, FEED_PACK = 10;
+        const FEED_KINDS = ['chicken', 'duck', 'cow', 'goat', 'sheep'];
+        const FEED_PRODUCT = { chicken: 'egg', duck: 'duckEgg', cow: 'milk', goat: 'goatMilk', sheep: 'wool' };
+        const FEED_NAME = { chicken: 'ayam', duck: 'bebek', cow: 'sapi', goat: 'kambing', sheep: 'domba' };
+        for (const k of FEED_KINDS)
+            SUPPLIES['f_' + k] = { label: `Pakan ${FEED_NAME[k]} (${FEED_PACK} porsi)`, icon: '🌾', price: Math.round(PRODUCTS[FEED_PRODUCT[k]].price * 0.25 * FEED_PACK / 5) * 5, feed: k, note: `Langsung masuk gudang pakan kandang ${FEED_NAME[k]}` };
         // Plants sell from the shipping bin; ornamental plants are sold together with their pot
         for (const g of GARDEN) if (!g.out) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
@@ -2290,14 +2310,16 @@
             kapak: { icon: '🪓', label: 'Kapak' },
             pancing: { icon: '🎣', label: 'Pancing' },
             sabit: { icon: '🌾', label: 'Sabit' },
+            sapu: { icon: '🧹', label: 'Sapu' },
         };
         // the four tools every bag always keeps; the rest come from the tool chest
         const BASE_TOOLS = ['tangan', 'penyiram', 'pemeras', 'gunting'];
-        const CHEST_TOOLS = ['cangkul', 'beliung', 'kapak', 'pancing', 'sabit'];
+        const CHEST_TOOLS = ['cangkul', 'beliung', 'kapak', 'pancing', 'sabit', 'sapu'];
         for (const [k, t] of Object.entries(TOOLS)) ITEMS['t_' + k] = { ...t, tool: true };
         // drawn icons for the tools (nicer than emoji, and there is no emoji for a hoe or a watering can)
         const TOOL_SVG = {"t_penyiram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M19 27c0-13 21-13 21 0\" fill=\"none\" stroke=\"#21706a\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#21706a\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#5fd0c2\" stroke-width=\"3\" stroke-linecap=\"round\"/><ellipse cx=\"57.5\" cy=\"22.5\" rx=\"4.2\" ry=\"6.4\" transform=\"rotate(45 57.5 22.5)\" fill=\"#ffd25e\" stroke=\"#21706a\" stroke-width=\"2\"/><path d=\"M13 27h30a4 4 0 0 1 4 4v19a7 7 0 0 1-7 7H16a7 7 0 0 1-7-7V31a4 4 0 0 1 4-4z\" fill=\"#4cc3b5\" stroke=\"#21706a\" stroke-width=\"2.6\"/><rect x=\"13\" y=\"31\" width=\"5\" height=\"18\" rx=\"2.5\" fill=\"#fff\" opacity=\".45\"/><circle cx=\"29\" cy=\"42\" r=\"5\" fill=\"#ff8fb3\"/><circle cx=\"29\" cy=\"42\" r=\"2\" fill=\"#ffd25e\"/><path d=\"M9 51h38\" stroke=\"#21706a\" stroke-width=\"2\" opacity=\".35\"/><path d=\"M60 31q2.4 3.6 0 5.2-2.4-1.6 0-5.2z\" fill=\"#58b7f2\"/><path d=\"M54 33q2 3 0 4.4-2-1.4 0-4.4z\" fill=\"#58b7f2\"/></svg>", "t_cangkul": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M52 6 24 46\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M52 6 24 46\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 40 30 46 27 60 4 56z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M8 45 27 50\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".6\"/><rect x=\"20\" y=\"39\" width=\"10\" height=\"10\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_beliung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M38 22 14 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M38 22 14 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 30C14 14 28 8 40 10c12 2 18 12 20 24-6-8-12-14-20-15-10-1-22 3-34 11z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M14 22c8-6 16-8 24-7\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><rect x=\"33\" y=\"12\" width=\"11\" height=\"11\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_kapak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M40 10 16 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M40 10 16 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M33 8c8-6 20-4 26 6-3 9-12 16-22 15z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M50 10c4 2 6 5 7 8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".7\"/><rect x=\"31\" y=\"12\" width=\"9\" height=\"12\" rx=\"2\" transform=\"rotate(27 35 18)\" fill=\"#e05a4e\" stroke=\"#7a2a24\" stroke-width=\"1.8\"/></svg>", "t_pancing": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M8 58 54 6\" stroke=\"#5a3a1c\" stroke-width=\"4.6\" stroke-linecap=\"round\"/><path d=\"M8 58 54 6\" stroke=\"#d9a35c\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M8 58 20 44\" stroke=\"#2d6cdf\" stroke-width=\"6\" stroke-linecap=\"round\"/><circle cx=\"23\" cy=\"48\" r=\"5.5\" fill=\"#ffd25e\" stroke=\"#7a5a12\" stroke-width=\"2\"/><circle cx=\"23\" cy=\"48\" r=\"1.8\" fill=\"#7a5a12\"/><path d=\"M54 6c3 10 4 20 2 30\" fill=\"none\" stroke=\"#6f7a85\" stroke-width=\"1.4\"/><circle cx=\"56\" cy=\"40\" r=\"4.6\" fill=\"#fff\" stroke=\"#b3261e\" stroke-width=\"2\"/><path d=\"M51.4 40a4.6 4.6 0 0 1 9.2 0z\" fill=\"#e53935\"/></svg>", "t_sabit": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M30 44 14 60\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M30 44 14 60\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M30 44C14 30 22 6 46 6c10 0 16 6 16 13-6-7-14-9-22-6-12 5-14 18-6 27z\" fill=\"#c4ccd4\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M44 10c-12 1-18 9-17 18\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><circle cx=\"30\" cy=\"44\" r=\"3.4\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.6\"/></svg>"};
         const TOOL_IMG = {};
+        Object.assign(TOOL_SVG, { t_sapu: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M44 4 L30 36\" stroke=\"#a86f3c\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M27 34 L37 38 L32 44 L22 40 Z\" fill=\"#c0392b\" stroke=\"#7a2318\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M22 40 L32 44 L28 60 Q16 60 8 54 Z\" fill=\"#e3bf5f\" stroke=\"#8a6a2a\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M24 46 L16 56 M28 47 L22 59 M19 44 L11 52\" stroke=\"#a8852f\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>" });
         // drawn fish
         Object.assign(TOOL_SVG, {"wader": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 22 Q57 32 61 42 Z\" fill=\"#9aa7b1\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 23 Q30 15 38 24\" fill=\"#9aa7b1\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"10\" fill=\"#c9d3da\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 41 46 34\" fill=\"none\" stroke=\"#eef2f4\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "sepat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#6a7a4a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#6a7a4a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#8a9a6a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#d8dcb8\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "mujair": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#4a5662\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#4a5662\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#6a7682\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#c8cfd6\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "ikanmas": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#e07a20\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#e07a20\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#f2a33a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#ffe0a0\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "nila": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#d8584a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#d8584a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#9aa8b8\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#e6eaee\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "lele": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#34343a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#4a4a52\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#9a9aa2\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "tawes": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#e0b84a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#e0b84a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#d8dde0\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#f6f6f2\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "betok": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 22 Q57 32 61 42 Z\" fill=\"#5a6a3a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 23 Q30 15 38 24\" fill=\"#5a6a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"10\" fill=\"#7a8a5a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 41 46 34\" fill=\"none\" stroke=\"#c8c89a\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 25 L18 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 25 L27 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 25 L36 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "bawal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#c84a3a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#c84a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#8a9098\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#d8dce0\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "patin": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#8a96a2\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#b8c0c8\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#f2f4f6\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "gurame": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#8a7a52\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#8a7a52\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#c8b48a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#efe6cc\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "baung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#5a4a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#8a7a6a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#d8ccbc\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "udang": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M14 22 Q40 8 52 30 Q56 44 42 50 L36 44 Q46 38 42 30 Q34 20 18 30 Z\" fill=\"#f08a5a\" stroke=\"#7a3a1e\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M42 50 L34 58 L48 56 Z\" fill=\"#e8734a\" stroke=\"#7a3a1e\" stroke-width=\"2\"/><path d=\"M28 20 L30 32 M36 20 L38 30 M44 24 L44 34\" stroke=\"#c45a34\" stroke-width=\"2\"/><path d=\"M16 24 Q4 10 2 4 M18 26 Q8 18 6 14\" fill=\"none\" stroke=\"#7a3a1e\" stroke-width=\"1.8\"/><path d=\"M14 28 Q4 34 2 44\" fill=\"none\" stroke=\"#4a6fa5\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><circle cx=\"20\" cy=\"24\" r=\"2\" fill=\"#111\"/></svg>", "gabus": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#3a3a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#5a5a4a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#c8c0a0\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M10 28 L8 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M19 28 L17 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M28 28 L26 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "belut": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#7a6a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#a08a3a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#e8d88a\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "toman": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#e05a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#3f5a4a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#c8d8b8\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M10 28 L8 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M19 28 L17 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M28 28 L26 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "sidat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#2a3a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#3a4a3a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#a8b8a0\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "arwana": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#e0a020\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#f2c94c\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#fff3b0\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"18\" cy=\"29\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"25\" cy=\"33\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"32\" cy=\"29\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"39\" cy=\"33\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>"});
         // drawn cookware too
@@ -2315,9 +2337,11 @@
         const toolHint = k => `pilih ${TOOLS[k].icon} ${TOOLS[k].label}`;
         // hens and ducks lay their eggs in the nests inside their barn
         const EGG_MAX = 6;
+        const POOP_MAX = 5, HEART_MAX = 10;
+        const fullFeed = () => Object.fromEntries(FEED_KINDS.map(k => [k, FEED_MAX]));
         function layEggs(st) {
             st.eggs = (st.eggs || []).filter(Boolean);
-            for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind) && d.sex === 'f' && st.eggs.length < EGG_MAX) {
+            for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind) && d.sex === 'f' && st.eggs.length < EGG_MAX && !(st.animals[d.name] && st.animals[d.name].fed === false)) {
                 const a = BARNS[d.kind].area; // eggs are laid in the nests inside the barn
                 st.eggs.push([Math.round(rand(a.minX + 0.4, a.maxX - 0.4) * 100) / 100, Math.round(rand(a.minZ + 0.4, a.maxZ - 0.4) * 100) / 100, d.kind === 'duck' ? 1 : 0]);
             }
@@ -2712,7 +2736,7 @@
         // the tool in your hand, as a little model in the farmer's hand
         const HELD = ['penyiram', ...CHEST_TOOLS];
         // tools are carried in the right hand, pointing forward and up; the watering can hangs by its handle
-        const tiltOf = k => k === 'penyiram' ? 0 : 1.15;
+        const tiltOf = k => k === 'penyiram' ? 0 : k === 'sapu' ? 0.45 : 1.15;
         function toolModel(k) {
             const g = new THREE.Group(), steel = 0xb8c2cc, wood = 0xa86f3c;
             if (k === 'penyiram') {
@@ -2736,6 +2760,11 @@
                 cap(0.009, 1.05, 0xd9a35c, 0, 0.42, 0, g);
                 cap(0.016, 0.16, 0x2d6cdf, 0, -0.04, 0, g);
                 ball(0.03, 0.03, 0.03, 0xffd25e, 0.03, 0.06, 0, g);
+            } else if (k === 'sapu') {
+                // a broom held low: the bristles brush the ground
+                cap(0.016, 0.8, wood, 0, -0.32, 0, g);
+                const br = mesh(CONE, mat(0xd9b45a), g); br.scale.set(0.12, 0.26, 0.05); br.position.set(0, -0.86, 0); br.rotation.x = Math.PI;
+                box(0.13, 0.04, 0.06, 0xc0392b, 0, -0.72, 0, g);
             } else if (k === 'sabit') {
                 cap(0.02, 0.16, wood, 0, 0, 0, g);
                 const bl = mesh(new THREE.TorusGeometry(0.11, 0.014, 6, 18, Math.PI * 1.25), mat(steel), g); bl.position.set(0, 0.2, 0.06); bl.rotation.set(0, 0.35, 0.4);
@@ -2866,7 +2895,7 @@
             if (id === 'cook') return 3;
             const p = String(id).split(':')[0];
             if (id === 'catch') return 2;
-            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
+            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, poop: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
         }
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
@@ -2902,6 +2931,8 @@
 
         // two of each chest tool: one for each of you
         function freshTools() { const o = {}; for (const k of CHEST_TOOLS) o['t_' + k] = 2; return o; }
+        // older saves get the new broom in their tool chest
+        const withSapu = (t, saved) => { const inBags = Object.values(saved.bags || {}).some(b => Array.isArray(b) && b.some(x => Array.isArray(x) && x[0] === 't_sapu')); if (!t.t_sapu && !inBags) t.t_sapu = 2; return t; };
         const cleanTools = o => { const r = {}; for (const [k, n] of Object.entries(o || {})) if (CHEST_TOOLS.includes(k.slice(2)) && isTool(k) && Number.isFinite(n) && n > 0) r[k] = Math.min(9, Math.floor(n)); return r; };
         function freshState() {
             const animals = {};
@@ -2913,7 +2944,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], fpots: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), poop: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2926,7 +2957,7 @@
             // bags and boxes; older saves had one shared inventory, which goes into the storage chest
             st.bags = saved.bags ? { [NA]: toSlots(saved.bags[NA]), [NW]: toSlots(saved.bags[NW]) } : base.bags;
             const sv = saved.store || {};
-            st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin), tools: sv.tools ? cleanTools(sv.tools) : freshTools(), kit: sv.kit ? cleanItems(sv.kit) : { ...STARTER_KIT } };
+            st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin), tools: sv.tools ? withSapu(cleanTools(sv.tools), saved) : freshTools(), kit: sv.kit ? cleanItems(sv.kit) : { ...STARTER_KIT } };
             // the tool jobs on the farm (older saves start them fresh)
             // hoed ground and planted fruit trees
             st.tiles = {};
@@ -2952,6 +2983,11 @@
             for (const u of Object.keys(CHARACTERS)) if (st.looks[u] && !st.looks[u].o) delete st.looks[u];
             for (const d of ANIMAL_DEFS) st.animals[d.name].product &&= !!productOf(d);
             for (const name of Object.keys(st.animals)) if (!ANIMAL_DEFS.some(d => d.name === name)) delete st.animals[name];
+            for (const d of Object.values(st.animals)) { d.fed = d.fed !== false; d.friend = clamp(+d.friend || 0, 0, HEART_MAX * 100); }
+            // barn feed stores (older saves start full) and the droppings in the pens
+            st.feed = fullFeed();
+            if (saved.feed) for (const k of FEED_KINDS) if (Number.isFinite(saved.feed[k])) st.feed[k] = clamp(Math.floor(saved.feed[k]), 0, FEED_MAX);
+            st.poop = (Array.isArray(saved.poop) ? saved.poop : []).filter(p => p && FEED_KINDS.includes(p.k) && Number.isFinite(p.x) && Number.isFinite(p.z)).slice(0, POOP_MAX * FEED_KINDS.length).map(p => ({ k: p.k, x: +p.x, z: +p.z }));
             return st;
         }
         let state = freshState();
@@ -3021,6 +3057,7 @@
                     scene.add(this.icon);
                 }
                 this.zzz = bubbleSprite('💤'); this.zzz.scale.set(0.55, 0.55, 1); this.zzz.visible = false; scene.add(this.zzz);
+                if (!this.pet) { this.sad = bubbleSprite('😞'); this.sad.scale.set(0.5, 0.5, 1); this.sad.visible = false; scene.add(this.sad); }
                 scene.add(this.group);
             }
             get data() { return state.animals[this.name]; }
@@ -3037,7 +3074,7 @@
                 const a = this.baseArea;
                 this.pos.set(now ? rand(a.minX, a.maxX) : h.out.x + rand(-0.4, 0.4), 0, now ? rand(a.minZ, a.maxZ) : h.out.z + rand(-0.3, 0.3));
             }
-            hearts() { return Math.min(5, Math.floor(this.data.friend / 100)); }
+            hearts() { return Math.min(HEART_MAX, Math.floor(this.data.friend / 100)); }
             pickTarget() {
                 const a = this.area;
                 this.target.set(rand(a.minX, a.maxX), 0, rand(a.minZ, a.maxZ));
@@ -3139,6 +3176,10 @@
                 if (this.wool) {
                     const s = this.data.product ? 1 : 0.62;
                     this.wool.scale.setScalar(lerp(this.wool.scale.x, s, Math.min(1, dt * 4)));
+                }
+                if (this.sad) {
+                    this.sad.visible = this.data.fed === false && !asleep;
+                    if (this.sad.visible) { this.sad.position.set(this.pos.x - 0.25, this.height + 0.5 + Math.sin(t * 2.5 + this.seed) * 0.05, this.pos.z); const sc = sceneOf(this.pos); if (this.sad.parent !== sc) sc.add(this.sad); }
                 }
                 if (this.icon) {
                     this.icon.visible = this.data.product && !asleep;
@@ -3998,6 +4039,7 @@
             updatePots(true);
         }
         // the inside of every barn: straw floor, hay, a trough, nests or stalls
+        const barnTrough = {};
         function buildBarns() {
             for (const [k, b] of Object.entries(BARNS)) {
                 const f = b.x, g = floorGroup(f), WOOD = 0xb98557;
@@ -4010,7 +4052,8 @@
                 for (const x of [-2.6, 2.6]) windowOn(g, x, 1.6, -3.88, 1.1, 0.7);
                 for (const [x, y, z] of [[-4.3, 0.3, -3.3], [-4.3, 0.9, -3.3], [-3.3, 0.3, -3.3], [4.3, 0.3, 3.0]]) box(0.95, 0.6, 0.7, C.straw, x, y, z, g);
                 col(f, -4.85, -2.8, -3.75, -2.9); col(f, 3.8, 4.85, 2.6, 3.4);
-                box(3, 0.4, 0.5, C.darkWood, 0, 0.2, -3.5, g); box(2.8, 0.08, 0.4, C.straw, 0, 0.42, -3.5, g); col(f, -1.5, 1.5, -3.8, -3.2);
+                box(3, 0.4, 0.5, C.darkWood, 0, 0.2, -3.5, g); col(f, -1.5, 1.5, -3.8, -3.2);
+                if (FEED_KINDS.includes(k)) { const hay = box(2.8, 0.16, 0.4, C.straw, 0, 0.42, -3.5, g); hay.geometry.translate(0, 0.08, 0); hay.position.y = 0.34; barnTrough[k] = hay; }
                 const bucket = mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.35, 16), mat(0x6e8ea8), g); bucket.position.set(2.3, 0.18, -3.4);
                 const lantern = box(0.25, 0.32, 0.25, new THREE.MeshStandardMaterial({ color: 0xfff1c9, emissive: 0xffc46b, emissiveIntensity: 0.8 }), -4.8, 1.9, 0, g); lantern.castShadow = false;
                 if (LAYERS.has(k)) {
@@ -4137,6 +4180,8 @@
             weedVis.forEach((v, i) => { v.g.visible = !!state.weeds[i]; });
             updateTiles();
             updateFPots();
+            updatePoop();
+            for (const k of FEED_KINDS) { const tr = barnTrough[k]; if (tr && tr.parent) { const n = state.feed[k] || 0; tr.visible = n > 0; tr.scale.y = 0.4 + 0.6 * Math.min(1, n / 150); } }
         }
         function updatePots(force) {
             if (!homeScene) return;
@@ -4409,8 +4454,8 @@
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
         let shopTab = 'alat', shopSlot = 'top';
         function openShop() {
-            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['bahan', '🧂 Bahan masak'], ['dapur', '🍳 Alat masak'], ['baju', '👕 Pakaian']];
-            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'bahan' ? !!s.ing : shopTab === 'dapur' ? !!s.cook : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree && !s.ing && !s.cook : !!s.plant && GDEF[s.plant].type === shopTab);
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['pakan', '🌾 Pakan ternak'], ['bahan', '🧂 Bahan masak'], ['dapur', '🍳 Alat masak'], ['baju', '👕 Pakaian']];
+            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'pakan' ? !!s.feed : shopTab === 'bahan' ? !!s.ing : shopTab === 'dapur' ? !!s.cook : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree && !s.ing && !s.cook && !s.feed : !!s.plant && GDEF[s.plant].type === shopTab);
             const own = ownedClothes(USER);
             const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
             const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
@@ -4422,6 +4467,12 @@
                     return el('div', { class: 'shopitem' }, swatch(c), el('span', { class: 'nm' }, el('b', { text: c.label }), el('small', { text: SLOT_INFO[c.slot] })), b);
                 }
                 const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.ing ? `${s.note} · kalau dijual lagi ${PRODUCTS[k].price} G` : s.note;
+                if (s.feed) {
+                    const n = state.feed[s.feed], full = n + FEED_PACK > FEED_MAX;
+                    const b = el('button', { class: 'btn', onclick: () => buy(k) }, full ? 'Penuh' : `${s.price} G`);
+                    if (full) b.disabled = true;
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: BARNS[s.feed].icon }), el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${s.note} · gudang ${n}/${FEED_MAX} porsi` })), b);
+                }
                 const owned = s.cook && ownsCook(USER, s.cook);
                 const btn = el('button', { class: 'btn', onclick: () => buy(k) }, owned ? 'Sudah punya ✓' : `${s.price} G`);
                 if (owned) btn.disabled = true;
@@ -4595,7 +4646,7 @@
             chest: { title: '📦 Kotak penyimpanan', name: 'Kotak', note: 'Simpan apa saja di sini, dipakai bersama.' },
             bin: { title: '🧺 Kotak pengiriman', name: 'Akan dijual', note: 'Barang di sini terjual saat kalian tidur.' },
             kit: { title: '🗄️ Rak alat masak', name: 'Rak dapur', note: 'Alat masak di rak ini (atau di tasmu) dipakai saat memasak dan tidak habis. Alat baru dari toko online datang lewat paket ke tasmu, simpan di sini.' },
-            tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🪏 cangkul (olah tanah di mana saja), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
+            tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🧹 sapu (kotoran hewan), 🪏 cangkul (olah tanah di mana saja), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
         };
         function openStorage(c) {
             const box = state.store[c] ||= {};
@@ -4921,6 +4972,18 @@
                 if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
+            // 🧹 sweeping a dropping out of a pen (now and then it makes a little fertilizer)
+            poop(who, x) {
+                const [a, b, t] = String(x).split('|'), px = parseFloat(a), pz = parseFloat(b);
+                const i = state.poop.findIndex(p => Math.abs(p.x - px) < 0.05 && Math.abs(p.z - pz) < 0.05);
+                if (i < 0) return;
+                if (t !== 'sapu') { emitEvent(`Untuk membersihkan kotoran, ${toolHint('sapu')} dulu. Ambil di kotak perkakas 🧰`, 'none', null, who); return; }
+                const k = state.poop[i].k;
+                state.poop.splice(i, 1);
+                const left = state.poop.filter(p => p.k === k).length;
+                const bonus = Math.random() < 0.25 && addBag(who, 'pupuk', 1);
+                emitEvent(`Menyapu kotoran 🧹${bonus ? ' · jadi 🧪 pupuk' : ''}${left ? ` · sisa ${left} di kandang ${FEED_NAME[k]}` : ` · kandang ${FEED_NAME[k]} bersih ✨`}`, 'icon:🧹', [px, 0.5, pz], who);
+            },
             // 🪴 a pot on the farm: set one down, pick it up, sow, water, feed and harvest
             fpot(who, x) {
                 const [op, a, b, arg = ''] = String(x).split('|');
@@ -5029,6 +5092,13 @@
                 const s = SUPPLIES[k];
                 if (!s || state.gold < s.price) return;
                 if (s.cloth && (ownedClothes(who).has(s.cloth) || clothPending(who, s.cloth))) return;
+                if (s.feed) {
+                    if (state.feed[s.feed] + FEED_PACK > FEED_MAX) { emitEvent(`Gudang pakan kandang ${FEED_NAME[s.feed]} sudah penuh`, 'none', null, who); return; }
+                    state.gold -= s.price; state.feed[s.feed] += FEED_PACK;
+                    // hungry animals of that barn eat right away
+                    for (const an of animals) if (an.kind === s.feed && an.data.fed === false && state.feed[s.feed] > 0) { state.feed[s.feed]--; an.data.fed = true; }
+                    emitEvent(`${s.label} masuk gudang kandang ${FEED_NAME[s.feed]} 🌾 (${state.feed[s.feed]}/${FEED_MAX})`, 'none', null, who); return;
+                }
                 state.gold -= s.price;
                 const due = Math.ceil((absMin() + 120) / 10) * 10;
                 const o = !s.cloth && state.orders.find(o => o.k === k && Math.abs(o.due - due) <= 20);
@@ -5128,6 +5198,7 @@
             for (const [k, b] of Object.entries(BARNS)) {
                 const outside = new THREE.Vector3(b.out.x + Math.sin(b.face) * 0.8, 0, b.out.z + Math.cos(b.face) * 0.8);
                 add('barn:' + k, b.out, 1.3, { local: true, label: () => `Masuk ${b.label.toLowerCase()} ${b.icon}`, act: () => travel(HV(b.x, 0, 2.9), Math.PI, '') });
+                if (FEED_KINDS.includes(k)) add('trough:' + k, HV(b.x, 0, -2.9), 1.4, { local: true, label: () => `Wadah pakan ${b.icon} · gudang ${state.feed[k]}/${FEED_MAX} porsi${state.feed[k] ? '' : ' · HABIS!'}`, act: () => toast(state.feed[k] ? `🌾 Pakan terisi sendiri dari gudang kandang: ${state.feed[k]} porsi lagi (1 porsi per hewan tiap malam). Tambah lewat laptop 💻 tab Pakan ternak.` : '😞 Gudang pakan kosong! Hewan di kandang ini lapar. Beli pakan lewat laptop 💻 tab Pakan ternak.') });
                 add('barnx:' + k, HV(b.x, 0, 3.5), 1.1, { local: true, label: () => 'Keluar kandang 🚪', act: () => travel(outside, b.face, '') });
             }
             // floor 1
@@ -5230,7 +5301,8 @@
                 id: 'an:' + a.name, pos: a.pos, reach: a.reach, animal: a,
                 label() {
                     const d = a.data;
-                    const hearts = `<span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(5 - a.hearts())}</span>`;
+                    const hearts = ` <span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(HEART_MAX - a.hearts())}</span>`;
+                    if (d.fed === false && !a.pet) return `${a.name} lapar dan sedih 😞 · pakan kandang habis, beli di laptop 💻${hearts}`;
                     if (animalsAsleep()) return `${a.name} sedang tidur 💤 ${d.petted ? '' : '· elus pelan-pelan'}${hearts}`;
                     if (!d.petted) return `Elus ${a.name}${hearts}`;
                     if (d.product) { const need = a.product === 'wool' ? 'gunting' : 'pemeras'; return tool === need ? `${a.verb} ${a.name}${hearts}` : `${a.name} siap: ${toolHint(need)}${hearts}`; }
@@ -5244,13 +5316,14 @@
                     const at = [a.pos.x, a.height, a.pos.z];
                     if (!d.petted) {
                         d.petted = true;
-                        d.friend = Math.min(500, d.friend + 20);
+                        d.friend = Math.min(HEART_MAX * 100, d.friend + 2);
                         emitEvent(PET_LINES[a.kind](a.name, a.sex), 'hearts', at, who, `${a.kind}:${a.sex || ''}`);
                     } else if (d.product) {
                         const need = a.product === 'wool' ? 'gunting' : 'pemeras';
                         if (x !== need) { emitEvent(`Untuk ${a.verb.toLowerCase()} ${a.name}, ${toolHint(need)} dulu.`, 'none', null, who); return; }
                         if (!addBag(who, a.product, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                         d.product = false;
+                        d.friend = Math.min(HEART_MAX * 100, d.friend + 1);
                         const p = PRODUCTS[a.product];
                         emitEvent(`Dapat ${p.icon} ${p.label} dari ${a.name}!`, 'icon:' + p.icon, at, who, `${a.kind}:${a.sex || ''}`);
                     } else {
@@ -5706,6 +5779,11 @@
             label() { const [x, z] = potFront(), why = potWhy(x, z, carriedBy(USER)); return why ? `🚫 ${why}` : carriedBy(USER) ? 'Taruh pot di sini 🪴' : `Taruh pot di sini 🪴 (di tas ${have(USER, 'pot')})`; },
             choose(cb) { const [x, z] = potFront(), why = potWhy(x, z, carriedBy(USER)); if (why) { toast(why); return; } cb(`${carriedBy(USER) ? 'place' : 'new'}|${x}|${z}`); },
         };
+        const POOP_IT = {
+            id: 'poop', pos: new THREE.Vector3(), reach: 99, at: null,
+            label: () => tool === 'sapu' ? 'Sapu kotoran 🧹' : `Kotoran hewan 💩 · ${toolHint('sapu')} untuk menyapu`,
+            choose(cb) { const p = POOP_IT.at; if (p) cb(`${p.x}|${p.z}|${tool}`); },
+        };
         const fpotIts = [];
         function fpotIt(i) {
             return fpotIts[i] ||= {
@@ -5751,6 +5829,10 @@
                 if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
             if (best && best.id === 'fpot' && (heldItem() || '').startsWith('b_')) return best;
+            if (outside) for (const p of state.poop) {
+                const d = Math.hypot(p.x - player.pos.x, p.z - player.pos.z);
+                if (d < 0.95 && d < bestD) { POOP_IT.pos.set(p.x, 0, p.z); POOP_IT.at = p; best = POOP_IT; bestD = d; }
+            }
             for (const t of state.ptrees) {
                 if (!FDEF[t.k]) continue;
                 const it = ptreeIt(t), d = Math.hypot(t.x - player.pos.x, t.z - player.pos.z);
@@ -6043,14 +6125,14 @@
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
                 const an = {};
-                for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [d.friend, d.petted ? 1 : 0, d.product ? 1 : 0]; }
+                for (const a of animals) { const d = state.animals[a.name]; an[a.name] = [Math.round(d.friend * 10) / 10, d.petted ? 1 : 0, d.product ? 1 : 0, d.fed === false ? 0 : 1]; }
                 const tr = {};
                 for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; tr[f.key] = [t.w ? 1 : 0, t.p, t.r, t.dry]; }
                 state.looks[USER] = { o: look.o };
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit)],
-                    ti: encTiles(), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), fd: FEED_KINDS.map(k => state.feed[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
@@ -6149,7 +6231,9 @@
             if (Array.isArray(w.lg) && w.lg.length === WOOD_POS.length) state.logs = w.lg.map(v => ({ s: Array.isArray(v) ? +v[0] || 0 : 0, hp: Array.isArray(v) ? +v[1] || 0 : 3, d: 0 }));
             if (Array.isArray(w.wq) && w.wq.length === WEED_POS.length) state.weeds = w.wq.map(v => v ? 1 : 0);
             if (Array.isArray(w.eg)) state.eggs = w.eg.slice(0, EGG_MAX).map(e => Array.isArray(e) && e.every(Number.isFinite) ? e : null);
-            if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2] }); }
+            if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2], fed: v[3] !== 0 }); }
+            if (Array.isArray(w.fd)) FEED_KINDS.forEach((k, i) => { if (Number.isFinite(w.fd[i])) state.feed[k] = w.fd[i]; });
+            if (Array.isArray(w.pp)) state.poop = w.pp.filter(v => Array.isArray(v) && FEED_KINDS[v[0]]).map(v => ({ k: FEED_KINDS[v[0]], x: v[1] / 10, z: v[2] / 10 }));
             if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
             if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
             if (w.en) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.en[u])) state.en[u] = clamp(w.en[u], 0, ENERGY_MAX);
@@ -6348,11 +6432,28 @@
             $('fadeText').textContent = passedOut ? 'Sudah pukul 00:00, waktunya tidur... 😴' : 'Zzz...';
             $('fade').classList.add('show');
             setTimeout(() => {
+                // the barn animals eat from their barn's store; mood follows care (petting, food, a clean pen, collecting)
+                const dirty = k => state.poop.some(p => p.k === k);
+                const eggsLeft = k => state.eggs.some(e => e && (k === 'duck' ? e[2] : !e[2]));
                 for (const a of animals) {
                     const d = a.data;
-                    if (!a.pet && !d.petted) d.friend = Math.max(0, d.friend - 10);
+                    if (a.pet) { d.petted = false; continue; }
+                    let df = d.petted ? 0 : -5;
+                    if ((state.feed[a.kind] || 0) > 0) { state.feed[a.kind]--; d.fed = true; df += 1.5; } else { d.fed = false; df -= 10; }
+                    df += dirty(a.kind) ? -3 : 1;
+                    if (!a.product) df += 1; else if (LAYERS.has(a.kind) && !eggsLeft(a.kind)) df += 1;
+                    d.friend = clamp(d.friend + df, 0, HEART_MAX * 100);
                     d.petted = false;
-                    d.product = !LAYERS.has(a.kind) && !!a.product;
+                    d.product = !LAYERS.has(a.kind) && !!a.product && d.fed;
+                }
+                // every barn animal leaves a dropping in its pen overnight
+                for (const def of ANIMAL_DEFS) if (FEED_KINDS.includes(def.kind) && state.poop.filter(p => p.k === def.kind).length < POOP_MAX) {
+                    const r = def.area;
+                    for (let tries = 0; tries < 8; tries++) {
+                        const x = Math.round(rand(r.minX + 0.3, r.maxX - 0.3) * 10) / 10, z = Math.round(rand(r.minZ + 0.3, r.maxZ - 0.3) * 10) / 10;
+                        if (Math.hypot(x - DUCK_POND.x, z - DUCK_POND.z) < DUCK_POND.r + 0.3) continue; // not in the water
+                        state.poop.push({ k: def.kind, x, z }); break;
+                    }
                 }
                 layEggs(state);
                 settleAnimals();
