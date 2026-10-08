@@ -48,12 +48,13 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
 ## Perkakas 🧰
 - **Kotak perkakas** (kotak merah di samping kotak penyimpanan, depan rumah) berisi 2 buah dari tiap alat, satu untuk masing-masing pemain. Ambil alat dari sini; alat langsung masuk ke toolbar (barang lain di toolbar digeser ke tas kalau penuh). Kembalikan alat ke kotak ini kalau tasmu penuh. **Penyiram** selalu ada di tasmu, jadi tidak disimpan di kotak.
-- 🪏 **Cangkul:** olah 8 petak **Lahan** di timur ladang (ada papan "Lahan"). Setelah dicangkul, petak bisa ditanami benih, disiram, dipupuk, dan dipanen seperti pot rooftop; hujan ikut menyiramnya.
+- 🪏 **Cangkul:** cangkul tanah kosong di mana saja selama masuk akal (bukan di jalan setapak, kandang, kolam, bangunan, atau dekat pohon kebun; rumput liar dipotong dulu). Kotak di depan karakter diberi bingkai hijau (bisa) atau merah (tidak bisa). Tanah yang dicangkul lalu bisa ditanami lewat menu **🥬 Sayur / 🌸 Tanaman hias / 🌳 Pohon buah**, atau langsung dengan memilih benih/bibit di tas. Tanaman di tanah disiram, dipupuk, dan dipanen seperti pot rooftop; hujan ikut menyiramnya. Tanah yang dibiarkan kosong 3 hari kembali jadi rumput. Maksimal 60 kotak olahan.
+- 🌳 **Bibit buah:** dijual di laptop (tab "🌳 Bibit buah"). **Pohon buah besar** (mangga, durian, alpukat, jeruk, apel, rambutan, kelapa, pisang, pepaya, anggur, dll.) butuh lahan **3×3 kotak**: kotak tengah dicangkul dan 8 kotak di sekelilingnya kosong. **Tanaman buah kecil** (salak, nanas, stroberi, semangka, melon) cukup **1 kotak**. Bibit perlu disiram tiap hari: pohon besar tumbuh 6 hari, tanaman kecil 3 hari, lalu berbuah seperti kebun buah (istirahat di musim dingin). Pohon bisa ditebang dengan kapak. Maksimal 12 pohon tanaman sendiri.
 - ⛏️ **Beliung:** pecahkan 6 batu besar di sebelah barat (selatan rumah, dekat kandang ayam). Dapat 🪨 batu, kadang 🟠 bijih tembaga, ⚙️ besi, atau 🟡 emas. Batu yang pecah sebagian muncul lagi tiap pagi.
 - 🪓 **Kapak:** tebang 6 pohon kayu (pojok barat laut, pojok tenggara, dan dekat ladang). 3 ayunan untuk menumbangkan pohon (🪵 kayu ×3), lalu bersihkan tunggulnya (🪵 kayu ×1). Pohon tumbuh lagi setelah beberapa hari.
 - 🎣 **Pancing:** pegang pancing di dekat kolam besar atau kolam bebek, tekan tombol aksi, tunggu sampai muncul "Ikan menggigit!", lalu tarik tepat waktu. Hasilnya 🐟 ikan mas, 🐠 nila, 🐡 gurame, atau kadang 👢 sepatu bot tua. Ikan mas bisa dimasak jadi 🍢 **Ikan bakar** (+35 ⚡).
 - 🌾 **Sabit:** potong rumput liar yang tumbuh di sekitar farm (bertambah tiap malam). Dapat 🌿 rumput, kadang benih kangkung liar.
-- Semua hasilnya bisa dijual di kotak pengiriman atau diberikan ke pasangan. Kerja dengan alat memakai energi: cangkul 2, beliung 4, kapak 4, pancing 2, sabit 1.
+- Semua hasilnya bisa dijual di kotak pengiriman atau diberikan ke pasangan. Kerja dengan alat memakai energi: cangkul/tanam 2, beliung 4, kapak 4, pancing 2, sabit 1.
 - Alat yang dipilih terlihat di tangan kanan karaktermu (juga oleh pasangan) dan diayunkan saat dipakai. Ikon alat di toolbar dan tombol aksi digambar khusus, termasuk penyiram baru berbentuk gembor.
 
 ## Cara bergerak 🕹️👆

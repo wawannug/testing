@@ -571,9 +571,10 @@
                 <tr><td>🧶 Wol</td><td>340 G</td></tr>
             </table>
             <p style="font-size:13px;margin:0">🌳 Siram setiap tanaman sekali sehari (isi ember di sumur 🪣). Tanaman yang disiram tumbuh tiap malam dan berbuah setiap 1 sampai 5 hari, tergantung jenisnya. Yang tidak disiram berhenti tumbuh dan lama-lama layu.</p>
+            <p style="font-size:13px;margin:0">🪏 Ambil cangkul di kotak perkakas 🧰, lalu cangkul tanah kosong di mana saja (bingkai hijau = bisa). Tanah yang sudah dicangkul bisa ditanami sayur, tanaman hias, atau bibit buah. Pohon buah besar butuh lahan 3×3 kotak (kotak tengah dicangkul, 8 kotak di sekitarnya kosong); tanaman buah kecil seperti salak, nanas, stroberi, semangka, dan melon cukup 1 kotak.</p>
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁. 🧰 Kotak perkakas di depan rumah berisi cangkul (olah Lahan di timur ladang), beliung (batu di barat), kapak (pohon kayu), pancing (kolam), dan sabit (rumput liar).</p>
-            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
+            <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, dan pakaian), dapur & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -999,7 +1000,6 @@
         sign(15.1, 0.6, 'Kambing');
         sign(15.1, 3.4, 'Domba');
         sign(-13.4, 9.9, 'Bebek');
-        sign(3.9, 5.0, 'Lahan');
 
         // Feeding troughs along the back fence of each pen
         function trough(x, z, w, d, feed) {
@@ -1147,25 +1147,13 @@
             (srand() < 0.5 ? pineTree : roundTree)(x, z, srange(0.9, 1.5));
         }
         // ---------- Things to work on with the tools ----------
-        // 🪏 plots to hoe east of the field, ⛏️ boulders in the west, 🪓 trees to fell, 🌾 weeds to cut
-        const PLOT_POS = [];
-        for (const z of [6.4, 8.0]) for (const x of [4.9, 6.4, 7.9, 9.4]) PLOT_POS.push(new THREE.Vector3(x, 0, z));
-        const PLOT_AREA = { minX: 4.1, maxX: 10.2, minZ: 5.6, maxZ: 8.8 };
+        // ⛏️ boulders in the west, 🪓 trees to fell, 🌾 weeds to cut (🪏 the hoe works on any open ground, below)
         const ROCK_POS = [[-21.5, -9.5], [-19.2, -10.6], [-17, -8.6], [-21, -6.2], [-18.4, -5.4], [-15.8, -6.8]].map(([x, z]) => new THREE.Vector3(x, 0, z));
         const WOOD_DEF = [[-20.5, -16, 1], [21, 18.5, 1.1], [6, 19.5, 0.9], [17, 20.8, 1], [19.8, 21.6, 0.95], [-22, -13.2, 1]];
         const WOOD_POS = WOOD_DEF.map(([x, z]) => new THREE.Vector3(x, 0, z));
         const WEED_POS = [[-12, 6], [-10, 8.2], [-7, 5.5], [-12, 12], [-9.5, 15], [3, 5.6], [11, 5.2], [11.4, 9.4], [-1, -5], [2, -6.2], [-4, -2], [12.6, 3.9], [4, -12], [8, -12.6], [-13, -4.2], [-10.8, -6.4]].map(([x, z]) => new THREE.Vector3(x, 0, z));
         const TOOLBOX = new THREE.Vector3(-3.0, 0, -10.25);
-        const plotVis = [], rockVis = [], woodVis = [], weedVis = [];
-        PLOT_POS.forEach(p => {
-            const g = new THREE.Group(); g.position.copy(p); scene.add(g);
-            for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) box(0.06, 0.28, 0.06, C.wood, sx * 0.62, 0.14, sz * 0.62, g);
-            const soil = new THREE.Group(); g.add(soil);
-            box(1.2, 0.08, 1.2, 0x6b4426, 0, 0.03, 0, soil).castShadow = false;
-            for (let k = -1; k <= 1; k++) box(1.05, 0.05, 0.14, 0x4f3119, 0, 0.08, k * 0.36, soil).castShadow = false;
-            const plantRoot = new THREE.Group(); plantRoot.position.y = 0.1; g.add(plantRoot);
-            plotVis.push({ g, soil, plantRoot, water: null, ready: null, sig: '', key: null, model: null }); // bubbles are added later
-        });
+        const rockVis = [], woodVis = [], weedVis = [];
         ROCK_POS.forEach((p, i) => {
             const g = new THREE.Group(); g.position.copy(p); g.rotation.y = i * 1.7; scene.add(g);
             const a = mesh(ICO, mat(0x8d9299), g); a.scale.set(0.72, 0.52, 0.62); a.position.y = 0.36;
@@ -1440,7 +1428,7 @@
         // Flowers, grass tufts and rocks
         {
             const inRect = (x, z, r, m = 0.6) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
-            const blocked = (x, z) => PENS.some(r => inRect(x, z, r, 1)) || inRect(x, z, FIELD, 1) || inRect(x, z, PLOT_AREA, 0.6) ||
+            const blocked = (x, z) => PENS.some(r => inRect(x, z, r, 1)) || inRect(x, z, FIELD, 1) ||
                 PATHS.some(([a, b, c, d]) => inRect(x, z, { minX: a, maxX: b, minZ: c, maxZ: d }, 0.3)) ||
                 colliders.some(c => c.t === 'b' ? inRect(x, z, c, 0.5) : Math.hypot(x - c.x, z - c.z) < c.r + 0.4);
             const flowerColors = [0xff6b8a, 0xffd34d, 0xffffff, 0xb07cff, 0xff8f3d];
@@ -1468,6 +1456,7 @@
 
         // Swaying grass blades (one instanced mesh, animated in the vertex shader)
         const grassTime = { value: 0 };
+        const GRASS = { mesh: null, cells: new Map(), orig: null };
         {
             const inRect = (x, z, r, m) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
             const blade = new THREE.ConeGeometry(0.035, 0.34, 3);
@@ -1489,7 +1478,7 @@
             let n = 0;
             for (let tries = 0; tries < COUNT * 3 && n < COUNT; tries++) {
                 const x = srange(-26, 26), z = srange(-25, 25);
-                if (inRect(x, z, FIELD, 0.3) || inRect(x, z, PLOT_AREA, 0.2) || Math.hypot(x - POND.x, z - POND.z) < POND.r + 0.5) continue;
+                if (inRect(x, z, FIELD, 0.3) || Math.hypot(x - POND.x, z - POND.z) < POND.r + 0.5) continue;
                 if (PATHS.some(([a, b, c, d]) => inRect(x, z, { minX: a, maxX: b, minZ: c, maxZ: d }, 0.05))) continue;
                 if (colliders.some(c => c.t === 'b' && c.maxX - c.minX > 1 && c.maxZ - c.minZ > 1 && inRect(x, z, c, 0.1))) continue;
                 q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), srand() * Math.PI * 2);
@@ -1499,10 +1488,162 @@
                 m4.compose(pos, q, sc);
                 grass.setMatrixAt(n, m4);
                 grass.setColorAt(n, col.setHex(shades[Math.floor(srand() * shades.length)]));
+                { const ck = Math.round(x) + ',' + Math.round(z); if (!GRASS.cells.has(ck)) GRASS.cells.set(ck, []); GRASS.cells.get(ck).push(n); }
                 n++;
             }
             grass.count = n;
             scene.add(grass);
+            GRASS.mesh = grass; GRASS.orig = grass.instanceMatrix.array.slice();
+        }
+        function setGrass(key, hide) {
+            const ids = GRASS.cells.get(key), a = GRASS.mesh.instanceMatrix.array;
+            if (!ids) return;
+            for (const i of ids) for (let j = 0; j < 16; j++) a[i * 16 + j] = hide ? (j === 15 ? 1 : 0) : GRASS.orig[i * 16 + j];
+            GRASS.mesh.instanceMatrix.needsUpdate = true;
+        }
+
+        // ---------- 🪏 Hoe any open ground, then sow vegetables, flowers or fruit trees ----------
+        // The farm is a grid of 1 m squares. Big fruit trees take a 3×3 patch (the hoed square in the middle,
+        // the 8 around it left open); small fruit plants take one square.
+        const TILE_MAX = 60, PTREE_MAX = 12;
+        const tileKey = (x, z) => x + ',' + z;
+        const treeSpan = f => BIG_TREE(f) ? 1 : 0;
+        const TREE_GROW = f => BIG_TREE(f) ? 6 : 3;
+        const SMALL_K = { salak: 0.55, bed: 0.3, berry: 0.3, pineapple: 0.32 };
+        const groundMemo = new Map();
+        // why this square can never be hoed ('' when it can)
+        function groundWhy(ix, iz) {
+            const k = tileKey(ix, iz);
+            if (groundMemo.has(k)) return groundMemo.get(k);
+            const inR = (r, m) => ix > r.minX - m && ix < r.maxX + m && iz > r.minZ - m && iz < r.maxZ + m;
+            let why = '';
+            if (ix < BOUNDS.minX + 1 || ix > BOUNDS.maxX - 1 || iz < BOUNDS.minZ + 1 || iz > BOUNDS.maxZ - 1) why = 'Terlalu di pinggir farm';
+            else if (PENS.some(r => inR(r, 0.7))) why = 'Ini area kandang hewan';
+            else if (inR(FIELD, 0.7)) why = 'Ini kebun buah yang sudah ada';
+            else if (PATHS.some(([a, b, c, d]) => inR({ minX: a, maxX: b, minZ: c, maxZ: d }, 0.45))) why = 'Ini jalan setapak';
+            else if (Math.hypot(ix - POND.x, iz - POND.z) < POND.r + 0.9) why = 'Terlalu dekat kolam';
+            else if (PLANTS.some(p => Math.hypot(ix - p.group.position.x, iz - p.group.position.z) < 2)) why = 'Terlalu dekat pohon kebun';
+            else if (colliders.some(c => !c.ptree && (c.t === 'b' ? inR(c, 0.55) : Math.hypot(ix - c.x, iz - c.z) < c.r + 0.6))) why = 'Ada bangunan atau benda di sini';
+            groundMemo.set(k, why);
+            return why;
+        }
+        const treeAt = (ix, iz) => state.ptrees.find(t => FDEF[t.k] && Math.abs(t.x - ix) <= treeSpan(FDEF[t.k]) && Math.abs(t.z - iz) <= treeSpan(FDEF[t.k]));
+        const weedAt = (ix, iz) => WEED_POS.some((w, i) => state.weeds[i] && Math.hypot(w.x - ix, w.z - iz) < 0.75);
+        const tillWhy = (ix, iz) => groundWhy(ix, iz) || (treeAt(ix, iz) ? 'Ada pohon di sini' : '') || (weedAt(ix, iz) ? 'Potong dulu rumput liarnya 🌾' : '');
+        // why a sapling cannot go on this hoed square ('' when it can)
+        function treeWhy(f, ix, iz) {
+            const s = treeSpan(f), c = state.tiles[tileKey(ix, iz)];
+            if (!c || c.s) return 'Cangkul dulu kotaknya 🪏';
+            if (state.ptrees.length >= PTREE_MAX) return `Sudah ada ${PTREE_MAX} pohon tanamanmu`;
+            for (let dx = -s; dx <= s; dx++) for (let dz = -s; dz <= s; dz++) {
+                const x = ix + dx, z = iz + dz, t = state.tiles[tileKey(x, z)];
+                if (groundWhy(x, z) || weedAt(x, z)) return 'Butuh lahan 3×3 kotak yang lapang di sekitar kotak ini';
+                if (treeAt(x, z)) return s ? 'Terlalu dekat pohon lain · butuh lahan 3×3 kotak' : 'Ada pohon di sini';
+                if (t && t.s) return 'Ada tanaman di sekitarnya · butuh 3×3 kotak kosong';
+            }
+            return '';
+        }
+        // compact form of the hoed ground for online play: "x,z,day" or "x,z,seed,growth×2,flags"
+        function encTiles() {
+            return Object.entries(state.tiles).map(([k, t]) => t.s ? `${k},${GKEYS.indexOf(t.s)},${Math.round(t.p * 2)},${(t.w ? 1 : 0) | (t.f ? 2 : 0) | Math.min(3, t.dry || 0) << 2}` : `${k},${t.e || 0}`).join(';');
+        }
+        function decTiles(str) {
+            const o = {};
+            for (const part of str.split(';')) {
+                const v = part.split(',').map(Number);
+                if (v.length < 3 || !Number.isInteger(v[0]) || !Number.isInteger(v[1])) continue;
+                if (v.length >= 5 && GARDEN[v[2]]) o[tileKey(v[0], v[1])] = { s: GARDEN[v[2]].key, p: v[3] / 2 || 0, w: !!(v[4] & 1), f: !!(v[4] & 2), dry: v[4] >> 2, e: 0 };
+                else if (v.length === 3) o[tileKey(v[0], v[1])] = { e: v[2] || 0 };
+            }
+            return o;
+        }
+        // nightly: saplings grow up when watered, then bear fruit like the orchard; all rest in winter
+        function growTrees(winter) {
+            for (const t of state.ptrees) {
+                const f = FDEF[t.k];
+                if (!f) continue;
+                if (winter) { t.w = false; continue; }
+                if (t.w) {
+                    t.dry = 0;
+                    if (t.g < TREE_GROW(f)) t.g++;
+                    else if (t.r === 0 && ++t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; }
+                } else t.dry++;
+                t.w = false;
+            }
+        }
+        // what the hoed squares look like
+        const tileVis = new Map();
+        function updateTiles() {
+            for (const [k, v] of tileVis) if (!state.tiles[k]) { scene.remove(v.g); tileVis.delete(k); setGrass(k, false); }
+            const wet = isWet();
+            for (const [k, p] of Object.entries(state.tiles)) {
+                let v = tileVis.get(k);
+                if (!v) {
+                    const [x, z] = k.split(',').map(Number);
+                    const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+                    const soil = box(0.96, 0.06, 0.96, C.tilled, 0, 0.03, 0, g); soil.castShadow = false;
+                    const rows = [-1, 0, 1].map(r => { const m = box(0.84, 0.04, 0.13, 0x5b3a1e, 0, 0.075, r * 0.3, g); m.castShadow = false; return m; });
+                    const plantRoot = new THREE.Group(); plantRoot.position.y = 0.08; g.add(plantRoot);
+                    const water = new THREE.Sprite(bubbleMat('💧')); water.scale.set(0.45, 0.45, 1); water.position.y = 1.0; g.add(water);
+                    const ready = new THREE.Sprite(bubbleMat('✨')); ready.scale.set(0.45, 0.45, 1); ready.position.y = 1.1; g.add(ready);
+                    v = { g, soil, rows, plantRoot, water, ready, sig: '', key: null, model: null };
+                    tileVis.set(k, v); setGrass(k, true);
+                }
+                const def = p.s ? GDEF[p.s] : null;
+                const grow = def ? Math.min(1, p.p / def.days) : 0, isReady = def && p.p >= def.days;
+                const sig = `${p.s || ''}|${grow.toFixed(2)}|${p.w || wet ? 1 : 0}|${p.dry >= 2 ? 1 : 0}`;
+                if (sig === v.sig) continue;
+                v.sig = sig;
+                v.soil.material = mat(p.w || wet ? 0x4f3420 : C.tilled);
+                for (const r of v.rows) r.material = mat(p.w || wet ? 0x3c2716 : 0x5b3a1e);
+                if ((p.s || null) !== v.key) {
+                    if (v.model) v.plantRoot.remove(v.model.g);
+                    v.model = def ? gardenModel(def) : null;
+                    if (v.model) v.plantRoot.add(v.model.g);
+                    v.key = p.s || null;
+                }
+                if (v.model) { v.model.g.scale.setScalar(0.35 + 0.75 * grow); v.model.ripe.visible = !!isReady; v.model.g.rotation.z = p.dry >= 2 && !isReady ? 0.25 : 0; }
+                v.water.visible = !!(def && !p.w && !isReady);
+                v.ready.visible = !!isReady;
+            }
+        }
+        // the fruit trees you planted yourself
+        const ptreeVis = new Map();
+        const ptreeKey = t => `${t.k}@${t.x},${t.z}`;
+        function updatePTrees(time) {
+            const want = new Set(), season = seasonOf(state.day).key;
+            for (const d of state.ptrees) {
+                const f = FDEF[d.k];
+                if (!f) continue;
+                const key = ptreeKey(d);
+                want.add(key);
+                let v = ptreeVis.get(key);
+                if (!v) {
+                    const n0 = colliders.length;
+                    const pl = buildPlant({ ...f, at: [d.x, d.z] });
+                    const cols = colliders.slice(n0), kx = BIG_TREE(f) ? 1 : SMALL_K[f.kind] || 0.5;
+                    for (const c of cols) { c.ptree = true; if (c.t === 'c') { c.r *= kx; c.x = d.x + (c.x - d.x) * kx; c.z = d.z + (c.z - d.z) * kx; } }
+                    // small fruit plants are squeezed onto one square; their fruit keeps its shape
+                    if (kx < 1) { for (const m of pl.slots) m.scale.set(m.scale.x / kx, m.scale.y, m.scale.z / kx); pl.bubble.scale.x /= kx; }
+                    const mound = box(BIG_TREE(f) ? 1.3 : 0.96, 0.05, BIG_TREE(f) ? 1.3 : 0.96, C.tilled, d.x, 0.025, d.z, scene); mound.castShadow = false;
+                    v = { pl, cols, kx, mound, tint: '' };
+                    ptreeVis.set(key, v); setGrass(tileKey(d.x, d.z), true);
+                }
+                const s = 0.3 + 0.7 * Math.min(1, d.g / TREE_GROW(f));
+                v.pl.group.scale.set(s * v.kx, s, s * v.kx);
+                v.pl.slots.forEach((m, i) => { m.visible = i < d.r; });
+                v.pl.bubble.visible = !d.w && d.r === 0 && season !== 'dingin';
+                const k = Math.min(1, d.dry / 3), tk = season + k;
+                if (v.tint !== tk) { v.tint = tk; v.pl.leafMats.forEach((m, i) => seasonTint(m.color.copy(v.pl.base[i]), season, i * 0.37 + d.x * 0.1, false).lerp(DRY, k * 0.75)); }
+                v.pl.sway.rotation.z = Math.sin(time * 1.1 + d.x) * 0.02;
+            }
+            for (const [key, v] of ptreeVis) if (!want.has(key)) {
+                scene.remove(v.pl.group); scene.remove(v.mound);
+                for (const c of v.cols) { const i = colliders.indexOf(c); if (i >= 0) colliders.splice(i, 1); }
+                ptreeVis.delete(key);
+                const [, xz] = key.split('@');
+                if (!state.tiles[xz]) setGrass(xz, false);
+            }
         }
 
         // ---------- Sprites (icons, hearts) ----------
@@ -1864,6 +2005,11 @@
             pupuk: { label: 'Pupuk', icon: '🧪', price: 25, note: 'Tanaman tumbuh 1,5× lebih cepat' },
         };
         for (const g of GARDEN) SUPPLIES['b_' + g.key] = { label: (g.type === 'veg' ? 'Benih ' : 'Bibit ') + g.label, icon: '🌱', price: g.seed, plant: g.key };
+        // fruit tree saplings: big trees need 3×3 tiles, small fruit plants one tile
+        const BIG_TREE = f => ['tree', 'palm', 'banana', 'papaya', 'vine'].includes(f.kind);
+        const FDEF = Object.fromEntries(FRUIT_DEFS.map(f => [f.key, f]));
+        const FKEYS = FRUIT_DEFS.map(f => f.key);
+        for (const f of FRUIT_DEFS) SUPPLIES['p_' + f.key] = { label: (f.kind === 'tree' ? 'Bibit pohon ' : 'Bibit ') + f.label.toLowerCase(), icon: BIG_TREE(f) ? '🌳' : '🌿', price: Math.max(100, Math.round(f.price * (BIG_TREE(f) ? 3 : 2) / 10) * 10), tree: f.key, note: BIG_TREE(f) ? `Pohon buah · butuh lahan 3×3 kotak · berbuah ${f.yield[0]}–${f.yield[1]} ${f.label.toLowerCase()} tiap ${f.cycle} hari` : `Tanaman buah kecil · butuh 1 kotak lahan · berbuah tiap ${f.cycle} hari` };
         // Plants sell from the shipping bin; ornamental plants are sold together with their pot
         for (const g of GARDEN) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
@@ -1965,7 +2111,8 @@
             if (!started || !isWet() || elapsed - rainCheck < 1) return;
             rainCheck = elapsed;
             if (!roofCovered()) for (const p of state.pots) if (p && p.s && !p.w) { p.w = true; p.dry = 0; }
-            for (const p of state.plots || []) if (p && p.s && !p.w) { p.w = true; p.dry = 0; }
+            for (const t of Object.values(state.tiles || {})) if (t.s && !t.w) { t.w = true; t.dry = 0; }
+            for (const t of state.ptrees || []) if (!t.w) { t.w = true; t.dry = 0; }
             for (const f of FRUIT_DEFS) { const t = state.trees[f.key]; if (t && !t.w) { t.w = true; t.dry = 0; } }
         }
         // animals stay in at night and whenever it is not clear
@@ -2465,7 +2612,7 @@
             if (id === 'cook') return 3;
             const p = String(id).split(':')[0];
             if (id === 'catch') return 2;
-            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, plot: 2, rock: 4, log: 4, weed: 1 }[p] || 0;
+            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, rock: 4, log: 4, weed: 1 }[p] || 0;
         }
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
@@ -2512,7 +2659,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools() }, eggs: [], animals, trees, pots, plots: Array(PLOT_POS.length).fill(null), rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools() }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2527,7 +2674,10 @@
             const sv = saved.store || {};
             st.store = { fridge: cleanItems(sv.fridge), chest: cleanItems(sv.chest), bin: cleanItems(sv.bin), tools: sv.tools ? cleanTools(sv.tools) : freshTools() };
             // the tool jobs on the farm (older saves start them fresh)
-            st.plots = Array.isArray(saved.plots) && saved.plots.length === PLOT_POS.length ? saved.plots.map(p => p && (!p.s || GDEF[p.s]) ? p : null) : base.plots;
+            // hoed ground and planted fruit trees
+            st.tiles = {};
+            for (const [k, t] of Object.entries(saved.tiles || {})) if (/^-?\d+,-?\d+$/.test(k) && t && typeof t === 'object' && (!t.s || GDEF[t.s])) st.tiles[k] = { s: t.s, w: !!t.w, p: +t.p || 0, f: !!t.f, dry: +t.dry || 0, e: +t.e || 0 };
+            st.ptrees = (Array.isArray(saved.ptrees) ? saved.ptrees : []).filter(t => t && FDEF[t.k] && Number.isInteger(t.x) && Number.isInteger(t.z)).slice(0, PTREE_MAX).map(t => ({ k: t.k, x: t.x, z: t.z, g: +t.g || 0, w: !!t.w, p: +t.p || 0, r: +t.r || 0, dry: +t.dry || 0 }));
             st.rocks = Array.isArray(saved.rocks) && saved.rocks.length === ROCK_POS.length ? saved.rocks.map(v => v ? 1 : 0) : base.rocks;
             st.logs = Array.isArray(saved.logs) && saved.logs.length === WOOD_POS.length ? saved.logs.map(l => ({ s: [0, 1, 2].includes(l && l.s) ? l.s : 0, hp: Number.isFinite(l && l.hp) ? l.hp : 3, d: +(l && l.d) || 0 })) : base.logs;
             st.weeds = Array.isArray(saved.weeds) && saved.weeds.length === WEED_POS.length ? saved.weeds.map(v => v ? 1 : 0) : base.weeds;
@@ -3715,31 +3865,10 @@
 
         // Pot visuals follow the shared garden state
         function updateFarmJobs() {
-            for (let i = 0; i < PLOT_POS.length; i++) {
-                const v = plotVis[i], p = state.plots[i];
-                if (!v.water) {
-                    v.water = new THREE.Sprite(bubbleMat('💧')); v.water.scale.set(0.5, 0.5, 1); v.water.position.y = 1.05; v.g.add(v.water);
-                    v.ready = new THREE.Sprite(bubbleMat('✨')); v.ready.scale.set(0.5, 0.5, 1); v.ready.position.y = 1.15; v.g.add(v.ready);
-                }
-                const def = p && p.s ? GDEF[p.s] : null;
-                const grow = def ? Math.min(1, p.p / def.days) : 0, isReady = def && p.p >= def.days;
-                const sig = `${p ? 1 : 0}|${p && p.s || ''}|${grow.toFixed(2)}|${p && p.w ? 1 : 0}|${p && p.dry >= 2 ? 1 : 0}`;
-                if (sig === v.sig) continue;
-                v.sig = sig;
-                v.soil.visible = !!p;
-                if ((p && p.s) !== v.key) {
-                    if (v.model) v.plantRoot.remove(v.model.g);
-                    v.model = def ? gardenModel(def) : null;
-                    if (v.model) v.plantRoot.add(v.model.g);
-                    v.key = p && p.s || null;
-                }
-                if (v.model) { v.model.g.scale.setScalar(0.35 + 0.75 * grow); v.model.ripe.visible = !!isReady; v.model.g.rotation.z = p.dry >= 2 && !isReady ? 0.25 : 0; }
-                v.water.visible = !!(def && !p.w && !isReady);
-                v.ready.visible = !!isReady;
-            }
             rockVis.forEach((v, i) => { const on = !state.rocks[i]; v.g.visible = on; v.col.off = !on; });
             woodVis.forEach((v, i) => { const s = state.logs[i].s; v.tree.visible = s === 0; v.stump.visible = s === 1; v.col.off = s === 2; v.col.r = s === 1 ? 0.3 : 0.45; });
             weedVis.forEach((v, i) => { v.g.visible = !!state.weeds[i]; });
+            updateTiles();
         }
         function updatePots(force) {
             if (!homeScene) return;
@@ -3964,8 +4093,8 @@
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
         let shopTab = 'alat', shopSlot = 'top';
         function openShop() {
-            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['baju', '👕 Pakaian']];
-            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'alat' ? !s.plant && !s.cloth : !!s.plant && GDEF[s.plant].type === shopTab);
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['baju', '👕 Pakaian']];
+            const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree : !!s.plant && GDEF[s.plant].type === shopTab);
             const own = ownedClothes(USER);
             const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
             const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
@@ -3978,7 +4107,7 @@
                 }
                 const sub = g ? `panen ${g.days} hari · jual ${g.yield > 1 ? g.yield + '× ' : ''}${g.price} G${g.type === 'hias' ? ' (dengan pot)' : ''}` : s.note;
                 return el('div', { class: 'shopitem' },
-                    el('span', { class: 'ic', text: g ? g.icon : s.icon }),
+                    el('span', { class: 'ic', text: g ? g.icon : s.tree ? FDEF[s.tree].icon : s.icon }),
                     el('span', { class: 'nm' }, el('b', { text: s.label }), el('small', { text: `${sub} · di tas ${have(USER, k)}` })),
                     el('button', { class: 'btn', onclick: () => buy(k) }, `${s.price} G`));
             }));
@@ -4074,7 +4203,7 @@
             fridge: { title: '🧊 Kulkas', name: 'Kulkas', note: 'Bahan di kulkas ikut dipakai saat memasak.' },
             chest: { title: '📦 Kotak penyimpanan', name: 'Kotak', note: 'Simpan apa saja di sini, dipakai bersama.' },
             bin: { title: '🧺 Kotak pengiriman', name: 'Akan dijual', note: 'Barang di sini terjual saat kalian tidur.' },
-            tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🪏 cangkul (olah lahan), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
+            tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🪏 cangkul (olah tanah di mana saja), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
         };
         function openStorage(c) {
             const box = state.store[c] ||= {};
@@ -4240,7 +4369,7 @@
         // Over the live connection the two of you swap saves too (also on the open web, where there is no
         // shared store): each side announces when its slots were saved, and a newer slot goes across in
         // small pieces, each acknowledged before the next.
-        const SLOT_CHUNK = 900;
+        const SLOT_CHUNK = 600;
         const slotTx = { cur: null };
         function slotOut(o) {
             o.sl = slots.map(x => x ? x.at || 0 : 0);
@@ -4350,6 +4479,82 @@
         // Actions the farm's host carries out for either player
         const ACTIONS = {
             sleep() { sleep(false); },
+            // 🪏 a square of open ground: hoe it, sow it, water, feed and harvest it
+            tile(who, x) {
+                const [a, b, arg = ''] = String(x).split('|'), ix = parseInt(a, 10), iz = parseInt(b, 10);
+                if (!Number.isInteger(ix) || !Number.isInteger(iz)) return;
+                const k = tileKey(ix, iz), p = state.tiles[k], at = [ix, 0.7, iz];
+                if (!p) {
+                    if (arg !== 'cangkul') { emitEvent(`Untuk mengolah tanah, ${toolHint('cangkul')} dulu. Ambil di kotak perkakas 🧰`, 'none', null, who); return; }
+                    const why = tillWhy(ix, iz);
+                    if (why) { emitEvent(`${why} · tidak bisa dicangkul`, 'none', null, who); return; }
+                    if (Object.keys(state.tiles).length >= TILE_MAX) { emitEvent(`Lahan olahan sudah ${TILE_MAX} kotak. Tanami dulu yang ada ya 🌱`, 'none', null, who); return; }
+                    state.tiles[k] = { e: state.day };
+                    emitEvent('Mencangkul tanah 🪏 · kotak siap ditanami', 'icon:🟫', at, who); return;
+                }
+                if (!p.s) {
+                    if (arg.startsWith('p_')) {
+                        const f = FDEF[arg.slice(2)];
+                        if (!f || have(who, arg) < 1) return;
+                        const why = treeWhy(f, ix, iz);
+                        if (why) { emitEvent(why, 'none', null, who); return; }
+                        takeBag(who, arg);
+                        const s = treeSpan(f);
+                        for (let dx = -s; dx <= s; dx++) for (let dz = -s; dz <= s; dz++) delete state.tiles[tileKey(ix + dx, iz + dz)];
+                        state.ptrees.push({ k: f.key, x: ix, z: iz, g: 0, w: isWet(), p: 0, r: 0, dry: 0 });
+                        emitEvent(`Menanam bibit ${f.icon} ${f.label}! Siram tiap hari, ${TREE_GROW(f)} hari lagi tumbuh besar 🌳`, 'icon:🌳', at, who); return;
+                    }
+                    const d = arg.startsWith('b_') && GDEF[arg.slice(2)];
+                    if (!d) { emitEvent('Tanah sudah dicangkul · pilih benih atau bibit untuk ditanam 🌱', 'none', null, who); return; }
+                    if (!takeBag(who, arg)) return;
+                    state.tiles[k] = { s: d.key, w: isWet(), p: 0, f: false, dry: 0, e: state.day };
+                    emitEvent(`Menanam ${d.icon} ${d.label}. Siram tiap hari ya!`, 'icon:🌱', at, who); return;
+                }
+                const d = GDEF[p.s];
+                if (p.p >= d.days) {
+                    if (bagRoom(who, d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    addBag(who, d.key, d.yield);
+                    state.tiles[k] = { e: state.day };
+                    emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
+                }
+                if (!p.w) {
+                    if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
+                    if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
+                    state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
+                    p.w = true; p.dry = 0;
+                    emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
+                }
+                if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
+                emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
+            },
+            // 🌳 a fruit tree you planted: water it, pick it, or fell it with the axe
+            ptree(who, x) {
+                const [a, b, arg = ''] = String(x).split('|'), ix = parseInt(a, 10), iz = parseInt(b, 10);
+                const i = state.ptrees.findIndex(t => t.x === ix && t.z === iz);
+                if (i < 0) return;
+                const t = state.ptrees[i], f = FDEF[t.k], at = [ix, 1.6, iz];
+                if (t.r > 0) {
+                    const got = addBag(who, f.key, t.r);
+                    if (!got) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    emitEvent(`Panen ${got} ${f.icon} ${f.label}!${got < t.r ? ' Tas penuh, sisanya masih di pohon.' : ''}`, 'icon:' + f.icon, at, who);
+                    t.r -= got;
+                    if (!t.r) t.p = 0;
+                    return;
+                }
+                if (arg === 'kapak') {
+                    state.ptrees.splice(i, 1);
+                    const wood = BIG_TREE(f) && t.g >= TREE_GROW(f) && bagRoom(who, 'kayu') >= 2;
+                    if (wood) addBag(who, 'kayu', 2);
+                    emitEvent(`Menebang ${f.label} 🪓${wood ? ' · dapat 🪵 Kayu ×2' : ''} · lahannya kosong lagi`, 'icon:🪓', at, who); return;
+                }
+                if (seasonOf(state.day).key === 'dingin') { emitEvent(`${f.label} sedang istirahat di musim dingin ❄️`, 'none', null, who); return; }
+                if (t.w) { emitEvent(`${f.label} sudah disiram hari ini 🌱`, 'none', null, who); return; }
+                if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
+                if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
+                state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
+                t.w = true; t.dry = 0;
+                emitEvent(`Menyiram ${f.icon} ${f.label} 💧`, 'water', at, who);
+            },
             swap(who, x) {
                 const [i, j] = String(x).split('|').map(n => parseInt(n, 10));
                 const b = bagOf(who);
@@ -4554,7 +4759,7 @@
         }
         // nightly growth in the rooftop pots
         function growPots() {
-            for (const p of [...state.pots, ...(state.plots || [])]) {
+            for (const p of [...state.pots, ...Object.values(state.tiles || {})]) {
                 if (!p || !p.s) continue;
                 const d = GDEF[p.s];
                 if (p.w) { p.dry = 0; if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1)); }
@@ -4674,51 +4879,6 @@
             const L = [];
             const need = (k, x, who, what) => { if (x === k) return true; emitEvent(`Untuk ${what}, ${toolHint(k)} dulu. Ambil di kotak perkakas 🧰`, 'none', null, who); return false; };
             L.push({ id: 'toolbox', pos: TOOLBOX, reach: 1.5, local: true, label: () => 'Buka kotak perkakas 🧰', act: () => openStorage('tools') });
-            // 🪏 plots: hoe the ground, then sow, water and harvest like a pot
-            PLOT_POS.forEach((pos, i) => L.push({
-                id: 'plot:' + i, pos, reach: 0.95, tool: true,
-                label() {
-                    const p = state.plots[i];
-                    if (!p) return tool === 'cangkul' ? 'Cangkul tanah ini 🪏' : `Lahan kosong · ${toolHint('cangkul')} untuk mengolah tanah`;
-                    if (!p.s) return 'Tanam benih di lahan 🌱';
-                    const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
-                    if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
-                    if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
-                    if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
-                    return `${d.icon} ${d.label} · ${isWet() ? 'disiram hujan 🌧️ · ' : ''}siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
-                },
-                choose(cb) { const p = state.plots[i]; if (p && !p.s) chooseSeed(cb); else cb(tool); },
-                act(who, _pos, x) {
-                    const p = state.plots[i], at = [pos.x, 0.8, pos.z];
-                    if (!p) {
-                        if (!need('cangkul', x, who, 'mengolah tanah')) return;
-                        state.plots[i] = {};
-                        emitEvent('Mencangkul tanah 🪏 · lahan siap ditanami', 'icon:🟫', at, who); return;
-                    }
-                    if (!p.s) {
-                        const d = GDEF[x];
-                        if (!d || !takeBag(who, 'b_' + x)) return;
-                        state.plots[i] = { s: x, w: isWet(), p: 0, f: false, dry: 0 };
-                        emitEvent(`Menanam ${d.icon} ${d.label} di lahan. Siram tiap hari ya!`, 'icon:🌱', at, who); return;
-                    }
-                    const d = GDEF[p.s];
-                    if (p.p >= d.days) {
-                        if (bagRoom(who, d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                        addBag(who, d.key, d.yield);
-                        state.plots[i] = {};
-                        emitEvent(`Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
-                    }
-                    if (!p.w) {
-                        if (x !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
-                        if ((state.wb[who] ?? WATER_MAX) <= 0) { emitEvent('Air di embermu habis. Isi dulu di sumur 🪣', 'none', null, who); return; }
-                        state.wb[who] = (state.wb[who] ?? WATER_MAX) - 1;
-                        p.w = true; p.dry = 0;
-                        emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
-                    }
-                    if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
-                    emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
-                },
-            }));
             // ⛏️ boulders: stone, sometimes ore
             ROCK_POS.forEach((pos, i) => L.push({
                 id: 'rock:' + i, pos, reach: 1.6, tool: true, when: () => !state.rocks[i],
@@ -4830,6 +4990,93 @@
         };
         const INTERACTABLES = interactables();
         let focus = null;
+        // the square of ground just in front of you
+        const TILE_IT = {
+            id: 'tile', ix: 0, iz: 0, pos: new THREE.Vector3(), reach: 99,
+            label() {
+                const { ix, iz } = TILE_IT, p = state.tiles[tileKey(ix, iz)], h = heldItem() || '';
+                if (!p) {
+                    if (tool !== 'cangkul') return `Cangkul tanahnya dulu 🪏 · ${toolHint('cangkul')}`;
+                    const why = tillWhy(ix, iz);
+                    return why ? `🚫 ${why}` : 'Cangkul tanah ini 🪏';
+                }
+                if (!p.s) {
+                    if (h.startsWith('b_') && GDEF[h.slice(2)]) { const d = GDEF[h.slice(2)]; return `Tanam ${d.icon} ${d.label} di sini 🌱`; }
+                    if (h.startsWith('p_') && FDEF[h.slice(2)]) { const f = FDEF[h.slice(2)], why = treeWhy(f, ix, iz); return why ? `🚫 ${why}` : `Tanam bibit ${f.icon} ${f.label} · ${BIG_TREE(f) ? 'lahan 3×3' : '1 kotak'} 🌳`; }
+                    return 'Tanah siap ditanami · pilih sayur, tanaman hias, atau pohon buah 🌱';
+                }
+                const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
+                if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
+                if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
+                if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
+                return `${d.icon} ${d.label} · ${isWet() ? 'disiram hujan 🌧️ · ' : ''}siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
+            },
+            choose(cb) {
+                const { ix, iz } = TILE_IT, p = state.tiles[tileKey(ix, iz)], h = heldItem() || '', send = a => cb(`${ix}|${iz}|${a}`);
+                if (!p) {
+                    if (tool !== 'cangkul') { toast(`Cangkul tanahnya dulu 🪏 · ${toolHint('cangkul')} dari kotak perkakas 🧰`); return; }
+                    const why = tillWhy(ix, iz);
+                    if (why) { toast(`${why} · tidak bisa dicangkul`); return; }
+                    send('cangkul'); return;
+                }
+                if (!p.s) {
+                    if (h.startsWith('b_') && GDEF[h.slice(2)]) { send(h); return; }
+                    if (h.startsWith('p_') && FDEF[h.slice(2)]) { const why = treeWhy(FDEF[h.slice(2)], ix, iz); if (why) toast(why); else send(h); return; }
+                    openPlantMenu(ix, iz, send); return;
+                }
+                send(tool);
+            },
+        };
+        let plantTab = 'veg';
+        function openPlantMenu(ix, iz, send) {
+            const tabs = [['veg', '🥬 Sayur'], ['hias', '🌸 Tanaman hias'], ['pohon', '🌳 Pohon buah']];
+            const opts = plantTab === 'pohon'
+                ? FRUIT_DEFS.filter(f => have(USER, 'p_' + f.key) > 0).map(f => {
+                    const why = treeWhy(f, ix, iz);
+                    const b = el('button', { class: 'btn', onclick: () => { closeDlg(); send('p_' + f.key); } }, `${f.icon} ${f.label}`, el('small', { text: ` ×${have(USER, 'p_' + f.key)} · ${BIG_TREE(f) ? 'lahan 3×3' : '1 kotak'}${why ? ' · ' + why : ''}` }));
+                    if (why) b.disabled = true;
+                    return b;
+                })
+                : GARDEN.filter(g => g.type === plantTab && have(USER, 'b_' + g.key) > 0).map(g =>
+                    el('button', { class: 'btn', onclick: () => { closeDlg(); send('b_' + g.key); } }, `${g.icon} ${g.label}`, el('small', { text: ` ×${have(USER, 'b_' + g.key)} · ${g.days} hari` })));
+            openDlg('🌱 Tanam apa di sini?', [
+                el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === plantTab ? ' on' : ''), onclick: () => { plantTab = k; openPlantMenu(ix, iz, send); } }, t))),
+                plantTab === 'pohon' ? el('p', { class: 'small-note', text: 'Pohon buah besar (mangga, durian, kelapa, pisang, pepaya, jeruk, anggur, dll.) butuh lahan 3×3 kotak: kotak tengah dicangkul, 8 kotak di sekelilingnya kosong. Tanaman buah kecil (salak, nanas, stroberi, semangka, melon) cukup 1 kotak.' }) : null,
+                opts.length ? el('div', { class: 'seedgrid' }, opts) : el('p', { class: 'small-note', text: 'Belum ada di tasmu. Beli lewat laptop 💻 di rumah, atau ambil dari kotak penyimpanan 📦.' }),
+            ].filter(Boolean));
+        }
+        const ptreeIts = new Map();
+        function ptreeIt(d) {
+            const key = ptreeKey(d);
+            let it = ptreeIts.get(key);
+            if (it) return it;
+            const f = FDEF[d.k], { x, z } = d, cur = () => state.ptrees.find(t => t.x === x && t.z === z && t.k === f.key);
+            it = {
+                id: 'ptree', pos: new THREE.Vector3(x, 0, z), reach: BIG_TREE(f) ? 2.2 : 1.3,
+                label() {
+                    const t = cur();
+                    if (!t) return '';
+                    const name = `${f.icon} ${f.label}`, G = TREE_GROW(f);
+                    if (t.r > 0) return `Panen ${name} (${t.r})`;
+                    if (tool === 'kapak') return `Tebang ${f.label} 🪓`;
+                    if (seasonOf(state.day).key === 'dingin') return `${name} · ❄️ istirahat di musim dingin`;
+                    const stage = t.g < G ? `🌱 tumbuh besar ${G - t.g} hari lagi` : `berbuah ${Math.max(1, f.cycle - t.p)} hari lagi`;
+                    if (isWet()) return `${name} · disiram hujan 🌧️ · ${stage}`;
+                    if (!t.w) return tool === 'penyiram' ? `Siram ${name}${t.dry >= 2 ? ' (mulai layu!)' : ''} · 💧${myWater()}/${WATER_MAX}` : `${name} perlu disiram · ${toolHint('penyiram')}`;
+                    return `${name} · ${stage}`;
+                },
+                choose(cb) {
+                    const t = cur();
+                    if (t && tool === 'kapak' && !(t.r > 0)) {
+                        openDlg('🪓 Tebang pohon?', [el('p', { text: `${f.icon} ${f.label} ini akan ditebang dan lahannya kosong lagi. Yakin?` })], [{ t: '🪓 Tebang', big: true, f: () => cb(`${x}|${z}|kapak`) }, { t: 'Batal' }]);
+                        return;
+                    }
+                    cb(`${x}|${z}|${tool}`);
+                },
+            };
+            ptreeIts.set(key, it);
+            return it;
+        }
 
         function findFocus() {
             let best = null, bestD = Infinity;
@@ -4838,8 +5085,35 @@
                 const d = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
                 if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
+            for (const t of state.ptrees) {
+                if (!FDEF[t.k]) continue;
+                const it = ptreeIt(t), d = Math.hypot(t.x - player.pos.x, t.z - player.pos.z);
+                if (d < it.reach && d < bestD) { best = it; bestD = d; }
+            }
+            if (!inHome(player.pos) && !player.sit) {
+                const h = player.heading, ix = Math.round(player.pos.x + Math.sin(h) * 0.8), iz = Math.round(player.pos.z + Math.cos(h) * 0.8);
+                const p = state.tiles[tileKey(ix, iz)], held = heldItem() || '', seedy = held.startsWith('b_') || held.startsWith('p_');
+                if (p || (tool === 'cangkul' && (!best || !tillWhy(ix, iz))) || (seedy && !best)) {
+                    TILE_IT.ix = ix; TILE_IT.iz = iz; TILE_IT.pos.set(ix, 0, iz);
+                    return TILE_IT;
+                }
+            }
             if (!best && RECIPES.some(r => r.key === heldItem())) return EAT_HERE;
             return best;
+        }
+        // a frame on the ground shows which square the hoe or the seed goes to
+        const tileMark = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x7cff6a, transparent: true, opacity: 0.5, depthWrite: false }));
+        tileMark.visible = false; scene.add(tileMark);
+        function updateTileMark() {
+            tileMark.visible = focus === TILE_IT;
+            if (!tileMark.visible) return;
+            const { ix, iz } = TILE_IT, p = state.tiles[tileKey(ix, iz)], h = heldItem() || '';
+            let ok = true, size = 1;
+            if (!p) ok = tool === 'cangkul' && !tillWhy(ix, iz);
+            else if (!p.s && h.startsWith('p_') && FDEF[h.slice(2)]) { const f = FDEF[h.slice(2)]; size = BIG_TREE(f) ? 3 : 1; ok = !treeWhy(f, ix, iz); }
+            tileMark.scale.set(size * 0.98, 1, size * 0.98);
+            tileMark.position.set(ix, 0.1, iz);
+            tileMark.material.color.setHex(ok ? 0x7cff6a : 0xff5a4a);
         }
 
         function interact() {
@@ -5108,7 +5382,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools)],
-                    pl: state.plots.map(encPot), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
@@ -5200,7 +5474,8 @@
             if (WEATHER_INFO[w.we]) state.weather = w.we;
             if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
             if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]) };
-            if (Array.isArray(w.pl) && w.pl.length === PLOT_POS.length) state.plots = w.pl.map(decPot);
+            if (typeof w.ti === 'string') state.tiles = decTiles(w.ti);
+            if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && FRUIT_DEFS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: FRUIT_DEFS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
             if (Array.isArray(w.rk) && w.rk.length === ROCK_POS.length) state.rocks = w.rk.map(v => v ? 1 : 0);
             if (Array.isArray(w.lg) && w.lg.length === WOOD_POS.length) state.logs = w.lg.map(v => ({ s: Array.isArray(v) ? +v[0] || 0 : 0, hp: Array.isArray(v) ? +v[1] || 0 : 3, d: 0 }));
             if (Array.isArray(w.wq) && w.wq.length === WEED_POS.length) state.weeds = w.wq.map(v => v ? 1 : 0);
@@ -5435,14 +5710,18 @@
                 state.weather = pickWeather(newSeason);
                 if (isWet()) for (const f of FRUIT_DEFS) { state.trees[f.key].w = true; state.trees[f.key].dry = 0; }
                 if (rainOnRoof(newSeason)) for (const p of state.pots) if (p && p.s) { p.w = true; p.dry = 0; }
-                if (isWet()) for (const p of state.plots) if (p && p.s) { p.w = true; p.dry = 0; }
+                growTrees(winter);
+                // hoed ground left unplanted for 3 days turns back into grass
+                for (const [k, t] of Object.entries(state.tiles)) if (!t.s && state.day + 1 - (t.e || 0) >= 3) delete state.tiles[k];
+                if (isWet()) for (const t of Object.values(state.tiles)) if (t.s) { t.w = true; t.dry = 0; }
+                if (isWet()) for (const t of state.ptrees) { t.w = true; t.dry = 0; }
                 // overnight: half the broken rocks are back, felled trees regrow, new weeds come up
                 state.rocks = state.rocks.map(v => v && Math.random() < 0.5 ? 0 : v);
                 for (const l of state.logs) {
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length); state.weeds[i] = 1; }
+                for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 state.day++;
                 state.minutes = WAKE_MIN;
                 // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
@@ -5785,6 +6064,7 @@
             updateWeatherFx(dt, started && inHome(player.pos) && homeScene ? homeScene : scene);
             weatherAudio();
             updatePlants(elapsed);
+            updatePTrees(elapsed);
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
@@ -5801,6 +6081,7 @@
 
             syncTool();
             focus = started && !sleeping && !travelling && !dlgOpen() ? findFocus() : null;
+            updateTileMark();
             const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
             if (html !== lastPrompt) {
                 lastPrompt = html;
@@ -5842,7 +6123,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = FRUIT_DEFS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
