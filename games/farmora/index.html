@@ -329,6 +329,9 @@
         .itemgrid .item.on { background: #ffe08a; border-color: #d18a1a; }
         .itemgrid .item:disabled { opacity: .45; cursor: default; }
         .cathead { text-align: left; font-size: 15px; margin-top: 6px; }
+        .fishwrap { display: flex; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; }
+        .fishcv { height: min(400px, 48vh); width: auto; border-radius: 10px; touch-action: none; }
+        .fishhold { width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
         .kithint { font-size: 13px; font-weight: 600; margin: 2px 0 0; }
         .itemgrid .item small { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slotbtn { font-size: 14px; text-align: left; }
@@ -2006,6 +2009,30 @@
             sepatu: { label: 'Sepatu bot tua', icon: '👢', price: 2 },
         };
         for (const f of ALL_FRUITS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
+        // 🎣 freshwater fish: d = how hard it fights (1–100), m = how it moves on the line,
+        // where = big pond / duck pond / both, time = when it bites best, w = how common
+        const FISH = [
+            { key: 'wader', label: 'Ikan wader', icon: '🐟', price: 30, d: 12, m: 'smooth', where: 'both', time: 'any', w: 10 },
+            { key: 'sepat', label: 'Ikan sepat', icon: '🐠', price: 40, d: 18, m: 'mixed', where: 'both', time: 'any', w: 9 },
+            { key: 'mujair', label: 'Ikan mujair', icon: '🐟', price: 60, d: 24, m: 'mixed', where: 'both', time: 'any', w: 10 },
+            { key: 'ikanmas', label: 'Ikan mas', icon: '🐟', price: 70, d: 28, m: 'smooth', where: 'both', time: 'any', w: 10 },
+            { key: 'nila', label: 'Ikan nila', icon: '🐠', price: 90, d: 30, m: 'mixed', where: 'both', time: 'any', w: 10 },
+            { key: 'lele', label: 'Ikan lele', icon: '🐟', price: 80, d: 35, m: 'sinker', where: 'both', time: 'night', w: 8 },
+            { key: 'tawes', label: 'Ikan tawes', icon: '🐟', price: 65, d: 34, m: 'mixed', where: 'big', time: 'any', w: 7 },
+            { key: 'betok', label: 'Ikan betok', icon: '🐠', price: 55, d: 42, m: 'dart', where: 'small', time: 'any', w: 6 },
+            { key: 'bawal', label: 'Ikan bawal', icon: '🐡', price: 120, d: 45, m: 'mixed', where: 'big', time: 'any', w: 6 },
+            { key: 'patin', label: 'Ikan patin', icon: '🐟', price: 140, d: 50, m: 'sinker', where: 'big', time: 'any', w: 5 },
+            { key: 'gurame', label: 'Ikan gurame', icon: '🐡', price: 160, d: 55, m: 'smooth', where: 'big', time: 'any', w: 5 },
+            { key: 'baung', label: 'Ikan baung', icon: '🐟', price: 170, d: 60, m: 'sinker', where: 'big', time: 'night', w: 3 },
+            { key: 'udang', label: 'Udang galah', icon: '🦐', price: 220, d: 60, m: 'dart', where: 'big', time: 'any', w: 3 },
+            { key: 'gabus', label: 'Ikan gabus', icon: '🐟', price: 180, d: 65, m: 'dart', where: 'both', time: 'morning', w: 3 },
+            { key: 'belut', label: 'Belut', icon: '🐍', price: 150, d: 70, m: 'dart', where: 'small', time: 'night', w: 3 },
+            { key: 'toman', label: 'Ikan toman', icon: '🐟', price: 300, d: 80, m: 'dart', where: 'big', time: 'any', w: 1.5 },
+            { key: 'sidat', label: 'Ikan sidat', icon: '🐍', price: 380, d: 85, m: 'mixed', where: 'big', time: 'night', w: 1 },
+            { key: 'arwana', label: 'Ikan arwana', icon: '🐉', price: 1500, d: 95, m: 'floater', where: 'big', time: 'any', w: 0.4 },
+        ];
+        const FISH_DEF = Object.fromEntries(FISH.map(f => [f.key, f]));
+        for (const f of FISH) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
         // ---------- Rooftop garden, shop and kitchen data ----------
         // days = nights of watering until ready, roughly following each plant's real growing time
         const GARDEN = [
@@ -2098,7 +2125,7 @@
             SUPPLIES[k] = { label: PRODUCTS[k].label, icon: PRODUCTS[k].icon, price: own ? Math.max(buy, Math.ceil(own.price * 1.6 / 5) * 5) : buy, ing: true, note: own ? 'Bisa ditanam sendiri, juga dijual di pasar' : 'Bahan dapur dari pasar' };
         }
         // farm produce is on sale online too, dearer than what the shipping bin pays for it
-        for (const k of ['egg', 'milk', 'tomat', 'cabai', 'kangkung', 'sawi', 'kol', 'wortel', 'timun', 'terong', 'daunbawang', 'seledri', 'ikanmas', 'nila', 'gurame', 'pisang', 'kelapa', 'mangga', 'alpukat', 'jambu', 'jagung', 'singkong', 'ubi', 'kacangpanjang', 'buncis', 'labusiam', 'kemangi', 'kedelai', 'jahe', 'kunyit', 'lengkuas', 'serai', 'tebu', 'nangka', 'semangka', 'melon'])
+        for (const k of ['egg', 'milk', 'tomat', 'cabai', 'kangkung', 'sawi', 'kol', 'wortel', 'timun', 'terong', 'daunbawang', 'seledri', 'ikanmas', 'nila', 'gurame', 'lele', 'mujair', 'patin', 'pisang', 'kelapa', 'mangga', 'alpukat', 'jambu', 'jagung', 'singkong', 'ubi', 'kacangpanjang', 'buncis', 'labusiam', 'kemangi', 'kedelai', 'jahe', 'kunyit', 'lengkuas', 'serai', 'tebu', 'nangka', 'semangka', 'melon'])
             SUPPLIES[k] = { label: PRODUCTS[k].label, icon: PRODUCTS[k].icon, price: Math.ceil(PRODUCTS[k].price * 1.6 / 5) * 5, ing: true, note: 'Hasil kebun & peternakan, juga dijual di pasar' };
         // cookware: bought once, kept on the kitchen rack (or in the bag) and never used up
         const COOKWARE = [
@@ -2154,6 +2181,9 @@
             ['nasikuning', 'Nasi kuning', '🌕', { beras: 1, kunyit: 1, kelapa: 1 }, ['penanak', 'panci']],
             ['wedangjahe', 'Wedang jahe', '🥃', { jahe: 1, gula: 1 }, ['panci']],
             ['esbuah', 'Es buah', '🍨', { semangka: 1, melon: 1, gula: 1 }, ['pisau']],
+            ['pecellele', 'Pecel lele', '🍽️', { lele: 1, minyak: 1, cabai: 1, kemangi: 1 }, ['wajan']],
+            ['udanggoreng', 'Udang goreng tepung', '🍤', { udang: 1, tepung: 1, minyak: 1 }, ['wajan']],
+            ['pindangpatin', 'Pindang patin', '🥣', { patin: 1, kunyit: 1, tomat: 1, cabai: 1 }, ['panci']],
         ]) {
             // a dish sells for about half again what its ingredients fetch raw
             const raw = Object.entries(need).reduce((t, [k, n]) => t + (PRODUCTS[k] || RECIPES.find(r => r.key === k)).price * n, 0);
@@ -2208,6 +2238,8 @@
         // drawn icons for the tools (nicer than emoji, and there is no emoji for a hoe or a watering can)
         const TOOL_SVG = {"t_penyiram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M19 27c0-13 21-13 21 0\" fill=\"none\" stroke=\"#21706a\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#21706a\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#5fd0c2\" stroke-width=\"3\" stroke-linecap=\"round\"/><ellipse cx=\"57.5\" cy=\"22.5\" rx=\"4.2\" ry=\"6.4\" transform=\"rotate(45 57.5 22.5)\" fill=\"#ffd25e\" stroke=\"#21706a\" stroke-width=\"2\"/><path d=\"M13 27h30a4 4 0 0 1 4 4v19a7 7 0 0 1-7 7H16a7 7 0 0 1-7-7V31a4 4 0 0 1 4-4z\" fill=\"#4cc3b5\" stroke=\"#21706a\" stroke-width=\"2.6\"/><rect x=\"13\" y=\"31\" width=\"5\" height=\"18\" rx=\"2.5\" fill=\"#fff\" opacity=\".45\"/><circle cx=\"29\" cy=\"42\" r=\"5\" fill=\"#ff8fb3\"/><circle cx=\"29\" cy=\"42\" r=\"2\" fill=\"#ffd25e\"/><path d=\"M9 51h38\" stroke=\"#21706a\" stroke-width=\"2\" opacity=\".35\"/><path d=\"M60 31q2.4 3.6 0 5.2-2.4-1.6 0-5.2z\" fill=\"#58b7f2\"/><path d=\"M54 33q2 3 0 4.4-2-1.4 0-4.4z\" fill=\"#58b7f2\"/></svg>", "t_cangkul": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M52 6 24 46\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M52 6 24 46\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 40 30 46 27 60 4 56z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M8 45 27 50\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".6\"/><rect x=\"20\" y=\"39\" width=\"10\" height=\"10\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_beliung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M38 22 14 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M38 22 14 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 30C14 14 28 8 40 10c12 2 18 12 20 24-6-8-12-14-20-15-10-1-22 3-34 11z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M14 22c8-6 16-8 24-7\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><rect x=\"33\" y=\"12\" width=\"11\" height=\"11\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_kapak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M40 10 16 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M40 10 16 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M33 8c8-6 20-4 26 6-3 9-12 16-22 15z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M50 10c4 2 6 5 7 8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".7\"/><rect x=\"31\" y=\"12\" width=\"9\" height=\"12\" rx=\"2\" transform=\"rotate(27 35 18)\" fill=\"#e05a4e\" stroke=\"#7a2a24\" stroke-width=\"1.8\"/></svg>", "t_pancing": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M8 58 54 6\" stroke=\"#5a3a1c\" stroke-width=\"4.6\" stroke-linecap=\"round\"/><path d=\"M8 58 54 6\" stroke=\"#d9a35c\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M8 58 20 44\" stroke=\"#2d6cdf\" stroke-width=\"6\" stroke-linecap=\"round\"/><circle cx=\"23\" cy=\"48\" r=\"5.5\" fill=\"#ffd25e\" stroke=\"#7a5a12\" stroke-width=\"2\"/><circle cx=\"23\" cy=\"48\" r=\"1.8\" fill=\"#7a5a12\"/><path d=\"M54 6c3 10 4 20 2 30\" fill=\"none\" stroke=\"#6f7a85\" stroke-width=\"1.4\"/><circle cx=\"56\" cy=\"40\" r=\"4.6\" fill=\"#fff\" stroke=\"#b3261e\" stroke-width=\"2\"/><path d=\"M51.4 40a4.6 4.6 0 0 1 9.2 0z\" fill=\"#e53935\"/></svg>", "t_sabit": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M30 44 14 60\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M30 44 14 60\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M30 44C14 30 22 6 46 6c10 0 16 6 16 13-6-7-14-9-22-6-12 5-14 18-6 27z\" fill=\"#c4ccd4\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M44 10c-12 1-18 9-17 18\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><circle cx=\"30\" cy=\"44\" r=\"3.4\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.6\"/></svg>"};
         const TOOL_IMG = {};
+        // drawn fish
+        Object.assign(TOOL_SVG, {"wader": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 22 Q57 32 61 42 Z\" fill=\"#9aa7b1\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 23 Q30 15 38 24\" fill=\"#9aa7b1\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"10\" fill=\"#c9d3da\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 41 46 34\" fill=\"none\" stroke=\"#eef2f4\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "sepat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#6a7a4a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#6a7a4a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#8a9a6a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#d8dcb8\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#4a5a30\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "mujair": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#4a5662\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#4a5662\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#6a7682\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#c8cfd6\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "ikanmas": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#e07a20\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#e07a20\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#f2a33a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#ffe0a0\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "nila": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#d8584a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#d8584a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#9aa8b8\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#e6eaee\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#5a6878\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "lele": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#34343a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#4a4a52\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#9a9aa2\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "tawes": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#e0b84a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#e0b84a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#d8dde0\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#f6f6f2\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "betok": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 22 Q57 32 61 42 Z\" fill=\"#5a6a3a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 23 Q30 15 38 24\" fill=\"#5a6a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"10\" fill=\"#7a8a5a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 41 46 34\" fill=\"none\" stroke=\"#c8c89a\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 25 L18 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 25 L27 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 25 L36 39\" stroke=\"#3a4a2a\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "bawal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#c84a3a\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#c84a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#8a9098\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#d8dce0\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "patin": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#8a96a2\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#b8c0c8\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#f2f4f6\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "gurame": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M46 32 L61 18 Q57 32 61 46 Z\" fill=\"#8a7a52\" stroke=\"#23303a\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M22 19 Q30 11 38 20\" fill=\"#8a7a52\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"27\" cy=\"32\" rx=\"22\" ry=\"14\" fill=\"#c8b48a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M10 34 Q28 45 46 34\" fill=\"none\" stroke=\"#efe6cc\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M20 21 L18 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M29 21 L27 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M38 21 L36 43\" stroke=\"#8a7a52\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"14\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"14\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "baung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#5a4a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#8a7a6a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#d8ccbc\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>", "udang": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M14 22 Q40 8 52 30 Q56 44 42 50 L36 44 Q46 38 42 30 Q34 20 18 30 Z\" fill=\"#f08a5a\" stroke=\"#7a3a1e\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M42 50 L34 58 L48 56 Z\" fill=\"#e8734a\" stroke=\"#7a3a1e\" stroke-width=\"2\"/><path d=\"M28 20 L30 32 M36 20 L38 30 M44 24 L44 34\" stroke=\"#c45a34\" stroke-width=\"2\"/><path d=\"M16 24 Q4 10 2 4 M18 26 Q8 18 6 14\" fill=\"none\" stroke=\"#7a3a1e\" stroke-width=\"1.8\"/><path d=\"M14 28 Q4 34 2 44\" fill=\"none\" stroke=\"#4a6fa5\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><circle cx=\"20\" cy=\"24\" r=\"2\" fill=\"#111\"/></svg>", "gabus": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#3a3a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#5a5a4a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#c8c0a0\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M10 28 L8 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M19 28 L17 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M28 28 L26 36\" stroke=\"#2a2a1e\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "belut": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#7a6a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#a08a3a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#e8d88a\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "toman": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#e05a3a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#3f5a4a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#c8d8b8\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M10 28 L8 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M19 28 L17 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M28 28 L26 36\" stroke=\"#24362c\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "sidat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#2a3a2a\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#3a4a3a\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#a8b8a0\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/></svg>", "arwana": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M50 32 Q58 26 62 30 Q58 34 62 38 Q58 40 50 32Z\" fill=\"#e0a020\" stroke=\"#23303a\" stroke-width=\"2\"/><ellipse cx=\"22\" cy=\"32\" rx=\"27\" ry=\"7\" fill=\"#f2c94c\" stroke=\"#23303a\" stroke-width=\"2.5\"/><path d=\"M0 34 Q23 38 46 34\" fill=\"none\" stroke=\"#fff3b0\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"18\" cy=\"29\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"25\" cy=\"33\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"32\" cy=\"29\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"39\" cy=\"33\" r=\"2.4\" fill=\"#fff3b0\" opacity=\".8\"/><circle cx=\"4\" cy=\"29\" r=\"2.8\" fill=\"#fff\"/><circle cx=\"4\" cy=\"29\" r=\"1.6\" fill=\"#111\"/><path d=\"M-1 33 q-5 3 -6 9 M0 34 q-2 5 1 10 M-1 31 q-5 -3 -6 -8\" fill=\"none\" stroke=\"#23303a\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>"});
         // drawn cookware too
         Object.assign(TOOL_SVG, {"k_pisau": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"5\" y=\"30\" width=\"46\" height=\"27\" rx=\"6\" fill=\"#d39a5e\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><circle cx=\"44\" cy=\"37\" r=\"3\" fill=\"#8a5a2b\"/><path d=\"M12 47 L44 15 Q50 10 54 14 L22 50 Z\" fill=\"#e3e8ec\" stroke=\"#6b7680\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M44 15 L54 5 Q59 3 60 8 L54 14 Z\" fill=\"#3b2a1e\" stroke=\"#2a1d14\" stroke-width=\"2\" stroke-linejoin=\"round\"/></svg>", "k_wajan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M4 30 H46 Q44 52 25 52 Q6 52 4 30 Z\" fill=\"#3a3f45\" stroke=\"#1f2327\" stroke-width=\"3\" stroke-linejoin=\"round\"/><ellipse cx=\"25\" cy=\"30\" rx=\"21\" ry=\"5\" fill=\"#59616a\" stroke=\"#1f2327\" stroke-width=\"3\"/><rect x=\"45\" y=\"26\" width=\"17\" height=\"6\" rx=\"3\" fill=\"#8a5a2b\" stroke=\"#5e3a17\" stroke-width=\"2\"/><path d=\"M14 22 q3 -6 0 -12 M25 22 q3 -6 0 -12 M36 22 q3 -6 0 -12\" fill=\"none\" stroke=\"#b9c3cc\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>", "k_panci": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"12\" y=\"26\" width=\"40\" height=\"28\" rx=\"5\" fill=\"#c7cfd6\" stroke=\"#5f6b75\" stroke-width=\"3\"/><rect x=\"3\" y=\"31\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#3b2a1e\"/><rect x=\"51\" y=\"31\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#3b2a1e\"/><path d=\"M9 26 Q32 12 55 26 Z\" fill=\"#dfe5ea\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"15\" r=\"4\" fill=\"#3b2a1e\"/><rect x=\"16\" y=\"40\" width=\"32\" height=\"3\" fill=\"#aab4bd\"/></svg>", "k_cobek": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M4 36 H60 Q56 56 32 56 Q8 56 4 36 Z\" fill=\"#6f6a66\" stroke=\"#3d3936\" stroke-width=\"3\" stroke-linejoin=\"round\"/><ellipse cx=\"32\" cy=\"36\" rx=\"28\" ry=\"6\" fill=\"#8c8580\" stroke=\"#3d3936\" stroke-width=\"3\"/><ellipse cx=\"32\" cy=\"36\" rx=\"18\" ry=\"3\" fill=\"#d6452f\"/><path d=\"M30 34 L50 8\" stroke=\"#3d3936\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M30 34 L50 8\" stroke=\"#8c8580\" stroke-width=\"6\" stroke-linecap=\"round\"/></svg>", "k_kukusan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M14 26 H50 L54 56 H10 Z\" fill=\"#c7cfd6\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M12 38 H52\" stroke=\"#5f6b75\" stroke-width=\"2.5\"/><path d=\"M10 26 Q32 10 54 26 Z\" fill=\"#dfe5ea\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"15\" r=\"3.5\" fill=\"#3b2a1e\"/><path d=\"M20 9 q-3 -4 0 -8 M44 9 q-3 -4 0 -8\" fill=\"none\" stroke=\"#9fb3c4\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>", "k_panggangan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M6 34 H58 L52 54 H12 Z\" fill=\"#4a4f55\" stroke=\"#22262a\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M14 54 L10 62 M50 54 L54 62\" stroke=\"#22262a\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M14 34 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0\" fill=\"#f2702a\" stroke=\"#c43d1d\" stroke-width=\"2\"/><path d=\"M6 30 H58\" stroke=\"#8d969e\" stroke-width=\"3\"/><path d=\"M8 22 L56 14 M8 28 L56 20\" stroke=\"#c89b63\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"24\" cy=\"19\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"34\" cy=\"17.5\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"28\" cy=\"24.5\" r=\"3.5\" fill=\"#a0522d\"/><circle cx=\"38\" cy=\"23\" r=\"3.5\" fill=\"#a0522d\"/></svg>", "k_penanak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect x=\"8\" y=\"22\" width=\"48\" height=\"34\" rx=\"12\" fill=\"#f4f1ea\" stroke=\"#7a7268\" stroke-width=\"3\"/><path d=\"M10 28 Q32 6 54 28 Z\" fill=\"#e7e1d6\" stroke=\"#7a7268\" stroke-width=\"3\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"12\" width=\"12\" height=\"5\" rx=\"2.5\" fill=\"#7a7268\"/><rect x=\"22\" y=\"38\" width=\"20\" height=\"10\" rx=\"3\" fill=\"#cfd8dc\" stroke=\"#7a7268\" stroke-width=\"2\"/><circle cx=\"28\" cy=\"43\" r=\"2.5\" fill=\"#e74c3c\"/><circle cx=\"36\" cy=\"43\" r=\"2.5\" fill=\"#2ecc71\"/></svg>", "k_blender": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M18 6 H46 L42 42 H22 Z\" fill=\"#dff3ff\" fill-opacity=\".85\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M20 22 H44 L42 42 H22 Z\" fill=\"#7cc35a\"/><path d=\"M46 12 H52 V30 H44\" fill=\"none\" stroke=\"#5f6b75\" stroke-width=\"3\" stroke-linejoin=\"round\"/><rect x=\"14\" y=\"42\" width=\"36\" height=\"16\" rx=\"4\" fill=\"#3a3f45\" stroke=\"#1f2327\" stroke-width=\"2\"/><circle cx=\"32\" cy=\"50\" r=\"3.5\" fill=\"#e74c3c\"/><rect x=\"16\" y=\"3\" width=\"32\" height=\"5\" rx=\"2\" fill=\"#3a3f45\"/></svg>"});
         for (const [k, v] of Object.entries(TOOL_SVG)) TOOL_IMG[k] = 'data:image/svg+xml,' + encodeURIComponent(v);
@@ -4297,7 +4329,7 @@
         const CAT_OF = {};
         for (const [c, ks] of Object.entries({
             berat: 'nasi nasgor uduk nasikuning bubur migoreng miayam soto gudeg',
-            lauk: 'dadar tumis sop ikanbakar opor rendang sate gado lodeh tempegoreng pepes guramegoreng sayurasem tumisbuncis sambal salad',
+            lauk: 'pecellele udanggoreng pindangpatin dadar tumis sop ikanbakar opor rendang sate gado lodeh tempegoreng pepes guramegoreng sayurasem tumisbuncis sambal salad',
             camilan: 'bakwan martabak pisgor perkedeljagung jagungbakar singkonggoreng rujak',
             penutup: 'puding kolak getuk tape kolakubi buburjagung esbuah',
             minuman: 'jus esteh kopisusu jusalpukat wedangjahe',
@@ -4839,11 +4871,12 @@
                 if (inBag < cnt) fr[ok] = (fr[ok] || 0) + cnt - inBag;
                 emitEvent(`${r.out ? 'Membuat' : 'Memasak'} ${r.icon} ${r.label}${cnt > 1 ? ' ×' + cnt : ''}!${inBag >= cnt ? '' : ' Tas penuh, sisanya disimpan di kulkas.'}`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
             },
-            catch(who) {
-                // what bites: mostly carp and tilapia, now and then a gourami, sometimes an old boot
-                const roll = Math.random(), k = roll < 0.42 ? 'ikanmas' : roll < 0.74 ? 'nila' : roll < 0.9 ? 'gurame' : 'sepatu';
+            catch(who, x) {
+                // what bites was decided at the pond; an old boot now and then
+                const k = x === 'sepatu' || FISH_DEF[x] ? x : rollFish(true);
                 if (!addBag(who, k, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                emitEvent(k === 'sepatu' ? 'Eh, yang tersangkut malah 👢 sepatu bot tua 😅' : `Dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}! 🎣`, 'icon:' + PRODUCTS[k].icon, null, who);
+                const f = FISH_DEF[k];
+                emitEvent(k === 'sepatu' ? 'Eh, yang tersangkut malah 👢 sepatu bot tua 😅' : `Dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}!${f.d >= 70 ? ' ⭐ Ikan langka!' : ''} 🎣`, 'icon:' + PRODUCTS[k].icon, null, who);
             },
             eat(who, k) {
                 const r = RECIPES.find(r => r.key === k);
@@ -5173,12 +5206,22 @@
             });
             return L;
         }
-        // fishing: cast, wait for a bite, pull in time
+        // fishing: cast, wait for a bite, strike in time, then reel it in (like Stardew Valley):
+        // hold to lift the green bar, keep the fish inside it until the catch meter is full
         let fishing = null;
+        function rollFish(big) {
+            if (Math.random() < 0.06) return 'sepatu';
+            const h = state.minutes / 60, night = h >= 18 || h < 5, morning = h >= 5 && h < 10;
+            const pool = FISH.filter(f => f.where === 'both' || f.where === (big ? 'big' : 'small'));
+            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1);
+            let r = Math.random() * pool.reduce((t, f) => t + w(f), 0);
+            for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
+            return pool[0].key;
+        }
         function startFishing(at) {
             if (energyOf(USER) < 2) { toast('Capek sekali 😩 Makan atau tidur dulu untuk isi energi ⚡'); return; }
             player.targetHeading = Math.atan2(at.x - player.pos.x, at.z - player.pos.z);
-            const f = fishing = { phase: 'wait', at };
+            const f = fishing = { phase: 'wait', at, big: at.x === POND.x && at.z === POND.z };
             const view = () => {
                 if (fishing !== f) return;
                 const txt = { wait: '🎣 Kail dilempar… tunggu sampai ikan menggigit, lalu tarik!', bite: '‼️ Ikan menggigit! TARIK SEKARANG!', early: 'Terlalu cepat ditarik, ikannya kabur 🐟💨', lost: 'Yah, ikannya lepas 🐟💨' }[f.phase];
@@ -5188,9 +5231,16 @@
                     { t: 'Berhenti', f: () => { fishing = null; } },
                 ]);
             };
+            f.view = view;
             const pull = () => {
                 if (fishing !== f) return;
-                if (f.phase === 'bite') { fishing = null; clearTimeout(f.t); closeDlg(); sendAct('catch'); return; }
+                if (f.phase === 'bite') {
+                    clearTimeout(f.t);
+                    f.key = rollFish(f.big);
+                    if (f.key === 'sepatu') { fishing = null; closeDlg(); sendAct('catch', 'sepatu'); return; }
+                    reel(f);
+                    return;
+                }
                 if (f.phase === 'wait') { clearTimeout(f.t); f.phase = 'early'; view(); }
             };
             view();
@@ -5200,6 +5250,81 @@
                 f.phase = 'bite'; view(); chime([880, 1175], 0.06, 'square', 0.05);
                 f.t = setTimeout(() => { if (fishing === f && f.phase === 'bite') { if (!dlgOpen()) { fishing = null; return; } f.phase = 'lost'; view(); } }, 1400);
             }, 1500 + Math.random() * 3500);
+        }
+        // one step of the reeling mini-game; true while the fish is inside the green bar
+        function fishStep(g, d, dt) {
+            g.t += dt;
+            // the green bar: lifts while held, sinks when let go, bounces off the bottom
+            g.v = clamp(g.v + (g.hold ? 2.7 : -2.3) * dt, -1.5, 1.5);
+            g.y += g.v * dt;
+            if (g.y < 0) { g.y = 0; g.v = -g.v * 0.3; }
+            if (g.y > 1 - g.bar) { g.y = 1 - g.bar; g.v = Math.min(0, g.v); }
+            // the fish darts about: harder fish change their minds more often and further
+            const k = d.d / 100, rate = (0.5 + k * 2.6) * (d.m === 'dart' ? 1.15 : d.m === 'smooth' ? 0.7 : 1);
+            if (Math.random() < rate * dt) {
+                let t = clamp(g.fy + (Math.random() - 0.5) * (0.35 + k * 0.9), 0.03, 0.97);
+                if (d.m === 'sinker') t = t * 0.75; else if (d.m === 'floater') t = 0.25 + t * 0.75;
+                g.tgt = t;
+            }
+            const pull = (2.5 + k * 10) * (d.m === 'dart' ? 1.0 : d.m === 'smooth' ? 0.75 : 1);
+            g.fv += ((g.tgt - g.fy) * pull - g.fv) * Math.min(1, dt * (2.5 + k * 6));
+            g.fy = clamp(g.fy + g.fv * dt, 0.03, 0.97);
+            // the catch meter fills while the fish is in the bar and drains when it is out
+            const inBar = g.fy >= g.y && g.fy <= g.y + g.bar;
+            g.p = clamp(g.p + (inBar ? 0.28 : -(0.14 + k * 0.25)) * dt, 0, 1);
+            return inBar;
+        }
+        const FISH_IMG = {};
+        function reel(f) {
+            const d = FISH_DEF[f.key], W = 150, H = 400, TOP = 14, BOT = H - 14, SPAN = BOT - TOP;
+            const img = FISH_IMG[f.key] ||= Object.assign(new Image(), { src: TOOL_IMG[f.key] || '' });
+            const g = f.game = { bar: d.d < 30 ? 0.3 : 0.26, y: 0, v: 0, fy: 0.25, fv: 0, tgt: 0.4, p: 0.3, hold: false, t: 0 };
+            f.phase = 'reel';
+            const cv = el('canvas', { class: 'fishcv', width: String(W), height: String(H) });
+            const hold = v => e => { if (e && e.cancelable) e.preventDefault(); g.hold = v; };
+            const btn = el('button', { class: 'btn big fishhold' }, '⬆️ Tahan untuk menarik');
+            for (const n of [cv, btn]) {
+                n.addEventListener('pointerdown', hold(true)); n.addEventListener('pointerup', hold(false));
+                n.addEventListener('pointercancel', hold(false)); n.addEventListener('pointerleave', hold(false));
+                n.addEventListener('contextmenu', e => e.preventDefault());
+            }
+            const KEYS = ['Space', 'ArrowUp', 'KeyW', 'KeyE', 'Enter'];
+            const kd = e => { if (KEYS.includes(e.code)) { e.preventDefault(); g.hold = true; } }, ku = e => { if (KEYS.includes(e.code)) g.hold = false; };
+            window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+            const done = () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); };
+            const warn = d.d >= 80 ? '⭐ Tarikannya kuat sekali! Sepertinya ikan langka…' : d.d >= 55 ? '💪 Tarikannya kuat!' : 'Tarikannya ringan.';
+            openDlg('🎣 Tarik ikannya!', [
+                el('p', { class: 'small-note', text: `Tahan tombol (atau layar, Spasi) supaya bar hijau naik; lepas supaya turun. Jaga ikan tetap di dalam bar hijau sampai meteran penuh. ${warn}` }),
+                el('div', { class: 'fishwrap' }, cv), btn,
+            ], [{ t: 'Lepaskan', f: () => { fishing = null; } }]);
+            const ctx = cv.getContext('2d');
+            const yOf = v => BOT - v * SPAN;
+            let last = performance.now();
+            const step = now => {
+                if (fishing !== f || !dlgOpen() || f.phase !== 'reel') { done(); if (fishing === f && f.phase === 'reel') fishing = null; return; }
+                // physics in steady 1/60 s steps, so a slow phone plays at the same speed
+                let acc = Math.min(0.25, (now - last) / 1000), inBar = false; last = now;
+                while (acc > 1e-4) { const h = Math.min(1 / 60, acc); inBar = fishStep(g, d, h); acc -= h; }
+                // draw it
+                ctx.clearRect(0, 0, W, H);
+                ctx.fillStyle = '#8b5a2b'; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#c89b63'; ctx.fillRect(4, 4, W - 8, H - 8);
+                const wg = ctx.createLinearGradient(0, TOP, 0, BOT); wg.addColorStop(0, '#9fd8ff'); wg.addColorStop(1, '#2f6fae');
+                ctx.fillStyle = wg; ctx.fillRect(18, TOP, 80, SPAN);
+                ctx.fillStyle = inBar ? 'rgba(124,230,90,.9)' : 'rgba(110,200,80,.7)';
+                ctx.fillRect(20, yOf(g.y + g.bar), 76, g.bar * SPAN);
+                ctx.strokeStyle = '#2f7a2a'; ctx.lineWidth = 2; ctx.strokeRect(20, yOf(g.y + g.bar), 76, g.bar * SPAN);
+                const fy = yOf(g.fy), wob = Math.sin(g.t * 14) * 0.15;
+                ctx.save(); ctx.translate(58, fy); ctx.rotate(wob);
+                if (img.complete && img.naturalWidth) ctx.drawImage(img, -22, -22, 44, 44); else { ctx.font = '28px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(d.icon, 0, 0); }
+                ctx.restore();
+                ctx.fillStyle = '#5e3a17'; ctx.fillRect(110, TOP, 26, SPAN);
+                ctx.fillStyle = `hsl(${Math.round(g.p * 120)}, 75%, 50%)`; ctx.fillRect(113, BOT - g.p * SPAN, 20, g.p * SPAN);
+                if (g.p >= 1) { done(); fishing = null; closeDlg(); sendAct('catch', f.key); return; }
+                if (g.p <= 0) { done(); f.phase = 'lost'; f.view(); return; }
+                requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
         }
         function openPartnerMenu() {
             openDlg(`💞 ${OTHER}`, [el('p', { text: `Mau apa dengan ${OTHER}?` })], [
@@ -6360,7 +6485,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS }; // handy for debugging in the console
+        window.kebun = { get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, view() { f.phase = "lost"; } }; reel(f); } }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
