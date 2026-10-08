@@ -89,6 +89,20 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (pemain perempuan di kiri, pemain laki-laki di kanan).
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
+## Desa 🏘️ dan crafting 🔨
+- **Pagar keliling farm.** Seluruh batas farm dipagari kayu. Di sisi selatan ada **gerbang "Ke Desa"**; dekati lalu tekan tombol aksi untuk pergi ke desa (dan *Pulang ke farm* dari gerbang desa).
+- **Jalan setapak lama dihapus**; sekarang farm berumput. Jalan bisa dibuat sendiri (jalan batu / papan) di meja kerja.
+- **Desa Farmora** punya jalan utama, air mancur, bangku, lampu, dan enam bangunan. Barang yang dibeli langsung masuk tas (tanpa kurir) dan lebih murah dari toko online:
+  - 🌱 **Toko Bibit:** benih sayur, bibit hias, dan bibit pohon buah (±10% lebih murah).
+  - 🐄 **Toko Hewan:** pakan ternak (±15% lebih murah), langsung masuk karung gudang kandang.
+  - 🧺 **Pasar:** bahan masak (±10% lebih murah).
+  - 🧱 **Toko Bangunan:** kayu, batu, tanah liat, bijih tembaga/besi, pot, dan pupuk untuk crafting.
+  - 🍜 **Warung Makan:** masakan siap makan (untuk energi).
+  - 🏥 **Klinik:** periksa & istirahat (150 G, energi penuh) atau pijat refleksi (60 G, +60 energi).
+- 🔨 **Meja kerja** di sebelah kotak perkakas. Resep: pagar kayu (2 kayu), pagar batu (3 batu), jalan batu ×2 (2 batu), jalan papan ×2 (1 kayu), kursi kayu (4 kayu), bangku taman (4 kayu + 1 besi), lampu taman (kayu + batu + tembaga, menyala saat malam), orang-orangan sawah (3 kayu + 2 rumput), pot (2 tanah liat), dan pupuk kompos (3 rumput).
+- **Memasang barang:** pegang barang hasil crafting di toolbar, hadapkan ke tanah, tekan tombol aksi. Pagar mengikuti arah hadapanmu. Barang tidak bisa dipasang di kandang, di air, di depan pintu atau gerbang, atau menabrak benda lain. Pagar, kursi, bangku, lampu, dan orang-orangan menghalangi jalan; jalan batu dan papan bisa diinjak. Ambil lagi dengan ✋ tangan.
+- **Sumber daya:** kayu (kapak), batu dan bijih (beliung), rumput (sabit), dan baru: 🟤 **tanah liat** yang kadang muncul saat mencangkul (atau dibeli di Toko Bangunan).
+
 ## Karakter dan pakaian 👗
 - Karakter bertubuh proporsional seperti manusia (wajah, rambut, leher, lengan dan kaki terpisah).
 - **Pakaian bisa dipadu:** atasan + bawahan, atau satu pakaian terusan/setelan. Ditambah sepatu dan penutup kepala (boleh juga tanpa alas kaki / tanpa penutup kepala).
