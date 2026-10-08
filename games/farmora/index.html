@@ -2178,7 +2178,7 @@
         const FEED_PRODUCT = { chicken: 'egg', duck: 'duckEgg', cow: 'milk', goat: 'goatMilk', sheep: 'wool' };
         const FEED_NAME = { chicken: 'ayam', duck: 'bebek', cow: 'sapi', goat: 'kambing', sheep: 'domba' };
         for (const k of FEED_KINDS)
-            SUPPLIES['f_' + k] = { label: `Pakan ${FEED_NAME[k]} (${FEED_PACK} porsi)`, icon: '🌾', price: Math.round(PRODUCTS[FEED_PRODUCT[k]].price * 0.25 * FEED_PACK / 5) * 5, feed: k, note: `Langsung masuk gudang pakan kandang ${FEED_NAME[k]}` };
+            SUPPLIES['f_' + k] = { label: `Pakan ${FEED_NAME[k]} (${FEED_PACK} porsi)`, icon: '🌾', price: Math.round(PRODUCTS[FEED_PRODUCT[k]].price * 0.25 * FEED_PACK / 5) * 5, feed: k, note: `Langsung masuk karung gudang pakan kandang ${FEED_NAME[k]}` };
         // Plants sell from the shipping bin; ornamental plants are sold together with their pot
         for (const g of GARDEN) if (!g.out) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
@@ -2316,6 +2316,7 @@
         const BASE_TOOLS = ['tangan', 'penyiram', 'pemeras', 'gunting'];
         const CHEST_TOOLS = ['cangkul', 'beliung', 'kapak', 'pancing', 'sabit', 'sapu'];
         for (const [k, t] of Object.entries(TOOLS)) ITEMS['t_' + k] = { ...t, tool: true };
+        for (const k of FEED_KINDS) ITEMS['pk_' + k] = { label: `Pakan ${FEED_NAME[k]}`, icon: '🌾' };
         // drawn icons for the tools (nicer than emoji, and there is no emoji for a hoe or a watering can)
         const TOOL_SVG = {"t_penyiram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M19 27c0-13 21-13 21 0\" fill=\"none\" stroke=\"#21706a\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#21706a\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M41 41 57 24\" stroke=\"#5fd0c2\" stroke-width=\"3\" stroke-linecap=\"round\"/><ellipse cx=\"57.5\" cy=\"22.5\" rx=\"4.2\" ry=\"6.4\" transform=\"rotate(45 57.5 22.5)\" fill=\"#ffd25e\" stroke=\"#21706a\" stroke-width=\"2\"/><path d=\"M13 27h30a4 4 0 0 1 4 4v19a7 7 0 0 1-7 7H16a7 7 0 0 1-7-7V31a4 4 0 0 1 4-4z\" fill=\"#4cc3b5\" stroke=\"#21706a\" stroke-width=\"2.6\"/><rect x=\"13\" y=\"31\" width=\"5\" height=\"18\" rx=\"2.5\" fill=\"#fff\" opacity=\".45\"/><circle cx=\"29\" cy=\"42\" r=\"5\" fill=\"#ff8fb3\"/><circle cx=\"29\" cy=\"42\" r=\"2\" fill=\"#ffd25e\"/><path d=\"M9 51h38\" stroke=\"#21706a\" stroke-width=\"2\" opacity=\".35\"/><path d=\"M60 31q2.4 3.6 0 5.2-2.4-1.6 0-5.2z\" fill=\"#58b7f2\"/><path d=\"M54 33q2 3 0 4.4-2-1.4 0-4.4z\" fill=\"#58b7f2\"/></svg>", "t_cangkul": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M52 6 24 46\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M52 6 24 46\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 40 30 46 27 60 4 56z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M8 45 27 50\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".6\"/><rect x=\"20\" y=\"39\" width=\"10\" height=\"10\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_beliung": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M38 22 14 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M38 22 14 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M6 30C14 14 28 8 40 10c12 2 18 12 20 24-6-8-12-14-20-15-10-1-22 3-34 11z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M14 22c8-6 16-8 24-7\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><rect x=\"33\" y=\"12\" width=\"11\" height=\"11\" rx=\"2.5\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.8\"/></svg>", "t_kapak": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M40 10 16 58\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M40 10 16 58\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M33 8c8-6 20-4 26 6-3 9-12 16-22 15z\" fill=\"#b8c2cc\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M50 10c4 2 6 5 7 8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".7\"/><rect x=\"31\" y=\"12\" width=\"9\" height=\"12\" rx=\"2\" transform=\"rotate(27 35 18)\" fill=\"#e05a4e\" stroke=\"#7a2a24\" stroke-width=\"1.8\"/></svg>", "t_pancing": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M8 58 54 6\" stroke=\"#5a3a1c\" stroke-width=\"4.6\" stroke-linecap=\"round\"/><path d=\"M8 58 54 6\" stroke=\"#d9a35c\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M8 58 20 44\" stroke=\"#2d6cdf\" stroke-width=\"6\" stroke-linecap=\"round\"/><circle cx=\"23\" cy=\"48\" r=\"5.5\" fill=\"#ffd25e\" stroke=\"#7a5a12\" stroke-width=\"2\"/><circle cx=\"23\" cy=\"48\" r=\"1.8\" fill=\"#7a5a12\"/><path d=\"M54 6c3 10 4 20 2 30\" fill=\"none\" stroke=\"#6f7a85\" stroke-width=\"1.4\"/><circle cx=\"56\" cy=\"40\" r=\"4.6\" fill=\"#fff\" stroke=\"#b3261e\" stroke-width=\"2\"/><path d=\"M51.4 40a4.6 4.6 0 0 1 9.2 0z\" fill=\"#e53935\"/></svg>", "t_sabit": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><path d=\"M30 44 14 60\" stroke=\"#6b3f1f\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M30 44 14 60\" stroke=\"#c98a4b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M30 44C14 30 22 6 46 6c10 0 16 6 16 13-6-7-14-9-22-6-12 5-14 18-6 27z\" fill=\"#c4ccd4\" stroke=\"#46525e\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><path d=\"M44 10c-12 1-18 9-17 18\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".6\"/><circle cx=\"30\" cy=\"44\" r=\"3.4\" fill=\"#7d8996\" stroke=\"#46525e\" stroke-width=\"1.6\"/></svg>"};
         const TOOL_IMG = {};
@@ -2339,6 +2340,8 @@
         const EGG_MAX = 6;
         const POOP_MAX = 5, HEART_MAX = 10;
         const fullFeed = () => Object.fromEntries(FEED_KINDS.map(k => [k, FEED_MAX]));
+        const herdOf = k => ANIMAL_DEFS.filter(d => d.kind === k).length;
+        const fullTroughs = () => Object.fromEntries(FEED_KINDS.map(k => [k, herdOf(k)]));
         function layEggs(st) {
             st.eggs = (st.eggs || []).filter(Boolean);
             for (const d of ANIMAL_DEFS) if (LAYERS.has(d.kind) && d.sex === 'f' && st.eggs.length < EGG_MAX && !(st.animals[d.name] && st.animals[d.name].fed === false)) {
@@ -2895,7 +2898,7 @@
             if (id === 'cook') return 3;
             const p = String(id).split(':')[0];
             if (id === 'catch') return 2;
-            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, poop: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
+            return { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, poop: 1, trough: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
         }
         let warnLate = 0;
         const SAVE_KEY = 'farmora.shared.v2';
@@ -2944,7 +2947,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), poop: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -2987,6 +2990,8 @@
             // barn feed stores (older saves start full) and the droppings in the pens
             st.feed = fullFeed();
             if (saved.feed) for (const k of FEED_KINDS) if (Number.isFinite(saved.feed[k])) st.feed[k] = clamp(Math.floor(saved.feed[k]), 0, FEED_MAX);
+            st.trough = fullTroughs();
+            if (saved.trough) for (const k of FEED_KINDS) if (Number.isFinite(saved.trough[k])) st.trough[k] = clamp(Math.floor(saved.trough[k]), 0, herdOf(k));
             st.poop = (Array.isArray(saved.poop) ? saved.poop : []).filter(p => p && FEED_KINDS.includes(p.k) && Number.isFinite(p.x) && Number.isFinite(p.z)).slice(0, POOP_MAX * FEED_KINDS.length).map(p => ({ k: p.k, x: +p.x, z: +p.z }));
             return st;
         }
@@ -4053,8 +4058,12 @@
                 for (const [x, y, z] of [[-4.3, 0.3, -3.3], [-4.3, 0.9, -3.3], [-3.3, 0.3, -3.3], [4.3, 0.3, 3.0]]) box(0.95, 0.6, 0.7, C.straw, x, y, z, g);
                 col(f, -4.85, -2.8, -3.75, -2.9); col(f, 3.8, 4.85, 2.6, 3.4);
                 box(3, 0.4, 0.5, C.darkWood, 0, 0.2, -3.5, g); col(f, -1.5, 1.5, -3.8, -3.2);
+                if (FEED_KINDS.includes(k)) {
+                    for (const [x, z, r] of [[2.0, -3.35, 0], [2.55, -3.3, 0.4], [2.27, -2.95, -0.3]]) { const sk = ball(0.26, 0.3, 0.22, 0xd8c08a, x, 0.28, z, g); sk.rotation.y = r; box(0.2, 0.05, 0.18, 0xb89a5a, x, 0.6, z, g).rotation.y = r; }
+                    col(f, 1.7, 2.9, -3.7, -2.7);
+                }
                 if (FEED_KINDS.includes(k)) { const hay = box(2.8, 0.16, 0.4, C.straw, 0, 0.42, -3.5, g); hay.geometry.translate(0, 0.08, 0); hay.position.y = 0.34; barnTrough[k] = hay; }
-                const bucket = mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.35, 16), mat(0x6e8ea8), g); bucket.position.set(2.3, 0.18, -3.4);
+                const bucket = mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.35, 16), mat(0x6e8ea8), g); bucket.position.set(-2.3, 0.18, -3.4);
                 const lantern = box(0.25, 0.32, 0.25, new THREE.MeshStandardMaterial({ color: 0xfff1c9, emissive: 0xffc46b, emissiveIntensity: 0.8 }), -4.8, 1.9, 0, g); lantern.castShadow = false;
                 if (LAYERS.has(k)) {
                     // nesting boxes along the east wall
@@ -4181,7 +4190,7 @@
             updateTiles();
             updateFPots();
             updatePoop();
-            for (const k of FEED_KINDS) { const tr = barnTrough[k]; if (tr && tr.parent) { const n = state.feed[k] || 0; tr.visible = n > 0; tr.scale.y = 0.4 + 0.6 * Math.min(1, n / 150); } }
+            for (const k of FEED_KINDS) { const tr = barnTrough[k]; if (tr && tr.parent) { const n = state.trough[k] || 0; tr.visible = n > 0; tr.scale.set(Math.max(0.15, n / herdOf(k)), 1, 1); } }
         }
         function updatePots(force) {
             if (!homeScene) return;
@@ -4972,6 +4981,29 @@
                 if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
+            // 🌾 feeding by hand: scoop portions from the barn's sacks, then put them in the trough (one per animal)
+            feedtake(who, k) {
+                if (!FEED_KINDS.includes(k)) return;
+                const need = herdOf(k) - state.trough[k] - have(who, 'pk_' + k);
+                if (need <= 0) { emitEvent('Pakannya sudah cukup untuk wadah · taruh di wadah pakan 🌾', 'none', null, who); return; }
+                if (!state.feed[k]) { emitEvent(`Gudang pakan kandang ${FEED_NAME[k]} kosong 😞 · beli lewat laptop 💻`, 'none', null, who); return; }
+                const n = addBag(who, 'pk_' + k, Math.min(need, state.feed[k]));
+                if (!n) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                state.feed[k] -= n;
+                emitEvent(`Mengambil ${n} porsi pakan ${FEED_NAME[k]} 🌾 · sisa gudang ${state.feed[k]}`, 'none', null, who);
+            },
+            feedput(who, k) {
+                if (!FEED_KINDS.includes(k)) return;
+                const n = herdOf(k), room = n - state.trough[k], m = Math.min(room, have(who, 'pk_' + k));
+                if (room <= 0) { emitEvent('Wadah pakan sudah penuh 🌾', 'none', null, who); return; }
+                if (!m) { emitEvent('Ambil pakan dari karung di sebelah wadah dulu 🌾', 'none', null, who); return; }
+                takeBag(who, 'pk_' + k, m);
+                state.trough[k] += m;
+                // hungry animals tuck in straight away
+                let ate = 0;
+                for (const an of animals) if (an.kind === k && an.data.fed === false && state.trough[k] > 0) { state.trough[k]--; an.data.fed = true; ate++; }
+                emitEvent(`Menaruh pakan 🌾${ate ? ` · ${ate} ${FEED_NAME[k]} lapar langsung makan 😋` : ''} · wadah ${state.trough[k]}/${n}${state.trough[k] >= n ? ' (penuh)' : ''}`, 'icon:🌾', null, who);
+            },
             // 🧹 sweeping a dropping out of a pen (now and then it makes a little fertilizer)
             poop(who, x) {
                 const [a, b, t] = String(x).split('|'), px = parseFloat(a), pz = parseFloat(b);
@@ -5095,8 +5127,6 @@
                 if (s.feed) {
                     if (state.feed[s.feed] + FEED_PACK > FEED_MAX) { emitEvent(`Gudang pakan kandang ${FEED_NAME[s.feed]} sudah penuh`, 'none', null, who); return; }
                     state.gold -= s.price; state.feed[s.feed] += FEED_PACK;
-                    // hungry animals of that barn eat right away
-                    for (const an of animals) if (an.kind === s.feed && an.data.fed === false && state.feed[s.feed] > 0) { state.feed[s.feed]--; an.data.fed = true; }
                     emitEvent(`${s.label} masuk gudang kandang ${FEED_NAME[s.feed]} 🌾 (${state.feed[s.feed]}/${FEED_MAX})`, 'none', null, who); return;
                 }
                 state.gold -= s.price;
@@ -5198,7 +5228,13 @@
             for (const [k, b] of Object.entries(BARNS)) {
                 const outside = new THREE.Vector3(b.out.x + Math.sin(b.face) * 0.8, 0, b.out.z + Math.cos(b.face) * 0.8);
                 add('barn:' + k, b.out, 1.3, { local: true, label: () => `Masuk ${b.label.toLowerCase()} ${b.icon}`, act: () => travel(HV(b.x, 0, 2.9), Math.PI, '') });
-                if (FEED_KINDS.includes(k)) add('trough:' + k, HV(b.x, 0, -2.9), 1.4, { local: true, label: () => `Wadah pakan ${b.icon} · gudang ${state.feed[k]}/${FEED_MAX} porsi${state.feed[k] ? '' : ' · HABIS!'}`, act: () => toast(state.feed[k] ? `🌾 Pakan terisi sendiri dari gudang kandang: ${state.feed[k]} porsi lagi (1 porsi per hewan tiap malam). Tambah lewat laptop 💻 tab Pakan ternak.` : '😞 Gudang pakan kosong! Hewan di kandang ini lapar. Beli pakan lewat laptop 💻 tab Pakan ternak.') });
+                if (FEED_KINDS.includes(k)) {
+                    add('sack:' + k, HV(b.x + 2.3, 0, -2.3), 1.1, { label: () => `Ambil pakan dari gudang 🌾 (${state.feed[k]}/${FEED_MAX} porsi)`, act: who => ACTIONS.feedtake(who, k) });
+                    add('trough:' + k, HV(b.x, 0, -2.9), 1.4, {
+                        label: () => { const n = herdOf(k), t = state.trough[k], c = have(USER, 'pk_' + k); return c && t < n ? `Taruh pakan di wadah 🌾 (terisi ${t}/${n} · bawa ${c})` : `Wadah pakan ${b.icon} · terisi ${t}/${n}${t < n ? ' · ambil pakan di karung dulu' : ' · penuh'}`; },
+                        act: who => ACTIONS.feedput(who, k),
+                    });
+                }
                 add('barnx:' + k, HV(b.x, 0, 3.5), 1.1, { local: true, label: () => 'Keluar kandang 🚪', act: () => travel(outside, b.face, '') });
             }
             // floor 1
@@ -5302,7 +5338,7 @@
                 label() {
                     const d = a.data;
                     const hearts = ` <span class="hearts">${'♥'.repeat(a.hearts())}${'♡'.repeat(HEART_MAX - a.hearts())}</span>`;
-                    if (d.fed === false && !a.pet) return `${a.name} lapar dan sedih 😞 · pakan kandang habis, beli di laptop 💻${hearts}`;
+                    if (d.fed === false && !a.pet) return `${a.name} lapar dan sedih 😞 · isi wadah pakan di kandang${hearts}`;
                     if (animalsAsleep()) return `${a.name} sedang tidur 💤 ${d.petted ? '' : '· elus pelan-pelan'}${hearts}`;
                     if (!d.petted) return `Elus ${a.name}${hearts}`;
                     if (d.product) { const need = a.product === 'wool' ? 'gunting' : 'pemeras'; return tool === need ? `${a.verb} ${a.name}${hearts}` : `${a.name} siap: ${toolHint(need)}${hearts}`; }
@@ -6132,7 +6168,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit)],
-                    ti: encTiles(), fd: FEED_KINDS.map(k => state.feed[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]) };
@@ -6233,6 +6269,7 @@
             if (Array.isArray(w.eg)) state.eggs = w.eg.slice(0, EGG_MAX).map(e => Array.isArray(e) && e.every(Number.isFinite) ? e : null);
             if (w.an) for (const a of animals) { const v = w.an[a.name]; if (Array.isArray(v)) Object.assign(state.animals[a.name], { friend: +v[0] || 0, petted: !!v[1], product: !!v[2], fed: v[3] !== 0 }); }
             if (Array.isArray(w.fd)) FEED_KINDS.forEach((k, i) => { if (Number.isFinite(w.fd[i])) state.feed[k] = w.fd[i]; });
+            if (Array.isArray(w.tg)) FEED_KINDS.forEach((k, i) => { if (Number.isFinite(w.tg[i])) state.trough[k] = w.tg[i]; });
             if (Array.isArray(w.pp)) state.poop = w.pp.filter(v => Array.isArray(v) && FEED_KINDS[v[0]]).map(v => ({ k: FEED_KINDS[v[0]], x: v[1] / 10, z: v[2] / 10 }));
             if (w.tr) for (const f of FRUIT_DEFS) { const v = w.tr[f.key]; if (Array.isArray(v)) Object.assign(state.trees[f.key], { w: !!v[0], p: +v[1] || 0, r: +v[2] || 0, dry: +v[3] || 0 }); }
             if (w.wb) for (const u of Object.keys(CHARACTERS)) if (Number.isFinite(w.wb[u])) state.wb[u] = w.wb[u];
@@ -6439,7 +6476,7 @@
                     const d = a.data;
                     if (a.pet) { d.petted = false; continue; }
                     let df = d.petted ? 0 : -5;
-                    if ((state.feed[a.kind] || 0) > 0) { state.feed[a.kind]--; d.fed = true; df += 1.5; } else { d.fed = false; df -= 10; }
+                    if ((state.trough[a.kind] || 0) > 0) { state.trough[a.kind]--; d.fed = true; df += 1.5; } else { d.fed = false; df -= 10; }
                     df += dirty(a.kind) ? -3 : 1;
                     if (!a.product) df += 1; else if (LAYERS.has(a.kind) && !eggsLeft(a.kind)) df += 1;
                     d.friend = clamp(d.friend + df, 0, HEART_MAX * 100);
