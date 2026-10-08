@@ -88,7 +88,8 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Tas pribadi 30 slot (3 baris × 10).** Baris paling atas adalah toolbar yang terlihat saat main (tombol 1–0); ketuk 🎒 untuk membuka semua isi tas, lalu tahan-geser (atau ketuk dua slot) untuk menukar tempat barang. Nama alat/barang muncul sebentar saat dipilih. Satu slot menumpuk sampai 99 barang yang sama.
 - Isi tas: Hasil panen, telur, susu, benih, pot, dan pupuk masuk tas. Kalau penuh, simpan di 🧊 kulkas (dapur), 📦 kotak penyimpanan (samping kotak pengiriman), atau taruh di 🧺 kotak pengiriman.
 - Membuka kulkas/kotak menampilkan isi kotak dan isi tas berdampingan seperti Stardew Valley: ketuk barang untuk memindahkannya (semua atau 1 buah).
-- **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur.
+- **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur. Saat hari baru dimulai, kedua pemain melihat **rekap penjualan** semalam: tiap barang, jumlah, harga, total penjualan, dan uang sekarang.
+- **Ganti hari harus tidur berdua.** Kalau satu pemain memilih tidur di kasur, ia tidur 💤 dan muncul tulisan "menunggu … tidur juga". Hari baru dimulai setelah pemain kedua juga tidur. Pasangan yang sedang tidak membuka game dianggap sudah turu, jadi tidak perlu ditunggu. Bergerak membuatmu bangun lagi. **Rebahan saja** tidak mengganti hari, tapi kalau rebahan 1 jam (waktu game) tanpa bergerak, kamu ketiduran otomatis tanpa menyimpan. Pukul 00:00 kalian berdua tetap tidur otomatis.
 - **Alat** (ada di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
