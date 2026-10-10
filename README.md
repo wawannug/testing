@@ -98,7 +98,10 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - ➡ **timur**: 🏖️ Desa Pantai (Pasir Putih) dan laut, dengan kapal ke 🏝️ Pulau Kencana.
 - 🗺️ **Peta** (tombol *🗺️ Peta* atau M) punya tab **🌍 Dunia** (semua wilayah, jalan, bangunan, halte, posisi kalian berdua, dan titik oranye warga) dan **🏡 Farm** (peta farm yang detail).
 - 🚏 **Angkot**: di setiap wilayah dan di depan gerbang farm ada halte; ongkos 10 G ke wilayah mana saja. Terminal Bus di kota juga melayani semua tujuan.
-- **Jalan setapak** di desa dibuat berkelok dan tidak lurus seperti di kota; letak bangunan sedikit miring dan tidak berderet rapi. Di kota jalannya aspal lurus dengan marka.
+- 🏝️ **Dunia berupa pulau besar**: di luar tepi wilayah tanah melandai ke **pantai berpasir lalu laut**, jadi batas dunia adalah garis pantai (tidak ada dinding tak terlihat).
+- ⛰️ **Kontur ketinggian**: tanah bisa naik dan turun. Hutan berbukit-bukit, Desa Pegunungan lebih tinggi dengan puncak bersalju di belakangnya (bisa didaki), danau ada di cekungan, dan pantai melandai ke laut. Lembah persawahan, farm, dan kota tetap datar. Pemain, pasangan, warga, bangunan, pohon, dan jalan semua mengikuti tinggi tanah; bangunan berdiri di atas tanah yang diratakan.
+- 🛤️ **Jalan setapak tanah yang halus dan melengkung** (bukan kotak-kotak), ujungnya membulat dan lebarnya sedikit tidak rata. Bangunan desa sedikit miring dan tidak berderet rapi. Di kota jalannya aspal lurus. Warga berjalan mengikuti lengkungan jalan.
+- ⏳ **Wilayah dimuat satu per satu**: bangunan, isi bangunan, dan dekorasi suatu wilayah baru dibuat saat kamu mendekatinya (muncul tulisan "Memuat …"), dan wilayah yang jauh disembunyikan, sehingga game lebih ringan saat dibuka. Naik angkot atau kapal langsung memuat wilayah tujuan.
 - 🌾 **Sawah**: berjalan di petak sawah membuat langkahmu lambat. Petani (Bu Ratna, Mas Bayu, Pak Darto, Pak Yohanes) bekerja di sawah pagi dan sore.
 - **Setiap bangunan bisa dimasuki**, dengan perabot dan fungsinya sendiri. Pintu terkunci di luar jam buka, dan layanan hanya ada saat penjaganya bertugas (kalau sedang salat, makan, atau pulang, tunggu sebentar).
   - 🌾 **Lembah Persawahan:**

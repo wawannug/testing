@@ -813,7 +813,7 @@
         const GROUND_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
         const GRASS_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
         {
-            const geo = new THREE.PlaneGeometry(130, 130, 65, 65);
+            const geo = new THREE.PlaneGeometry(64, 60, 32, 30);
             geo.rotateX(-Math.PI / 2);
             const colors = [];
             const base = new THREE.Color(C.grass), tmp = new THREE.Color();
@@ -1029,7 +1029,7 @@
             { id: 'sawah', name: '🌾 Lembah Persawahan', vil: 'Desa Lembah Sari', x0: -50, x1: 50, z0: 27, z1: 100, ground: 0x8cc463 },
             { id: 'kota', name: '🏙️ Kota Sentosa', vil: 'Kota Sentosa', x0: -50, x1: 50, z0: -106, z1: -27, ground: 0x9fb48a },
             { id: 'hutan', name: '🌳 Desa Hutan', vil: 'Desa Rimbawana', x0: -88, x1: -27, z0: -72, z1: 72, ground: 0x6f9e4f },
-            { id: 'gunung', name: '🏔️ Desa Pegunungan', vil: 'Desa Gunungsari', x0: -150, x1: -88, z0: -72, z1: 72, ground: 0x8aa863 },
+            { id: 'gunung', name: '🏔️ Desa Pegunungan', vil: 'Desa Gunungsari', x0: -150, x1: -88, z0: -72, z1: 72, ground: 0x6fa34e },
             { id: 'pantai', name: '🏖️ Desa Pantai', vil: 'Desa Pasir Putih', x0: 27, x1: 101, z0: -64, z1: 64, ground: 0x9cc86a },
             { id: 'pulau', name: '🏝️ Pulau Kencana', vil: 'Pulau Kencana', x0: 117, x1: 145, z0: 60, z1: 96, ground: 0x9cc86a },
         ];
@@ -1158,7 +1158,7 @@
         const SEA = { x: 300, z: 0, r: 199.2, kind: 'sea' };
         const LAGOON = { x: 300, z: 0, r: 199.2, kind: 'sea' };
         // rice paddies slow you down
-        const PADDIES = [{ x0: -50, x1: -31, z0: 31, z1: 96 }, { x0: 24, x1: 43, z0: 68, z1: 96 }, { x0: -146, x1: -128, z0: -46, z1: -30 }];
+        const PADDIES = [{ x0: -48, x1: -31, z0: 31, z1: 94 }, { x0: 24, x1: 42, z0: 68, z1: 94 }];
         const inPaddy = p => PADDIES.some(r => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1);
         const VBI = {};
         VB.forEach((b, i) => {
@@ -1169,6 +1169,7 @@
             b.f = 680 + i * 60;                   // its inside
             b.inDoor = { x: b.f, z: 3.3 };
             b.type ||= b.house ? 'house' : b.id;
+            b.spots = {};
             VBI[b.id] = b;
         });
         const TOWN = VB.filter(b => b.shop);
@@ -1197,14 +1198,15 @@
         const LOWICO = new THREE.IcosahedronGeometry(1, 0), LOWCONE = new THREE.ConeGeometry(1, 1, 7), LOWCYL = new THREE.CylinderGeometry(1, 1, 1, 7), LOWBOX = new THREE.BoxGeometry(1, 1, 1);
         // batches are cut into 30×30 squares so the ones off screen are skipped; small things cast no shadow
         const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy/;
-        function inst(key, geo, m, x, y, z, sx = 1, sy = sx, sz = sx, ry = 0, rx = 0, rz = 0) { const k = key + '@' + Math.floor(x / 30) + ',' + Math.floor(z / 30); (INST[k] ||= { geo, m, list: [], shadow: !NO_SHADOW.test(key) }).list.push([x, y, z, sx, sy, sz, rx, ry, rz]); }
-        function flushInst() {
+        function inst(key, geo, m, x, y, z, sx = 1, sy = sx, sz = sx, ry = 0, rx = 0, rz = 0) { const k = key + '@' + Math.floor(x / 30) + ',' + Math.floor(z / 30); (INST[k] ||= { geo, m, list: [], shadow: !NO_SHADOW.test(key) }).list.push([x, y + shiftY(x, z), z, sx, sy, sz, rx, ry, rz]); }
+        function flushInst(parent = scene) {
             const mx = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
             for (const b of Object.values(INST)) {
                 const im = new THREE.InstancedMesh(b.geo, b.m, b.list.length);
                 b.list.forEach(([x, y, z, sx, sy, sz, rx, ry, rz], i) => { q.setFromEuler(e.set(rx, ry, rz)); mx.compose(p.set(x, y, z), q, s.set(sx, sy, sz)); im.setMatrixAt(i, mx); });
-                im.castShadow = b.shadow; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(im);
+                im.castShadow = b.shadow; im.receiveShadow = true; im.computeBoundingSphere(); parent.add(im);
             }
+            for (const k of Object.keys(INST)) delete INST[k];
         }
         const DM = {}; const dm = (c, o) => DM[c + (o ? JSON.stringify(o) : '')] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...(o || {}) });
         // decoration kinds (r = region key, so far-away batches are culled)
@@ -1220,106 +1222,254 @@
         const dHouseBlock = (x, z, w, d, h, c, roofC) => { inst('city' + c, LOWBOX, dm(c), x, h / 2, z, w, h, d); inst('cityroof' + roofC, LOWBOX, dm(roofC), x, h + 0.15, z, w + 0.2, 0.3, d + 0.2); for (let y = 1.4; y < h - 0.6; y += 1.6) for (let i = -w / 2 + 0.8; i < w / 2 - 0.4; i += 1.4) inst('citywin', LOWBOX, dm(0x9fd8ff, { roughness: 0.2 }), x + i, y, z + d / 2 + 0.02, 0.7, 0.8, 0.05); addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2); };
         const dCar = (x, z, rot, c) => { inst('car' + c, LOWBOX, dm(c), x, 0.45, z, 1.6, 0.6, 3.2, rot); inst('cartop' + c, LOWBOX, dm(c), x, 0.95, z, 1.4, 0.5, 1.7, rot); inst('carwheel', LOWCYL, dm(0x222222), x, 0.25, z, 0.3, 1.7, 0.3, rot, 0, Math.PI / 2); addCircleCollider(x, z, 1.4); };
         // keep the decoration away from paths, buildings and water
-        const nearPath = (x, z, m) => EDGES.some(([a, b]) => { const [ax, az] = NODES[a], [bx, bz] = NODES[b], dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz, t = clamp(((x - ax) * dx + (z - az) * dz) / l2, 0, 1); return Math.hypot(x - ax - dx * t, z - az - dz * t) < m; });
+        const nearPath = (x, z, m) => PATH_PTS.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < (m + 0.8) ** 2);
         const nearBuilding = (x, z, m) => VB.some(b => Math.abs(x - b.x) < b.w / 2 + m && Math.abs(z - b.z) < b.d / 2 + m + 1);
-        const freeSpot = (x, z, m = 2.2) => !nearPath(x, z, m) && !nearBuilding(x, z, m) && !inPaddy({ x, z }) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 1.5 && !(Math.abs(x) < 31 && Math.abs(z) < 29.5);
+        const freeSpot = (x, z, m = 2.2) => !(Math.abs(x) < 31 && Math.abs(z) < 29.5) && coastDist(x, z) > 5.5 && !nearPath(x, z, m) && !nearBuilding(x, z, m) && !inPaddy({ x, z }) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 2.5;
+        // ---------- ⛰️ the land: hills, mountains and a beach all round the world ----------
+        // The whole world is one big island. Every region is land; past their edges the ground slopes down to a
+        // sandy beach and the sea. The forest rolls, the mountain village sits higher with peaks behind it, the
+        // valley of rice fields and the town are flat, and the lake lies in a hollow. You walk up and down it all.
+        const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+        const LANDR = [RING, ...REGIONS.filter(r => r.id !== 'pulau')];
+        const isLand = (x, z) => LANDR.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) || ((x - 131) / 17) ** 2 + ((z - 78) / 21) ** 2 < 1;
+        const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.71, 0.71], [0.71, -0.71], [-0.71, 0.71], [-0.71, -0.71]];
+        // how far a point is from the sea (−1 at sea, up to 9 well inland)
+        function coastDist(x, z) {
+            if (!isLand(x, z)) return -1;
+            for (const s of [1, 2.5, 4, 5.5, 7, 9]) for (const [dx, dz] of DIRS8) if (!isLand(x + dx * s, z + dz * s)) return s - 0.6;
+            return 10;
+        }
+        // the peaks: [x, z, height, spread]
+        const PEAKS = [[-140, -58, 30, 13], [-150, -8, 22, 10], [-110, -70, 14, 8], [-150, 48, 16, 9], [-118, 63, 11, 5.5], [-80, -64, 6, 7], [-70, 66, 5, 7]];
+        const SEA_Y = -0.35;
+        function H0(x, z) {
+            const d = coastDist(x, z);
+            if (d < 0) return -1.8;
+            let h = 0;
+            // forest hills west of the valley and the town, the mountain village higher still
+            h += sstep(-50, -60, x) * (0.9 * Math.sin(x * 0.13 + 1) * Math.cos(z * 0.11) + 0.7 * Math.sin(x * 0.05 - z * 0.07) + 0.7);
+            h += sstep(-84, -100, x) * 2.4;
+            for (const [cx, cz, a, s] of PEAKS) h += a * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * s * s));
+            // gentle dunes behind the beach, a hill on the island
+            h += sstep(50, 60, x) * (1 - sstep(78, 92, x)) * (0.5 + 0.5 * Math.sin(z * 0.07 + x * 0.03));
+            if (x > 112) h += 2.4 * Math.exp(-((x - 134) ** 2 + (z - 76) ** 2) / 50);
+            // the lake lies in a hollow; rice paddies and the farm are level
+            const ld = Math.hypot(x - LAKE.x, z - LAKE.z);
+            if (ld < LAKE.r + 6) h = lerp(-1.2, h, sstep(LAKE.r - 1.5, LAKE.r + 6, ld));
+            for (const r of PADDIES) { const m = Math.max(r.x0 - x, x - r.x1, r.z0 - z, z - r.z1); if (m < 3) h *= sstep(-1, 3, m); }
+            h *= sstep(0, 6, Math.max(Math.abs(x) - 31, Math.abs(z) - 29));
+            // down to the beach and under the sea
+            if (d < 9) h = lerp(-1.6, Math.max(h, 0.18), sstep(0, 5, d));
+            return h;
+        }
+        // buildings stand on level pads; the ground blends into them
+        function H(x, z) {
+            let h = H0(x, z);
+            for (const b of VB) { if (Math.abs(x - b.x) > b.w + 6 || Math.abs(z - b.z) > b.d + 7) continue; const m = Math.max(Math.abs(x - b.x) - b.w / 2 - 0.6, Math.abs(z - b.z) - b.d / 2 - 1.4); if (m < 4) h = lerp(b.y, h, sstep(0, 4, m)); }
+            return h;
+        }
+        // the piers stand over the sea
+        const onPier = (x, z) => x > 99.5 && x < 113.2 && Math.abs(z) < 1.3 || x > 115 && x < 121.6 && Math.abs(z - 78) < 1.2;
+        const inFarmFlat = (x, z) => Math.abs(x) < 31 && Math.abs(z) < 29;
+        // where your feet are
+        function groundY(x, z) { if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(H(x, z), SEA_Y + 0.05); }
+        const walkable = p => inWorld(p) && (p.x > 150 || inFarmFlat(p.x, p.z) || onPier(p.x, p.z) || H(p.x, p.z) > SEA_Y + 0.12);
+        // how high something built on the ground goes: on its pad, on the sea, or on a pier
+        const shiftY = (x, z) => onPier(x, z) ? 0 : inFarmFlat(x, z) ? 0 : H(x, z) < SEA_Y ? SEA_Y - 0.05 : H(x, z);
+        function buildTerrain() {
+            const X0 = -186, X1 = 166, Z0 = -132, Z1 = 122, ST = 2;
+            const geo = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, (X1 - X0) / ST, (Z1 - Z0) / ST);
+            geo.rotateX(-Math.PI / 2); geo.translate((X0 + X1) / 2, 0, (Z0 + Z1) / 2);
+            const pos = geo.attributes.position, cols = [], c = new THREE.Color(), SAND = new THREE.Color(0xf0dca8), WET = new THREE.Color(0xc8b078), ROCK = new THREE.Color(0x8a8478), SNOW = new THREE.Color(0xf6f8fa);
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i), z = pos.getZ(i);
+                const flatFarm = inFarmFlat(x, z), h = flatFarm ? -0.08 : H(x, z), d = flatFarm ? 10 : coastDist(x, z);
+                pos.setY(i, h);
+                const R = REGIONS.find(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+                c.setHex(R ? R.ground : 0x8cc463).offsetHSL(Math.sin(x * 0.31) * 0.012, 0, Math.sin(x * 0.17 + z * 0.23) * 0.035);
+                if (h < SEA_Y + 0.05) c.copy(WET);
+                else if (d < 6.5 && h < 1.0 || Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.r + 1.6) c.copy(SAND);
+                else if (h > 17) c.copy(SNOW);
+                else if (h > 6.5) c.lerp(ROCK, Math.min(1, (h - 6.5) / 6));
+                cols.push(c.r, c.g, c.b);
+            }
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+            geo.computeVertexNormals();
+            const land = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+            land.receiveShadow = true; scene.add(land);
+            const sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.12, metalness: 0.05 }));
+            sea.position.set(0, SEA_Y, 0); scene.add(sea);
+        }
+        // the paths follow the ground and curve gently between their points (the town's streets run straight)
+        const EPTS = {};
+        function edgePts(a, b) {
+            const flip = a > b, key = flip ? b + '|' + a : a + '|' + b;
+            let pts = EPTS[key];
+            if (!pts) {
+                const [p, q] = key.split('|'), [ax, az] = NODES[p], [bx, bz] = NODES[q], len = Math.hypot(bx - ax, bz - az) || 1;
+                const lane = n => /^(r|g[SNWE])/.test(n), straight = p[0] === 'k' && q[0] === 'k' || lane(p) && lane(q);
+                let hsh = 0; for (const ch of key) hsh = (hsh * 31 + ch.charCodeAt(0)) % 9973;
+                const off = straight ? 0 : ((hsh % 100) / 100 - 0.5) * 0.34 * len;
+                const cx = (ax + bx) / 2 - (bz - az) / len * off, cz = (az + bz) / 2 + (bx - ax) / len * off, n = Math.max(2, Math.ceil(len / 1.5));
+                pts = [];
+                for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; pts.push([u * u * ax + 2 * u * t * cx + t * t * bx, u * u * az + 2 * u * t * cz + t * t * bz]); }
+                EPTS[key] = pts;
+            }
+            return flip ? [...pts].reverse() : pts;
+        }
+        // every point along the paths, to keep trees and rocks off them
+        const PATH_PTS = [];
+        function buildPaths() {
+            const kinds = { dirt: { c: 0xc9a77a, w: 1.6 }, lane: { c: 0xc2a070, w: 2.5 }, road: { c: 0x86868a, w: 3.8 }, walk: { c: 0xb8b8b0, w: 1.3 } };
+            for (const K of Object.values(kinds)) K.pos = [];
+            const strip = (pts, K, wob) => {
+                for (const p of pts) PATH_PTS.push(p);
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], l = Math.hypot(x1 - x0, z1 - z0) || 1;
+                    const w0 = K.w / 2 * (1 + (wob ? 0.14 * Math.sin(x0 * 1.7 + z0) : 0)), w1 = K.w / 2 * (1 + (wob ? 0.14 * Math.sin(x1 * 1.7 + z1) : 0));
+                    const nx = -(z1 - z0) / l, nz = (x1 - x0) / l, y0 = groundY(x0, z0) + 0.05, y1 = groundY(x1, z1) + 0.05;
+                    K.pos.push(x0 + nx * w0, y0, z0 + nz * w0, x1 + nx * w1, y1, z1 + nz * w1, x0 - nx * w0, y0, z0 - nz * w0, x0 - nx * w0, y0, z0 - nz * w0, x1 + nx * w1, y1, z1 + nz * w1, x1 - nx * w1, y1, z1 - nz * w1);
+                }
+                // round joints, so the path has no square corners
+                for (const [x, z] of [pts[0], pts[pts.length - 1]]) { const y = groundY(x, z) + 0.052, r = K.w / 2; for (let k = 0; k < 10; k++) { const a0 = k / 10 * Math.PI * 2, a1 = (k + 1) / 10 * Math.PI * 2; K.pos.push(x, y, z, x + Math.cos(a1) * r, y, z + Math.sin(a1) * r, x + Math.cos(a0) * r, y, z + Math.sin(a0) * r); } }
+            };
+            for (const [a, b] of EDGES) { const lane = n => /^(r|g[SNWE])/.test(n); strip(edgePts(a, b), a[0] === 'k' && b[0] === 'k' ? kinds.road : lane(a) || lane(b) && !/\d/.test(b) ? kinds.lane : kinds.dirt, !(a[0] === 'k' && b[0] === 'k')); }
+            for (const b of VB) { const n = NODES[b.at], pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (n[0] - b.door.x) * i / 4, b.door.z + (n[1] - b.door.z) * i / 4]); strip(pts, b.r === 'kota' ? kinds.walk : kinds.dirt, b.r !== 'kota'); }
+            for (const K of Object.values(kinds)) {
+                if (!K.pos.length) continue;
+                const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(K.pos, 3)); geo.computeVertexNormals();
+                const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: K.c, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
+                m.receiveShadow = true; scene.add(m);
+            }
+        }
+        // the regions are built one by one, when you first come near; far ones are hidden
+        const regionBuilt = {}, regionGroup = {};
+        function ensureRegion(id) {
+            if (regionBuilt[id]) return;
+            regionBuilt[id] = true;
+            buildHome();
+            buildVillageRooms(id);
+            const before = new Set(scene.children);
+            const flat = (w, d, c, x, z, y = 0.02, rot = 0) => { const m = box(w, 0.04, d, c, x, y, z, scene); m.rotation.y = rot; m.receiveShadow = true; m.castShadow = false; return m; };
+            for (const b of VB) if (b.r === id) buildVBuilding(b);
+            buildRegionDecor(id, flat);
+            const g = new THREE.Group(); g.name = 'region:' + id;
+            for (const o of [...scene.children]) {
+                if (before.has(o)) continue;
+                if (!o.isInstancedMesh && !o.userData.noShift) o.position.y += shiftY(o.position.x, o.position.z);
+                g.add(o);
+            }
+            flushInst(g);
+            scene.add(g); regionGroup[id] = g;
+            for (const n of NPCS) n.plan = null; // their spots inside are known now
+        }
+        let streamT = 0;
+        function regionStream(dt) {
+            if ((streamT -= dt) > 0 || !started) return;
+            streamT = 0.4;
+            if (inHome(player.pos)) return;
+            const p = player.pos;
+            for (const r of REGIONS) {
+                const d = Math.max(r.x0 - p.x, p.x - r.x1, r.z0 - p.z, p.z - r.z1, 0);
+                if (d < 18 && !regionBuilt[r.id] && !regionBuilt[r.id + ':q']) { toast(`⏳ Memuat ${r.name}…`); setTimeout(() => ensureRegion(r.id), 60); regionBuilt[r.id + ':q'] = 1; }
+                if (regionGroup[r.id]) regionGroup[r.id].visible = d < 72;
+            }
+        }
         // built once everything it uses exists (called just before the interactables)
         function buildTown() {
-            const flat = (w, d, c, x, z, y = 0.02, rot = 0) => { const m = box(w, 0.04, d, c, x, y, z, scene); m.rotation.y = rot; m.receiveShadow = true; m.castShadow = false; return m; };
-            // the ground of every region, a little below the farm's
-            for (const r of REGIONS) { const g = new THREE.Mesh(new THREE.PlaneGeometry(r.x1 - r.x0 + 12, r.z1 - r.z0 + 12).rotateX(-Math.PI / 2), mat(r.ground)); g.position.set((r.x0 + r.x1) / 2, -0.03, (r.z0 + r.z1) / 2); g.receiveShadow = true; scene.add(g); }
-            { const g = new THREE.Mesh(new THREE.PlaneGeometry(420, 320).rotateX(-Math.PI / 2), mat(0x7fae5a)); g.position.set(-10, -0.06, 0); g.receiveShadow = true; scene.add(g); }
-            // the paths: footpaths of packed earth, streets of asphalt in town
-            for (const [a, b] of EDGES) {
-                const [ax, az] = NODES[a], [bx, bz] = NODES[b], len = Math.hypot(bx - ax, bz - az), town = a[0] === 'k' && b[0] === 'k';
-                const ring = a[0] === 'r' || a[0] === 'g' && a.length === 2 && 'SNWE'.includes(a[1]);
-                flat(town ? 3.4 : ring ? 2.4 : 1.5, len + (town ? 3.4 : 1.2), town ? 0x8a8a86 : 0xc9a77a, (ax + bx) / 2, (az + bz) / 2, town ? 0.025 : 0.018, Math.atan2(bx - ax, bz - az));
-                if (town) for (let t = 2; t < len - 1; t += 3) flat(0.15, 1.2, 0xf2f2f2, ax + (bx - ax) * t / len, az + (bz - az) * t / len, 0.05, Math.atan2(bx - ax, bz - az));
-            }
-            // footpaths from every door to its path
-            for (const b of VB) { const n = NODES[b.at], dx = n[0] - b.door.x, dz = n[1] - b.door.z, len = Math.hypot(dx, dz); if (len > 0.4) flat(1.2, len + 0.8, b.r === 'kota' ? 0xb8b8b0 : 0xc9a77a, (b.door.x + n[0]) / 2, (b.door.z + n[1]) / 2, 0.016, Math.atan2(dx, dz)); }
+            for (const b of VB) b.y = Math.max(0, H0(b.x, b.z));
+            buildTerrain();
+            buildPaths();
             // the farm's gates out to the lane
             for (const [x, z, rot] of [[4, -23.2, 0], [-24.2, -2.2, Math.PI / 2], [24.2, 2, Math.PI / 2]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g); for (const sx of [-1, 1]) box(0.3, 2.2, 0.3, C.darkWood, sx * 1.9, 1.1, 0, g); box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, 0, g); }
             sign(-2.6, -22.2, 'Ke Kota'); sign(-23.2, -4.6, 'Ke Hutan'); sign(23.2, 4.4, 'Ke Pantai');
-            // the welcome arch of every region, and a sign at every fork of the lane
+            // the welcome arch of every region
             for (const [x, z, rot, text] of [[0.5, 29.4, 0, 'Desa Lembah Sari'], [4, -29.4, Math.PI, 'Kota Sentosa'], [-31, -2, -Math.PI / 2, 'Desa Rimbawana'], [31, 2, Math.PI / 2, 'Desa Pasir Putih'], [-90, -6, -Math.PI / 2, 'Desa Gunungsari']]) {
-                const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
+                const g = new THREE.Group(); g.position.set(x, groundY(x, z), z); g.rotation.y = rot; scene.add(g);
                 for (const sx of [-1, 1]) box(0.3, 2.8, 0.3, C.darkWood, sx * 2.1, 1.4, 0, g);
                 box(4.8, 0.3, 0.3, C.darkWood, 0, 2.9, 0, g); textPlate(g, text, 0, 3.35, 0.1, 3.6); textPlate(g, text, 0, 3.35, -0.1, 3.6, Math.PI);
                 for (const sx of [-1, 1]) addCircleCollider(x + Math.cos(rot) * sx * 2.1, z - Math.sin(rot) * sx * 2.1, 0.2);
             }
-            for (const b of VB) buildVBuilding(b);
-            buildRegionDecor(flat);
-            flushInst();
+            const flat = () => null;
+            buildRegionDecor('ring', flat);
+            flushInst(scene);
         }
-        // what every region looks like around its buildings
-        function buildRegionDecor(flat) {
+        // what every region looks like around its buildings (built when you first come near)
+        function buildRegionDecor(id, flat) {
             let rs = 7;
             const rnd = () => { rs = (rs * 16807) % 2147483647; return rs / 2147483647; };
             const scatter = (r, n, fn, m = 2.2) => { const R = REGI[r]; for (let i = 0; i < n; i++) { const x = R.x0 + 2 + rnd() * (R.x1 - R.x0 - 4), z = R.z0 + 2 + rnd() * (R.z1 - R.z0 - 4); if (freeSpot(x, z, m)) fn(x, z, rnd()); } };
             const solid = (x, z, r) => addCircleCollider(x, z, r);
-            // around the farm lane: a few trees
-            for (let i = 0; i < 40; i++) { const a = i / 40 * Math.PI * 2, x = Math.cos(a) * 32 + (rnd() - 0.5) * 3, z = Math.sin(a) * 31 + (rnd() - 0.5) * 3; if (!nearPath(x, z, 3) && !REGIONS.some(R => x > R.x0 && x < R.x1 && z > R.z0 && z < R.z1)) { dTree('ring', x, z, 1 + rnd() * 0.4); solid(x, z, 0.3); } }
-            // 🌾 rice fields with dykes, an irrigation ditch, a hut and scarecrows, banana trees and coconut palms
-            const tuft = new THREE.ConeGeometry(0.09, 0.42, 5); tuft.translate(0, 0.21, 0);
-            const spots = [];
-            for (const p of PADDIES) {
-                flat(p.x1 - p.x0, p.z1 - p.z0, 0x6f9c78, (p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2, 0.01);
-                for (let x = p.x0; x <= p.x1 + 0.01; x += 3.8) flat(0.35, p.z1 - p.z0, 0x7aa64e, x, (p.z0 + p.z1) / 2, 0.06);
-                for (let z = p.z0; z <= p.z1 + 0.01; z += 3.8) flat(p.x1 - p.x0, 0.35, 0x7aa64e, (p.x0 + p.x1) / 2, z, 0.06);
-                for (let x = p.x0 + 0.45; x < p.x1 - 0.2; x += 0.55) for (let z = p.z0 + 0.45; z < p.z1 - 0.2; z += 0.55) { const lx = (x - p.x0) % 3.8, lz = (z - p.z0) % 3.8; if (lx > 0.35 && lz > 0.35) spots.push([x, z]); }
+            if (id === 'ring') {
+                // around the farm lane: a few trees
+                for (let i = 0; i < 40; i++) { const a = i / 40 * Math.PI * 2, x = Math.cos(a) * 32 + (rnd() - 0.5) * 3, z = Math.sin(a) * 31 + (rnd() - 0.5) * 3; if (!nearPath(x, z, 3) && !REGIONS.some(R => x > R.x0 && x < R.x1 && z > R.z0 && z < R.z1)) { dTree('ring', x, z, 1 + rnd() * 0.4); solid(x, z, 0.3); } }
             }
-            const paddyMat = new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 });
-            spots.forEach(([x, z], i) => inst('paddy', tuft, paddyMat, x, 0.02, z, 1, 0.8 + ((i * 37) % 10) / 25, 1));
-            flat(0.8, 66, 0x5bb7ea, -30.4, 63, 0.03);
-            for (const [x, z] of [[-44, 40], [-38, 88], [33, 90]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
-            for (const [x, z] of [[-36, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
-            // a water buffalo resting by the dyke
-            { const g = new THREE.Group(); g.position.set(-31.8, 0, 70); g.rotation.y = 1.2; scene.add(g); ball(0.6, 0.45, 0.95, 0x4a4a52, 0, 0.6, 0, g); ball(0.3, 0.28, 0.35, 0x4a4a52, 0, 0.75, 0.95, g); for (const sx of [-1, 1]) { const h = mesh(new THREE.TorusGeometry(0.25, 0.05, 6, 10, Math.PI), mat(0xe8e0d0), g); h.position.set(sx * 0.2, 1.0, 0.95); h.rotation.y = Math.PI / 2; } for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.14, 0.4, 0.14, 0x3a3a42, sx * 0.3, 0.2, sz * 0.55, g); addCircleCollider(-31.8, 70, 0.9); }
-            // the river on the east of the valley, with a bamboo bridge
-            { const rv = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 76).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fa6d8, roughness: 0.15 })); rv.position.set(47, 0.03, 63); scene.add(rv); addBoxCollider(44.6, 49.5, 27, 100); }
-            for (let z = 30; z < 98; z += 2.6) dBush('sawah', 44 - (z % 3) * 0.2, z, 0.6, 0x5f9a3f);
-            // the square: a big banyan tree with a ring bench, and the night-watch hut
-            { const x = 1, z = 47.2; const t = mesh(new THREE.CylinderGeometry(0.7, 1.0, 2.6, 10), mat(0x6e4723), scene); t.position.set(x, 1.3, z); for (const [dx, dy, dz, r] of [[0, 3.6, 0, 2.6], [1.6, 3.2, 0.6, 1.8], [-1.6, 3.3, -0.4, 1.9], [0.4, 4.6, -0.6, 1.8]]) { const l = mesh(LOWICO, dm(0x3f8a3a), scene); l.scale.setScalar(r); l.position.set(x + dx, dy, z + dz); } for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; cap(0.04, 2.0, 0x6e4723, x + Math.cos(a) * 1.4, 2.2, z + Math.sin(a) * 1.4, scene); } const ring = mesh(new THREE.TorusGeometry(1.75, 0.18, 6, 24), mat(C.wood), scene); ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.45, z); addCircleCollider(x, z, 1.9); }
-            { const g = new THREE.Group(); g.position.set(-3.6, 0, 44.6); g.rotation.y = 0.4; scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 2.0, 0.12, C.darkWood, sx * 0.8, 1.0, sz * 0.7, g); box(1.8, 0.1, 1.5, 0xc8a464, 0, 0.6, 0, g); const r = gableRoof(1.8, 2.0, 0.8, 0x8a5a3a); r.rotation.y = Math.PI / 2; r.position.y = 2.0; g.add(r); const k = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.6, 10), mat(0x8a5a3a), g); k.position.set(0.6, 1.5, 0.7); addCircleCollider(-3.6, 44.6, 1.1); textPlate(scene, 'Pos Ronda', -3.6, 2.6, 45.5, 1.2); }
-            // the playground
-            { const g = new THREE.Group(); g.position.set(-1, 0, 61.5); scene.add(g); box(7.5, 0.04, 5, 0xe8d6a8, 0, 0.02, 0, g).castShadow = false; for (const sx of [-1.4, 1.4]) box(0.1, 2.0, 0.1, 0xd9443a, sx - 2, 1.0, 1.4, g); box(3.0, 0.1, 0.1, 0xd9443a, -2, 2.0, 1.4, g); for (const sx of [-0.6, 0.6]) { box(0.02, 1.4, 0.02, 0x666666, sx - 2, 1.25, 1.4, g); box(0.5, 0.06, 0.25, 0x3f8fd6, sx - 2, 0.55, 1.4, g); } const sl = box(0.7, 0.08, 2.6, 0xf2c94c, 2.2, 0.75, 0.8, g); sl.rotation.x = 0.55; box(0.7, 1.5, 0.7, 0x3f8fd6, 2.2, 0.75, -0.6, g); addBoxCollider(-1 + 1.8, -1 + 2.6, 60.4, 61.4); }
-            scatter('sawah', 260, (x, z, u) => { if (u < 0.35) { dBanana('sawah', x, z); solid(x, z, 0.25); } else if (u < 0.55) { dPalm('sawah', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.8) { dTree('sawah', x, z, 0.9 + u * 0.5); solid(x, z, 0.3); } else dFlower('sawah', x, z, [0xf27ba5, 0xf2c94c, 0xffffff][Math.floor(u * 30) % 3]); }, 2.4);
-            for (const [x, z, s, h] of [[-20, 112, 30, 16], [20, 118, 34, 20], [60, 108, 26, 14], [-62, 110, 24, 12]]) dMount(x, z, s, h, 0x6fae55);
-            // 🏙️ the town: high blocks around, a park with a fountain, parked cars, lamps and planters
-            flat(96, 76, 0x9a9a92, 0, -66, 0.008);
-            for (const [x, z, w, d, h, c] of [[-40, -98, 10, 6, 12, 0xc8d0d8], [-26, -99, 8, 5, 16, 0xe8e0d0], [-12, -99, 9, 5, 10, 0xd8c8b8], [10, -99, 10, 5, 18, 0xb8c8d8], [24, -98, 8, 6, 13, 0xe0d0c0], [38, -99, 9, 5, 15, 0xc8d8c8], [44, -60, 5, 9, 11, 0xd8d0c8], [44, -74, 5, 8, 14, 0xc0c8d0], [-45, -72, 5, 9, 12, 0xd0c8c0], [-45, -86, 5, 8, 10, 0xe0d8c8], [42, -40, 6, 6, 9, 0xe8e0d8], [-43, -38, 6, 6, 8, 0xd8d8e0]]) dHouseBlock(x, z, w, d, h, c, 0x6e737c);
-            for (const [x, z, r, c] of [[-1, -56, 0, 0xd9443a], [8.6, -58, 0, 0x3f8fd6], [-0.6, -78, 0, 0xf2f2f2], [8.6, -80, 0, 0x2b2b2b], [20, -61.6, Math.PI / 2, 0xf2c94c], [-14, -61.6, Math.PI / 2, 0x4caf6a], [34, -47.6, Math.PI / 2, 0xd9443a]]) dCar(x, z, r, c);
-            for (const [x, z] of [[0.6, -38], [7.4, -38], [0.6, -56], [7.4, -56], [0.6, -76], [7.4, -76], [-12, -42.2], [18, -42.2], [-12, -62.2], [18, -62.2], [-12, -82.2], [18, -82.2]]) { cap(0.06, 3.4, 0x2b2b2b, x, 1.7, z, scene); ball(0.22, 0.16, 0.22, 0xfff1c9, x, 3.45, z, scene); addCircleCollider(x, z, 0.12); }
-            { const x = -38, z = -54; flat(12, 12, 0x86c062, x, z, 0.03); mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(x, 0.25, z); const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(x, 0.52, z); scene.add(fw); addCircleCollider(x, z, 1.5); for (const [dx, dz] of [[-4.5, 0], [4.5, 0], [0, 4.5]]) { box(1.4, 0.1, 0.45, C.wood, x + dx, 0.45, z + dz, scene); } for (const [dx, dz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) { dTree('kota', x + dx, z + dz, 1.0, 0x3f8a3a); solid(x + dx, z + dz, 0.3); } textPlate(scene, 'Taman Kota', x, 1.0, z + 6.2, 1.6); }
-            { const b = VBI.sekolah; flat(9, 7, 0xb8865a, b.x + 9, b.z + 0.5, 0.03); for (const sx of [-4, 4]) { box(0.1, 2.4, 0.1, 0xffffff, b.x + 9 + sx, 1.2, b.z + 0.5, scene); box(0.1, 1.0, 1.6, 0xffffff, b.x + 9 + sx, 2.4, b.z + 0.5, scene); } cap(0.04, 4.0, 0xdddddd, b.x - 6, 2.0, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xd9221f, b.x - 5.53, 3.65, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xffffff, b.x - 5.53, 3.35, b.z + 4.2, scene); addCircleCollider(b.x - 6, b.z + 4.2, 0.12); }
-            textPlate(scene, '🚏 Halte Kota', 9.2, 2.3, -33, 1.6); box(2.6, 0.1, 1.0, 0x3f5f8a, 9.2, 2.0, -33.4, scene); for (const sx of [-1.1, 1.1]) box(0.08, 2.0, 0.08, 0x6e737c, 9.2 + sx, 1.0, -33.4, scene);
-            // 🌳 the forest: a dense wood of tall trees and bamboo, a stream with a little bridge, logs and mushrooms
-            scatter('hutan', 900, (x, z, u) => { if (u < 0.12) { dBamboo('hutan', x, z); solid(x, z, 0.5); } else if (u < 0.55) { dTree('hutan', x, z, 1.2 + u, [0x3f7a35, 0x4f8a3a, 0x2f6b30][Math.floor(u * 100) % 3]); solid(x, z, 0.35); } else if (u < 0.75) { dPine('hutan', x, z, 1.2 + u * 0.8); solid(x, z, 0.3); } else if (u < 0.88) dBush('hutan', x, z, 1 + u, 0x3f7a35); else if (u < 0.94) { inst('hutanlog', LOWCYL, dm(0x6e4723), x, 0.25, z, 0.25, 2.2, 0.25, u * 6, 0, Math.PI / 2); } else { inst('hutanmush', LOWCONE, dm(0xd9443a), x, 0.3, z, 0.18, 0.15, 0.18); inst('hutanstem', LOWCYL, dm(0xf2f2ee), x, 0.12, z, 0.05, 0.24, 0.05); } }, 2.0);
-            { const st = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 140).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x5bb7ea, roughness: 0.2 })); st.position.set(-77, 0.025, 0); st.rotation.y = 0.05; scene.add(st); flat(3.2, 2.6, 0x8a5a3a, -77, -3.6, 0.12, Math.PI / 2 + 0.1); for (const z of [-2.4, -4.8]) box(3.4, 0.6, 0.08, 0x6e4723, -77, 0.5, z, scene); }
-            for (const [x, z] of [[-40.4, -14.4], [-44.6, -14.6], [-38.2, -11.8]]) { for (let i = 0; i < 3; i++) inst('hutanplank', LOWCYL, dm(0xb07a45), x, 0.25 + i * 0.4, z, 0.22, 2.4, 0.22, 0, 0, Math.PI / 2); solid(x, z, 1.2); }
-            for (let i = 0; i < 6; i++) { const x = -64 + (i % 3) * 1.6, z = -12 + Math.floor(i / 3) * 1.8; box(0.7, 0.8, 0.6, 0xf2e2b0, x, 0.4, z, scene); box(0.8, 0.1, 0.7, 0xb07a45, x, 0.85, z, scene); solid(x, z, 0.45); }
-            // 🏔️ the mountains: big peaks with snow, terraced fields, the mine in the rock, coffee rows, a pasture with cows, the lake with a jetty
-            for (const [x, z, rad, h, c, snow] of [[-140, -62, 30, 46, 0x7a8a6a, 1], [-108, -70, 22, 28, 0x8a9a7a, 0], [-160, -10, 26, 34, 0x7a8a6a, 1], [-160, 40, 22, 26, 0x8a9a6a, 0], [-128, -38, 9, 12, 0x8a7a6a, 0]]) dMount(x, z, rad, h, c, snow);
-            for (let i = 0; i < 4; i++) { const t = box(18 - i * 3, 0.5, 3.4, 0x7aa64e, -137 + i * 0.8, 0.25 + i * 0.5, -32 - i * 3.4, scene); t.castShadow = false; }
-            for (let r = 0; r < 4; r++) for (let i = 0; i < 9; i++) { const x = -99 + i * 1.3, z = -38 - r * 1.6; inst('kopibush', LOWICO, dm(0x2f6b30), x, 0.55, z, 0.5, 0.6, 0.5, i); inst('kopiberry', LOWICO, dm(0xc0392b), x + 0.2, 0.75, z + 0.3, 0.07); }
-            { const P = { minX: -117, maxX: -103, minZ: -50, maxZ: -40 }; fenceRect(P, { side: 'n', a: -111, b: -108 }); for (const [x, z, c] of [[-113, -45, 0xffffff], [-108, -47, 0x8a5a3a], [-106, -43, 0xf2f2ee]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = x; scene.add(g); ball(0.45, 0.4, 0.75, c, 0, 0.7, 0, g); ball(0.25, 0.22, 0.28, c, 0, 0.85, 0.7, g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 0.5, 0.12, 0x3a3a3a, sx * 0.25, 0.25, sz * 0.45, g); addCircleCollider(x, z, 0.8); } }
-            { const lk = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x3f8fc0, roughness: 0.1 })); lk.position.set(LAKE.x, 0.03, LAKE.z); scene.add(lk); addCircleCollider(LAKE.x, LAKE.z, LAKE.r - 0.3); const shore = new THREE.Mesh(new THREE.RingGeometry(LAKE.r, LAKE.r + 1.2, 40).rotateX(-Math.PI / 2), mat(0xc9b48a)); shore.position.set(LAKE.x, 0.02, LAKE.z); scene.add(shore); for (let i = 0; i < 4; i++) box(1.4, 0.12, 1.0, 0x8a5a3a, -111, 0.25, 30.6 + i * 1.0, scene); for (let i = 0; i < 6; i++) { const a = i * 1.1; dRock('gunung', LAKE.x + Math.cos(a) * (LAKE.r + 1.6), LAKE.z + Math.sin(a) * (LAKE.r + 1.6), 1.2); } }
-            { const fall = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 12), new THREE.MeshStandardMaterial({ color: 0xbfe6ff, emissive: 0x6fb6e8, emissiveIntensity: 0.3, transparent: true, opacity: 0.85 })); fall.position.set(-118, 6, 54.6); scene.add(fall); }
-            scatter('gunung', 420, (x, z, u) => { if (u < 0.45) { dPine('gunung', x, z, 1.1 + u); solid(x, z, 0.3); } else if (u < 0.7) { dRock('gunung', x, z, 1 + u * 2, [0x9a9a92, 0x8a8478][Math.floor(u * 10) % 2]); solid(x, z, 0.5 + u); } else if (u < 0.85) dBush('gunung', x, z, 1, 0x6f9a4a); else dFlower('gunung', x, z, [0xb06fd8, 0xffffff, 0xf2c94c][Math.floor(u * 40) % 3]); }, 2.4);
-            // 🏖️ the coast: sand, the sea, the pier, boats on the beach, nets, palms and parasols
-            flat(22, 132, 0xf0dca8, 92, 0, 0.012);
-            { const sea = new THREE.Mesh(new THREE.PlaneGeometry(260, 340).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.12, metalness: 0.05 })); sea.position.set(232, 0.02, 0); scene.add(sea); }
-            for (let i = 0; i < 14; i++) box(1.0, 0.12, 2.4, 0x8a5a3a, 100.6 + i * 0.9, 0.35, 0, scene).rotation.y = Math.PI / 2;
-            for (let i = 0; i < 8; i++) for (const s of [-1, 1]) cap(0.08, 1.4, 0x6e4723, 100.6 + i * 1.6, 0.2, s * 1.2, scene);
-            for (const [x, z, r, c] of [[95, 14, 0.4, 0xd9443a], [97, -14, -0.3, 0x3f8fd6], [94, 30, 0.2, 0xf2c94c], [106, 5, Math.PI / 2, 0xffffff], [106, -5, Math.PI / 2, 0x4caf6a]]) { const g = new THREE.Group(); g.position.set(x, x > 100 ? 0.1 : 0, z); g.rotation.y = r; scene.add(g); jukung(g, c); if (x < 100) addCircleCollider(x, z, 1.4); }
-            for (const [x, z] of [[72, -18], [76, -18]]) { for (const sx of [-1.5, 1.5]) box(0.1, 1.8, 0.1, 0x6e4723, x + sx, 0.9, z, scene); const net = box(3, 1.4, 0.03, new THREE.MeshStandardMaterial({ color: 0x8aa8a0, transparent: true, opacity: 0.6 }), x, 1.1, z, scene); net.castShadow = false; addBoxCollider(x - 1.6, x + 1.6, z - 0.2, z + 0.2); }
-            for (const [x, z, c] of [[90, 30, 0xd9443a], [93, 36, 0x3f8fd6], [89, 42, 0xf2c94c]]) { cap(0.05, 2.4, 0xffffff, x, 1.2, z, scene); const u = mesh(new THREE.ConeGeometry(1.4, 0.5, 10), mat(c), scene); u.position.set(x, 2.45, z); }
-            scatter('pantai', 220, (x, z, u) => { if (x > 84) { if (u < 0.3) { dPalm('pantai', x, z, 1 + u); solid(x, z, 0.2); } return; } if (u < 0.45) { dPalm('pantai', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.7) { dTree('pantai', x, z, 1 + u * 0.4, 0x4f9a3f); solid(x, z, 0.3); } else dBush('pantai', x, z, 0.8, 0x6f9a4a); }, 2.4);
-            // 🏝️ the island: sand all round, palms, a lighthouse and its own little jetty
-            { const isl = new THREE.Mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), mat(0xf0dca8)); isl.scale.set(17, 1, 21); isl.position.set(131, 0.03, 78); scene.add(isl); const gr = new THREE.Mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), mat(0x9cc86a)); gr.scale.set(12, 1, 15); gr.position.set(133, 0.04, 77); scene.add(gr); for (let i = 0; i < 6; i++) box(1.0, 0.12, 2.0, 0x8a5a3a, 116 + i * 0.9, 0.35, 78, scene).rotation.y = Math.PI / 2; const lh = new THREE.Group(); lh.position.set(143, 0, 90); scene.add(lh); cap(0.8, 7, 0xffffff, 0, 3.5, 0, lh); for (let i = 0; i < 3; i++) box(1.7, 0.5, 1.7, 0xd9443a, 0, 1.5 + i * 2, 0, lh); ball(0.5, 0.5, 0.5, new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffd36b, emissiveIntensity: 1 }), 0, 7.4, 0, lh); addCircleCollider(143, 90, 1.0); }
-            scatter('pulau', 60, (x, z, u) => { if (Math.hypot((x - 131) / 16, (z - 78) / 20) > 0.92) return; dPalm('pulau', x, z, 0.9 + u); solid(x, z, 0.2); }, 2.4);
-            textPlate(scene, '🚏 Halte · angkot', 4.2, 2.3, 34.2, 1.6); textPlate(scene, '🚏 Halte · angkot', -36, 2.3, -6.4, 1.6); textPlate(scene, '🚏 Halte · angkot', 37, 2.3, 6.4, 1.6); textPlate(scene, '🚏 Halte · angkot', -96, 2.3, -2.6, 1.6);
+            if (id === 'sawah') {
+                // 🌾 rice fields with dykes, an irrigation ditch, a hut and scarecrows, banana trees and coconut palms
+                const tuft = new THREE.ConeGeometry(0.09, 0.42, 5); tuft.translate(0, 0.21, 0);
+                const spots = [];
+                for (const p of PADDIES) {
+                    flat(p.x1 - p.x0, p.z1 - p.z0, 0x6f9c78, (p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2, 0.01);
+                    for (let x = p.x0; x <= p.x1 + 0.01; x += 3.8) flat(0.35, p.z1 - p.z0, 0x7aa64e, x, (p.z0 + p.z1) / 2, 0.06);
+                    for (let z = p.z0; z <= p.z1 + 0.01; z += 3.8) flat(p.x1 - p.x0, 0.35, 0x7aa64e, (p.x0 + p.x1) / 2, z, 0.06);
+                    for (let x = p.x0 + 0.45; x < p.x1 - 0.2; x += 0.55) for (let z = p.z0 + 0.45; z < p.z1 - 0.2; z += 0.55) { const lx = (x - p.x0) % 3.8, lz = (z - p.z0) % 3.8; if (lx > 0.35 && lz > 0.35) spots.push([x, z]); }
+                }
+                const paddyMat = new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 });
+                spots.forEach(([x, z], i) => inst('paddy', tuft, paddyMat, x, 0.02, z, 1, 0.8 + ((i * 37) % 10) / 25, 1));
+                flat(0.8, 66, 0x5bb7ea, -30.4, 63, 0.03);
+                for (const [x, z] of [[-44, 40], [-38, 88], [33, 90]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
+                for (const [x, z] of [[-36, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
+                // a water buffalo resting by the dyke
+                { const g = new THREE.Group(); g.position.set(-31.8, 0, 70); g.rotation.y = 1.2; scene.add(g); ball(0.6, 0.45, 0.95, 0x4a4a52, 0, 0.6, 0, g); ball(0.3, 0.28, 0.35, 0x4a4a52, 0, 0.75, 0.95, g); for (const sx of [-1, 1]) { const h = mesh(new THREE.TorusGeometry(0.25, 0.05, 6, 10, Math.PI), mat(0xe8e0d0), g); h.position.set(sx * 0.2, 1.0, 0.95); h.rotation.y = Math.PI / 2; } for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.14, 0.4, 0.14, 0x3a3a42, sx * 0.3, 0.2, sz * 0.55, g); addCircleCollider(-31.8, 70, 0.9); }
+                // the square: a big banyan tree with a ring bench, and the night-watch hut
+                { const x = 1, z = 47.2; const t = mesh(new THREE.CylinderGeometry(0.7, 1.0, 2.6, 10), mat(0x6e4723), scene); t.position.set(x, 1.3, z); for (const [dx, dy, dz, r] of [[0, 3.6, 0, 2.6], [1.6, 3.2, 0.6, 1.8], [-1.6, 3.3, -0.4, 1.9], [0.4, 4.6, -0.6, 1.8]]) { const l = mesh(LOWICO, dm(0x3f8a3a), scene); l.scale.setScalar(r); l.position.set(x + dx, dy, z + dz); } for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; cap(0.04, 2.0, 0x6e4723, x + Math.cos(a) * 1.4, 2.2, z + Math.sin(a) * 1.4, scene); } const ring = mesh(new THREE.TorusGeometry(1.75, 0.18, 6, 24), mat(C.wood), scene); ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.45, z); addCircleCollider(x, z, 1.9); }
+                { const g = new THREE.Group(); g.position.set(-3.6, 0, 44.6); g.rotation.y = 0.4; scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 2.0, 0.12, C.darkWood, sx * 0.8, 1.0, sz * 0.7, g); box(1.8, 0.1, 1.5, 0xc8a464, 0, 0.6, 0, g); const r = gableRoof(1.8, 2.0, 0.8, 0x8a5a3a); r.rotation.y = Math.PI / 2; r.position.y = 2.0; g.add(r); const k = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.6, 10), mat(0x8a5a3a), g); k.position.set(0.6, 1.5, 0.7); addCircleCollider(-3.6, 44.6, 1.1); textPlate(scene, 'Pos Ronda', -3.6, 2.6, 45.5, 1.2); }
+                // the playground
+                { const g = new THREE.Group(); g.position.set(-1, 0, 61.5); scene.add(g); box(7.5, 0.04, 5, 0xe8d6a8, 0, 0.02, 0, g).castShadow = false; for (const sx of [-1.4, 1.4]) box(0.1, 2.0, 0.1, 0xd9443a, sx - 2, 1.0, 1.4, g); box(3.0, 0.1, 0.1, 0xd9443a, -2, 2.0, 1.4, g); for (const sx of [-0.6, 0.6]) { box(0.02, 1.4, 0.02, 0x666666, sx - 2, 1.25, 1.4, g); box(0.5, 0.06, 0.25, 0x3f8fd6, sx - 2, 0.55, 1.4, g); } const sl = box(0.7, 0.08, 2.6, 0xf2c94c, 2.2, 0.75, 0.8, g); sl.rotation.x = 0.55; box(0.7, 1.5, 0.7, 0x3f8fd6, 2.2, 0.75, -0.6, g); addBoxCollider(-1 + 1.8, -1 + 2.6, 60.4, 61.4); }
+                scatter('sawah', 260, (x, z, u) => { if (u < 0.35) { dBanana('sawah', x, z); solid(x, z, 0.25); } else if (u < 0.55) { dPalm('sawah', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.8) { dTree('sawah', x, z, 0.9 + u * 0.5); solid(x, z, 0.3); } else dFlower('sawah', x, z, [0xf27ba5, 0xf2c94c, 0xffffff][Math.floor(u * 30) % 3]); }, 2.4);
+                textPlate(scene, '🚏 Halte · angkot', 4.2, 2.3, 34.2, 1.6);
+            }
+            if (id === 'kota') {
+                // 🏙️ the town: high blocks around, a park with a fountain, parked cars, lamps and planters
+                    flat(86, 68, 0x9a9a92, 0, -64, 0.03);
+                for (const [x, z, w, d, h, c] of [[-38, -97, 10, 6, 12, 0xc8d0d8], [-26, -99, 8, 5, 16, 0xe8e0d0], [-12, -99, 9, 5, 10, 0xd8c8b8], [10, -99, 10, 5, 18, 0xb8c8d8], [24, -98, 8, 6, 13, 0xe0d0c0], [38, -99, 9, 5, 15, 0xc8d8c8], [42, -58, 5, 9, 11, 0xd8d0c8], [42, -72, 5, 8, 14, 0xc0c8d0], [-42, -62, 5, 9, 12, 0xd0c8c0], [-40, -80, 5, 8, 10, 0xe0d8c8], [42, -40, 6, 6, 9, 0xe8e0d8], [-43, -38, 6, 6, 8, 0xd8d8e0]]) dHouseBlock(x, z, w, d, h, c, 0x6e737c);
+                for (const [x, z, r, c] of [[-1, -56, 0, 0xd9443a], [8.6, -58, 0, 0x3f8fd6], [-0.6, -78, 0, 0xf2f2f2], [8.6, -80, 0, 0x2b2b2b], [20, -61.6, Math.PI / 2, 0xf2c94c], [-14, -61.6, Math.PI / 2, 0x4caf6a], [34, -47.6, Math.PI / 2, 0xd9443a]]) dCar(x, z, r, c);
+                for (const [x, z] of [[0.6, -38], [7.4, -38], [0.6, -56], [7.4, -56], [0.6, -76], [7.4, -76], [-12, -42.2], [18, -42.2], [-12, -62.2], [18, -62.2], [-12, -82.2], [18, -82.2]]) { cap(0.06, 3.4, 0x2b2b2b, x, 1.7, z, scene); ball(0.22, 0.16, 0.22, 0xfff1c9, x, 3.45, z, scene); addCircleCollider(x, z, 0.12); }
+                { const x = -38, z = -54; flat(12, 12, 0x86c062, x, z, 0.03); mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(x, 0.25, z); const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(x, 0.52, z); scene.add(fw); addCircleCollider(x, z, 1.5); for (const [dx, dz] of [[-4.5, 0], [4.5, 0], [0, 4.5]]) { box(1.4, 0.1, 0.45, C.wood, x + dx, 0.45, z + dz, scene); } for (const [dx, dz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) { dTree('kota', x + dx, z + dz, 1.0, 0x3f8a3a); solid(x + dx, z + dz, 0.3); } textPlate(scene, 'Taman Kota', x, 1.0, z + 6.2, 1.6); }
+                { const b = VBI.sekolah; flat(9, 7, 0xb8865a, b.x + 9, b.z + 0.5, 0.03); for (const sx of [-4, 4]) { box(0.1, 2.4, 0.1, 0xffffff, b.x + 9 + sx, 1.2, b.z + 0.5, scene); box(0.1, 1.0, 1.6, 0xffffff, b.x + 9 + sx, 2.4, b.z + 0.5, scene); } cap(0.04, 4.0, 0xdddddd, b.x - 6, 2.0, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xd9221f, b.x - 5.53, 3.65, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xffffff, b.x - 5.53, 3.35, b.z + 4.2, scene); addCircleCollider(b.x - 6, b.z + 4.2, 0.12); }
+                textPlate(scene, '🚏 Halte Kota', 9.2, 2.3, -33, 1.6); box(2.6, 0.1, 1.0, 0x3f5f8a, 9.2, 2.0, -33.4, scene); for (const sx of [-1.1, 1.1]) box(0.08, 2.0, 0.08, 0x6e737c, 9.2 + sx, 1.0, -33.4, scene);
+            }
+            if (id === 'hutan') {
+                // 🌳 the forest: a dense wood of tall trees and bamboo, a stream with a little bridge, logs and mushrooms
+                scatter('hutan', 900, (x, z, u) => { if (u < 0.12) { dBamboo('hutan', x, z); solid(x, z, 0.5); } else if (u < 0.55) { dTree('hutan', x, z, 1.2 + u, [0x3f7a35, 0x4f8a3a, 0x2f6b30][Math.floor(u * 100) % 3]); solid(x, z, 0.35); } else if (u < 0.75) { dPine('hutan', x, z, 1.2 + u * 0.8); solid(x, z, 0.3); } else if (u < 0.88) dBush('hutan', x, z, 1 + u, 0x3f7a35); else if (u < 0.94) { inst('hutanlog', LOWCYL, dm(0x6e4723), x, 0.25, z, 0.25, 2.2, 0.25, u * 6, 0, Math.PI / 2); } else { inst('hutanmush', LOWCONE, dm(0xd9443a), x, 0.3, z, 0.18, 0.15, 0.18); inst('hutanstem', LOWCYL, dm(0xf2f2ee), x, 0.12, z, 0.05, 0.24, 0.05); } }, 2.0);
+                for (const [x, z] of [[-40.4, -14.4], [-44.6, -14.6], [-38.2, -11.8]]) { for (let i = 0; i < 3; i++) inst('hutanplank', LOWCYL, dm(0xb07a45), x, 0.25 + i * 0.4, z, 0.22, 2.4, 0.22, 0, 0, Math.PI / 2); solid(x, z, 1.2); }
+                for (let i = 0; i < 6; i++) { const x = -64 + (i % 3) * 1.6, z = -12 + Math.floor(i / 3) * 1.8; box(0.7, 0.8, 0.6, 0xf2e2b0, x, 0.4, z, scene); box(0.8, 0.1, 0.7, 0xb07a45, x, 0.85, z, scene); solid(x, z, 0.45); }
+                textPlate(scene, '🚏 Halte · angkot', -36, 2.3, -6.4, 1.6);
+            }
+            if (id === 'gunung') {
+                // 🏔️ the mountains: big peaks with snow, terraced fields, the mine in the rock, coffee rows, a pasture with cows, the lake with a jetty
+                for (let r = 0; r < 4; r++) for (let i = 0; i < 9; i++) { const x = -99 + i * 1.3, z = -38 - r * 1.6; inst('kopibush', LOWICO, dm(0x2f6b30), x, 0.55, z, 0.5, 0.6, 0.5, i); inst('kopiberry', LOWICO, dm(0xc0392b), x + 0.2, 0.75, z + 0.3, 0.07); }
+                { const P = { minX: -117, maxX: -103, minZ: -50, maxZ: -40 }; fenceRect(P, { side: 'n', a: -111, b: -108 }); for (const [x, z, c] of [[-113, -45, 0xffffff], [-108, -47, 0x8a5a3a], [-106, -43, 0xf2f2ee]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = x; scene.add(g); ball(0.45, 0.4, 0.75, c, 0, 0.7, 0, g); ball(0.25, 0.22, 0.28, c, 0, 0.85, 0.7, g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 0.5, 0.12, 0x3a3a3a, sx * 0.25, 0.25, sz * 0.45, g); addCircleCollider(x, z, 0.8); } }
+                { const lk = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x3f8fc0, roughness: 0.1 })); lk.position.set(LAKE.x, 0.03, LAKE.z); lk.userData.noShift = 1; scene.add(lk); addCircleCollider(LAKE.x, LAKE.z, LAKE.r - 0.3); for (let i = 0; i < 4; i++) box(1.4, 0.12, 1.0, 0x8a5a3a, -111, 0.25, 30.6 + i * 1.0, scene); for (let i = 0; i < 6; i++) { const a = i * 1.1; dRock('gunung', LAKE.x + Math.cos(a) * (LAKE.r + 1.6), LAKE.z + Math.sin(a) * (LAKE.r + 1.6), 1.2); } }
+                { const fall = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 12), new THREE.MeshStandardMaterial({ color: 0xbfe6ff, emissive: 0x6fb6e8, emissiveIntensity: 0.3, transparent: true, opacity: 0.85 })); fall.position.set(-118, 5.5, 55.6); fall.userData.noShift = 1; scene.add(fall); }
+                scatter('gunung', 420, (x, z, u) => { if (u < 0.45) { dPine('gunung', x, z, 1.1 + u); solid(x, z, 0.3); } else if (u < 0.7) { dRock('gunung', x, z, 1 + u * 2, [0x9a9a92, 0x8a8478][Math.floor(u * 10) % 2]); solid(x, z, 0.5 + u); } else if (u < 0.85) dBush('gunung', x, z, 1, 0x6f9a4a); else dFlower('gunung', x, z, [0xb06fd8, 0xffffff, 0xf2c94c][Math.floor(u * 40) % 3]); }, 2.4);
+                textPlate(scene, '🚏 Halte · angkot', -96, 2.3, -2.6, 1.6);
+            }
+            if (id === 'pantai') {
+                // 🏖️ the coast: sand, the sea, the pier, boats on the beach, nets, palms and parasols
+                for (let i = 0; i < 14; i++) box(1.0, 0.12, 2.4, 0x8a5a3a, 100.6 + i * 0.9, 0.35, 0, scene).rotation.y = Math.PI / 2;
+                for (let i = 0; i < 8; i++) for (const s of [-1, 1]) cap(0.08, 1.4, 0x6e4723, 100.6 + i * 1.6, 0.2, s * 1.2, scene);
+                for (const [x, z, r, c] of [[95, 14, 0.4, 0xd9443a], [97, -14, -0.3, 0x3f8fd6], [94, 30, 0.2, 0xf2c94c], [106, 5, Math.PI / 2, 0xffffff], [106, -5, Math.PI / 2, 0x4caf6a]]) { const g = new THREE.Group(); g.position.set(x, x > 100 ? 0.1 : 0, z); g.rotation.y = r; scene.add(g); jukung(g, c); if (x < 100) addCircleCollider(x, z, 1.4); }
+                for (const [x, z] of [[72, -18], [76, -18]]) { for (const sx of [-1.5, 1.5]) box(0.1, 1.8, 0.1, 0x6e4723, x + sx, 0.9, z, scene); const net = box(3, 1.4, 0.03, new THREE.MeshStandardMaterial({ color: 0x8aa8a0, transparent: true, opacity: 0.6 }), x, 1.1, z, scene); net.castShadow = false; addBoxCollider(x - 1.6, x + 1.6, z - 0.2, z + 0.2); }
+                for (const [x, z, c] of [[90, 30, 0xd9443a], [93, 36, 0x3f8fd6], [89, 42, 0xf2c94c]]) { cap(0.05, 2.4, 0xffffff, x, 1.2, z, scene); const u = mesh(new THREE.ConeGeometry(1.4, 0.5, 10), mat(c), scene); u.position.set(x, 2.45, z); }
+                scatter('pantai', 220, (x, z, u) => { if (x > 84) { if (u < 0.3) { dPalm('pantai', x, z, 1 + u); solid(x, z, 0.2); } return; } if (u < 0.45) { dPalm('pantai', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.7) { dTree('pantai', x, z, 1 + u * 0.4, 0x4f9a3f); solid(x, z, 0.3); } else dBush('pantai', x, z, 0.8, 0x6f9a4a); }, 2.4);
+                textPlate(scene, '🚏 Halte · angkot', 37, 2.3, 6.4, 1.6);
+            }
+            if (id === 'pulau') {
+                // 🏝️ the island: sand all round, palms, a lighthouse and its own little jetty
+                { for (let i = 0; i < 6; i++) box(1.0, 0.12, 2.0, 0x8a5a3a, 116 + i * 0.9, 0.35, 78, scene).rotation.y = Math.PI / 2; const lh = new THREE.Group(); lh.position.set(143, 0, 90); scene.add(lh); cap(0.8, 7, 0xffffff, 0, 3.5, 0, lh); for (let i = 0; i < 3; i++) box(1.7, 0.5, 1.7, 0xd9443a, 0, 1.5 + i * 2, 0, lh); ball(0.5, 0.5, 0.5, new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffd36b, emissiveIntensity: 1 }), 0, 7.4, 0, lh); addCircleCollider(143, 90, 1.0); }
+                scatter('pulau', 60, (x, z, u) => { if (Math.hypot((x - 131) / 16, (z - 78) / 20) > 0.92) return; dPalm('pulau', x, z, 0.9 + u); solid(x, z, 0.2); }, 2.4);
+            }
         }
         // a fishing boat with outriggers (a jukung), long along z
         function jukung(g, c) {
@@ -4290,7 +4440,7 @@
             homeKey.shadow.bias = -0.0005; homeKey.shadow.normalBias = 0.03;
             homeScene.add(homeHemi, homeKey, homeKey.target);
             homeGlass = new THREE.MeshStandardMaterial({ color: 0xbfe6ff, roughness: 0.2, emissive: 0x6fb6e8, emissiveIntensity: 0.35 });
-            buildFloor1(); buildFloor2(); buildRoof(); buildBarns(); buildVillageRooms();
+            buildFloor1(); buildFloor2(); buildRoof(); buildBarns();
         }
 
         // --- small building blocks, in each floor's own coordinates ---
@@ -5030,10 +5180,11 @@
         }
         // a bench or sofa for two: take the free place nearest to you
         const seatTaken = s => net.connected && partnerF.live && partnerF.netT && partnerF.netT[4] && Math.hypot(partnerF.netT[0] - s.x, partnerF.netT[1] - s.z) < 0.4;
-        const seatsAct = (list, label) => ({
+        const seatsAct = (lst, label) => ({
             local: true,
-            label: () => list.includes(player.sit) ? 'Berdiri' : label,
+            label: () => (typeof lst === 'function' ? lst() : lst).includes(player.sit) ? 'Berdiri' : label,
             act() {
+                const list = typeof lst === 'function' ? lst() : lst;
                 if (list.includes(player.sit)) { standUp(); return; }
                 const free = list.filter(s => !seatTaken(s)).sort((a, b) => Math.hypot(a.x - player.pos.x, a.z - player.pos.z) - Math.hypot(b.x - player.pos.x, b.z - player.pos.z));
                 if (!free.length) { toast('Tempatnya sudah penuh 😊'); return; }
@@ -5206,8 +5357,10 @@
             for (let i = 0; i < Math.round(w / 0.8); i++) box(0.55, 0.12, 0.32, 0xffffff, x - w / 2 + 0.4 + i * 0.8, 0.58, z - 0.72, g);
             col(f, x - w / 2, x + w / 2, z - 1.05, z + 1.0);
         }
-        function buildVillageRooms() {
+        function buildVillageRooms(only) {
             for (const b of VB) {
+                if (b.r !== only || b.roomBuilt) continue;
+                b.roomBuilt = 1;
                 const f = b.f;
                 b.spots = {};
                 if (b.house) { vHouse(b); continue; }
@@ -5735,7 +5888,8 @@
                 if (route) {
                     if (ba) pts.push({ x: ba.f, z: 3.3 }, { x: ba.door.x, z: ba.door.z, jump: 1 });
                     pts.push(...toNode(ba ? ba.door : pa, na).slice(0, -1));
-                    for (const id of route) pts.push({ x: NODES[id][0], z: NODES[id][1] });
+                    pts.push({ x: NODES[route[0]][0], z: NODES[route[0]][1] });
+                    for (let i = 1; i < route.length; i++) for (const [x, z] of edgePts(route[i - 1], route[i]).slice(1)) pts.push({ x, z });
                     const back = toNode(bb ? bb.door : pb, nb).slice(0, -1).reverse();
                     pts.push(...back);
                     if (bb) pts.push({ x: bb.door.x, z: bb.door.z }, { x: bb.f, z: 3.3, jump: 1 });
@@ -5802,7 +5956,7 @@
                 f.group.visible = vis;
                 if (!vis) continue;
                 if (f.group.parent !== sc) sc.add(f.group);
-                f.pos.set(s.x, 0, s.z);
+                f.pos.set(s.x, s.x > 150 ? 0 : groundY(s.x, s.z), s.z);
                 let h = s.h;
                 // someone you are talking to turns to you (unless they are busy praying or lying down)
                 if (n.talkT && elapsed - n.talkT < 5 && !s.moving && s.k === 0) h = Math.atan2(player.pos.x - s.x, player.pos.z - s.z);
@@ -5934,13 +6088,13 @@
         const FARE = 10;
         function openHalte(here) {
             openDlg('🚏 Naik angkot', [el('p', { class: 'small-note', text: `Ongkos ${FARE} G sekali jalan · 💰 ${state.gold.toLocaleString('id-ID')} G` })],
-                [...STOPS.filter(s => s.id !== here).map(s => ({ t: s.name, f: () => { if (state.gold < FARE) { toast('Uangnya tidak cukup untuk ongkos 🚌'); return; } sendAct('ongkos', FARE); travel(s.at.clone(), s.h, `🚌 ${s.name}`); } })), { t: 'Nanti saja' }]);
+                [...STOPS.filter(s => s.id !== here).map(s => ({ t: s.name, f: () => { if (state.gold < FARE) { toast('Uangnya tidak cukup untuk ongkos 🚌'); return; } sendAct('ongkos', FARE); if (REGI[s.id]) ensureRegion(s.id); travel(s.at.clone(), s.h, `🚌 ${s.name}`); } })), { t: 'Nanti saja' }]);
         }
         // ⛴️ the boat between the harbour and the island
         const ISLAND_DOCK = new THREE.Vector3(122.5, 0, 78), HARBOUR_DOCK = new THREE.Vector3(96, 0, 1.0), BOAT_FARE = 25;
         function openBoat(toIsland) {
             openDlg('⛴️ Kapal Pak Daeng', [el('p', { text: toIsland ? `Berlayar ke Pulau Kencana: ada Pura Segara, penginapan, toko suvenir, dan tempat snorkeling. Ongkos ${BOAT_FARE} G.` : `Kembali ke pelabuhan Desa Pantai. Ongkos ${BOAT_FARE} G.` })],
-                [{ t: `⛴️ Berangkat · ${BOAT_FARE} G`, big: true, f: () => { if (state.gold < BOAT_FARE) { toast('Uangnya tidak cukup 😅'); return; } sendAct('ongkos', BOAT_FARE); travel((toIsland ? ISLAND_DOCK : HARBOUR_DOCK).clone(), toIsland ? Math.PI / 2 : -Math.PI / 2, toIsland ? '🏝️ Pulau Kencana' : '🏖️ Desa Pantai'); } }, { t: 'Nanti saja' }]);
+                [{ t: `⛴️ Berangkat · ${BOAT_FARE} G`, big: true, f: () => { if (state.gold < BOAT_FARE) { toast('Uangnya tidak cukup 😅'); return; } sendAct('ongkos', BOAT_FARE); ensureRegion(toIsland ? 'pulau' : 'pantai'); travel((toIsland ? ISLAND_DOCK : HARBOUR_DOCK).clone(), toIsland ? Math.PI / 2 : -Math.PI / 2, toIsland ? '🏝️ Pulau Kencana' : '🏖️ Desa Pantai'); } }, { t: 'Nanti saja' }]);
         }
         // 🏦 the bank: savings grow 3% at the start of every season
         function openBank() {
@@ -6010,7 +6164,7 @@
             };
             for (const b of VB) {
                 const T = b.type, kp = KEEPER[b.id];
-                add('vdoor:' + b.id, b.door, 1.5, { label: () => vOpen(b) ? (b.house ? `Bertamu ke ${b.name} 🚪` : WORSHIP.has(b.id) ? `Masuk ${b.name} untuk beribadah ${b.icon}` : `Masuk ${b.name} ${b.icon}`) : `${b.icon} ${b.name} · ${closedWhy(b).split(',')[0]}`, act: () => { if (vOpen(b)) travel(HV(b.f, 0, 2.9), Math.PI, `${b.icon} ${b.name}`); else toast(`${b.icon} ${b.name}: ${closedWhy(b)}`); } });
+                add('vdoor:' + b.id, b.door, 1.5, { label: () => vOpen(b) ? (b.house ? `Bertamu ke ${b.name} 🚪` : WORSHIP.has(b.id) ? `Masuk ${b.name} untuk beribadah ${b.icon}` : `Masuk ${b.name} ${b.icon}`) : `${b.icon} ${b.name} · ${closedWhy(b).split(',')[0]}`, act: () => { if (vOpen(b)) { ensureRegion(b.r); travel(HV(b.f, 0, 2.9), Math.PI, `${b.icon} ${b.name}`); } else toast(`${b.icon} ${b.name}: ${closedWhy(b)}`); } });
                 add('vexit:' + b.id, HV(b.f, 0, 3.6), 1.2, { label: () => 'Keluar 🚪', act: () => travel(new THREE.Vector3(b.door.x + Math.sin(b.rot) * 0.4, 0, b.door.z + Math.cos(b.rot) * 0.4), b.rot, REGI[b.r].name) });
                 const [cx, cz] = COUNTER[T] || [0, -0.85];
                 if (b.shop) add('vshop:' + b.id, HV(b.f, cx, cz), 1.4, {
@@ -6018,29 +6172,29 @@
                     act: () => { if (atWork(kp)) openTownShop(b.id); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); },
                 });
                 else if (FN[T] && kp) add('vfn:' + b.id, HV(b.f, cx, cz), 1.4, { label: () => atWork(kp) ? (typeof FN[T][0] === 'function' ? FN[T][0]() : FN[T][0]) : busy(kp), act: () => { if (atWork(kp)) FN[T][1](); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
-                if (T === 'balai') { add('vboard', HV(b.f, -4.3, -1.2), 1.4, { label: () => 'Lihat papan pengumuman 📋', act: openBoard }); add('vbseat', HV(b.f, 0, 1.9), 1.6, seatsAct(b.seats, 'Duduk di ruang rapat 🪑')); }
+                if (T === 'balai') { add('vboard', HV(b.f, -4.3, -1.2), 1.4, { label: () => 'Lihat papan pengumuman 📋', act: openBoard }); add('vbseat', HV(b.f, 0, 1.9), 1.6, seatsAct(() => b.seats || [], 'Duduk di ruang rapat 🪑')); }
                 if (T === 'musala') {
-                    b.mats.forEach((s, i) => add('vmat' + b.id + i, new THREE.Vector3(s.x + 0.4, 0, s.z), 1.0, { label: () => player.sit === s ? 'Selesai, berdiri' : `Salat di ${b.name} 🤲`, act: () => { if (player.sit === s) standUp(); else pray(s); } }));
+                    [1.95, 2.85].forEach((mz, i) => add('vmat' + b.id + i, HV(b.f, -2.0, mz), 1.0, { label: () => b.mats && player.sit === b.mats[i] ? 'Selesai, berdiri' : `Salat di ${b.name} 🤲`, act: () => { const s = b.mats && b.mats[i]; if (!s) return; if (player.sit === s) standUp(); else pray(s); } }));
                     add('vwudu' + b.id, HV(b.f, 4.3, -2.0), 1.1, { label: () => 'Berwudu 💧', act: () => { splash(player.pos); toast('Segar… sudah berwudu 💧 Silakan salat di sajadah.'); } });
                 }
                 if (T === 'gereja' || T === 'gerejap') {
-                    add('vpew' + b.id, HV(b.f, 0, 0.5), 1.6, seatsAct(b.seats, 'Duduk dan berdoa dengan tenang 🙏'));
+                    add('vpew' + b.id, HV(b.f, 0, 0.5), 1.6, seatsAct(() => b.seats || [], 'Duduk dan berdoa dengan tenang 🙏'));
                     if (T === 'gereja') add('vcandle', HV(b.f, -4.3, -1.8), 1.2, { label: () => 'Nyalakan lilin 🕯️', act: () => { chime([523, 659, 784], 0.12, 'sine', 0.04); toast('🕯️ Lilin menyala. Semoga doamu terkabul.'); } });
                 }
                 if (T === 'vihara' || T === 'kelenteng' || T === 'pura') add('vdoa' + b.id, HV(b.f, 0, -0.9), 1.4, { label: () => T === 'pura' ? 'Berdoa dan menaruh canang 🌸' : 'Berdoa dan menyalakan dupa 🙏', act: () => { chime([392, 523, 659], 0.14, 'sine', 0.04); spawnHearts(player.pos.clone().setY(1.8), 1); toast(T === 'pura' ? '🌸 Canang sari diletakkan. Om shanti shanti shanti.' : '🙏 Dupa menyala, harum. Hatimu terasa tenang.'); } });
-                if (T === 'warung' || T === 'wkopi' || T === 'seafood') for (const x of [-2.6, 2.6]) add('vwseat' + b.id + x, HV(b.f, x, 1.8), 1.3, seatsAct(b.seats, 'Duduk di meja makan 🪑'));
-                if (T === 'rs' || T === 'bank' || T === 'pelabuhan') add('vkseat' + b.id, HV(b.f, T === 'rs' ? -3.6 : -3.0, 2.3), 1.2, seatsAct(b.seats, 'Duduk di ruang tunggu 🪑'));
-                if (T === 'terminal') add('vtseat', HV(b.f, -2.4, 0.9), 1.6, seatsAct(b.seats, 'Duduk menunggu bus 🪑'));
-                if (T === 'salon') add('vsseat', HV(b.f, -2.6, -1.9), 1.0, seatsAct(b.seats.slice(0, 1), 'Duduk di kursi salon 💺'));
-                if (T === 'sekolah') { add('vlib', HV(b.f, 3.6, -1.0), 1.4, { label: () => 'Baca buku di perpustakaan 📚', act: () => { const tips = ['📚 "Tanah yang dicangkul dan tidak ditanami 3 hari kembali jadi rumput."', '📚 "Hujan menyiram semua tanaman di luar, kecuali saat musim dingin di rooftop."', '📚 "Ikan langka lebih mahal di pelelangan subuh di Desa Pantai."', '📚 "Alat yang ditempa pandai besi menghemat setengah energi."', '📚 "Lumbung dan bank membagi hasil tiap awal musim."', '📚 "Hewan yang dielus tiap hari lebih cepat sayang."']; toast(tips[(state.day + Math.floor(elapsed)) % tips.length]); } }); add('vdesk', HV(b.f, 0, 1.6), 1.4, seatsAct(b.seats, 'Duduk di bangku kelas 🪑')); }
+                if (T === 'warung' || T === 'wkopi' || T === 'seafood') for (const x of [-2.6, 2.6]) add('vwseat' + b.id + x, HV(b.f, x, 1.8), 1.3, seatsAct(() => b.seats || [], 'Duduk di meja makan 🪑'));
+                if (T === 'rs' || T === 'bank' || T === 'pelabuhan') add('vkseat' + b.id, HV(b.f, T === 'rs' ? -3.6 : -3.0, 2.3), 1.2, seatsAct(() => b.seats || [], 'Duduk di ruang tunggu 🪑'));
+                if (T === 'terminal') add('vtseat', HV(b.f, -2.4, 0.9), 1.6, seatsAct(() => b.seats || [], 'Duduk menunggu bus 🪑'));
+                if (T === 'salon') add('vsseat', HV(b.f, -2.6, -1.9), 1.0, seatsAct(() => (b.seats || []).slice(0, 1), 'Duduk di kursi salon 💺'));
+                if (T === 'sekolah') { add('vlib', HV(b.f, 3.6, -1.0), 1.4, { label: () => 'Baca buku di perpustakaan 📚', act: () => { const tips = ['📚 "Tanah yang dicangkul dan tidak ditanami 3 hari kembali jadi rumput."', '📚 "Hujan menyiram semua tanaman di luar, kecuali saat musim dingin di rooftop."', '📚 "Ikan langka lebih mahal di pelelangan subuh di Desa Pantai."', '📚 "Alat yang ditempa pandai besi menghemat setengah energi."', '📚 "Lumbung dan bank membagi hasil tiap awal musim."', '📚 "Hewan yang dielus tiap hari lebih cepat sayang."']; toast(tips[(state.day + Math.floor(elapsed)) % tips.length]); } }); add('vdesk', HV(b.f, 0, 1.6), 1.4, seatsAct(() => b.seats || [], 'Duduk di bangku kelas 🪑')); }
                 if (T === 'tambang') for (const [x, z, what] of [[-3.2, -2.0, 'tembaga'], [-1.0, -2.4, 'batu'], [1.4, -2.1, 'tembaga'], [3.4, -2.3, 'besi']]) add('vmine' + x, HV(b.f, x, z), 1.2, {
                     label: () => tool !== 'beliung' ? 'Pegang ⛏️ beliung untuk menambang' : atWork(kp) ? `Menambang ⛏️ (sisa hari ini ${dailyLeft('mine', USER, MINE_MAX)})` : 'Tunggu Pak Gatot datang dulu',
                     act: () => { if (tool !== 'beliung') { toast('Ambil ⛏️ beliung dari kotak perkakas dulu'); return; } if (!atWork(kp)) { toast('Tambang hanya boleh dimasuki saat Pak Gatot berjaga.'); return; } player.swingT = elapsed; sendAct('tambang', what); },
                 });
                 if (b.house) {
                     const host = () => NPCS.find(n => n.home === b.id && !n.kid && n.st && !n.st.walk && n.st.p === b.id && n.st.a !== 'sleep');
-                    add('vhseat:' + b.id, HV(b.f, -2.6, 1.0), 1.3, seatsAct(b.seats.slice(0, 4), 'Duduk di meja makan 🪑'));
-                    add('vhsofa:' + b.id, HV(b.f, 2.9, 0.8), 1.1, seatsAct(b.seats.slice(4), 'Duduk di sofa 🛋️'));
+                    add('vhseat:' + b.id, HV(b.f, -2.6, 1.0), 1.3, seatsAct(() => (b.seats || []).slice(0, 4), 'Duduk di meja makan 🪑'));
+                    add('vhsofa:' + b.id, HV(b.f, 2.9, 0.8), 1.1, seatsAct(() => (b.seats || []).slice(4), 'Duduk di sofa 🛋️'));
                     add('vteh:' + b.id, HV(b.f, -1.5, -0.4), 1.2, {
                         when: () => !!host(),
                         label: () => { const h = host(); return npcData(h.id).c & bitOf(USER) ? `Ngobrol santai dengan ${h.name} ☕` : heartsOf(h.id) >= 2 ? `Minta teh hangat ke ${h.name} 🍵` : `${h.name} menyapamu dengan ramah 😊`; },
@@ -7383,7 +7537,7 @@
             const p = castPower(f), dist = 0.3 + p * 8;
             const tx = player.pos.x + f.dir[0] * dist, tz = player.pos.z + f.dir[1] * dist;
             const pd = WATERS.find(w => Math.hypot(tx - w.x, tz - w.z) < w.r - 0.15);
-            Object.assign(f, { phase: 'cast', fly0: performance.now(), power: p, pd, big: pd ? pd.kind || (pd === POND ? 'big' : 'small') : null, src: new THREE.Vector3(player.pos.x + f.dir[0] * 0.9, 1.75, player.pos.z + f.dir[1] * 0.9), bob: new THREE.Vector3(tx, pd ? 0.06 : 0.05, tz) });
+            Object.assign(f, { phase: 'cast', fly0: performance.now(), power: p, pd, big: pd ? pd.kind || (pd === POND ? 'big' : 'small') : null, src: new THREE.Vector3(player.pos.x + f.dir[0] * 0.9, 1.75, player.pos.z + f.dir[1] * 0.9), bob: new THREE.Vector3(tx, pd === SEA ? SEA_Y + 0.04 : pd ? 0.06 : groundY(tx, tz) + 0.05, tz) });
             whoosh();
         }
         // the float came down: on the water the wait begins, on dry land the line comes straight back
@@ -8193,7 +8347,7 @@
                 partnerF.pos.x = lerp(partnerF.pos.x, x, k); partnerF.pos.z = lerp(partnerF.pos.z, z, k);
                 partnerF.heading = lerpAngle(partnerF.heading, hh, Math.min(1, dt * 12));
                 partnerF.group.rotation.set(0, partnerF.heading, 0);
-                partnerF.pos.y = 0;
+                partnerF.pos.y = inHome(partnerF.pos) ? 0 : groundY(partnerF.pos.x, partnerF.pos.z);
                 partnerF.head.rotation.x = 0;
                 if (m) partnerF.phase += dt * 12;
                 setHeld(partnerF, sit ? null : net.partner && net.partner.tl);
@@ -8696,10 +8850,10 @@
                     const hh = halfOf(f);
                     player.pos.x = clamp(player.pos.x, f - hh.x, f + hh.x);
                     player.pos.z = clamp(player.pos.z, -hh.z, hh.z);
-                } else if (!inWorld(player.pos)) {
-                    // the edge of the world: slide along it
+                } else if (!walkable(player.pos)) {
+                    // the edge of the world (the sea): slide along it
                     const nx = player.pos.x; player.pos.x = prevX;
-                    if (!inWorld(player.pos)) { player.pos.x = nx; player.pos.z = prevZ; if (!inWorld(player.pos)) player.pos.x = prevX; }
+                    if (!walkable(player.pos)) { player.pos.x = nx; player.pos.z = prevZ; if (!walkable(player.pos)) player.pos.x = prevX; }
                 }
                 const rg = regionOf(player.pos);
                 if (rg && rg !== player.region && started) flashName(`${rg.name} · ${rg.vil}`);
@@ -8712,7 +8866,7 @@
             setHeld(player, player.sit ? null : tool);
             animateFarmer(player, moving, dt);
             if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y, player.sit.rec); }
-            else player.pos.y = 0;
+            else player.pos.y = inHome(player.pos) ? 0 : groundY(player.pos.x, player.pos.z);
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
 
@@ -8753,6 +8907,7 @@
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
             updateNPCs(dt);
+            regionStream(dt);
             updateWeatherFx(dt, started && inHome(player.pos) && homeScene ? homeScene : scene);
             weatherAudio();
             updatePlants(elapsed);
@@ -8787,7 +8942,7 @@
             updateHud();
 
             camTarget.lerp(player.pos, Math.min(1, dt * 5));
-            camTarget.y = 0;
+            if (inHome(player.pos)) camTarget.y = 0;
             const indoors = started && inHome(player.pos) && !!homeScene;
             if (!started) {
                 // close-up of your farmer while you choose the look
@@ -8817,7 +8972,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { decoWhy, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { decoWhy, groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
