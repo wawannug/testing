@@ -7,22 +7,20 @@ Dunia Farmora diperluas menjadi 5 wilayah plus pulau bonus. Setiap fungsi gamepl
 Air mengalir dari gunung ke laut. Sungai menyambung semua wilayah dan jadi penunjuk arah.
 
 ```
-                 🏔️ DESA PEGUNUNGAN  (hulu sungai, mata air, kawah)
-                        │  sungai
-                 🌳 DESA HUTAN        (lereng)
-                        │
-   [🏡 FARM] ── 🌾 LEMBAH PERSAWAHAN  (desa utama, Desa Lembah Sari)   ✅ sudah dibuat
-                        │
-                 🏙️ KOTA              (dataran rendah, dekat muara)
-                        │
-                 🏖️ DESA PANTAI       (muara dan laut)  ──⛴️── 🏝️ Pulau Bonus
+                                   🏙️ KOTA SENTOSA (utara)
+                                          │
+  🏔️ DESA PEGUNUNGAN ── 🌳 DESA HUTAN ── [🏡 FARM + jalan lingkar] ── 🏖️ DESA PANTAI ── 🌊 laut ──⛴️── 🏝️ PULAU KENCANA
+     (danau, tambang)                            │
+                                   🌾 LEMBAH PERSAWAHAN (selatan)
+
+  Semua wilayah ✅ sudah dibuat dan tersambung langsung (tanpa pindah layar).
 ```
 
 ## 2. Wilayah dan fasilitas
 
 ### 🌾 Lembah Persawahan ✅
 Toko Tani, Penggilingan Padi, Pasar Tani, Lumbung Desa, Balai Desa, Gereja Katolik, Musala.
-Sementara di sini juga: Toko Hewan, Toko Bangunan, Warung Makan, Klinik (nanti pindah ke wilayahnya).
+Toko Hewan pindah ke Rumah Peternakan (Pegunungan), Toko Bangunan ke Penggergajian Kayu (Hutan), Klinik ke Rumah Sakit (Kota).
 
 ### 🏔️ Desa Pegunungan
 Rumah Peternakan (menggantikan Toko Hewan), Tambang, Pandai Besi (upgrade alat), Pengolahan Kopi, Warung Kopi, Masjid, Danau (ikan air dingin).
@@ -48,13 +46,9 @@ Pura, Tempat Snorkeling, Penginapan, Toko Suvenir.
 | Semua barang (harga lebih rendah) | Kotak pengiriman di farm |
 
 ## 4. Prioritas
-1. ✅ **Lembah Persawahan + sistem NPC** (selesai: 11 bangunan + 7 rumah dengan interior, 13 warga dengan jadwal dan dialog, gabah → beras, lumbung, jual di pasar).
-2. Rumah Peternakan, Tambang, Pandai Besi.
-3. Penggergajian Kayu, Terminal + angkot, Rumah Sakit.
-4. Pantai: Pasar Ikan, Galangan Perahu, mancing di laut.
-5. Pengolahan & Warung Kopi, Danau Pegunungan, Rumah Madu, Rumah Herbal, Kantor Pos, Supermarket.
-6. Pelelangan, Warung Seafood, Pusat Kerajinan, Bank, Salon, Sekolah, tempat ibadah lainnya.
-7. Pelabuhan dan Pulau Bonus.
+1. ✅ **Lembah Persawahan + sistem NPC**.
+2. ✅ **Semua wilayah** (Kota, Hutan, Pegunungan, Pantai, Pulau) dengan 60 bangunan berinterior dan 43 warga.
+3. Berikutnya: event musiman, pertemanan lebih dalam, dan perluasan pulau.
 
 ## 5. Teknis
 - Setiap wilayah adalah area terpisah; interior bangunan memakai sistem seperti rumah dan kandang.

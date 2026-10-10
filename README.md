@@ -90,26 +90,63 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Tidak harus main bareng.** Kalau pasanganmu sedang tidak membuka game, dia dianggap lagi **turu** 💤 dan terlihat tidur di kasur kamar utama (pemain perempuan di kiri, pemain laki-laki di kanan).
 - Perangkat yang sedang menjalankan farm (badge 🏡) menjaga waktu dan hewan; perangkat lainnya mengikuti (badge 🔗). Kalau yang menjalankan farm pamit, perangkat satunya otomatis mengambil alih.
 
-## 🌾 Lembah Persawahan (Desa Lembah Sari) dan crafting 🔨
-- **Pagar keliling farm.** Di sisi selatan (bawah) ada **gerbang ke Lembah Persawahan**; dekati lalu tekan tombol aksi. Kamu masuk dari gerbang selamat datang di **atas** desa, turun lewat jalan di antara toko ke jalan utama, dan pulang lewat gerbang itu lagi.
-- 🗺️ **Peta:** tombol *🗺️ Peta* di bawah jam (atau tombol M) menampilkan farm, jalan ke desa, sawah, sungai, semua bangunan, posisimu dan pasanganmu, serta **titik oranye warga desa**. Kalau sedang di dalam bangunan, posisinya ditandai di pintunya.
-- **Jalan setapak lama di farm dihapus**; jalan bisa dibuat sendiri (jalan batu / papan) di meja kerja.
-- **Tata desa:** jalan utama dengan toko-toko, alun-alun dengan air mancur, jalan kedua dengan musala, balai desa, gereja dan lumbung, lalu gang perumahan warga. Di barat ada **sawah** berpetak dengan pematang, saluran irigasi, gubuk dan orang-orangan sawah; di timur mengalir **sungai**; di sekelilingnya perbukitan. Ada juga **taman bermain** (ayunan, perosotan, jungkat-jungkit). Semua pintu menghadap ke selatan (ke arah kamera).
-- **Setiap bangunan bisa dimasuki** dan punya isi serta perabot sendiri. Pintu terkunci di luar jam buka (keterangan jam muncul di pintu). Belanja dilakukan di meja kasir, **hanya saat penjaganya ada** (kalau kasir sedang salat, makan, atau pulang, tunggu sebentar). Barang langsung masuk tas dan lebih murah dari toko online:
-  - 🌱 **Toko Tani** (Pak Darto, 07–17, Minggu 08–12): benih sayur, bibit hias, bibit pohon buah. Rak benih, karung pupuk, cangkul di dinding.
-  - 🐄 **Toko Hewan** (Bu Ratna, 08–16, Minggu tutup): pakan ternak, langsung masuk gudang kandang. Jerami, karung pakan, kandang anak ayam.
-  - 🧺 **Pasar Tani** (Bu Sari, 06–12): tab **Beli bahan** (bahan masak) dan **Jual hasil panen**: sayur, buah, gabah, dan beras dibeli **10% lebih mahal** dari kotak pengiriman, uangnya langsung. Lapak sayur, keranjang, timbangan.
-  - 🧱 **Toko Bangunan** (Mas Bayu, 08–16, Minggu tutup): kayu, batu, tanah liat, bijih, pot, pupuk.
-  - 🍜 **Warung Makan** (Bu Siti, 07–21): masakan siap makan; ada meja dan kursi untuk duduk makan.
-  - 🏥 **Klinik** (dr. Maria, 08–15, Minggu tutup): periksa & istirahat (energi penuh) atau pijat; ada ranjang periksa dan ruang tunggu.
-  - 🏭 **Penggilingan Padi** (Pak Joko, 07–16, Minggu tutup): **panen padi sekarang menghasilkan gabah**; gabah digiling jadi beras dengan ongkos 3 G per gabah. Mesin huller, karung gabah dan beras.
-  - 🏚️ **Lumbung Desa** (Pak Yohanes, 08–15, Sabtu 08–12): titip atau ambil gabah, beras, jagung, kedelai, kacang, singkong, ubi tanpa memakai slot tas. **Setiap awal musim lumbung membagi hasil +5%.**
-  - 🏛️ **Balai Desa** (Pak Lurah Hasan, Senin–Jumat 08–14): **papan pengumuman** berisi jadwal semua tempat (buka/tutup sekarang), kegiatan desa, dan daftar warga beserta hati pertemanan dan keberadaan mereka. Ada meja rapat, bendera, dan Garuda.
-  - 🕌 **Musala Al-Ikhlas** (buka 04:00–21:30): sajadah untuk salat (ayat harian seperti di rumah), tempat wudu, mihrab, mimbar, beduk, rak Al-Qur'an. Warga muslim laki-laki salat berjamaah di sini (subuh, zuhur, magrib, isya; Jumat siang salat Jumat) diimami Ustaz Fikri; sore hari anak-anak mengaji.
-  - ⛪ **Gereja Katolik St. Yusuf** (buka 05:00–20:00): bangku umat untuk duduk berdoa, altar, salib, patung Bunda Maria, dan lilin yang bisa dinyalakan. **Misa Minggu 07:00** dihadiri keluarga Pak Yohanes, dipimpin Romo Antonius; ada misa pagi setiap hari.
-- 🏠 **Rumah warga** (7 rumah): dapur dengan kompor dan kulkas, meja makan 4 kursi, sofa menghadap TV, kasur (double dan anak), lemari, foto keluarga, tanaman, dan **sajadah** (rumah muslim) atau **salib** (rumah katolik). Bisa **bertamu** saat penghuninya di rumah dan belum tidur (06:00–21:00): duduk di meja makan atau sofa, dan kalau sudah akrab (2 ❤️) **minta teh hangat** (+15 ⚡, sekali sehari).
-- 👥 **13 warga dengan kegiatan sehari-hari** yang sama di kedua layar (dihitung dari jam game): Pak Darto, Bu Sari & Dimas; Pak Joko & Bu Ratna; Ustaz Fikri; Mas Bayu; Pak Lurah Hasan & Bu Siti; Pak Yohanes, dr. Maria & Lala; Romo Antonius. Mereka bangun, salat atau berdoa, memasak, sarapan, berjalan ke tempat kerja lewat jalan desa, istirahat siang (salat dan makan di warung), jalan-jalan sore di alun-alun atau ke sawah, makan malam, bersantai di sofa, lalu tidur. Anak-anak berangkat sekolah pagi lewat gerbang, pulang siang, bermain di taman, dan mengaji atau belajar. Hari Minggu jadwalnya lain (misa, toko tutup).
-- 💬 **Ngobrol & pertemanan:** dekati warga lalu tekan tombol aksi. Dialognya mengikuti waktu, kegiatan, cuaca, musim, dan keakraban. Ngobrol pertama tiap hari menambah keakraban; **beri hadiah** dengan memegang barang di toolbar (sekali sehari; tiap warga punya barang kesukaan dan yang tidak disukai). Keakraban 0–10 ❤️, dipakai bersama berdua.
+## 🌍 Dunia Farmora: farm di tengah, lima desa di sekelilingnya, dan crafting 🔨
+- **Satu peta yang tersambung**, tanpa pindah layar: farm di tengah dikelilingi **jalan lingkar**, dan pagar farm terlihat dari desa yang berbatasan. Gerbang di keempat sisi pagar:
+  - ⬇ **selatan**: 🌾 Lembah Persawahan (Desa Lembah Sari);
+  - ⬆ **utara**: 🏙️ Kota Sentosa;
+  - ⬅ **barat**: 🌳 Desa Hutan (Rimbawana), lalu 🏔️ Desa Pegunungan (Gunungsari) dengan danau dan air terjun;
+  - ➡ **timur**: 🏖️ Desa Pantai (Pasir Putih) dan laut, dengan kapal ke 🏝️ Pulau Kencana.
+- 🗺️ **Peta** (tombol *🗺️ Peta* atau M) punya tab **🌍 Dunia** (semua wilayah, jalan, bangunan, halte, posisi kalian berdua, dan titik oranye warga) dan **🏡 Farm** (peta farm yang detail).
+- 🚏 **Angkot**: di setiap wilayah dan di depan gerbang farm ada halte; ongkos 10 G ke wilayah mana saja. Terminal Bus di kota juga melayani semua tujuan.
+- **Jalan setapak** di desa dibuat berkelok dan tidak lurus seperti di kota; letak bangunan sedikit miring dan tidak berderet rapi. Di kota jalannya aspal lurus dengan marka.
+- 🌾 **Sawah**: berjalan di petak sawah membuat langkahmu lambat. Petani (Bu Ratna, Mas Bayu, Pak Darto, Pak Yohanes) bekerja di sawah pagi dan sore.
+- **Setiap bangunan bisa dimasuki**, dengan perabot dan fungsinya sendiri. Pintu terkunci di luar jam buka, dan layanan hanya ada saat penjaganya bertugas (kalau sedang salat, makan, atau pulang, tunggu sebentar).
+  - 🌾 **Lembah Persawahan:**
+    - Toko Tani (bibit dan pupuk);
+    - Pasar Tani (beli bahan, **jual hasil panen +10%**);
+    - Penggilingan Padi (gabah → beras, 3 G per gabah);
+    - Lumbung Desa (titip biji-bijian, bagi hasil +5% tiap awal musim);
+    - Balai Desa (papan pengumuman: jadwal semua tempat dan warga);
+    - Warung Bu Siti, Musala Al-Ikhlas (salat dan wudu), Gereja Katolik St. Yusuf, 7 rumah warga, taman bermain, alun-alun dengan pohon beringin dan pos ronda.
+  - 🏙️ **Kota Sentosa:**
+    - Rumah Sakit (periksa atau pijat: pulihkan energi);
+    - Bank (tabungan bersama, bunga 3% tiap awal musim);
+    - Supermarket (bahan masak dan alat dapur, buka sampai malam);
+    - SD Negeri Sentosa (anak-anak semua desa bersekolah di sini; ada perpustakaan berisi tips);
+    - Salon (ganti warna rambut, 80 G, terlihat juga di layar pasangan);
+    - Kantor Pos (kartu pos untuk pasangan, +5 ⚡ untuk berdua);
+    - Terminal Bus, Vihara Dharma, taman kota, gedung tinggi, mobil, dan lampu jalan.
+  - 🌳 **Desa Hutan:**
+    - Penggergajian Kayu (kayu, batu, bijih, dan bahan bangunan);
+    - Rumah Herbal (racik **jamu kunyit asam**);
+    - Rumah Madu (madu hutan dan kotak lebah);
+    - Pusat Kerajinan (buat **anyaman** dan **ukiran kayu** yang mahal);
+    - Gereja Protestan Imanuel, rumah panggung, hutan lebat dengan bambu, sungai kecil dan jembatan.
+  - 🏔️ **Desa Pegunungan:**
+    - Rumah Peternakan (pakan ternak);
+    - Tambang Rakyat (pegang ⛏️ beliung, tambang batu, tembaga, dan besi, 8 kali sehari);
+    - Pandai Besi (tempa alat dengan bijih besi: **energi kerja jadi setengah**);
+    - Pengolahan Kopi (2 kopi → kopi sangrai premium);
+    - Warung Kopi, Masjid Al-Hikmah;
+    - **danau** untuk memancing (ikan nilem dan tambakan), kebun kopi, padang sapi, sawah terasering, dan gunung bersalju.
+  - 🏖️ **Desa Pantai:**
+    - Pasar Ikan (jual ikan +10%, beli ikan);
+    - Tempat Pelelangan Ikan (subuh 05:00–08:00, ikan ≥100 G dibeli **+40%**);
+    - Galangan Perahu (sewa perahu sehari 150 G: **ikan laut dalam** seperti tenggiri, tuna, dan layaran);
+    - Pelabuhan (kapal ke pulau, 25 G), Warung Seafood, Kelenteng Hok Tek;
+    - pantai berpasir dengan dermaga, perahu jukung, jaring, dan payung. **Mancing di laut** dari pantai atau dermaga (bandeng, tongkol, kembung, baronang, cumi, kakap, kerapu).
+  - 🏝️ **Pulau Kencana:**
+    - Pura Segara;
+    - Penginapan (istirahat +120 ⚡, 100 G);
+    - Toko Suvenir (oleh-oleh untuk hadiah warga);
+    - **snorkeling** bersama Kadek (3 kali sehari: kerang, bintang laut, atau mutiara langka);
+    - mercusuar.
+- 🙏 **Tempat ibadah semua agama:** musala dan masjid (sajadah untuk salat, ayat harian), gereja Katolik dan Protestan (duduk berdoa, menyalakan lilin), vihara dan kelenteng (berdoa, menyalakan dupa), pura (menaruh canang). Rumah warga punya sudut ibadah sesuai agamanya.
+- 👥 **43 warga** dengan jadwal harian yang sama di kedua layar: bangun, beribadah, bekerja, makan siang, jalan-jalan sore, makan malam, dan tidur.
+  - Anak-anak berjalan ke sekolah di kota lewat jalan lingkar farm.
+  - Imam memimpin salat lima waktu; misa dan ibadah Minggu diadakan di gereja.
+  - Ngobrol menambah keakraban; tiap warga punya barang kesukaan untuk hadiah; minta teh saat bertamu (2 ❤️).
+- 🍲 **Resep baru:** jamu kunyit asam, tongkol balado, cumi goreng tepung, kerang saus padang.
 - 🔨 **Meja kerja** di sebelah kotak perkakas. Resep: pagar kayu (2 kayu), pagar batu (3 batu), jalan batu ×2 (2 batu), jalan papan ×2 (1 kayu), kursi kayu (4 kayu), bangku taman (4 kayu + 1 besi), lampu taman (kayu + batu + tembaga, menyala saat malam), orang-orangan sawah (3 kayu + 2 rumput), pot (2 tanah liat), dan pupuk kompos (3 rumput).
 - **Memasang barang:** pegang barang hasil crafting di toolbar, hadapkan ke tanah, tekan tombol aksi. Pagar mengikuti arah hadapanmu. Barang tidak bisa dipasang di kandang, di air, di depan pintu atau gerbang, atau menabrak benda lain. Pagar, kursi, bangku, lampu, dan orang-orangan menghalangi jalan; jalan batu dan papan bisa diinjak. Ambil lagi dengan ✋ tangan.
 - **Sumber daya:** kayu (kapak), batu dan bijih (beliung), rumput (sabit), dan baru: 🟤 **tanah liat** yang kadang muncul saat mencangkul (atau dibeli di Toko Bangunan).
