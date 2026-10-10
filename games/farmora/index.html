@@ -5998,7 +5998,24 @@
         function updateNPCs(dt) {
             const m = state.minutes, here = sceneOf(player.pos), floor = inHome(player.pos) ? floorOf(player.pos) : null;
             for (const n of NPCS) {
-                const s = n.st = npcState(n, m), f = n.f;
+                let s = n.st = npcState(n, m);
+                const f = n.f;
+                // talking to you: the villager stops where they are and keeps facing you; afterwards they
+                // walk on to where their day has got to, without jumping
+                const chatting = talkNpc === n && dlgOpen();
+                if (n.hold && (chatting || elapsed < n.hold.until)) {
+                    if (chatting) n.hold.until = elapsed + 1.2;
+                    s = { ...n.hold.s, moving: false, walk: 0 };
+                    if (s.k === 0) s.h = Math.atan2(player.pos.x - s.x, player.pos.z - s.z);
+                } else if (n.hold) {
+                    const d = Math.hypot(s.x - n.hold.s.x, s.z - n.hold.s.z);
+                    n.blend = { x: n.hold.s.x, z: n.hold.s.z, t0: elapsed, dur: clamp(d / 3, 0.6, 6) }; n.hold = null;
+                }
+                if (n.blend) {
+                    const u = (elapsed - n.blend.t0) / n.blend.dur;
+                    if (u >= 1 || s.x > 150 !== n.blend.x > 150) n.blend = null;
+                    else { const x = lerp(n.blend.x, s.x, u), z = lerp(n.blend.z, s.z, u); s = { ...s, x, z, k: 0, moving: true, sp: 2.4, h: Math.atan2(s.x - n.blend.x, s.z - n.blend.z) }; }
+                }
                 const sc = s.x > 150 ? homeScene : scene;
                 const vis = started && sc === here && (floor === null ? Math.hypot(s.x - player.pos.x, s.z - player.pos.z) < 44 : floorOf(s) === floor);
                 f.group.visible = vis;
@@ -6006,8 +6023,6 @@
                 if (f.group.parent !== sc) sc.add(f.group);
                 f.pos.set(s.x, s.x > 150 ? 0 : groundY(s.x, s.z), s.z);
                 let h = s.h;
-                // someone you are talking to turns to you (unless they are busy praying or lying down)
-                if (n.talkT && elapsed - n.talkT < 5 && !s.moving && s.k === 0) h = Math.atan2(player.pos.x - s.x, player.pos.z - s.z);
                 f.heading = s.k ? h : lerpAngle(f.heading, h, Math.min(1, dt * 8));
                 f.group.rotation.set(0, f.heading, 0);
                 if (s.moving) f.phase += dt * s.sp * 2.6;
@@ -6049,13 +6064,25 @@
             return first ? `${hello} ${line}` : line;
         }
         const giftable = k => k && !isTool(k) && ITEMS[k] && !k.startsWith('pk_');
+        let talkNpc = null;
         function openNpcDlg(n) {
             const s = n.st, d = npcData(n.id), b = bitOf(USER);
             n.talkT = elapsed;
+            // both stop and face each other while talking
+            talkNpc = n; clearGoal();
+            if (!n.hold) n.hold = { s: { ...(n.blend ? { ...s, x: n.f.pos.x, z: n.f.pos.z } : s) }, until: elapsed + 1.2 };
+            n.blend = null;
+            player.targetHeading = Math.atan2(n.f.pos.x - player.pos.x, n.f.pos.z - player.pos.z);
             const line = npcLine(n);
             if (!(d.t & b)) sendAct('npctalk', n.id);
             const h = heartsOf(n.id), held = heldItem(), btns = [];
-            if (giftable(held) && !(d.g & b)) btns.push({ t: `🎁 Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, f: () => sendAct('npcgift', `${n.id}|${held}`) });
+            if (giftable(held) && !(d.g & b)) btns.push({ t: `🎁 Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, f: () => {
+                sendAct('npcgift', `${n.id}|${held}`);
+                // a short moment together: you hand it over, they are pleased (or politely not)
+                player.lockT = elapsed + 1.6; player.swingT = elapsed;
+                if (n.hold) n.hold.until = elapsed + 2.6;
+                if (n.love.includes(held) || n.like.includes(held) || SUVENIR[held]) n.f.joyT = elapsed;
+            } });
             if (atWork(n) && VBI[n.job] && VBI[n.job].shop && inHome(player.pos) && floorOf(player.pos) === VBI[n.job].f) btns.push({ t: '🛒 Belanja', big: true, f: () => openTownShop(n.job) });
             if (atWork(n) && n.job === 'giling') btns.push({ t: '🏭 Giling gabah', big: true, f: openGiling });
             if (atWork(n) && n.job === 'lumbung') btns.push({ t: '🏚️ Buka lumbung', big: true, f: openLumbung });
@@ -8012,7 +8039,9 @@
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
             else if (e.f === 'hug') startHug();
             else if (e.f === 'gift') {
-                // whoever receives the present is delighted: hops, waves both arms, hearts all around
+                // whoever receives the present is delighted: hops, waves both arms, hearts all around;
+                // the two of you stand still a moment, facing each other
+                if (partnerF && partnerF.group.visible) { clearGoal(); player.lockT = elapsed + 2.2; player.targetHeading = Math.atan2(partnerF.pos.x - player.pos.x, partnerF.pos.z - player.pos.z); }
                 const f = e.w === USER ? partnerF : player;
                 if (f && f.group.visible) {
                     f.joyT = elapsed;
@@ -8879,7 +8908,9 @@
             const helpOpen = !$('helpScreen').classList.contains('hidden');
             hugStep(dt);
             if (reeling()) clearGoal();
-            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging() && !reeling();
+            const locked = player.lockT != null && elapsed < player.lockT;
+            if (locked) clearGoal();
+            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging() && !reeling() && !locked;
             if (moving && player.sit) standUp();
             const prevX = player.pos.x, prevZ = player.pos.z;
             if (moving) {
@@ -9020,7 +9051,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { decoWhy, groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

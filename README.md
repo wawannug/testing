@@ -150,6 +150,8 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - Anak-anak berjalan ke sekolah di kota lewat jalan lingkar farm.
   - Imam memimpin salat lima waktu; misa dan ibadah Minggu diadakan di gereja.
   - Ngobrol menambah keakraban; tiap warga punya barang kesukaan untuk hadiah; minta teh saat bertamu (2 ❤️).
+- 🗣️ **Saat diajak ngobrol**, warga berhenti di tempatnya (juga kalau sedang berjalan) dan menghadapmu, dan kamu menghadapnya. Setelah dialog ditutup ia melanjutkan perjalanan dengan mulus. Saat **memberi hadiah**, kalian berdua diam sejenak.
+- 🤗🎁 **Pelukan dan hadiah antarpemain**: kedua karakter berhenti sejenak dan saling berhadapan.
 - 🍲 **Resep baru:** jamu kunyit asam, tongkol balado, cumi goreng tepung, kerang saus padang.
 - 🔨 **Meja kerja** di sebelah kotak perkakas. Resep: pagar kayu (2 kayu), pagar batu (3 batu), jalan batu ×2 (2 batu), jalan papan ×2 (1 kayu), kursi kayu (4 kayu), bangku taman (4 kayu + 1 besi), lampu taman (kayu + batu + tembaga, menyala saat malam), orang-orangan sawah (3 kayu + 2 rumput), pot (2 tanah liat), dan pupuk kompos (3 rumput).
 - **Memasang barang:** pegang barang hasil crafting di toolbar, hadapkan ke tanah, tekan tombol aksi. Pagar mengikuti arah hadapanmu. Barang tidak bisa dipasang di kandang, di air, di depan pintu atau gerbang, atau menabrak benda lain. Pagar, kursi, bangku, lampu, dan orang-orangan menghalangi jalan; jalan batu dan papan bisa diinjak. Ambil lagi dengan ✋ tangan.
