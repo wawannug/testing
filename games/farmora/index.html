@@ -1234,14 +1234,18 @@
         const isLand = (x, z) => LANDR.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) || ((x - 131) / 17) ** 2 + ((z - 78) / 21) ** 2 < 1;
         const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.71, 0.71], [0.71, -0.71], [-0.71, 0.71], [-0.71, -0.71]];
         // how far a point is from the sea (−1 at sea, up to 9 well inland)
-        function coastDist(x, z) {
+        function rectCoast(x, z) {
             if (!isLand(x, z)) return -1;
-            for (const s of [1, 2.5, 4, 5.5, 7, 9]) for (const [dx, dz] of DIRS8) if (!isLand(x + dx * s, z + dz * s)) return s - 0.6;
-            return 10;
+            for (const s of [0.8, 1.6, 2.4, 3.3, 4.3, 5.4, 6.6, 8, 9.5]) for (const [dx, dz] of DIRS8) if (!isLand(x + dx * s, z + dz * s)) return s - 0.5;
+            return 11;
         }
+        // the shore is not a straight line: coves bite in and headlands stick out along it
+        const coastWobble = (x, z) => 2.2 * Math.sin(x * 0.083 + z * 0.047) + 1.4 * Math.sin(x * 0.19 - z * 0.15 + 1.3) + 0.8 * Math.sin(z * 0.41 + x * 0.12) - 1.6;
+        const coastDist = (x, z) => { const d = rectCoast(x, z); return d < 0 ? -1 : d + coastWobble(x, z) * (1 - sstep(6, 10.5, d)); };
         // the peaks: [x, z, height, spread]
         const PEAKS = [[-140, -58, 30, 13], [-150, -8, 22, 10], [-110, -70, 14, 8], [-150, 48, 16, 9], [-118, 63, 11, 5.5], [-80, -64, 6, 7], [-70, 66, 5, 7]];
         const SEA_Y = -0.35;
+        const waveTime = { value: 0 };
         function H0(x, z) {
             const d = coastDist(x, z);
             if (d < 0) return -1.8;
@@ -1297,8 +1301,45 @@
             geo.computeVertexNormals();
             const land = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
             land.receiveShadow = true; scene.add(land);
-            const sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.12, metalness: 0.05 }));
-            sea.position.set(0, SEA_Y, 0); scene.add(sea);
+            const seaMat = new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.18, metalness: 0.05 });
+            seaMat.onBeforeCompile = sh => {
+                sh.uniforms.uTime = waveTime;
+                sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vec4 wp = modelMatrix * vec4(position, 1.0);
+                    transformed.y += sin(wp.x * 0.35 + uTime * 1.3) * 0.07 + sin(wp.z * 0.28 - uTime * 1.1) * 0.06;`);
+            };
+            const sea = new THREE.Mesh(new THREE.PlaneGeometry(700, 600, 140, 120).rotateX(-Math.PI / 2), seaMat);
+            sea.position.set(-10, SEA_Y, -5); scene.add(sea);
+            const deep = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.2 }));
+            deep.position.y = SEA_Y - 0.06; scene.add(deep);
+            // where the ground meets the sea: a line of foam that runs up the sand and slides back
+            const gx = (X1 - X0) / ST + 1, foam = [];
+            for (let i = 0; i < pos.count; i++) {
+                const ix = i % gx, x = pos.getX(i), z = pos.getZ(i), h = pos.getY(i);
+                if (h < SEA_Y || ix + 1 >= gx || i + gx >= pos.count) continue;
+                const hr = pos.getY(i + 1), hd = pos.getY(i + gx);
+                if (hr >= SEA_Y && hd >= SEA_Y) continue;
+                // the sea is downhill: point the foam that way
+                const gxs = hr - h, gzs = hd - h, gl = Math.hypot(gxs, gzs) || 1;
+                foam.push([x + ST / 2, z + ST / 2, Math.atan2(-gxs / gl, -gzs / gl)]);
+            }
+            const fgeo = new THREE.PlaneGeometry(2.8, 0.55).rotateX(-Math.PI / 2);
+            const fmat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, depthWrite: false });
+            fmat.onBeforeCompile = sh => {
+                sh.uniforms.uTime = waveTime;
+                sh.vertexShader = 'uniform float uTime;\nvarying float vFade;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vec4 ip = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+                    float ph = uTime * 0.9 + ip.x * 0.37 + ip.z * 0.29;
+                    float w = sin(ph);
+                    transformed.z += w * 0.9 - 0.4;
+                    transformed.x *= 0.8 + 0.2 * cos(ph * 0.7);
+                    vFade = 0.35 + 0.65 * (0.5 - 0.5 * w);`);
+                sh.fragmentShader = 'varying float vFade;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>
+                    gl_FragColor.a *= vFade;`);
+            };
+            const fm = new THREE.InstancedMesh(fgeo, fmat, foam.length), mx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), v = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+            foam.forEach(([x, z, a], i) => { q.setFromAxisAngle(up, a); mx.compose(v.set(x, SEA_Y + 0.15, z), q, one); fm.setMatrixAt(i, mx); });
+            fm.computeBoundingSphere(); fm.frustumCulled = false; scene.add(fm);
         }
         // the paths follow the ground and curve gently between their points (the town's streets run straight)
         const EPTS = {};
@@ -1408,15 +1449,22 @@
                 // 🌾 rice fields with dykes, an irrigation ditch, a hut and scarecrows, banana trees and coconut palms
                 const tuft = new THREE.ConeGeometry(0.09, 0.42, 5); tuft.translate(0, 0.21, 0);
                 const spots = [];
+                const dykeX = (p, k, z) => p.x0 + k * 3.8 + 0.55 * Math.sin(z * 0.33 + k * 1.7), dykeZ = (p, k, x) => p.z0 + k * 3.8 + 0.55 * Math.sin(x * 0.29 + k * 2.3);
+                const dykeMat = new THREE.MeshStandardMaterial({ color: 0x7aa64e, roughness: 1 }), water = new THREE.MeshStandardMaterial({ color: 0x6f9c88, roughness: 0.25, side: THREE.DoubleSide });
                 for (const p of PADDIES) {
-                    flat(p.x1 - p.x0, p.z1 - p.z0, 0x6f9c78, (p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2, 0.01);
-                    for (let x = p.x0; x <= p.x1 + 0.01; x += 3.8) flat(0.35, p.z1 - p.z0, 0x7aa64e, x, (p.z0 + p.z1) / 2, 0.06);
-                    for (let z = p.z0; z <= p.z1 + 0.01; z += 3.8) flat(p.x1 - p.x0, 0.35, 0x7aa64e, (p.x0 + p.x1) / 2, z, 0.06);
-                    for (let x = p.x0 + 0.45; x < p.x1 - 0.2; x += 0.55) for (let z = p.z0 + 0.45; z < p.z1 - 0.2; z += 0.55) { const lx = (x - p.x0) % 3.8, lz = (z - p.z0) % 3.8; if (lx > 0.35 && lz > 0.35) spots.push([x, z]); }
+                    // the flooded field, with rounded corners
+                    const sh = new THREE.Shape(), rr = 2.5;
+                    sh.moveTo(p.x0 + rr, p.z0); sh.lineTo(p.x1 - rr, p.z0); sh.quadraticCurveTo(p.x1, p.z0, p.x1, p.z0 + rr); sh.lineTo(p.x1, p.z1 - rr); sh.quadraticCurveTo(p.x1, p.z1, p.x1 - rr, p.z1); sh.lineTo(p.x0 + rr, p.z1); sh.quadraticCurveTo(p.x0, p.z1, p.x0, p.z1 - rr); sh.lineTo(p.x0, p.z0 + rr); sh.quadraticCurveTo(p.x0, p.z0, p.x0 + rr, p.z0);
+                    const wg = new THREE.ShapeGeometry(sh, 6); wg.rotateX(Math.PI / 2); const wm = new THREE.Mesh(wg, water); wm.position.y = 0.035; wm.receiveShadow = true; wm.userData.noShift = 1; scene.add(wm);
+                    // the dykes between the plots wind a little, like real ones
+                    const dyke = (pts) => { const pos = []; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], l = Math.hypot(x1 - x0, z1 - z0) || 1, nx = -(z1 - z0) / l * 0.2, nz = (x1 - x0) / l * 0.2; pos.push(x0 + nx, 0.09, z0 + nz, x1 + nx, 0.09, z1 + nz, x0 - nx, 0.09, z0 - nz, x0 - nx, 0.09, z0 - nz, x1 + nx, 0.09, z1 + nz, x1 - nx, 0.09, z1 - nz); } const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.computeVertexNormals(); const m = new THREE.Mesh(gg, dykeMat); m.material.side = THREE.DoubleSide; m.userData.noShift = 1; scene.add(m); };
+                    for (let k = 1; (p.x0 + k * 3.8) < p.x1 - 1; k++) { const pts = []; for (let z = p.z0 + 0.3; z <= p.z1 - 0.3; z += 1) pts.push([dykeX(p, k, z), z]); dyke(pts); }
+                    for (let k = 1; (p.z0 + k * 3.8) < p.z1 - 1; k++) { const pts = []; for (let x = p.x0 + 0.3; x <= p.x1 - 0.3; x += 1) pts.push([x, dykeZ(p, k, x)]); dyke(pts); }
+                    for (let x = p.x0 + 0.6; x < p.x1 - 0.5; x += 0.55) for (let z = p.z0 + 0.6; z < p.z1 - 0.5; z += 0.55) { const kx = Math.round((x - p.x0) / 3.8), kz = Math.round((z - p.z0) / 3.8); if (Math.abs(x - dykeX(p, kx, z)) > 0.4 && Math.abs(z - dykeZ(p, kz, x)) > 0.4) spots.push([x, z]); }
                 }
                 const paddyMat = new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 });
                 spots.forEach(([x, z], i) => inst('paddy', tuft, paddyMat, x, 0.02, z, 1, 0.8 + ((i * 37) % 10) / 25, 1));
-                flat(0.8, 66, 0x5bb7ea, -30.4, 63, 0.03);
+                { const pos = []; let prev = null; for (let z = 30; z <= 96; z += 0.8) { const x = -30.4 + 0.5 * Math.sin(z * 0.21) + 0.25 * Math.sin(z * 0.53), cur = [x, z]; if (prev) { const [x0, z0] = prev, w = 0.4; pos.push(x0 - w, 0.045, z0, x + w, 0.045, z, x0 + w, 0.045, z0, x0 - w, 0.045, z0, x - w, 0.045, z, x + w, 0.045, z); } prev = cur; } const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.computeVertexNormals(); const m = new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ color: 0x5bb7ea, roughness: 0.2, side: THREE.DoubleSide })); m.userData.noShift = 1; scene.add(m); }
                 for (const [x, z] of [[-44, 40], [-38, 88], [33, 90]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
                 for (const [x, z] of [[-36, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
                 // a water buffalo resting by the dyke
@@ -8901,7 +8949,7 @@
             // each farmer lives in the scene of where they are
             for (const fm of [player, partnerF]) { const want = sceneOf(fm.pos); if (fm.group.parent !== want) want.add(fm.group); }
 
-            grassTime.value = elapsed;
+            grassTime.value = elapsed; waveTime.value = elapsed;
             updatePlayer(dt);
             ambientAnimals(dt);
             for (const a of animals) a.update(dt, elapsed);
