@@ -5836,9 +5836,12 @@
         const NPCI = Object.fromEntries(NPCS.map(n => [n.id, n]));
         const KEEPER = Object.fromEntries(NPCS.filter(n => n.job).map(n => [n.job, n]));
         const NPC_SPEED = 2.4; // map units per game minute (a brisk walk)
-        const npcData = id => state.npc[id] ||= { f: 0, t: 0, g: 0, c: 0 };
+        // every player has their own friendship with every villager (a: first account, b: second), starting at 0
+        const npcData = id => state.npc[id] ||= { a: 0, b: 0, t: 0, g: 0, c: 0 };
+        const friendOf = (id, u) => { const d = npcData(id); return u === NA ? d.a : d.b; };
+        const addFriend = (id, u, n) => { const d = npcData(id), k = u === NA ? 'a' : 'b'; d[k] = clamp(d[k] + n, 0, 1000); };
         const bitOf = u => u === NA ? 1 : 2;
-        const heartsOf = id => Math.floor(npcData(id).f / 100);
+        const heartsOf = (id, u = USER) => Math.floor(friendOf(id, u) / 100);
         const wdOf = day => (day - 1) % 7;
         const WORSHIP = new Set(['musala', 'masjid', 'gereja', 'gerejap', 'vihara', 'kelenteng', 'pura']);
         // everyone strolls in their own region after work
@@ -6292,7 +6295,7 @@
         }
         // the actions, run by the host like every farm change
         const VILLAGE_ACTIONS = {
-            npctalk(who, id) { const n = NPCI[id]; if (!n) return; const d = npcData(id), b = bitOf(who); if (d.t & b) return; d.t |= b; d.f = Math.min(1000, d.f + 20); },
+            npctalk(who, id) { const n = NPCI[id]; if (!n) return; const d = npcData(id), b = bitOf(who); if (d.t & b) return; d.t |= b; addFriend(id, who, 20); },
             npcgift(who, x) {
                 const [id, k] = String(x).split('|'), n = NPCI[id];
                 if (!n || !giftable(k) || !have(who, k)) return;
@@ -6300,15 +6303,15 @@
                 if (d.g & b) { emitEvent(`${n.name} sudah menerima hadiah darimu hari ini 🎁`, 'none', null, who); return; }
                 takeBag(who, k, 1); d.g |= b;
                 const love = n.love.includes(k), like = n.like.includes(k), hate = n.hate.includes(k), souvenir = !!SUVENIR[k];
-                d.f = clamp(d.f + (love ? 80 : like || souvenir ? 45 : hate ? -25 : 20), 0, 1000);
+                addFriend(id, who, love ? 80 : like || souvenir ? 45 : hate ? -25 : 20);
                 const it = ITEMS[k], say = love ? `Wah, ${it.label}! Ini kesukaanku! 😍` : like || souvenir ? `${it.label}? Terima kasih, aku suka! 😊` : hate ? `Eh… ${it.label}. Terima kasih, ya… 😅` : `Terima kasih atas ${it.label}-nya 🙂`;
                 emitEvent(`🎁 ${n.name}: “${say}”`.slice(0, 90), love ? 'hearts' : hate ? 'none' : 'heart1', n.f ? [n.f.pos.x, 1.9, n.f.pos.z] : null, who);
             },
             npcteh(who, id) {
-                const n = NPCI[id]; if (!n || heartsOf(id) < 2) return;
+                const n = NPCI[id]; if (!n || heartsOf(id, who) < 2) return;
                 const d = npcData(id), b = bitOf(who);
                 if (d.c & b) { emitEvent(`${n.name}: “Tehnya sudah tadi, nanti kembung, hehe 🍵”`, 'none', null, who); return; }
-                d.c |= b; addEnergy(who, 15); d.f = Math.min(1000, d.f + 10);
+                d.c |= b; addEnergy(who, 15); addFriend(id, who, 10);
                 emitEvent(`🍵 ${n.name} menyuguhkan teh hangat · +15 ⚡`, 'heart1', n.f ? [n.f.pos.x, 1.9, n.f.pos.z] : null, who);
             },
             giling(who, x) {
@@ -6384,10 +6387,10 @@
         const cleanUp = o => { const r = {}; for (const k of Object.keys(UPGRADES)) if (o && o[k]) r[k] = 1; return r; };
         const cleanDaily = o => { const r = {}; for (const [k, v] of Object.entries(o || {})) if (/^(mine|snorkel):/.test(k) && Array.isArray(v) && v.length === 2 && v.every(Number.isFinite)) r[k] = [v[0], v[1]]; return r; };
         // friendship goes over the network as one short string: index, friendship, who talked / gave / had tea
-        const encNpc = () => NPCS.map((n, i) => { const d = state.npc[n.id]; return d && (d.f || d.t || d.g || d.c) ? i.toString(36) + ':' + Math.round(d.f).toString(36) + ':' + (d.t | d.g << 2 | d.c << 4).toString(36) : ''; }).filter(Boolean).join(',');
-        const decNpc = s => { const r = {}; for (const part of String(s).split(',')) { const [i, f, m] = part.split(':'); const n = NPCS[parseInt(i, 36)]; if (!n) continue; const v = parseInt(m, 36) || 0; r[n.id] = { f: clamp(parseInt(f, 36) || 0, 0, 1000), t: v & 3, g: v >> 2 & 3, c: v >> 4 & 3 }; } return r; };
+        const encNpc = () => NPCS.map((n, i) => { const d = state.npc[n.id]; return d && (d.a || d.b || d.t || d.g || d.c) ? i.toString(36) + ':' + Math.round(d.a).toString(36) + ':' + Math.round(d.b).toString(36) + ':' + (d.t | d.g << 2 | d.c << 4).toString(36) : ''; }).filter(Boolean).join(',');
+        const decNpc = s => { const r = {}; for (const part of String(s).split(',')) { const [i, a, b, m] = part.split(':'); const n = NPCS[parseInt(i, 36)]; if (!n) continue; const v = parseInt(m, 36) || 0; r[n.id] = { a: clamp(parseInt(a, 36) || 0, 0, 1000), b: clamp(parseInt(b, 36) || 0, 0, 1000), t: v & 3, g: v >> 2 & 3, c: v >> 4 & 3 }; } return r; };
         const cleanLumbung = o => { const r = {}; for (const k of LUMBUNG_KEYS) if (o && Number.isFinite(o[k]) && o[k] > 0) r[k] = Math.min(999, Math.floor(o[k])); return r; };
-        const cleanNpc = o => { const r = {}; for (const n of NPCS) { const v = o && o[n.id]; if (v && typeof v === 'object') r[n.id] = { f: clamp(+v.f || 0, 0, 1000), t: v.t | 0, g: v.g | 0, c: v.c | 0 }; } return r; };
+        const cleanNpc = o => { const r = {}; for (const n of NPCS) { const v = o && o[n.id]; if (v && typeof v === 'object' && 'a' in v) r[n.id] = { a: clamp(+v.a || 0, 0, 1000), b: clamp(+v.b || 0, 0, 1000), t: v.t | 0, g: v.g | 0, c: v.c | 0 }; } return r; };
         // a new day: everyone can be talked to and given something again; a new season: the granary shares out
         function villageNight(newSeason) {
             for (const d of Object.values(state.npc)) { d.t = 0; d.g = 0; d.c = 0; }
