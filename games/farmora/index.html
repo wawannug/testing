@@ -1061,7 +1061,7 @@
             rNW: [-27.5, -26], rNE: [27.5, -26], rSW: [-27.5, 26], rSE: [27.5, 26], gS: [0, 26], gN: [4, -26], gW: [-27.5, -2.2], gE: [27.5, 2],
             // 🌾 Lembah Persawahan: winding footpaths
             s0: [0.5, 37], s1: [0.5, 41.2], s2: [2, 42.5], s3: [-9, 42], s4: [-18, 40.5], s5: [-27, 43], s6: [11, 41], s7: [20, 44], s8: [29, 40.5],
-            sq: [4.6, 47.8], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-36.6, 52], s21: [33, 60], s22: [-36.6, 80], s23: [-37.2, 35.6],
+            sq: [4.6, 47.8], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-36.6, 52], s21: [33, 60], s22: [-36.6, 80], s23: [-37.2, 35.6], s24: [-45.5, 34.3],
             // 🏙️ Kota: straight streets
             k0: [4, -31], k1: [4, -45], k2: [4, -65], k3: [4, -85], kW1: [-30.6, -45], kE1: [35.5, -45], kW2: [-30.6, -65], kE2: [35.5, -65], kW3: [-30.6, -85], kE3: [35.5, -85], kP: [-37, -45], kE4: [41, -85], kW4: [-34, -85],
             // 🌳 Desa Hutan
@@ -1084,7 +1084,7 @@
             ['gE', 'p0'], ['p0', 'p1'], ['p1', 'p2'], ['p2', 'p3'], ['p3', 'p4'], ['p4', 'p5'], ['p2', 'p6'], ['p6', 'p8'], ['p8', 'p9'], ['p9', 'p15'], ['p15', 'p5'], ['p6', 'p7'], ['p7', 'p12'], ['p3', 'p10'], ['p2', 'p11'], ['p8', 'p13'], ['p9', 'p14'],
             ['i0', 'i1'], ['i1', 'i2'], ['i2', 'i6'], ['i6', 'i3'], ['i6', 'i4'], ['i2', 'i5'],
             // the villages also join each other directly, not only through the farm
-            ['h9', 's23'], ['s23', 's20'], ['h11', 'kP'], ['kE1', 'p11'], ['s8', 'p12'],
+            ['h9', 's24'], ['s24', 's23'], ['s23', 's20'], ['h11', 'kP'], ['kE1', 'p11'], ['s8', 'p12'],
         ];
         // every building: where it stands (x, z, a slight turn rot), its path node, size and colours, and its inside (type)
         // houses: faith decides the prayer corner (i Islam, k Katolik, p Protestan, b Buddha, c Konghucu, h Hindu)
@@ -1176,7 +1176,7 @@
         const SEA = { x: 1e5, z: 1e5, r: 3.6, reach: 8, kind: 'sea', pos: new THREE.Vector3(1e5, 0, 1e5), isWater: (x, z) => H(x, z) < SEA_Y - 0.12 && !inRiver(x, z, 1.5) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 3 };
         const LAGOON = { x: 300, z: 0, r: 199.2, kind: 'sea' };
         // rice paddies slow you down
-        const PADDIES = [{ x0: -48, x1: -39.2, z0: 37, z1: 90 }, { x0: 24, x1: 42, z0: 68, z1: 90 }];
+        const PADDIES = [{ x0: -48, x1: -39.2, z0: 37.6, z1: 90 }, { x0: 24, x1: 42, z0: 68, z1: 90 }];
         const inPaddy = p => PADDIES.some(r => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1);
         const VBI = {};
         VB.forEach((b, i) => {
@@ -1380,7 +1380,17 @@
         const onPier = (x, z) => x > 99.5 && x < 113.2 && Math.abs(z) < 1.3 || x > 115 && x < 121.6 && Math.abs(z - 78) < 1.2;
         const inFarmFlat = (x, z) => Math.abs(x) < 31 && Math.abs(z) < 29;
         // where your feet are
-        function groundY(x, z) { const br = x < 150 && onBridge(x, z); if (br) return deckY(br.q, br.u); if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(H(x, z), SEA_Y + 0.05); }
+        // the steps up to the door of a house on stilts: a little slope you walk up
+        const STILTS = VB.filter(b => b.style === 'stilt');
+        function stairY(x, z) {
+            for (const b of STILTS) {
+                if (Math.abs(x - b.x) > b.w || Math.abs(z - b.z) > b.d + 3) continue;
+                const c = Math.cos(b.rot), s = Math.sin(b.rot), dx = x - b.x, dz = z - b.z, lx = dx * c - dz * s, lz = dx * s + dz * c;
+                if (Math.abs(lx) < 0.75 && lz > b.d / 2 - 0.05 && lz < b.d / 2 + 1.7) return (b.y || 0) + clamp(0.78 - (lz - b.d / 2 - 0.3) * 0.6, 0, 0.8);
+            }
+            return -9;
+        }
+        function groundY(x, z) { const br = x < 150 && onBridge(x, z); if (br) return deckY(br.q, br.u); if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(H(x, z), SEA_Y + 0.05, stairY(x, z)); }
         const walkable = p => inWorld(p) && (p.x > 150 || inFarmFlat(p.x, p.z) || onPier(p.x, p.z) || !!onBridge(p.x, p.z) || H(p.x, p.z) > SEA_Y + 0.12 && !inRiver(p.x, p.z));
         // how high something built on the ground goes: on its pad, on the sea, or on a pier
         const shiftY = (x, z) => onPier(x, z) ? 0 : inFarmFlat(x, z) ? 0 : H(x, z) < SEA_Y ? SEA_Y - 0.05 : H(x, z);
@@ -1529,7 +1539,16 @@
             };
             for (const [a, b] of EDGES) draw(edgePts(a, b), roadKind(a, b));
             // from every door to its road
-            for (const b of VB) { const n = NODES[b.at], pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (n[0] - b.door.x) * i / 4, b.door.z + (n[1] - b.door.z) * i / 4]); draw(pts, b.r === 'kota' ? 'walk' : 'desa', b.r === 'kota' ? 1.3 : 1.4); }
+            for (const b of VB) {
+                let [ex, ez] = NODES[b.at];
+                if (b.r === 'kota') {
+                    // in town: straight out of the door to the nearest street
+                    let bd = Infinity;
+                    for (const [a2, b2] of EDGES) { if (roadKind(a2, b2) !== 'kota') continue; const P = edgePts(a2, b2); for (let i = 1; i < P.length; i++) { const [x0, z0] = P[i - 1], [x1, z1] = P[i], dx = x1 - x0, dz = z1 - z0, t = clamp(((b.door.x - x0) * dx + (b.door.z - z0) * dz) / (dx * dx + dz * dz || 1), 0, 1), px = x0 + dx * t, pz = z0 + dz * t, d = Math.hypot(px - b.door.x, pz - b.door.z); if (d < bd) { bd = d; ex = px; ez = pz; } } }
+                }
+                const pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (ex - b.door.x) * i / 4, b.door.z + (ez - b.door.z) * i / 4]);
+                draw(pts, b.r === 'kota' ? 'walk' : 'desa', b.r === 'kota' ? 1.3 : 1.4);
+            }
             for (const [k, o] of Object.entries(out)) for (const [part, col, lift] of [['edge', ROAD_STYLE[k].e, 1], ['top', ROAD_STYLE[k].c, 2]]) {
                 if (!o[part].length) continue;
                 const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(o[part], 3)); geo.computeVertexNormals();
@@ -1580,7 +1599,7 @@
             buildRiver();
             // signposts where the villages join each other
             const signG = (x, z, t) => { const before = new Set(scene.children); sign(x, z, t); const y = groundY(x, z); for (const o of scene.children) if (!before.has(o)) o.position.y += y; };
-            for (const [a, b, ta, tb] of [['s23', 'h9', 'Ke Hutan', 'Ke Sawah'], ['kP', 'h11', 'Ke Hutan', 'Ke Kota'], ['kE1', 'p11', 'Ke Pantai', 'Ke Kota'], ['s8', 'p12', 'Ke Pantai', 'Ke Sawah']]) {
+            for (const [a, b, ta, tb] of [['s24', 'h9', 'Ke Hutan', 'Ke Sawah'], ['kP', 'h11', 'Ke Hutan', 'Ke Kota'], ['kE1', 'p11', 'Ke Pantai', 'Ke Kota'], ['s8', 'p12', 'Ke Pantai', 'Ke Sawah']]) {
                 const P = edgePts(a, b);
                 for (const [i, t] of [[Math.min(3, P.length - 1), ta], [Math.max(0, P.length - 4), tb]]) { const q0 = P[Math.max(0, i - 1)], q1 = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1, nx = -(q1[1] - q0[1]) / l, nz = (q1[0] - q0[0]) / l; const room = sd => Math.min(...PATH_PTS.map(([x, z]) => Math.hypot(x - (P[i][0] + nx * 2.1 * sd), z - (P[i][1] + nz * 2.1 * sd)))) - (nearBuilding(P[i][0] + nx * 2.1 * sd, P[i][1] + nz * 2.1 * sd, 0.3) ? 9 : 0), sd = room(1) >= room(-1) ? 1 : -1; signG(P[i][0] + nx * 2.1 * sd, P[i][1] + nz * 2.1 * sd, t); }
             }
@@ -1619,8 +1638,14 @@
                 if (!br || BRIDGES.some(q => Math.hypot(q.x - br.px, q.z - br.pz) < 2.5)) continue;
                 // the bridge runs the way the path goes, so walkers stay on it
                 const p0 = pts[Math.max(0, bi - 1)], p1 = pts[Math.min(pts.length - 1, bi + 1)], dl = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, nx = (p1[0] - p0[0]) / dl, nz = (p1[1] - p0[1]) / dl;
-                const tl = Math.hypot(br.dx, br.dz) || 1, across = Math.abs(nx * -br.dz / tl + nz * br.dx / tl), L = Math.min(16, (2 * br.w + 5) / Math.max(0.55, across));
-                const q = { x: br.px, z: br.pz, nx, nz, L, W: 2.6, wy: br.y };
+                // it reaches from dry bank to dry bank: walk out both ways until the ground is above the water, then a bit more
+                const wet = (x, z) => H(x, z) < br.y + 0.15 || inRiver(x, z, 0.5);
+                let t1 = 1, t2 = 1;
+                while (t1 < 14 && wet(br.px - nx * t1, br.pz - nz * t1)) t1 += 0.25;
+                while (t2 < 14 && wet(br.px + nx * t2, br.pz + nz * t2)) t2 += 0.25;
+                t1 += 1.4; t2 += 1.4;
+                const L = t1 + t2, mid = (t2 - t1) / 2;
+                const q = { x: br.px + nx * mid, z: br.pz + nz * mid, nx, nz, L, W: 2.6, wy: br.y };
                 q.ya = Math.max(H(q.x - nx * L / 2, q.z - nz * L / 2), br.y + 0.3); q.yb = Math.max(H(q.x + nx * L / 2, q.z + nz * L / 2), br.y + 0.3);
                 q.arch = Math.max(0.25, br.y + 0.8 - (q.ya + q.yb) / 2);
                 BRIDGES.push(q);
@@ -1835,8 +1860,11 @@
                 const aw = box(w * 0.7, 0.12, 1.1, b.roof, 0, 2.6, fz + 0.5, g); aw.rotation.x = 0.2;
             } else if (st === 'cityhouse') {
                 const roof = gableRoof(d + 0.6, w + 0.4, 1.1, b.roof); roof.rotation.y = Math.PI / 2; roof.position.y = tall; g.add(roof);
-                for (const sx of [-1, 1]) box(0.08, 0.9, 1.6, 0xffffff, sx * (w / 2 + 0.6), 0.45, fz + 0.9, g);
-                box(w + 1.2, 0.9, 0.08, 0xffffff, 0, 0.45, fz + 1.7, g);
+                // a low white fence round the front yard, with a gate in front of the door (and you cannot walk through it)
+                const wc = (lx, lz, hx, hz) => { const c = Math.cos(b.rot), s = Math.sin(b.rot), x = b.x + lx * c + lz * s, z = b.z - lx * s + lz * c; addBoxCollider(x - hx, x + hx, z - hz, z + hz); };
+                for (const sx of [-1, 1]) { box(0.08, 0.9, 0.9, 0xffffff, sx * (w / 2 + 0.6), 0.45, fz + 0.45, g); wc(sx * (w / 2 + 0.6), fz + 0.45, 0.1, 0.45); }
+                const half = (w + 1.2) / 2, gate = 0.95, seg = half - gate;
+                for (const sx of [-1, 1]) { box(seg, 0.9, 0.08, 0xffffff, sx * (gate + seg / 2), 0.45, fz + 0.9, g); wc(sx * (gate + seg / 2), fz + 0.9, seg / 2, 0.1); box(0.14, 1.1, 0.14, 0xffffff, sx * gate, 0.55, fz + 0.9, g); }
             } else if (st === 'hall') {
                 // an open market hall: a roof on posts
                 const roof = gableRoof(d + 1.0, w + 0.6, 1.4, b.roof); roof.rotation.y = Math.PI / 2; roof.position.y = tall; g.add(roof);
@@ -6167,7 +6195,7 @@
         }
         // the path node a place is reached from, and the bit of footpath from its door to that node
         const placeNode = p => VBI[p] ? VBI[p].at : VOUT[p].node;
-        const toNode = (pt, node) => { const n = NODES[node]; return Math.abs(pt.x - n[0]) > 2.5 && Math.abs(pt.z - n[1]) > 2.5 && node[0] === 'k' ? [{ x: pt.x, z: n[1] }, { x: n[0], z: n[1] }] : [{ x: n[0], z: n[1] }]; };
+        const toNode = (pt, node) => { const n = NODES[node]; return Math.abs(pt.x - n[0]) > 1 && Math.abs(pt.z - n[1]) > 0.5 && node[0] === 'k' ? [{ x: pt.x, z: n[1] }, { x: n[0], z: n[1] }] : [{ x: n[0], z: n[1] }]; };
         // the walk between two activities: out through the door, along the paths, in through the other door
         function vRoute(A, B) {
             const pa = anchorOf(A), pb = anchorOf(B), ba = VBI[A.p], bb = VBI[B.p];
