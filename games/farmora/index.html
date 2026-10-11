@@ -1537,7 +1537,19 @@
                 ribbon(o.edge, pts, w / 2 + 0.25, 0.05 + d); ribbon(o.top, pts, w / 2, 0.075 + d);
                 for (const [x, z] of [pts[0], pts[pts.length - 1]]) { cap(o.edge, x, z, w / 2 + 0.25, 0.05 + d); cap(o.top, x, z, w / 2, 0.075 + d); }
             };
-            for (const [a, b] of EDGES) draw(edgePts(a, b), roadKind(a, b));
+            // a road that crosses a river runs straight onto the ends of its bridge
+            const bridgeCut = pts => {
+                for (const q of BRIDGES) {
+                    const uv = ([x, z]) => [(x - q.x) * q.nx + (z - q.z) * q.nz, -(x - q.x) * q.nz + (z - q.z) * q.nx];
+                    const near = pts.map(p => { const [u, v] = uv(p); return Math.abs(u) < q.L / 2 + 1.2 && Math.abs(v) < q.W / 2 + 2.5; });
+                    const first = near.indexOf(true), last = near.lastIndexOf(true);
+                    if (first < 0) continue;
+                    const sg = uv(pts[0])[0] < 0 ? -1 : 1, end = sd => [q.x + q.nx * sd * (q.L / 2 + 0.05), q.z + q.nz * sd * (q.L / 2 + 0.05)];
+                    return [[...pts.slice(0, first), end(sg)], [end(-sg), ...pts.slice(last + 1)]];
+                }
+                return null;
+            };
+            for (const [a, b] of EDGES) { const pts = edgePts(a, b), kind = roadKind(a, b), cut = bridgeCut(pts); if (!cut) draw(pts, kind); else { for (const p of pts) PATH_PTS.push(p); for (const part of cut) if (part.length > 1) draw(part, kind); } }
             // from every door to its road
             for (const b of VB) {
                 let [ex, ez] = NODES[b.at];
@@ -1645,7 +1657,7 @@
                 while (t2 < 14 && wet(br.px + nx * t2, br.pz + nz * t2)) t2 += 0.25;
                 t1 += 1.4; t2 += 1.4;
                 const L = t1 + t2, mid = (t2 - t1) / 2;
-                const q = { x: br.px + nx * mid, z: br.pz + nz * mid, nx, nz, L, W: 2.6, wy: br.y };
+                const q = { x: br.px + nx * mid, z: br.pz + nz * mid, nx, nz, L, W: roadKind(a, b) === 'utama' ? 3.4 : 2.6, wy: br.y };
                 q.ya = Math.max(H(q.x - nx * L / 2, q.z - nz * L / 2), br.y + 0.3); q.yb = Math.max(H(q.x + nx * L / 2, q.z + nz * L / 2), br.y + 0.3);
                 q.arch = Math.max(0.25, br.y + 0.8 - (q.ya + q.yb) / 2);
                 BRIDGES.push(q);
