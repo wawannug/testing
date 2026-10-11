@@ -98,3 +98,22 @@ Hasil awal 65 temuan, sekarang **0**. Perbaikannya:
   - Papan penunjuk berdiri di sisi jalan yang kosong.
   - Sarang lebah, tiang bendera sekolah, satu mobil parkir, dan perahu galangan dipindah agar tidak menghalangi.
   - Tempat Kadek berdiri dipindah ke pasir.
+
+## 9. Permukaan jalan dan sambungan jembatan
+- **Alas jalan (`planRoadbed`, `roadbed`).**
+  - Tanah di sepanjang jalan diratakan mengikuti rata-rata tinggi jalan sekitar ±6 langkah ke depan dan ke belakang. Dasar sungai tidak ikut dihitung.
+  - Di persimpangan, alas beberapa jalan dicampur supaya tidak ada undakan.
+  - Mesh tanah dan tinggi pijakan karakter memakai alas yang sama.
+- **Jalan diletakkan di atas tanah yang benar-benar digambar (`meshY`).**
+  - Jalan memakai segitiga mesh tanah ditambah sedikit jarak aman, jadi tanah tidak lagi menembus jalan. Titik jalan di bawah tanah: 157 → 0.
+  - Garis tengah jalan dihaluskan (Chaikin) dan diambil tiap 0,5 langkah, tanpa lebar bergelombang.
+  - Ujung bulat jalan memakai dua cincin.
+- **Tidak ada jalan yang berkedip.**
+  - Jalan dicat setelah tanah tanpa menulis kedalaman. Urutannya: tepi gelap dulu, lalu permukaan jalan (jalan sempit, lalu yang lebih lebar).
+  - Normal jalan mengikuti kemiringan tanah, jadi bagian yang bertumpuk berwarna sama.
+- **Jembatan.**
+  - Ujung jembatan setinggi tanah di kedua sisi (selisih ≤ 0,08).
+  - Lebar jembatan: 3,4 di jalan utama, 2,6 di jalan desa.
+  - Jalan masuk sedikit ke bawah ujung jembatan.
+- **Jalur Tambang.** Jalan ke tambang mulai di luar bukit tambang, tidak lagi di bawahnya.
+- **Uji.** Semua jalan dijalani tiap 0,1 langkah: tidak ada langkah yang terhalang, dan undakan terbesar 0,14. Lereng curam hanya ada di pegunungan.

@@ -1067,7 +1067,7 @@
             // 🌳 Desa Hutan
             h0: [-33, -2], h1: [-42, -5], h2: [-52, -1], h3: [-60, -10.5], h4: [-50, -16], h5: [-62, 6], h6: [-72, 2], h7: [-82, -4], h8: [-51.5, 10.2], h9: [-56, 18], h10: [-71.5, 20.5], h12: [-51.8, 17.6], h11: [-55, -30],
             // 🏔️ Desa Pegunungan
-            g0: [-94, -6.5], g1: [-102, -10], g2: [-112, -16], g3: [-124, -22], g4: [-110, -30], g5: [-100, -24], g6: [-116, -2], g7: [-112.2, 12.4], g8: [-112, 27], g9: [-126, 6], g10: [-95, 8], g11: [-134, 12], g12: [-98, -36], g13: [-96.5, -14],
+            g0: [-94, -6.5], g1: [-102, -10], g2: [-112, -16], g3: [-124.2, -19.4], g4: [-110, -30], g5: [-100, -24], g6: [-116, -2], g7: [-112.2, 12.4], g8: [-112, 27], g9: [-126, 6], g10: [-95, 8], g11: [-134, 12], g12: [-98, -36], g13: [-96.5, -14],
             // 🏖️ Desa Pantai
             p0: [33, 2], p1: [44, 3], p2: [55, 0], p3: [66, -6], p4: [76, -2], p5: [88, 0], p6: [64, 10], p7: [52, 14], p8: [76.5, 13.5], p9: [84, 12], p10: [60, -14], p11: [46, -10], p12: [40, 14], p13: [70, 20], p14: [91, 22], p15: [91.5, 7],
             // 🏝️ Pulau Kencana
@@ -1341,6 +1341,34 @@
             h1 = lerp(bed, h1, sstep(r.w - 0.3, r.w + 1.4, r.d));
             return Math.min(h, h1);
         }
+        // 🛣️ the bed of every road: along a road the ground is evened out (a running average of its height along the
+        // road), so a road has no sudden steps or bumps and the ground never pokes up through it
+        let RB = null;
+        function roadbed(x, z, h) {
+            if (!RB) return h;
+            // where roads meet, their beds are blended, so a junction has no step either
+            const cx = Math.floor(x / 4), cz = Math.floor(z / 4); let bd = Infinity, ws = 0, ys = 0;
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const q of RB[(cx + i) + ',' + (cz + j)] || []) { const d = Math.hypot(x - q[0], z - q[1]) - q[3]; if (d < bd) bd = d; if (d < 2.5) { const w = 1 / (0.3 + Math.max(0, d) + 0.15 * Math.hypot(x - q[0], z - q[1])) ** 2; ws += w; ys += q[2] * w; } }
+            if (!ws || bd > 2) return h;
+            return lerp(ys / ws, h, sstep(0.2, 2, bd));
+        }
+        function planRoadbed() {
+            const grid = {}, add = (x, z, y, hw) => (grid[Math.floor(x / 4) + ',' + Math.floor(z / 4)] ||= []).push([x, z, y, hw]);
+            const lay = (pts, hw) => {
+                const S = []; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.75)); for (let k = 0; k < n; k++) S.push([x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n]); }
+                S.push(pts[pts.length - 1]);
+                const raw = S.map(([x, z]) => H(x, z)), wet = S.map(([x, z]) => inRiver(x, z, 0.6));
+                S.forEach(([x, z], i) => {
+                    if (inFarmFlat(x, z) || inRiver(x, z, 0.6) || BRIDGES.some(q => Math.hypot(x - q.x, z - q.z) < q.L / 2 - 0.3)) return;
+                    let t = 0, n = 0; for (let k = Math.max(0, i - 8); k <= Math.min(S.length - 1, i + 8); k++) if (!wet[k]) { t += raw[k]; n++; }
+                    add(x, z, t / n, hw);
+                });
+            };
+            for (const [a, b] of EDGES) { const k = roadKind(a, b); if (k !== 'kota') lay(edgePts(a, b), ROAD_STYLE[k].w / 2 + 0.25); }
+            RB = grid;
+            // the bridges' ends sit on the evened-out ground
+            for (const q of BRIDGES) { q.ya = Math.max(H(q.x - q.nx * q.L / 2, q.z - q.nz * q.L / 2) - 0.04, q.wy + 0.12); q.yb = Math.max(H(q.x + q.nx * q.L / 2, q.z + q.nz * q.L / 2) - 0.04, q.wy + 0.12); q.arch = Math.max(0.35, q.wy + 0.85 - (q.ya + q.yb) / 2); }
+        }
         // 🌉 a bridge wherever a path crosses the river (planned once the paths are known)
         const BRIDGES = [];
         function onBridge(x, z) {
@@ -1374,7 +1402,7 @@
         function H(x, z) {
             let h = H0(x, z);
             for (const b of VB) { if (Math.abs(x - b.x) > b.w + 6 || Math.abs(z - b.z) > b.d + 7) continue; const m = Math.max(Math.abs(x - b.x) - b.w / 2 - 0.6, Math.abs(z - b.z) - b.d / 2 - 1.4); if (m < 4) h = lerp(b.y, h, sstep(0, 4, m)); }
-            return riverCarve(x, z, h);
+            return roadbed(x, z, riverCarve(x, z, h));
         }
         // the piers stand over the sea
         const onPier = (x, z) => x > 99.5 && x < 113.2 && Math.abs(z) < 1.3 || x > 115 && x < 121.6 && Math.abs(z - 78) < 1.2;
@@ -1403,6 +1431,15 @@
             return tw ? c.multiplyScalar(1 / tw) : c.setHex(0x8cc463);
         }
         let TERR = null;   // the heights and colours of the ground, for the map
+        // the height of the drawn ground at any spot: the same two triangles per square the terrain mesh uses
+        function meshY(x, z) {
+            const T = TERR; if (!T) return H(x, z);
+            const fx = (x - T.X0) / T.ST, fz = (z - T.Z0) / T.ST, i = Math.floor(fx), j = Math.floor(fz);
+            if (i < 0 || j < 0 || i >= T.gx - 1 || j >= T.gz - 1) return H(x, z);
+            const u = fx - i, v = fz - j, h = (a, b) => T.hs[(j + b) * T.gx + i + a];
+            // PlaneGeometry splits each square into (a, b, d) and (b, c, d): a top-left, b below it, c below-right, d right
+            return u + v < 1 ? h(0, 0) + (h(1, 0) - h(0, 0)) * u + (h(0, 1) - h(0, 0)) * v : h(1, 1) + (h(0, 1) - h(1, 1)) * (1 - u) + (h(1, 0) - h(1, 1)) * (1 - v);
+        }
         function buildTerrain() {
             const X0 = -186, X1 = 166, Z0 = -132, Z1 = 122, ST = 2;
             const geo = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, (X1 - X0) / ST, (Z1 - Z0) / ST);
@@ -1519,23 +1556,27 @@
         function buildPaths() {
             const out = {}; for (const k of Object.keys(ROAD_STYLE)) out[k] = { top: [], edge: [] };
             // a strip that follows the ground (sampled about every metre), with a darker kerb along both sides
-            const ribbon = (arr, pts, hw, dy) => {
-                const P = []; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0))); for (let k = 0; k < n; k++) P.push([x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n]); }
+            // where a road lies: on the drawn ground (or the exact ground if that is higher), never on a bridge deck
+            const roadY = (x, z) => inFarmFlat(x, z) ? 0 : Math.max(meshY(x, z), meshY(x + 0.45, z), meshY(x - 0.45, z), meshY(x, z + 0.45), meshY(x, z - 0.45), H(x, z), SEA_Y + 0.05);
+            // round off the corners of a centre line (Chaikin), keeping both ends where they are
+            const smooth = pts => { let P = pts; for (let it = 0; it < 2 && P.length > 2; it++) { const Q = [P[0]]; for (let i = 0; i < P.length - 1; i++) { const [x0, z0] = P[i], [x1, z1] = P[i + 1]; if (i) Q.push([x0 * 0.75 + x1 * 0.25, z0 * 0.75 + z1 * 0.25]); if (i < P.length - 2) Q.push([x0 * 0.25 + x1 * 0.75, z0 * 0.25 + z1 * 0.75]); } Q.push(P[P.length - 1]); P = Q; } return P; };
+            const ribbon = (arr, pts0, hw, dy) => {
+                const pts = smooth(pts0), P = []; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.5)); for (let k = 0; k < n; k++) P.push([x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n]); }
                 P.push(pts[pts.length - 1]);
-                const side = P.map(([x, z], i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, w = hw * (1 + 0.06 * Math.sin(x * 1.3 + z * 0.7)), nx = -(b[1] - a[1]) / l * w, nz = (b[0] - a[0]) / l * w; return [x + nx, z + nz, x - nx, z - nz]; });
-                const y = (x, z) => groundY(x, z) + dy;
+                const side = P.map(([x, z], i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, w = hw, nx = -(b[1] - a[1]) / l * w, nz = (b[0] - a[0]) / l * w; return [x + nx, z + nz, x - nx, z - nz]; });
+                const y = (x, z) => roadY(x, z) + dy;
                 for (let i = 0; i < P.length - 1; i++) {
                     const mx = (P[i][0] + P[i + 1][0]) / 2, mz = (P[i][1] + P[i + 1][1]) / 2; if (!toBridge && (onBridge(mx, mz) || inRiver(mx, mz, 0.3))) continue;
                     const [ax, az, bx, bz] = side[i], [cx, cz, ex, ez] = side[i + 1];
                     arr.push(ax, y(ax, az), az, cx, y(cx, cz), cz, bx, y(bx, bz), bz, bx, y(bx, bz), bz, cx, y(cx, cz), cz, ex, y(ex, ez), ez);
                 }
             };
-            const cap = (arr, x, z, r, dy) => { if (!toBridge && onBridge(x, z)) return; const y = (x, z) => groundY(x, z) + dy; for (let k = 0; k < 16; k++) { const a0 = k / 16 * Math.PI * 2, a1 = (k + 1) / 16 * Math.PI * 2, x0 = x + Math.cos(a0) * r, z0 = z + Math.sin(a0) * r, x1 = x + Math.cos(a1) * r, z1 = z + Math.sin(a1) * r; arr.push(x, y(x, z), z, x1, y(x1, z1), z1, x0, y(x0, z0), z0); } };
+            const cap = (arr, x, z, r, dy) => { if (!toBridge && onBridge(x, z)) return; const y = (x, z) => roadY(x, z) + dy; const at = (a, rr) => [x + Math.cos(a) * rr, z + Math.sin(a) * rr]; for (let k = 0; k < 16; k++) { const a0 = k / 16 * Math.PI * 2, a1 = (k + 1) / 16 * Math.PI * 2, [p0, q0] = at(a0, r / 2), [p1, q1] = at(a1, r / 2), [s0, t0] = at(a0, r), [s1, t1] = at(a1, r); arr.push(x, y(x, z), z, p1, y(p1, q1), q1, p0, y(p0, q0), q0, p0, y(p0, q0), q0, p1, y(p1, q1), q1, s1, y(s1, t1), t1, p0, y(p0, q0), q0, s1, y(s1, t1), t1, s0, y(s0, t0), t0); } };
             const draw = (pts, kind, w = ROAD_STYLE[kind].w) => {
                 for (const p of pts) PATH_PTS.push(p);
-                const o = out[kind], d = ROAD_STYLE[kind].o * 0.006;
-                ribbon(o.edge, pts, w / 2 + 0.25, 0.05 + d); ribbon(o.top, pts, w / 2, 0.075 + d);
-                for (const [x, z] of [pts[0], pts[pts.length - 1]]) { cap(o.edge, x, z, w / 2 + 0.25, 0.05 + d); cap(o.top, x, z, w / 2, 0.075 + d); }
+                const o = out[kind], d = ROAD_STYLE[kind].o * 0.004;
+                ribbon(o.edge, pts, w / 2 + 0.25, 0.04 + d); ribbon(o.top, pts, w / 2, 0.07 + d);
+                for (const [x, z] of [pts[0], pts[pts.length - 1]]) { cap(o.edge, x, z, w / 2 + 0.25, 0.04 + d); cap(o.top, x, z, w / 2, 0.07 + d); }
             };
             let toBridge = false;
             // a road that crosses a river runs straight onto the ends of its bridge (and tucks under them)
@@ -1561,15 +1602,25 @@
                     let bd = Infinity;
                     for (const [a2, b2] of EDGES) { if (roadKind(a2, b2) !== 'kota') continue; const P = edgePts(a2, b2); for (let i = 1; i < P.length; i++) { const [x0, z0] = P[i - 1], [x1, z1] = P[i], dx = x1 - x0, dz = z1 - z0, t = clamp(((b.door.x - x0) * dx + (b.door.z - z0) * dz) / (dx * dx + dz * dz || 1), 0, 1), px = x0 + dx * t, pz = z0 + dz * t, d = Math.hypot(px - b.door.x, pz - b.door.z); if (d < bd) { bd = d; ex = px; ez = pz; } } }
                 }
-                const pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (ex - b.door.x) * i / 4, b.door.z + (ez - b.door.z) * i / 4]);
+                // the mine's mouth is in a hill: its path starts where the hill ends, not under it
+                const out0 = b.style === 'cave' ? b.d * 0.9 + 0.4 - (b.d / 2 + 0.7) : 0, sx = b.door.x + Math.sin(b.rot) * out0, sz = b.door.z + Math.cos(b.rot) * out0;
+                const pts = []; for (let i = 0; i <= 4; i++) pts.push([sx + (ex - sx) * i / 4, sz + (ez - sz) * i / 4]);
                 draw(pts, b.r === 'kota' ? 'walk' : 'desa', b.r === 'kota' ? 1.3 : 1.4);
             }
             for (const [k, o] of Object.entries(out)) for (const [part, col, lift] of [['edge', ROAD_STYLE[k].e, 1], ['top', ROAD_STYLE[k].c, 2]]) {
                 if (!o[part].length) continue;
-                const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(o[part], 3)); geo.computeVertexNormals();
-                const f = -2 - lift - ROAD_STYLE[k].o * 2;
-                const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: f, polygonOffsetUnits: f }));
-                m.receiveShadow = true; m.renderOrder = lift + ROAD_STYLE[k].o * 2; scene.add(m);
+                // every normal is the slope of the ground at that spot, so overlapping pieces of a road shade exactly alike
+                // (no flicker) and the shadows on a sloping road stay clean
+                const A = o[part], N = new Float32Array(A.length);
+                for (let i = 0; i < A.length; i += 3) { const x = A[i], z = A[i + 2], gx = (roadY(x + 0.5, z) - roadY(x - 0.5, z)), gz = (roadY(x, z + 0.5) - roadY(x, z - 0.5)), l = Math.hypot(gx, 1, gz); N[i] = -gx / l; N[i + 1] = 1 / l; N[i + 2] = -gz / l; }
+                const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(A, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+                // every kerb is drawn under every road top, and wider roads over narrower ones
+                const f = part === 'edge' ? -2 - ROAD_STYLE[k].o : -8 - ROAD_STYLE[k].o;
+                // roads are painted onto the ground after everything else and do not write depth: the kerbs first, then the
+                // road tops over them (narrow roads, then wider), so where two roads overlap on a slope the top always wins
+                // instead of the two flickering through each other. Hills, trees, people and bridges in front still hide them.
+                const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: f, polygonOffsetUnits: f, depthWrite: false }));
+                m.receiveShadow = true; m.renderOrder = (part === 'edge' ? 1 : 10) + ROAD_STYLE[k].o; m.name = `road:${k}:${part}`; scene.add(m);
             }
         }
         // the regions are built one by one, when you first come near; far ones are hidden
@@ -1609,6 +1660,7 @@
         function buildTown() {
             for (const b of VB) b.y = Math.max(0, H0(b.x, b.z));
             planBridges();
+            planRoadbed();
             buildTerrain();
             buildPaths();
             buildRiver();
@@ -9431,7 +9483,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get BRIDGES() { return BRIDGES; }, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get BRIDGES() { return BRIDGES; }, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
