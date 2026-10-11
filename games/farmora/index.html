@@ -1029,16 +1029,26 @@
             { id: 'sawah', name: '🌾 Lembah Persawahan', vil: 'Desa Lembah Sari', x0: -50, x1: 50, z0: 27, z1: 100, ground: 0x8cc463 },
             { id: 'kota', name: '🏙️ Kota Sentosa', vil: 'Kota Sentosa', x0: -50, x1: 50, z0: -106, z1: -27, ground: 0x9fb48a },
             { id: 'hutan', name: '🌳 Desa Hutan', vil: 'Desa Rimbawana', x0: -88, x1: -27, z0: -72, z1: 72, ground: 0x6f9e4f },
-            { id: 'gunung', name: '🏔️ Desa Pegunungan', vil: 'Desa Gunungsari', x0: -150, x1: -88, z0: -72, z1: 72, ground: 0x6fa34e },
+            { id: 'gunung', name: '🏔️ Desa Pegunungan', vil: 'Desa Gunungsari', x0: -168, x1: -88, z0: -72, z1: 72, ground: 0x6fa34e },
             { id: 'pantai', name: '🏖️ Desa Pantai', vil: 'Desa Pasir Putih', x0: 27, x1: 101, z0: -64, z1: 64, ground: 0x9cc86a },
             { id: 'pulau', name: '🏝️ Pulau Kencana', vil: 'Pulau Kencana', x0: 117, x1: 145, z0: 60, z1: 96, ground: 0x9cc86a },
         ];
         const REGI = Object.fromEntries(REGIONS.map(r => [r.id, r]));
         const RING = { x0: -29.5, x1: 29.5, z0: -28, z1: 28 };
         // where you can walk: the farm and its lane, every region, and the pier
+        // extra land between the regions, so the coast curves round instead of making a cross of rectangles: [x, z, rx, rz]
+        const BLOBS = [[62, -72, 30, 20], [-64, -84, 26, 18], [64, 78, 28, 20], [-66, 86, 24, 16], [-128, 80, 30, 12], [-128, -80, 30, 12]];
+        const inBlob = (x, z) => BLOBS.some(([cx, cz, rx, rz]) => ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2 < 1);
         const WALK = [RING, ...REGIONS, { x0: 100, x1: 113, z0: -1.3, z1: 1.3 }];
-        const inWorld = p => WALK.some(r => p.x >= r.x0 && p.x <= r.x1 && p.z >= r.z0 && p.z <= r.z1);
-        const regionOf = p => inFarm(p) ? null : REGIONS.find(r => p.x >= r.x0 && p.x <= r.x1 && p.z >= r.z0 && p.z <= r.z1) || null;
+        const inWorld = p => WALK.some(r => p.x >= r.x0 && p.x <= r.x1 && p.z >= r.z0 && p.z <= r.z1) || inBlob(p.x, p.z);
+        // which region a spot belongs to; the land in between goes to the nearest one
+        const rectD = (r, p) => Math.max(r.x0 - p.x, p.x - r.x1, r.z0 - p.z, p.z - r.z1, 0);
+        const regionOf = p => {
+            if (inFarm(p)) return null;
+            const r = REGIONS.find(r => rectD(r, p) === 0);
+            if (r || rectD(RING, p) === 0) return r || null;
+            let best = null, bd = 40; for (const q of REGIONS) { const d = rectD(q, p); if (d < bd) { bd = d; best = q; } } return best;
+        };
         const VILLAGE = '🌾 Lembah Persawahan';
         // the paths: nodes [x, z] joined by edges; villagers walk along them (footpaths in the villages, streets in town)
         const NODES = {
@@ -1046,7 +1056,7 @@
             rNW: [-27.5, -26], rNE: [27.5, -26], rSW: [-27.5, 26], rSE: [27.5, 26], gS: [0, 26], gN: [4, -26], gW: [-27.5, -2.2], gE: [27.5, 2],
             // 🌾 Lembah Persawahan: winding footpaths
             s0: [0.5, 31], s1: [-1.5, 37], s2: [2, 42.5], s3: [-9, 42], s4: [-18, 40.5], s5: [-27, 43], s6: [11, 41], s7: [20, 44], s8: [29, 40.5],
-            sq: [1, 50.5], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-32, 52], s21: [33, 60], s22: [-29, 80],
+            sq: [1, 50.5], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-36.2, 52], s21: [33, 60], s22: [-36.5, 80],
             // 🏙️ Kota: straight streets
             k0: [4, -31], k1: [4, -45], k2: [4, -65], k3: [4, -85], kW1: [-22, -45], kE1: [28, -45], kW2: [-22, -65], kE2: [28, -65], kW3: [-22, -85], kE3: [28, -85], kP: [-37, -45], kE4: [40, -85], kW4: [-34, -85],
             // 🌳 Desa Hutan
@@ -1062,12 +1072,14 @@
             ['rNW', 'gN'], ['gN', 'rNE'], ['rNE', 'gE'], ['gE', 'rSE'], ['rSE', 'gS'], ['gS', 'rSW'], ['rSW', 'gW'], ['gW', 'rNW'],
             ['gS', 's0'], ['s0', 's1'], ['s1', 's2'], ['s2', 'sq'], ['s2', 's3'], ['s3', 's4'], ['s4', 's5'], ['s2', 's6'], ['s6', 's7'], ['s7', 's8'],
             ['sq', 's9'], ['s9', 's10'], ['s10', 's11'], ['sq', 's12'], ['s12', 's13'], ['s13', 's14'], ['s9', 's15'], ['s12', 's15'], ['s15', 's16'], ['s15', 's17'],
-            ['s16', 's18'], ['s17', 's19'], ['s5', 's20'], ['s11', 's20'], ['s8', 's21'], ['s14', 's21'], ['s18', 's22'],
+            ['s16', 's18'], ['s17', 's19'], ['s11', 's20'], ['s8', 's21'], ['s14', 's21'], ['s18', 's22'],
             ['gN', 'k0'], ['k0', 'k1'], ['k1', 'k2'], ['k2', 'k3'], ['k1', 'kW1'], ['k1', 'kE1'], ['k2', 'kW2'], ['k2', 'kE2'], ['k3', 'kW3'], ['k3', 'kE3'], ['kW1', 'kW2'], ['kW2', 'kW3'], ['kE1', 'kE2'], ['kE2', 'kE3'], ['kW1', 'kP'], ['kE3', 'kE4'], ['kW3', 'kW4'],
             ['gW', 'h0'], ['h0', 'h1'], ['h1', 'h2'], ['h2', 'h3'], ['h3', 'h4'], ['h4', 'h1'], ['h2', 'h5'], ['h5', 'h6'], ['h6', 'h7'], ['h2', 'h8'], ['h8', 'h9'], ['h9', 'h10'], ['h10', 'h6'], ['h4', 'h11'],
             ['h7', 'g0'], ['g0', 'g1'], ['g1', 'g2'], ['g2', 'g3'], ['g2', 'g4'], ['g1', 'g5'], ['g5', 'g4'], ['g1', 'g6'], ['g6', 'g9'], ['g9', 'g11'], ['g6', 'g7'], ['g7', 'g8'], ['g0', 'g10'], ['g10', 'g7'], ['g5', 'g12'],
             ['gE', 'p0'], ['p0', 'p1'], ['p1', 'p2'], ['p2', 'p3'], ['p3', 'p4'], ['p4', 'p5'], ['p2', 'p6'], ['p6', 'p8'], ['p8', 'p9'], ['p9', 'p5'], ['p2', 'p7'], ['p7', 'p12'], ['p3', 'p10'], ['p2', 'p11'], ['p8', 'p13'], ['p9', 'p14'],
             ['i0', 'i1'], ['i1', 'i2'], ['i2', 'i3'], ['i1', 'i4'], ['i2', 'i5'],
+            // the villages also join each other directly, not only through the farm
+            ['h9', 's20'], ['h11', 'kP'], ['kE1', 'p11'], ['s8', 'p12'],
         ];
         // every building: where it stands (x, z, a slight turn rot), its path node, size and colours, and its inside (type)
         // houses: faith decides the prayer corner (i Islam, k Katolik, p Protestan, b Buddha, c Konghucu, h Hindu)
@@ -1144,7 +1156,7 @@
             square: { name: 'alun-alun', node: 'sq', c: [1, 47.2], r: 3.3, rate: 0.12 },
             taman: { name: 'taman bermain', node: 's15', c: [-1, 61.5], r: 2.0, rate: 0.5, run: 1 },
             sawah: { name: 'sawah', node: 's20', pace: [[-41, 50], [-35, 50]] },
-            sawah2: { name: 'sawah', node: 's22', pace: [[-40, 80], [-33, 80]] },
+            sawah2: { name: 'sawah', node: 's22', pace: [[-41, 80], [-37, 80]] },
             tkota: { name: 'taman kota', node: 'kP', c: [-38, -54], r: 3.6, rate: 0.1 },
             hutan: { name: 'jalan hutan', node: 'h11', pace: [[-55, -34], [-58, -40]] },
             kebunkopi: { name: 'kebun kopi', node: 'g12', pace: [[-97, -41], [-92, -41]] },
@@ -1155,10 +1167,11 @@
         };
         // the water: the farm's ponds plus the mountain lake and the sea (a huge circle whose edge is the shore)
         const LAKE = { x: -115, z: 42, r: 11.5, kind: 'lake' };
-        const SEA = { x: 300, z: 0, r: 199.2, kind: 'sea' };
+        // the sea is all round the world: its fishing spot moves to wherever you face out to sea (see seaSpot)
+        const SEA = { x: 1e5, z: 1e5, r: 3.6, reach: 8, kind: 'sea', pos: new THREE.Vector3(1e5, 0, 1e5), isWater: (x, z) => H(x, z) < SEA_Y - 0.12 && !inRiver(x, z, 1.5) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 3 };
         const LAGOON = { x: 300, z: 0, r: 199.2, kind: 'sea' };
         // rice paddies slow you down
-        const PADDIES = [{ x0: -48, x1: -31, z0: 31, z1: 94 }, { x0: 24, x1: 42, z0: 68, z1: 94 }];
+        const PADDIES = [{ x0: -48, x1: -35.5, z0: 36, z1: 90 }, { x0: 24, x1: 42, z0: 68, z1: 90 }];
         const inPaddy = p => PADDIES.some(r => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1);
         const VBI = {};
         VB.forEach((b, i) => {
@@ -1197,7 +1210,7 @@
         const INST = {};
         const LOWICO = new THREE.IcosahedronGeometry(1, 0), LOWCONE = new THREE.ConeGeometry(1, 1, 7), LOWCYL = new THREE.CylinderGeometry(1, 1, 1, 7), LOWBOX = new THREE.BoxGeometry(1, 1, 1);
         // batches are cut into 30×30 squares so the ones off screen are skipped; small things cast no shadow
-        const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy/;
+        const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy|reed/;
         function inst(key, geo, m, x, y, z, sx = 1, sy = sx, sz = sx, ry = 0, rx = 0, rz = 0) { const k = key + '@' + Math.floor(x / 30) + ',' + Math.floor(z / 30); (INST[k] ||= { geo, m, list: [], shadow: !NO_SHADOW.test(key) }).list.push([x, y + shiftY(x, z), z, sx, sy, sz, rx, ry, rz]); }
         function flushInst(parent = scene) {
             const mx = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
@@ -1224,14 +1237,14 @@
         // keep the decoration away from paths, buildings and water
         const nearPath = (x, z, m) => PATH_PTS.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < (m + 0.8) ** 2);
         const nearBuilding = (x, z, m) => VB.some(b => Math.abs(x - b.x) < b.w / 2 + m && Math.abs(z - b.z) < b.d / 2 + m + 1);
-        const freeSpot = (x, z, m = 2.2) => !(Math.abs(x) < 31 && Math.abs(z) < 29.5) && coastDist(x, z) > 5.5 && !nearPath(x, z, m) && !nearBuilding(x, z, m) && !inPaddy({ x, z }) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 2.5;
+        const freeSpot = (x, z, m = 2.2) => !(Math.abs(x) < 31 && Math.abs(z) < 29.5) && coastDist(x, z) > 5.5 && !nearPath(x, z, m) && !nearBuilding(x, z, m) && !inPaddy({ x, z }) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 2.5 && !inRiver(x, z, m + 1.2);
         // ---------- ⛰️ the land: hills, mountains and a beach all round the world ----------
         // The whole world is one big island. Every region is land; past their edges the ground slopes down to a
         // sandy beach and the sea. The forest rolls, the mountain village sits higher with peaks behind it, the
         // valley of rice fields and the town are flat, and the lake lies in a hollow. You walk up and down it all.
         const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
         const LANDR = [RING, ...REGIONS.filter(r => r.id !== 'pulau')];
-        const isLand = (x, z) => LANDR.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) || ((x - 131) / 17) ** 2 + ((z - 78) / 21) ** 2 < 1;
+        const isLand = (x, z) => LANDR.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) || inBlob(x, z) || ((x - 131) / 17) ** 2 + ((z - 78) / 21) ** 2 < 1;
         const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.71, 0.71], [0.71, -0.71], [-0.71, 0.71], [-0.71, -0.71]];
         // how far a point is from the sea (−1 at sea, up to 9 well inland)
         function rectCoast(x, z) {
@@ -1243,17 +1256,73 @@
         const coastWobble = (x, z) => 2.2 * Math.sin(x * 0.083 + z * 0.047) + 1.4 * Math.sin(x * 0.19 - z * 0.15 + 1.3) + 0.8 * Math.sin(z * 0.41 + x * 0.12) - 1.6;
         const coastDist = (x, z) => { const d = rectCoast(x, z); return d < 0 ? -1 : d + coastWobble(x, z) * (1 - sstep(6, 10.5, d)); };
         // the peaks: [x, z, height, spread]
-        const PEAKS = [[-140, -58, 30, 13], [-150, -8, 22, 10], [-110, -70, 14, 8], [-150, 48, 16, 9], [-118, 63, 11, 5.5], [-80, -64, 6, 7], [-70, 66, 5, 7]];
+        const PEAKS = [[-130, -48, 26, 12], [-137, -12, 20, 10], [-110, -60, 13, 8], [-136, 18, 15, 8], [-137, 44, 14, 5], [-80, -60, 6, 7], [-72, 60, 5, 7]];
         const SEA_Y = -0.35;
         const waveTime = { value: 0 };
+        // how deep inland a point lies (up to 40): hills and mountains fade out well before the shore,
+        // so the land always slopes gently down to a beach before the sea
+        const INL = (() => {
+            const X0 = -190, Z0 = -136, S = 2, GX = 180, GZ = 132, D = new Float32Array(GX * GZ);
+            for (let j = 0; j < GZ; j++) for (let i = 0; i < GX; i++) D[j * GX + i] = isLand(X0 + i * S, Z0 + j * S) ? 1e4 : 0;
+            const q = (i, j) => D[j * GX + i], s2 = S * 1.414;
+            for (let j = 1; j < GZ - 1; j++) for (let i = 1; i < GX - 1; i++) { const k = j * GX + i; D[k] = Math.min(D[k], q(i - 1, j) + S, q(i, j - 1) + S, q(i - 1, j - 1) + s2, q(i + 1, j - 1) + s2); }
+            for (let j = GZ - 2; j > 0; j--) for (let i = GX - 2; i > 0; i--) { const k = j * GX + i; D[k] = Math.min(D[k], q(i + 1, j) + S, q(i, j + 1) + S, q(i + 1, j + 1) + s2, q(i - 1, j + 1) + s2); }
+            return (x, z) => { const fx = clamp((x - X0) / S, 0, GX - 1.001), fz = clamp((z - Z0) / S, 0, GZ - 1.001), i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j; return Math.min(40, lerp(lerp(q(i, j), q(i + 1, j), u), lerp(q(i, j + 1), q(i + 1, j + 1), u), v)); };
+        })();
+        // ---------- 🏞️ the river: out of the mountain lake, east through the forest, then south past the rice fields to the sea ----------
+        // You cannot wade through it; bridges carry the paths over. You can fish in it.
+        const RIVER_CTRL = [[-104, 40], [-95, 37.5], [-85, 35], [-74, 33.5], [-63, 32.5], [-52, 31], [-42, 30.2], [-35.8, 31.6], [-32.8, 37], [-32.3, 46], [-32.8, 56], [-32.2, 66], [-32.6, 76], [-33.2, 86], [-33, 95], [-33.4, 106]];
+        const RIV = [];   // points along its middle: x, z, half width w, water level y
+        {
+            const P = RIVER_CTRL, cr = (a, b, c, d, t) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t);
+            for (let i = 0; i < P.length - 1; i++) {
+                const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)], n = Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]));
+                for (let k = 0; k < n; k++) { const t = k / n; RIV.push({ x: cr(p0[0], p1[0], p2[0], p3[0], t), z: cr(p0[1], p1[1], p2[1], p3[1], t) }); }
+            }
+            RIV.push({ x: P[P.length - 1][0], z: P[P.length - 1][1] });
+            let len = 0; RIV.forEach((s, i) => { if (i) len += Math.hypot(s.x - RIV[i - 1].x, s.z - RIV[i - 1].z); s.t = len; });
+            for (const s of RIV) { const u = s.t / len; s.w = 1.6 + 0.7 * u; s.y = u < 0.08 ? lerp(0.03, -0.2, u / 0.08) : lerp(-0.2, SEA_Y + 0.02, sstep(0.08, 1, u)); }
+        }
+        const RGRID = {};
+        RIV.forEach((s, i) => { if (!i) return; for (const q of [RIV[i - 1], s]) (RGRID[Math.floor(q.x / 8) + ',' + Math.floor(q.z / 8)] ||= new Set()).add(i); });
+        // the nearest point of the river: how far (d), its half width (w), water level (y), direction (dx, dz) and where (px, pz)
+        function riverAt(x, z) {
+            const cx = Math.floor(x / 8), cz = Math.floor(z / 8); let best = null, bd = 1e9;
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+                const set = RGRID[(cx + i) + ',' + (cz + j)]; if (!set) continue;
+                for (const k of set) {
+                    const a = RIV[k - 1], b = RIV[k], dx = b.x - a.x, dz = b.z - a.z, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz || 1), 0, 1), px = a.x + dx * t, pz = a.z + dz * t, d = Math.hypot(x - px, z - pz);
+                    if (d < bd) { bd = d; best = { d, w: lerp(a.w, b.w, t), y: lerp(a.y, b.y, t), dx, dz, px, pz, k }; }
+                }
+            }
+            return best;
+        }
+        const inRiver = (x, z, m = 0.25) => { const r = riverAt(x, z); return !!r && r.d < r.w + m; };
+        // the river cuts its bed into the ground, with banks that slope down to the water
+        function riverCarve(x, z, h) {
+            const r = riverAt(x, z); if (!r || r.d > r.w + 7) return h;
+            const bank = r.y + 0.22, bed = r.y - 0.75;
+            let h1 = h > bank ? lerp(bank, h, sstep(r.w + 1.4, r.w + 7, r.d)) : h;
+            h1 = lerp(bed, h1, sstep(r.w - 0.3, r.w + 1.4, r.d));
+            return Math.min(h, h1);
+        }
+        // 🌉 a bridge wherever a path crosses the river (planned once the paths are known)
+        const BRIDGES = [];
+        function onBridge(x, z) {
+            for (const q of BRIDGES) { const u = (x - q.x) * q.nx + (z - q.z) * q.nz, v = -(x - q.x) * q.nz + (z - q.z) * q.nx; if (Math.abs(u) < q.L / 2 && Math.abs(v) < q.W / 2) return { q, u }; }
+            return null;
+        }
+        const deckY = (q, u) => lerp(q.ya, q.yb, u / q.L + 0.5) + (1 - (2 * u / q.L) ** 2) * q.arch;
         function H0(x, z) {
             const d = coastDist(x, z);
             if (d < 0) return -1.8;
             let h = 0;
-            // forest hills west of the valley and the town, the mountain village higher still
-            h += sstep(-50, -60, x) * (0.9 * Math.sin(x * 0.13 + 1) * Math.cos(z * 0.11) + 0.7 * Math.sin(x * 0.05 - z * 0.07) + 0.7);
-            h += sstep(-84, -100, x) * 2.4;
-            for (const [cx, cz, a, s] of PEAKS) h += a * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * s * s));
+            // forest hills west of the valley and the town, the mountain village higher still; all of it
+            // flattens out towards the shore, so there is always a gentle slope and a beach before the sea
+            const fade = sstep(3, 30, INL(x, z));
+            h += fade * sstep(-50, -60, x) * (0.9 * Math.sin(x * 0.13 + 1) * Math.cos(z * 0.11) + 0.7 * Math.sin(x * 0.05 - z * 0.07) + 0.7);
+            h += fade * sstep(-84, -100, x) * 2.4;
+            for (const [cx, cz, a, s] of PEAKS) h += fade * a * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * s * s));
             // gentle dunes behind the beach, a hill on the island
             h += sstep(50, 60, x) * (1 - sstep(78, 92, x)) * (0.5 + 0.5 * Math.sin(z * 0.07 + x * 0.03));
             if (x > 112) h += 2.4 * Math.exp(-((x - 134) ** 2 + (z - 76) ** 2) / 50);
@@ -1263,41 +1332,52 @@
             for (const r of PADDIES) { const m = Math.max(r.x0 - x, x - r.x1, r.z0 - z, z - r.z1); if (m < 3) h *= sstep(-1, 3, m); }
             h *= sstep(0, 6, Math.max(Math.abs(x) - 31, Math.abs(z) - 29));
             // down to the beach and under the sea
-            if (d < 9) h = lerp(-1.6, Math.max(h, 0.18), sstep(0, 5, d));
+            if (d < 9) h = lerp(-1.6, Math.max(h, 0.18), sstep(0, 6, d));
             return h;
         }
         // buildings stand on level pads; the ground blends into them
         function H(x, z) {
             let h = H0(x, z);
             for (const b of VB) { if (Math.abs(x - b.x) > b.w + 6 || Math.abs(z - b.z) > b.d + 7) continue; const m = Math.max(Math.abs(x - b.x) - b.w / 2 - 0.6, Math.abs(z - b.z) - b.d / 2 - 1.4); if (m < 4) h = lerp(b.y, h, sstep(0, 4, m)); }
-            return h;
+            return riverCarve(x, z, h);
         }
         // the piers stand over the sea
         const onPier = (x, z) => x > 99.5 && x < 113.2 && Math.abs(z) < 1.3 || x > 115 && x < 121.6 && Math.abs(z - 78) < 1.2;
         const inFarmFlat = (x, z) => Math.abs(x) < 31 && Math.abs(z) < 29;
         // where your feet are
-        function groundY(x, z) { if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(H(x, z), SEA_Y + 0.05); }
-        const walkable = p => inWorld(p) && (p.x > 150 || inFarmFlat(p.x, p.z) || onPier(p.x, p.z) || H(p.x, p.z) > SEA_Y + 0.12);
+        function groundY(x, z) { if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; const br = onBridge(x, z); if (br) return deckY(br.q, br.u); return Math.max(H(x, z), SEA_Y + 0.05); }
+        const walkable = p => inWorld(p) && (p.x > 150 || inFarmFlat(p.x, p.z) || onPier(p.x, p.z) || !!onBridge(p.x, p.z) || H(p.x, p.z) > SEA_Y + 0.12 && !inRiver(p.x, p.z));
         // how high something built on the ground goes: on its pad, on the sea, or on a pier
         const shiftY = (x, z) => onPier(x, z) ? 0 : inFarmFlat(x, z) ? 0 : H(x, z) < SEA_Y ? SEA_Y - 0.05 : H(x, z);
+        // the ground colour of each region fades into the next over a wide, wavy band: no straight borders
+        const GROUNDS = [...REGIONS.map(r => [r, new THREE.Color(r.ground)]), [RING, new THREE.Color(0x8cc463)]];
+        function blendGround(c, x, z) {
+            let tw = 0; c.setRGB(0, 0, 0);
+            const wob = 4 * Math.sin(x * 0.07 + z * 0.05) + 2.5 * Math.sin(z * 0.13 - x * 0.09);
+            for (const [r, col] of GROUNDS) { const w = clamp((Math.min(x - r.x0, r.x1 - x, z - r.z0, r.z1 - z) + wob + 8) / 16, 0, 1) ** 2; if (w > 0) { c.r += col.r * w; c.g += col.g * w; c.b += col.b * w; tw += w; } }
+            return tw ? c.multiplyScalar(1 / tw) : c.setHex(0x8cc463);
+        }
+        let TERR = null;   // the heights and colours of the ground, for the map
         function buildTerrain() {
             const X0 = -186, X1 = 166, Z0 = -132, Z1 = 122, ST = 2;
             const geo = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, (X1 - X0) / ST, (Z1 - Z0) / ST);
             geo.rotateX(-Math.PI / 2); geo.translate((X0 + X1) / 2, 0, (Z0 + Z1) / 2);
-            const pos = geo.attributes.position, cols = [], c = new THREE.Color(), SAND = new THREE.Color(0xf0dca8), WET = new THREE.Color(0xc8b078), ROCK = new THREE.Color(0x8a8478), SNOW = new THREE.Color(0xf6f8fa);
+            const pos = geo.attributes.position, cols = [], c = new THREE.Color(), hexes = new Uint32Array(pos.count), hs = new Float32Array(pos.count), SAND = new THREE.Color(0xf0dca8), WET = new THREE.Color(0xc8b078), ROCK = new THREE.Color(0x8a8478), SNOW = new THREE.Color(0xf6f8fa), BANK = new THREE.Color(0xa8946a);
             for (let i = 0; i < pos.count; i++) {
                 const x = pos.getX(i), z = pos.getZ(i);
                 const flatFarm = inFarmFlat(x, z), h = flatFarm ? -0.08 : H(x, z), d = flatFarm ? 10 : coastDist(x, z);
                 pos.setY(i, h);
-                const R = REGIONS.find(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
-                c.setHex(R ? R.ground : 0x8cc463).offsetHSL(Math.sin(x * 0.31) * 0.012, 0, Math.sin(x * 0.17 + z * 0.23) * 0.035);
+                blendGround(c, x, z).offsetHSL(Math.sin(x * 0.31) * 0.012, 0, Math.sin(x * 0.17 + z * 0.23) * 0.035);
+                const rv = riverAt(x, z);
+                if (rv && rv.d < rv.w + 1.8 && h < rv.y + 0.6) c.lerp(BANK, 0.75);
                 if (h < SEA_Y + 0.05) c.copy(WET);
                 else if (d < 6.5 && h < 1.0 || Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.r + 1.6) c.copy(SAND);
                 else if (h > 17) c.copy(SNOW);
                 else if (h > 6.5) c.lerp(ROCK, Math.min(1, (h - 6.5) / 6));
-                cols.push(c.r, c.g, c.b);
+                cols.push(c.r, c.g, c.b); hexes[i] = c.getHex(); hs[i] = h;
             }
             geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+            TERR = { X0, Z0, ST, gx: (X1 - X0) / ST + 1, gz: (Z1 - Z0) / ST + 1, hs, hexes };
             geo.computeVertexNormals();
             const land = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
             land.receiveShadow = true; scene.add(land);
@@ -1374,8 +1454,10 @@
                 // round joints, so the path has no square corners
                 for (const [x, z] of [pts[0], pts[pts.length - 1]]) { const y = groundY(x, z) + 0.052, r = K.w / 2; for (let k = 0; k < 10; k++) { const a0 = k / 10 * Math.PI * 2, a1 = (k + 1) / 10 * Math.PI * 2; K.pos.push(x, y, z, x + Math.cos(a1) * r, y, z + Math.sin(a1) * r, x + Math.cos(a0) * r, y, z + Math.sin(a0) * r); } }
             };
-            for (const [a, b] of EDGES) { const lane = n => /^(r|g[SNWE])/.test(n); strip(edgePts(a, b), a[0] === 'k' && b[0] === 'k' ? kinds.road : lane(a) || lane(b) && !/\d/.test(b) ? kinds.lane : kinds.dirt, !(a[0] === 'k' && b[0] === 'k')); }
-            for (const b of VB) { const n = NODES[b.at], pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (n[0] - b.door.x) * i / 4, b.door.z + (n[1] - b.door.z) * i / 4]); strip(pts, b.r === 'kota' ? kinds.walk : kinds.dirt, b.r !== 'kota'); }
+            // only the town has paved streets; in the villages people simply walk over the grass
+            const paved = (a, b) => a[0] === 'k' && b[0] === 'k' || a === 'gN' && b === 'k0';
+            for (const [a, b] of EDGES) { const pts = edgePts(a, b); if (paved(a, b)) strip(pts, kinds.road, false); else for (const q of pts) PATH_PTS.push(q); }
+            for (const b of VB) { const n = NODES[b.at], pts = []; for (let i = 0; i <= 4; i++) pts.push([b.door.x + (n[0] - b.door.x) * i / 4, b.door.z + (n[1] - b.door.z) * i / 4]); if (b.r === 'kota') strip(pts, kinds.walk, false); else for (const q of pts) PATH_PTS.push(q); }
             for (const K of Object.values(kinds)) {
                 if (!K.pos.length) continue;
                 const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(K.pos, 3)); geo.computeVertexNormals();
@@ -1413,14 +1495,19 @@
             for (const r of REGIONS) {
                 const d = Math.max(r.x0 - p.x, p.x - r.x1, r.z0 - p.z, p.z - r.z1, 0);
                 if (d < 18 && !regionBuilt[r.id] && !regionBuilt[r.id + ':q']) { toast(`⏳ Memuat ${r.name}…`); setTimeout(() => ensureRegion(r.id), 60); regionBuilt[r.id + ':q'] = 1; }
-                if (regionGroup[r.id]) regionGroup[r.id].visible = d < 72;
+                if (regionGroup[r.id]) regionGroup[r.id].visible = d < 30;
             }
         }
         // built once everything it uses exists (called just before the interactables)
         function buildTown() {
             for (const b of VB) b.y = Math.max(0, H0(b.x, b.z));
+            planBridges();
             buildTerrain();
             buildPaths();
+            buildRiver();
+            // signposts where the villages join each other
+            const signG = (x, z, t) => { const before = new Set(scene.children); sign(x, z, t); const y = groundY(x, z); for (const o of scene.children) if (!before.has(o)) o.position.y += y; };
+            for (const [x, z, t] of [[-36.4, 53.8, 'Ke Hutan'], [-53.6, 21.4, 'Ke Sawah'], [-39.4, -42.6, 'Ke Hutan'], [-53, -32.6, 'Ke Kota'], [30.6, -42.4, 'Ke Pantai'], [44, -12.4, 'Ke Kota'], [31.4, 38.2, 'Ke Pantai'], [38.4, 16.6, 'Ke Sawah']]) signG(x, z, t);
             // the farm's gates out to the lane
             for (const [x, z, rot] of [[4, -23.2, 0], [-24.2, -2.2, Math.PI / 2], [24.2, 2, Math.PI / 2]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g); for (const sx of [-1, 1]) box(0.3, 2.2, 0.3, C.darkWood, sx * 1.9, 1.1, 0, g); box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, 0, g); }
             sign(-2.6, -22.2, 'Ke Kota'); sign(-23.2, -4.6, 'Ke Hutan'); sign(23.2, 4.4, 'Ke Pantai');
@@ -1433,7 +1520,77 @@
             }
             const flat = () => null;
             buildRegionDecor('ring', flat);
+            // the land between the regions: woods, banana groves and palms in the style of the nearest village
+            { let rs = 23; const rnd = () => (rs = (rs * 16807) % 2147483647) / 2147483647;
+                for (const [cx, cz, rx, rz] of BLOBS) for (let i = 0; i < 110; i++) {
+                    const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * 0.9, x = cx + Math.cos(a) * rx * d, z = cz + Math.sin(a) * rz * d;
+                    if (REGIONS.some(r => rectD(r, { x, z }) === 0) || !freeSpot(x, z, 1.5)) continue;
+                    const near = regionOf({ x, z }), id = near ? near.id : 'sawah', u = rnd();
+                    if (id === 'pantai') { if (u < 0.6) { dPalm('blob', x, z, 0.9 + u * 0.5); addCircleCollider(x, z, 0.2); } else dBush('blob', x, z, 1); }
+                    else if (id === 'gunung') { if (u < 0.6) { dPine('blob', x, z, 1 + u); addCircleCollider(x, z, 0.3); } else dRock('blob', x, z, 1 + u, 0x9a9a92); }
+                    else if (id === 'hutan') { if (u < 0.75) { dTree('blob', x, z, 1.1 + u, [0x3f7a35, 0x4f8a3a, 0x2f6b30][Math.floor(u * 100) % 3]); addCircleCollider(x, z, 0.35); } else dBush('blob', x, z, 1.2); }
+                    else if (id === 'kota') { if (u < 0.5) { dTree('blob', x, z, 1 + u * 0.4); addCircleCollider(x, z, 0.3); } else if (u < 0.75) dBush('blob', x, z, 1, 0x6faa4a); }
+                    else { if (u < 0.4) { dBanana('blob', x, z); addCircleCollider(x, z, 0.25); } else if (u < 0.7) { dTree('blob', x, z, 1 + u * 0.4); addCircleCollider(x, z, 0.3); } else dPalm('blob', x, z, 0.9 + u * 0.4); }
+                } }
             flushInst(scene);
+        }
+        function planBridges() {
+            for (const [a, b] of EDGES) {
+                let br = null, bi = 0; const pts = edgePts(a, b);
+                pts.forEach(([x, z], i) => { const r = riverAt(x, z); if (r && r.d < r.w + 0.6 && (!br || r.d < br.d)) { br = r; bi = i; } });
+                if (!br || BRIDGES.some(q => Math.hypot(q.x - br.px, q.z - br.pz) < 2.5)) continue;
+                // the bridge runs the way the path goes, so walkers stay on it
+                const p0 = pts[Math.max(0, bi - 1)], p1 = pts[Math.min(pts.length - 1, bi + 1)], dl = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, nx = (p1[0] - p0[0]) / dl, nz = (p1[1] - p0[1]) / dl;
+                const tl = Math.hypot(br.dx, br.dz) || 1, across = Math.abs(nx * -br.dz / tl + nz * br.dx / tl), L = Math.min(16, (2 * br.w + 5) / Math.max(0.55, across));
+                const q = { x: br.px, z: br.pz, nx, nz, L, W: 2.6, wy: br.y };
+                q.ya = Math.max(H(q.x - nx * L / 2, q.z - nz * L / 2), br.y + 0.3); q.yb = Math.max(H(q.x + nx * L / 2, q.z + nz * L / 2), br.y + 0.3);
+                q.arch = Math.max(0.25, br.y + 0.8 - (q.ya + q.yb) / 2);
+                BRIDGES.push(q);
+            }
+        }
+        // the water of the river flows down to the sea; reeds and stones along its banks; wooden bridges over it
+        let riverMat = null;
+        function buildRiver() {
+            const pos = [], tt = [], idx = [];
+            RIV.forEach((s, i) => {
+                const a = RIV[Math.max(0, i - 1)], b = RIV[Math.min(RIV.length - 1, i + 1)], l = Math.hypot(b.x - a.x, b.z - a.z) || 1, nx = -(b.z - a.z) / l, nz = (b.x - a.x) / l, w = s.w + 1.3, y = i < 3 ? 0.02 : s.y;
+                pos.push(s.x + nx * w, y, s.z + nz * w, s.x - nx * w, y, s.z - nz * w); tt.push(s.t, s.t);
+                if (i) { const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); }
+            });
+            const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('aT', new THREE.Float32BufferAttribute(tt, 1)); geo.setIndex(idx); geo.computeVertexNormals();
+            const m = riverMat = new THREE.MeshStandardMaterial({ color: 0x4a9fd4, roughness: 0.15, metalness: 0.05, side: THREE.DoubleSide });
+            m.onBeforeCompile = sh => {
+                sh.uniforms.uTime = waveTime;
+                sh.vertexShader = 'uniform float uTime;\nattribute float aT;\nvarying float vT;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vT = aT; transformed.y += sin(aT * 0.8 - uTime * 2.0) * 0.02;`);
+                sh.fragmentShader = 'uniform float uTime;\nvarying float vT;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>
+                    gl_FragColor.rgb += vec3(0.05, 0.07, 0.08) * (0.5 + 0.5 * sin(vT * 1.7 - uTime * 2.6));`);
+            };
+            const river = new THREE.Mesh(geo, m); river.receiveShadow = true; scene.add(river);
+            let rs = 11; const rnd = () => (rs = (rs * 16807) % 2147483647) / 2147483647;
+            for (let i = 3; i < RIV.length - 8; i++) {
+                const s = RIV[i], a = RIV[i - 1], l = Math.hypot(s.x - a.x, s.z - a.z) || 1, nx = -(s.z - a.z) / l, nz = (s.x - a.x) / l;
+                for (const side of [-1, 1]) {
+                    if (rnd() < 0.5) continue;
+                    const off = s.w + 0.8 + rnd() * 1.2, x = s.x + nx * off * side, z = s.z + nz * off * side;
+                    if (onBridge(x, z) || BRIDGES.some(q => Math.hypot(x - q.x, z - q.z) < q.L / 2 + 1) || inFarmFlat(x, z) || nearBuilding(x, z, 0.4) || Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.r + 1) continue;
+                    if (rnd() < 0.22) { dRock('river', x, z, 0.5 + rnd() * 0.6, 0x8f8a80); continue; }
+                    for (let k = 0; k < 4; k++) inst('riverreed', LOWCONE, dm(0x5f8a3a), x + (rnd() - 0.5) * 0.7, 0.32, z + (rnd() - 0.5) * 0.7, 0.05, 0.75 + rnd() * 0.5, 0.05, rnd() * 6);
+                }
+            }
+            const wood = dm(0x9a6a3e), dark = dm(0x6e4723);
+            for (const q of BRIDGES) {
+                const g = new THREE.Group(); g.position.set(q.x, 0, q.z); g.rotation.y = Math.atan2(-q.nz, q.nx); scene.add(g);
+                const N = 14, post = (u, y) => { for (const sv of [-1, 1]) box(0.1, 0.85, 0.1, dark, u, y + 0.38, sv * (q.W / 2 - 0.06), g); };
+                for (let i = 0; i < N; i++) {
+                    const u0 = -q.L / 2 + i * q.L / N, u1 = u0 + q.L / N, y0 = deckY(q, u0), y1 = deckY(q, u1), um = (u0 + u1) / 2, len = Math.hypot(u1 - u0, y1 - y0) + 0.03, tilt = Math.atan2(y1 - y0, u1 - u0);
+                    box(len, 0.12, q.W, wood, um, (y0 + y1) / 2 - 0.06, 0, g).rotation.z = tilt;
+                    for (const sv of [-1, 1]) box(len, 0.08, 0.08, dark, um, (y0 + y1) / 2 + 0.78, sv * (q.W / 2 - 0.06), g).rotation.z = tilt;
+                    if (i % 3 === 0) post(u0, y0);
+                }
+                post(q.L / 2, q.yb);
+                for (const u of [-q.L * 0.2, q.L * 0.2]) for (const sv of [-1, 1]) box(0.2, 1.4, 0.2, dark, u, q.wy - 0.2, sv * (q.W / 2 - 0.25), g);
+            }
         }
         // what every region looks like around its buildings (built when you first come near)
         function buildRegionDecor(id, flat) {
@@ -1464,11 +1621,10 @@
                 }
                 const paddyMat = new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 });
                 spots.forEach(([x, z], i) => inst('paddy', tuft, paddyMat, x, 0.02, z, 1, 0.8 + ((i * 37) % 10) / 25, 1));
-                { const pos = []; let prev = null; for (let z = 30; z <= 96; z += 0.8) { const x = -30.4 + 0.5 * Math.sin(z * 0.21) + 0.25 * Math.sin(z * 0.53), cur = [x, z]; if (prev) { const [x0, z0] = prev, w = 0.4; pos.push(x0 - w, 0.045, z0, x + w, 0.045, z, x0 + w, 0.045, z0, x0 - w, 0.045, z0, x - w, 0.045, z, x + w, 0.045, z); } prev = cur; } const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.computeVertexNormals(); const m = new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ color: 0x5bb7ea, roughness: 0.2, side: THREE.DoubleSide })); m.userData.noShift = 1; scene.add(m); }
-                for (const [x, z] of [[-44, 40], [-38, 88], [33, 90]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
+                for (const [x, z] of [[-44, 40], [-38, 86], [33, 86]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
                 for (const [x, z] of [[-36, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
                 // a water buffalo resting by the dyke
-                { const g = new THREE.Group(); g.position.set(-31.8, 0, 70); g.rotation.y = 1.2; scene.add(g); ball(0.6, 0.45, 0.95, 0x4a4a52, 0, 0.6, 0, g); ball(0.3, 0.28, 0.35, 0x4a4a52, 0, 0.75, 0.95, g); for (const sx of [-1, 1]) { const h = mesh(new THREE.TorusGeometry(0.25, 0.05, 6, 10, Math.PI), mat(0xe8e0d0), g); h.position.set(sx * 0.2, 1.0, 0.95); h.rotation.y = Math.PI / 2; } for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.14, 0.4, 0.14, 0x3a3a42, sx * 0.3, 0.2, sz * 0.55, g); addCircleCollider(-31.8, 70, 0.9); }
+                { const g = new THREE.Group(); g.position.set(-28.6, 0, 66); g.rotation.y = 1.2; scene.add(g); ball(0.6, 0.45, 0.95, 0x4a4a52, 0, 0.6, 0, g); ball(0.3, 0.28, 0.35, 0x4a4a52, 0, 0.75, 0.95, g); for (const sx of [-1, 1]) { const h = mesh(new THREE.TorusGeometry(0.25, 0.05, 6, 10, Math.PI), mat(0xe8e0d0), g); h.position.set(sx * 0.2, 1.0, 0.95); h.rotation.y = Math.PI / 2; } for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.14, 0.4, 0.14, 0x3a3a42, sx * 0.3, 0.2, sz * 0.55, g); addCircleCollider(-28.6, 66, 0.9); }
                 // the square: a big banyan tree with a ring bench, and the night-watch hut
                 { const x = 1, z = 47.2; const t = mesh(new THREE.CylinderGeometry(0.7, 1.0, 2.6, 10), mat(0x6e4723), scene); t.position.set(x, 1.3, z); for (const [dx, dy, dz, r] of [[0, 3.6, 0, 2.6], [1.6, 3.2, 0.6, 1.8], [-1.6, 3.3, -0.4, 1.9], [0.4, 4.6, -0.6, 1.8]]) { const l = mesh(LOWICO, dm(0x3f8a3a), scene); l.scale.setScalar(r); l.position.set(x + dx, dy, z + dz); } for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; cap(0.04, 2.0, 0x6e4723, x + Math.cos(a) * 1.4, 2.2, z + Math.sin(a) * 1.4, scene); } const ring = mesh(new THREE.TorusGeometry(1.75, 0.18, 6, 24), mat(C.wood), scene); ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.45, z); addCircleCollider(x, z, 1.9); }
                 { const g = new THREE.Group(); g.position.set(-3.6, 0, 44.6); g.rotation.y = 0.4; scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 2.0, 0.12, C.darkWood, sx * 0.8, 1.0, sz * 0.7, g); box(1.8, 0.1, 1.5, 0xc8a464, 0, 0.6, 0, g); const r = gableRoof(1.8, 2.0, 0.8, 0x8a5a3a); r.rotation.y = Math.PI / 2; r.position.y = 2.0; g.add(r); const k = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.6, 10), mat(0x8a5a3a), g); k.position.set(0.6, 1.5, 0.7); addCircleCollider(-3.6, 44.6, 1.1); textPlate(scene, 'Pos Ronda', -3.6, 2.6, 45.5, 1.2); }
@@ -1499,7 +1655,9 @@
                 for (let r = 0; r < 4; r++) for (let i = 0; i < 9; i++) { const x = -99 + i * 1.3, z = -38 - r * 1.6; inst('kopibush', LOWICO, dm(0x2f6b30), x, 0.55, z, 0.5, 0.6, 0.5, i); inst('kopiberry', LOWICO, dm(0xc0392b), x + 0.2, 0.75, z + 0.3, 0.07); }
                 { const P = { minX: -117, maxX: -103, minZ: -50, maxZ: -40 }; fenceRect(P, { side: 'n', a: -111, b: -108 }); for (const [x, z, c] of [[-113, -45, 0xffffff], [-108, -47, 0x8a5a3a], [-106, -43, 0xf2f2ee]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = x; scene.add(g); ball(0.45, 0.4, 0.75, c, 0, 0.7, 0, g); ball(0.25, 0.22, 0.28, c, 0, 0.85, 0.7, g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 0.5, 0.12, 0x3a3a3a, sx * 0.25, 0.25, sz * 0.45, g); addCircleCollider(x, z, 0.8); } }
                 { const lk = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x3f8fc0, roughness: 0.1 })); lk.position.set(LAKE.x, 0.03, LAKE.z); lk.userData.noShift = 1; scene.add(lk); addCircleCollider(LAKE.x, LAKE.z, LAKE.r - 0.3); for (let i = 0; i < 4; i++) box(1.4, 0.12, 1.0, 0x8a5a3a, -111, 0.25, 30.6 + i * 1.0, scene); for (let i = 0; i < 6; i++) { const a = i * 1.1; dRock('gunung', LAKE.x + Math.cos(a) * (LAKE.r + 1.6), LAKE.z + Math.sin(a) * (LAKE.r + 1.6), 1.2); } }
-                { const fall = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 12), new THREE.MeshStandardMaterial({ color: 0xbfe6ff, emissive: 0x6fb6e8, emissiveIntensity: 0.3, transparent: true, opacity: 0.85 })); fall.position.set(-118, 5.5, 55.6); fall.userData.noShift = 1; scene.add(fall); }
+                { const pos = [], tt = [], idx = []; for (let i = 0; i <= 24; i++) { const x = -141 + i * 0.6, z = 43 + Math.sin(i * 0.5) * 0.6, y = groundY(x, z) + 0.07; pos.push(x, y, z - 0.6, x, y, z + 0.6); tt.push(i * 3, i * 3); if (i) { const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); } }
+                    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('aT', new THREE.Float32BufferAttribute(tt, 1)); geo.setIndex(idx); geo.computeVertexNormals();
+                    const fall = new THREE.Mesh(geo, riverMat); fall.userData.noShift = 1; scene.add(fall); }
                 scatter('gunung', 420, (x, z, u) => { if (u < 0.45) { dPine('gunung', x, z, 1.1 + u); solid(x, z, 0.3); } else if (u < 0.7) { dRock('gunung', x, z, 1 + u * 2, [0x9a9a92, 0x8a8478][Math.floor(u * 10) % 2]); solid(x, z, 0.5 + u); } else if (u < 0.85) dBush('gunung', x, z, 1, 0x6f9a4a); else dFlower('gunung', x, z, [0xb06fd8, 0xffffff, 0xf2c94c][Math.floor(u * 40) % 3]); }, 2.4);
                 textPlate(scene, '🚏 Halte · angkot', -96, 2.3, -2.6, 1.6);
             }
@@ -5807,7 +5965,7 @@
             { id: 'agus', name: 'Mas Agus', role: 'Pandai Besi', g: 'm', faith: 'i', home: 'g3', slot: 0, job: 'pandai', pray: 'masjid', hours: [[8, 16], [8, 16], null], skin: 0xb57a4e, o: { t: 'kaosp-putih', b: 'panjang-hitam', f: null, s: 'boots', h: null }, love: ['sate', 'kopi'], like: ['besi', 'tembaga'], hate: ['bunga'],
                 lines: ['Alat yang ditempa ulang jadi lebih ringan: kerjanya tidak cepat capek.', 'Bawa bijih besi dari tambang, nanti saya tempa.', 'Api tungku ini tidak pernah padam sejak kakek saya.'], close: ['Alatmu paling bagus se-desa, hasil tempaanku!'] },
             { id: 'kardi', name: 'Pak Kardi', role: 'Nelayan Danau', g: 'm', faith: 'i', home: 'g3', slot: 1, out: ['danau', 'fish'], hours: [[6, 11], [6, 11], [6, 11]], skin: 0x9a6a4a, hair: 0x9a9a9a, o: { t: 'kaosl-hijau', b: 'pendek-krem', f: null, s: 'jepit', h: 'jerami' }, love: ['wedangjahe', 'kopi'], like: ['ikanmas', 'nila'], hate: ['kaktus'],
-                lines: ['Pagi-pagi ikan danau paling lapar.', 'Coba memancing di danau ini, ikannya besar-besar.', 'Air terjun di ujung danau itu indah sekali kalau pagi.'], close: ['Kamu pemancing berbakat. Kapan-kapan kita tanding!'] },
+                lines: ['Pagi-pagi ikan danau paling lapar.', 'Coba memancing di danau ini, ikannya besar-besar.', 'Air dari danau ini mengalir jadi sungai, lewat hutan dan sawah sampai ke laut.'], close: ['Kamu pemancing berbakat. Kapan-kapan kita tanding!'] },
             { id: 'hamid', name: 'Ustaz Hamid', role: 'Imam Masjid Al-Hikmah', g: 'm', faith: 'i', home: 'g4', slot: 0, skin: 0xd9a077, hair: 0x6a6a6a, o: { f: 'kokosarung-putihbiru', s: 'sandal', h: 'peci' }, love: ['kolak', 'teh'], like: ['kurma', 'sawo', 'jahe'], hate: ['tape'],
                 lines: ['Assalamualaikum. Masjid ini terbuka, silakan salat berjamaah.', 'Tempat wudunya airnya dari mata air gunung, segar sekali.', 'Jumat siang kami salat Jumat bersama warga.'], close: ['Barakallah, semoga rezekimu berkah.'] },
             // 🏖️ Desa Pantai
@@ -6403,32 +6561,60 @@
         }
         // ---- 🗺️ the map: the whole world (every region, its buildings and people) or the farm up close ----
         let mapTab = 'dunia';
+        // the world map is drawn from the real ground: its colours and hills, the sea, the river with its bridges
+        let mapBase = null;
+        function mapBaseCanvas() {
+            if (mapBase || !TERR) return mapBase;
+            const T = TERR, cv = document.createElement('canvas'); cv.width = T.gx; cv.height = T.gz;
+            const c = cv.getContext('2d'), im = c.createImageData(T.gx, T.gz);
+            for (let j = 0; j < T.gz; j++) for (let i = 0; i < T.gx; i++) {
+                const k = j * T.gx + i, h = T.hs[k], o = k * 4;
+                let r, g, b;
+                if (h < SEA_Y) { const dp = clamp((SEA_Y - h) / 1.3, 0, 1); r = lerp(112, 40, dp); g = lerp(198, 134, dp); b = lerp(228, 196, dp); }
+                else {
+                    const hx = T.hexes[k], hl = i ? T.hs[k - 1] : h, hu = j ? T.hs[k - T.gx] : h, sh = clamp(1 - (hl - h) * 0.12 - (hu - h) * 0.12, 0.7, 1.2);
+                    r = (hx >> 16 & 255) * sh; g = (hx >> 8 & 255) * sh; b = (hx & 255) * sh; if (h > 12) { const t = clamp((h - 12) / 10, 0, 1) * 0.55; r = lerp(r, 150, t); g = lerp(g, 160, t); b = lerp(b, 150, t); }
+                }
+                im.data[o] = r; im.data[o + 1] = g; im.data[o + 2] = b; im.data[o + 3] = 255;
+            }
+            c.putImageData(im, 0, 0);
+            return mapBase = cv;
+        }
         function worldMap() {
-            const X0 = -152, X1 = 147, Z0 = -108, Z1 = 100, W = 300, K = W / (X1 - X0), H = Math.round((Z1 - Z0) * K);
+            const X0 = -172, X1 = 158, Z0 = -112, Z1 = 104, W = 300, K = W / (X1 - X0), H = Math.round((Z1 - Z0) * K);
             const cv = el('canvas', { id: 'mapCv', width: String(W * 3), height: String(H * 3) });
             const c = cv.getContext('2d'); c.scale(3, 3);
             const mx = x => (x - X0) * K, mz = z => (z - Z0) * K;
-            const label = (t, x, y, size = 6, col = '#3a2a12') => { c.font = `700 ${size}px Fredoka, sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y); };
-            c.fillStyle = '#7fae5a'; c.fillRect(0, 0, W, H);
-            c.fillStyle = '#2f8fc8'; c.fillRect(mx(101), 0, W, H);
-            for (const r of REGIONS) { c.fillStyle = '#' + r.ground.toString(16).padStart(6, '0'); c.fillRect(mx(r.x0), mz(r.z0), (r.x1 - r.x0) * K, (r.z1 - r.z0) * K); }
-            c.fillStyle = '#f0dca8'; c.fillRect(mx(81), mz(-64), 20 * K, 128 * K); c.beginPath(); c.ellipse(mx(131), mz(78), 17 * K, 21 * K, 0, 0, Math.PI * 2); c.fill();
-            c.fillStyle = '#7fb88a'; for (const r of PADDIES) c.fillRect(mx(r.x0), mz(r.z0), (r.x1 - r.x0) * K, (r.z1 - r.z0) * K);
-            c.fillStyle = '#5bb7ea'; c.beginPath(); c.arc(mx(LAKE.x), mz(LAKE.z), LAKE.r * K, 0, Math.PI * 2); c.fill(); c.fillRect(mx(44.6), mz(27), 5 * K, 73 * K);
-            c.fillStyle = '#8a9a7a'; for (const [x, z, r] of [[-140, -62, 22], [-160, -10, 20], [-108, -70, 14]]) { c.beginPath(); c.arc(mx(x), mz(z), r * K, 0, Math.PI * 2); c.fill(); }
-            // the farm and the lane round it
+            const label = (t, x, y, size = 6, col = '#3a2a12', halo = 'rgba(255,255,255,0.92)') => { c.font = `700 ${size}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; if (halo) { c.lineJoin = 'round'; c.lineWidth = size * 0.36; c.strokeStyle = halo; c.strokeText(t, x, y); } c.fillStyle = col; c.fillText(t, x, y); };
+            c.fillStyle = '#2886c4'; c.fillRect(0, 0, W, H);
+            const base = mapBaseCanvas(), T = TERR;
+            if (base) { c.imageSmoothingEnabled = true; c.drawImage(base, (X0 - T.X0) / T.ST, (Z0 - T.Z0) / T.ST, (X1 - X0) / T.ST, (Z1 - Z0) / T.ST, 0, 0, W, H); }
+            // rice paddies
+            for (const r of PADDIES) { c.fillStyle = '#86b98a'; c.fillRect(mx(r.x0), mz(r.z0), (r.x1 - r.x0) * K, (r.z1 - r.z0) * K); c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 0.4; for (let z = r.z0 + 3.8; z < r.z1; z += 3.8) { c.beginPath(); c.moveTo(mx(r.x0), mz(z)); c.lineTo(mx(r.x1), mz(z)); c.stroke(); } }
+            // the lake and the river
+            c.fillStyle = '#4fa6dc'; c.beginPath(); c.arc(mx(LAKE.x), mz(LAKE.z), LAKE.r * K, 0, Math.PI * 2); c.fill();
+            c.strokeStyle = '#4fa6dc'; c.lineCap = 'round'; c.lineJoin = 'round';
+            for (let i = 1; i < RIV.length; i++) { c.lineWidth = (RIV[i].w * 2 + 0.6) * K; c.beginPath(); c.moveTo(mx(RIV[i - 1].x), mz(RIV[i - 1].z)); c.lineTo(mx(RIV[i].x), mz(RIV[i].z)); c.stroke(); }
+            // the town's streets
+            c.strokeStyle = '#a9a9a2'; c.lineWidth = 2.2;
+            for (const [a2, b2] of EDGES) if (a2[0] === 'k' && b2[0] === 'k' || a2 === 'gN' && b2 === 'k0') { c.beginPath(); c.moveTo(mx(NODES[a2][0]), mz(NODES[a2][1])); c.lineTo(mx(NODES[b2][0]), mz(NODES[b2][1])); c.stroke(); }
+            // bridges
+            for (const q of BRIDGES) { c.save(); c.translate(mx(q.x), mz(q.z)); c.rotate(Math.atan2(q.nz, q.nx)); c.fillStyle = '#8a5a2b'; c.fillRect(-q.L / 2 * K, -q.W / 2 * K, q.L * K, q.W * K); c.restore(); }
+            // the farm
             c.fillStyle = '#8fcf6a'; c.fillRect(mx(-24.2), mz(-23.2), 48.4 * K, 46.4 * K); c.strokeStyle = '#6e4723'; c.lineWidth = 1; c.strokeRect(mx(-24.2), mz(-23.2), 48.4 * K, 46.4 * K);
-            label('🏡', mx(0), mz(-2), 14); label('Farm', mx(0), mz(8), 7, '#1e3a12');
-            c.strokeStyle = '#c9a77a'; c.lineCap = 'round';
-            for (const [a2, b2] of EDGES) { const town = a2[0] === 'k' && b2[0] === 'k'; c.lineWidth = town ? 2.2 : 1.3; c.strokeStyle = town ? '#9a9a92' : '#c9a77a'; c.beginPath(); c.moveTo(mx(NODES[a2][0]), mz(NODES[a2][1])); c.lineTo(mx(NODES[b2][0]), mz(NODES[b2][1])); c.stroke(); }
+            label('🏡', mx(0), mz(-3), 13, '#000', null); label('Farm', mx(0), mz(8), 7, '#1e3a12');
+            // the boat to the island
             c.setLineDash([2, 2]); c.strokeStyle = '#ffffff'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(mx(HARBOUR_DOCK.x), mz(HARBOUR_DOCK.z)); c.lineTo(mx(ISLAND_DOCK.x), mz(ISLAND_DOCK.z)); c.stroke(); c.setLineDash([]);
-            for (const b of VB) { c.fillStyle = '#' + b.roof.toString(16).padStart(6, '0'); c.fillRect(mx(b.x - b.w / 2), mz(b.z - b.d / 2), b.w * K, b.d * K); if (!b.house) label(b.icon, mx(b.x), mz(b.z) - 1, 7); }
-            for (const s2 of STOPS) label('🚏', mx(s2.at.x), mz(s2.at.z), 6);
-            for (const r of REGIONS) label(r.name, mx((r.x0 + r.x1) / 2), mz(r.id === 'kota' ? r.z0 + 4 : r.id === 'sawah' ? r.z1 - 4 : r.id === 'pulau' ? r.z0 - 3 : r.z0 + 6), 7, '#1e3a12');
+            for (const b of VB) { c.fillStyle = '#' + b.roof.toString(16).padStart(6, '0'); c.fillRect(mx(b.x - b.w / 2), mz(b.z - b.d / 2), b.w * K, b.d * K); }
+            for (const b of VB) if (!b.house) label(b.icon, mx(b.x), mz(b.z) - 1, 6.5, '#000', null);
+            for (const s2 of STOPS) label('🚏', mx(s2.at.x), mz(s2.at.z), 5.5, '#000', null);
+            // each region's name above its village
+            for (const r of REGIONS) { const bs = VB.filter(b => b.r === r.id), cx = bs.reduce((t, b) => t + b.x, 0) / bs.length, cz = Math.min(...bs.map(b => b.z)) - 6.5; label(r.name, mx(cx), mz(cz), 7, '#1e3a12'); }
+            label('U ⬆', W - 11, 7, 6, '#1e3a12');
             // the people out and about (inside a building: by its door)
             for (const n of NPCS) { const st = n.st; if (!st) continue; const b = st.x > 150 ? vRoomOf(floorOf(st)) : null, x = b ? b.door.x : st.x, z = b ? b.door.z : st.z; c.fillStyle = '#f2a03d'; c.strokeStyle = '#fff'; c.lineWidth = 0.5; c.beginPath(); c.arc(mx(x), mz(z), 1.5, 0, Math.PI * 2); c.fill(); c.stroke(); }
             const spot = p => { if (isVRoom(floorOf(p)) && inHome(p)) { const b = vRoomOf(floorOf(p)); return b ? [mx(b.door.x), mz(b.door.z)] : null; } if (inHome(p)) return [mx(HOUSE.x), mz(HOUSE.z)]; return [mx(p.x), mz(p.z)]; };
-            const pin = (p, h, col, name) => { const q = spot(p); if (!q) return; c.save(); c.translate(q[0], q[1]); c.fillStyle = col; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 3.6, 0, Math.PI * 2); c.fill(); c.stroke(); c.rotate(-h + Math.PI); c.fillStyle = '#fff'; c.beginPath(); c.moveTo(0, -2.4); c.lineTo(1.8, 1.2); c.lineTo(-1.8, 1.2); c.closePath(); c.fill(); c.restore(); label(name, q[0], q[1] - 7, 6, col); };
+            const pin = (p, h, col, name) => { const q = spot(p); if (!q) return; c.save(); c.translate(q[0], q[1]); c.fillStyle = col; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 3.6, 0, Math.PI * 2); c.fill(); c.stroke(); c.rotate(-h + Math.PI); c.fillStyle = '#fff'; c.beginPath(); c.moveTo(0, -2.4); c.lineTo(1.8, 1.2); c.lineTo(-1.8, 1.2); c.closePath(); c.fill(); c.restore(); label(name, q[0], q[1] + 7.5, 6, col); };
             if (partnerF && net.connected && partnerF.live) pin(partnerF.pos, partnerF.heading, '#d6457a', OTHER);
             pin(player.pos, player.heading, '#2f6fd0', `${USER} (kamu)`);
             return cv;
@@ -6436,7 +6622,7 @@
         function openMap() {
             const where = placeName(player.pos), cv = mapTab === 'farm' ? farmMap() : worldMap();
             const tabs = el('div', { class: 'tabs chips' }, [['dunia', '🌍 Dunia'], ['farm', '🏡 Farm']].map(([t, l]) => el('button', { class: 'btn' + (t === mapTab ? ' on' : ''), onclick: () => { mapTab = t; openMap(); } }, l)));
-            openDlg('🗺️ Peta', [el('p', { class: 'small-note', text: `Kamu sedang di: ${where}. Farm di tengah: ke bawah 🌾 Lembah Persawahan, ke atas 🏙️ Kota, ke kiri 🌳 Hutan lalu 🏔️ Pegunungan dan danau, ke kanan 🏖️ Pantai (kapal ke 🏝️ pulau). Titik oranye: warga. 🚏 halte angkot.` }), tabs, cv]);
+            openDlg('🗺️ Peta', [el('p', { class: 'small-note', text: `Kamu sedang di: ${where}. Farm di tengah, dikelilingi desa-desa yang juga saling tersambung. Sungai mengalir dari danau gunung ke laut; seberangi lewat jembatan (cokelat). Titik oranye: warga. 🚏 halte angkot. Memancing bisa di kolam, danau, sungai, dan laut.` }), tabs, cv]);
         }
         function farmMap() {
             const W = 300, S = 6, FH = 47 * S, H = FH;
@@ -7562,7 +7748,7 @@
             }));
             // 🎣 the ponds, when you hold the fishing rod
             for (const pd of WATERS) L.push({
-                id: 'fish', pos: new THREE.Vector3(pd.x, 0, pd.z), reach: pd.r + 1.3, local: true, when: () => tool === 'pancing',
+                id: 'fish', pos: pd.pos || new THREE.Vector3(pd.x, 0, pd.z), reach: pd.reach || pd.r + 1.3, local: true, when: () => tool === 'pancing',
                 label: () => !fishing ? `Tahan tombol pancing lalu lepas untuk melempar 🎣 (energi ${Math.round(energyOf(USER))})` : fishing.phase === 'charge' ? '🎣 Lepas untuk melempar… makin lama ditahan makin jauh' : fishing.phase === 'cast' ? '🎣 …' : fishing.phase === 'bite' ? '❗ Ikan makan umpan! TARIK SEKARANG!' : '🎣 Tunggu pelampung bergerak… tekan saat ❗ muncul',
                 act: () => { },
             });
@@ -7571,13 +7757,28 @@
         // fishing: cast, wait for a bite, strike in time, then reel it in (like Stardew Valley):
         // hold to lift the green bar, keep the fish inside it until the catch meter is full
         let fishing = null;
-        const WATERS = [POND, DUCK_POND, LAKE, SEA];
+        // fishing spots along the river, every few steps
+        const RIVER_SPOTS = RIV.filter((s, i) => i % 5 === 2 && i > 4 && i < RIV.length - 8).map(s => ({ x: s.x, z: s.z, r: s.w + 0.15, reach: s.w + 2.6, y: s.y + 0.03, kind: 'river' }));
+        const WATERS = [POND, DUCK_POND, LAKE, SEA, ...RIVER_SPOTS];
+        let seaT = 0;
+        function seaSpot(dt) {
+            if ((seaT -= dt) > 0 || fishing) return;
+            seaT = 0.3; SEA.x = SEA.z = 1e5;
+            if (tool === 'pancing' && !inHome(player.pos) && !inFarmFlat(player.pos.x, player.pos.z)) {
+                const h = player.heading;
+                find: for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1, 1.6, -1.6]) for (const dd of [1.5, 2.5, 3.5, 4.5, 5.5]) {
+                    const sx = Math.sin(h + da), sz = Math.cos(h + da);
+                    if (SEA.isWater(player.pos.x + sx * dd, player.pos.z + sz * dd)) { SEA.x = player.pos.x + sx * (dd + 2.2); SEA.z = player.pos.z + sz * (dd + 2.2); break find; }
+                }
+            }
+            SEA.pos.set(SEA.x, 0, SEA.z);
+        }
         function rollFish(big) {
             if (Math.random() < 0.06) return 'sepatu';
             const h = state.minutes / 60, night = h >= 18 || h < 5, morning = h >= 5 && h < 10;
             // big pond and lake, the little duck pond, the sea (and the deep sea when you rented a boat today)
             const kind = big === true ? 'big' : big === false ? 'small' : big;
-            const pool = FISH.filter(f => kind === 'sea' ? f.where === 'sea' || f.where === 'deep' && boatToday() : kind === 'lake' ? ['both', 'big', 'lake'].includes(f.where) : f.where === 'both' || f.where === kind);
+            const pool = FISH.filter(f => kind === 'sea' ? f.where === 'sea' || f.where === 'deep' && boatToday() : kind === 'river' ? ['both', 'small'].includes(f.where) || ['udang', 'baung', 'patin'].includes(f.key) : kind === 'lake' ? ['both', 'big', 'lake'].includes(f.where) : f.where === 'both' || f.where === kind);
             const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1);
             let r = Math.random() * pool.reduce((t, f) => t + w(f), 0);
             for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
@@ -7614,8 +7815,8 @@
             if (!f || f.phase !== 'charge') return;
             const p = castPower(f), dist = 0.3 + p * 8;
             const tx = player.pos.x + f.dir[0] * dist, tz = player.pos.z + f.dir[1] * dist;
-            const pd = WATERS.find(w => Math.hypot(tx - w.x, tz - w.z) < w.r - 0.15);
-            Object.assign(f, { phase: 'cast', fly0: performance.now(), power: p, pd, big: pd ? pd.kind || (pd === POND ? 'big' : 'small') : null, src: new THREE.Vector3(player.pos.x + f.dir[0] * 0.9, 1.75, player.pos.z + f.dir[1] * 0.9), bob: new THREE.Vector3(tx, pd === SEA ? SEA_Y + 0.04 : pd ? 0.06 : groundY(tx, tz) + 0.05, tz) });
+            const pd = WATERS.find(w => Math.hypot(tx - w.x, tz - w.z) < w.r - 0.15 && (!w.isWater || w.isWater(tx, tz)));
+            Object.assign(f, { phase: 'cast', fly0: performance.now(), power: p, pd, big: pd ? pd.kind || (pd === POND ? 'big' : 'small') : null, src: new THREE.Vector3(player.pos.x + f.dir[0] * 0.9, 1.75, player.pos.z + f.dir[1] * 0.9), bob: new THREE.Vector3(tx, pd ? pd.y ?? (pd === SEA ? SEA_Y + 0.04 : 0.06) : groundY(tx, tz) + 0.05, tz) });
             whoosh();
         }
         // the float came down: on the water the wait begins, on dry land the line comes straight back
@@ -8990,6 +9191,7 @@
             updateRemote(dt);
             updateNPCs(dt);
             regionStream(dt);
+            seaSpot(dt);
             updateWeatherFx(dt, started && inHome(player.pos) && homeScene ? homeScene : scene);
             weatherAudio();
             updatePlants(elapsed);
@@ -9054,7 +9256,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get BRIDGES() { return BRIDGES; }, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
