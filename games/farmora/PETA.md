@@ -71,3 +71,30 @@ Di antara wilayah ada daratan tambahan berbentuk elips (`BLOBS`), supaya garis p
 
 ## 7. Untuk dikembangkan
 - `MAP_PINS.push({ x, z, icon, label })` menampilkan penanda misi atau acara di peta dunia.
+
+## 8. Pemeriksaan tata letak (otomatis)
+Setiap jalan diperiksa setiap setengah langkah: tidak boleh menyentuh bangunan, sawah, objek padat (pohon, pondok, papan, lampu, mobil), atau sungai (kecuali di jembatan), dan harus bisa dilewati pemain. Selain itu diperiksa juga:
+- bangunan yang terlalu rapat, berada di sawah, sungai, atau laut;
+- objek di dalam bangunan;
+- simpul jalan yang terputus;
+- tempat kegiatan warga;
+- halte.
+
+Hasil awal 65 temuan, sekarang **0**. Perbaikannya:
+- **Lengkungan jalan desa otomatis menghindari rintangan.** Tiap jalan memakai lengkungan lamanya selama tidak menabrak. Kalau menabrak, dipilih lengkungan terdekat yang bersih dari bangunan, sawah, blok gedung kota, beringin alun-alun, pos ronda, taman bermain, dan sarang lebah.
+- **Simpul jalan tidak menempel ke bangunan.** Simpul yang terlalu dekat digeser keluar sedikit.
+- **Jalan kota:** jalan samping barat pindah ke x −30.6 dan timur ke x 35.5, sehingga tidak lagi menembus Rumah Sakit, Sekolah, Terminal, dan Vihara.
+- **Rute yang dulu menembus bangunan diputar:**
+  - Desa Pegunungan: lewat samping Warung Kopi; Kebun Kopi lewat Rumah Peternakan.
+  - Desa Pantai: lewat samping Galangan menuju Pelabuhan; Rumah Pak Somad lewat Warung Seafood.
+  - Desa Hutan: rumah Pak Markus dicapai lewat samping Pusat Kerajinan.
+  - Pulau Kencana: lewat samping Penginapan dan Toko Suvenir.
+- **Lembah Persawahan:**
+  - Jalan masuk dari jembatan selatan farm lurus melewati gerbang desa.
+  - Alun-alun bergeser sedikit dari pohon beringin.
+  - Sawah barat mundur sedikit, sehingga ada jalan di antara sawah dan cabang sungai menuju jembatan Hutan.
+- **Objek kecil:**
+  - Gapura selalu berdiri melintang di jalannya.
+  - Papan penunjuk berdiri di sisi jalan yang kosong.
+  - Sarang lebah, tiang bendera sekolah, satu mobil parkir, dan perahu galangan dipindah agar tidak menghalangi.
+  - Tempat Kadek berdiri dipindah ke pasir.

@@ -1060,31 +1060,31 @@
             // the lane round the farm and its four gates
             rNW: [-27.5, -26], rNE: [27.5, -26], rSW: [-27.5, 26], rSE: [27.5, 26], gS: [0, 26], gN: [4, -26], gW: [-27.5, -2.2], gE: [27.5, 2],
             // 🌾 Lembah Persawahan: winding footpaths
-            s0: [0.5, 37], s1: [-1.5, 37], s2: [2, 42.5], s3: [-9, 42], s4: [-18, 40.5], s5: [-27, 43], s6: [11, 41], s7: [20, 44], s8: [29, 40.5],
-            sq: [1, 50.5], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-36.2, 52], s21: [33, 60], s22: [-36.5, 80],
+            s0: [0.5, 37], s1: [0.5, 41.2], s2: [2, 42.5], s3: [-9, 42], s4: [-18, 40.5], s5: [-27, 43], s6: [11, 41], s7: [20, 44], s8: [29, 40.5],
+            sq: [4.6, 47.8], s9: [-6, 55], s10: [-15, 58], s11: [-25, 61], s12: [9.5, 56.5], s13: [18.5, 60.5], s14: [28.5, 63], s15: [0.5, 66], s16: [-8, 72.5], s17: [6.5, 74.5], s18: [-20, 76.5], s19: [17, 79.5], s20: [-36.6, 52], s21: [33, 60], s22: [-36.6, 80], s23: [-37.2, 35.6],
             // 🏙️ Kota: straight streets
-            k0: [4, -31], k1: [4, -45], k2: [4, -65], k3: [4, -85], kW1: [-22, -45], kE1: [28, -45], kW2: [-22, -65], kE2: [28, -65], kW3: [-22, -85], kE3: [28, -85], kP: [-37, -45], kE4: [40, -85], kW4: [-34, -85],
+            k0: [4, -31], k1: [4, -45], k2: [4, -65], k3: [4, -85], kW1: [-30.6, -45], kE1: [35.5, -45], kW2: [-30.6, -65], kE2: [35.5, -65], kW3: [-30.6, -85], kE3: [35.5, -85], kP: [-37, -45], kE4: [41, -85], kW4: [-34, -85],
             // 🌳 Desa Hutan
-            h0: [-33, -2], h1: [-42, -5], h2: [-52, -1], h3: [-60, -10.5], h4: [-50, -16], h5: [-62, 6], h6: [-72, 2], h7: [-82, -4], h8: [-46.5, 10], h9: [-56, 18], h10: [-67, 20], h11: [-55, -30],
+            h0: [-33, -2], h1: [-42, -5], h2: [-52, -1], h3: [-60, -10.5], h4: [-50, -16], h5: [-62, 6], h6: [-72, 2], h7: [-82, -4], h8: [-51.5, 10.2], h9: [-56, 18], h10: [-71.5, 20.5], h12: [-51.8, 17.6], h11: [-55, -30],
             // 🏔️ Desa Pegunungan
-            g0: [-92, -6], g1: [-102, -10], g2: [-112, -16], g3: [-124, -22], g4: [-110, -30], g5: [-100, -24], g6: [-116, -2], g7: [-108, 12], g8: [-112, 27], g9: [-126, 6], g10: [-95, 8], g11: [-134, 12], g12: [-98, -36],
+            g0: [-94, -6.5], g1: [-102, -10], g2: [-112, -16], g3: [-124, -22], g4: [-110, -30], g5: [-100, -24], g6: [-116, -2], g7: [-112.2, 12.4], g8: [-112, 27], g9: [-126, 6], g10: [-95, 8], g11: [-134, 12], g12: [-98, -36], g13: [-96.5, -14],
             // 🏖️ Desa Pantai
-            p0: [33, 2], p1: [44, 3], p2: [55, 0], p3: [66, -6], p4: [76, -2], p5: [88, 0], p6: [64, 10], p7: [52, 14], p8: [74, 14], p9: [84, 12], p10: [60, -14], p11: [46, -10], p12: [40, 14], p13: [70, 20], p14: [91, 22],
+            p0: [33, 2], p1: [44, 3], p2: [55, 0], p3: [66, -6], p4: [76, -2], p5: [88, 0], p6: [64, 10], p7: [52, 14], p8: [76.5, 13.5], p9: [84, 12], p10: [60, -14], p11: [46, -10], p12: [40, 14], p13: [70, 20], p14: [91, 22], p15: [91.5, 7],
             // 🏝️ Pulau Kencana
-            i0: [120, 78], i1: [126, 78], i2: [132, 75], i3: [137, 86], i4: [126, 90], i5: [140, 71],
+            i0: [120, 78], i1: [126, 78], i2: [132, 75], i3: [137, 86], i4: [126, 90.8], i5: [140, 71], i6: [131, 89],
         };
         const EDGES = [
             ['rNW', 'gN'], ['gN', 'rNE'], ['rNE', 'gE'], ['gE', 'rSE'], ['rSE', 'gS'], ['gS', 'rSW'], ['rSW', 'gW'], ['gW', 'rNW'],
             ['gS', 's0'], ['s0', 's1'], ['s1', 's2'], ['s2', 'sq'], ['s2', 's3'], ['s3', 's4'], ['s4', 's5'], ['s2', 's6'], ['s6', 's7'], ['s7', 's8'],
-            ['sq', 's9'], ['s9', 's10'], ['s10', 's11'], ['sq', 's12'], ['s12', 's13'], ['s13', 's14'], ['s9', 's15'], ['s12', 's15'], ['s15', 's16'], ['s15', 's17'],
+            ['sq', 's9'], ['s9', 's10'], ['s10', 's11'], ['s12', 's13'], ['s13', 's14'], ['s9', 's15'], ['s12', 's15'], ['s15', 's16'], ['s15', 's17'],
             ['s16', 's18'], ['s17', 's19'], ['s11', 's20'], ['s8', 's21'], ['s14', 's21'], ['s18', 's22'],
             ['gN', 'k0'], ['k0', 'k1'], ['k1', 'k2'], ['k2', 'k3'], ['k1', 'kW1'], ['k1', 'kE1'], ['k2', 'kW2'], ['k2', 'kE2'], ['k3', 'kW3'], ['k3', 'kE3'], ['kW1', 'kW2'], ['kW2', 'kW3'], ['kE1', 'kE2'], ['kE2', 'kE3'], ['kW1', 'kP'], ['kE3', 'kE4'], ['kW3', 'kW4'],
-            ['gW', 'h0'], ['h0', 'h1'], ['h1', 'h2'], ['h2', 'h3'], ['h3', 'h4'], ['h4', 'h1'], ['h2', 'h5'], ['h5', 'h6'], ['h6', 'h7'], ['h2', 'h8'], ['h8', 'h9'], ['h9', 'h10'], ['h10', 'h6'], ['h4', 'h11'],
-            ['h7', 'g0'], ['g0', 'g1'], ['g1', 'g2'], ['g2', 'g3'], ['g2', 'g4'], ['g1', 'g5'], ['g5', 'g4'], ['g1', 'g6'], ['g6', 'g9'], ['g9', 'g11'], ['g6', 'g7'], ['g7', 'g8'], ['g0', 'g10'], ['g10', 'g7'], ['g5', 'g12'],
-            ['gE', 'p0'], ['p0', 'p1'], ['p1', 'p2'], ['p2', 'p3'], ['p3', 'p4'], ['p4', 'p5'], ['p2', 'p6'], ['p6', 'p8'], ['p8', 'p9'], ['p9', 'p5'], ['p2', 'p7'], ['p7', 'p12'], ['p3', 'p10'], ['p2', 'p11'], ['p8', 'p13'], ['p9', 'p14'],
-            ['i0', 'i1'], ['i1', 'i2'], ['i2', 'i3'], ['i1', 'i4'], ['i2', 'i5'],
+            ['gW', 'h0'], ['h0', 'h1'], ['h1', 'h2'], ['h2', 'h3'], ['h3', 'h4'], ['h4', 'h1'], ['h2', 'h5'], ['h5', 'h6'], ['h6', 'h7'], ['h2', 'h8'], ['h8', 'h12'], ['h12', 'h9'], ['h9', 'h10'], ['h10', 'h6'], ['h4', 'h11'],
+            ['h7', 'g0'], ['g0', 'g1'], ['g1', 'g2'], ['g2', 'g3'], ['g1', 'g13'], ['g13', 'g5'], ['g5', 'g4'], ['g1', 'g6'], ['g6', 'g9'], ['g9', 'g11'], ['g6', 'g7'], ['g7', 'g8'], ['g10', 'g7'], ['g4', 'g12'],
+            ['gE', 'p0'], ['p0', 'p1'], ['p1', 'p2'], ['p2', 'p3'], ['p3', 'p4'], ['p4', 'p5'], ['p2', 'p6'], ['p6', 'p8'], ['p8', 'p9'], ['p9', 'p15'], ['p15', 'p5'], ['p6', 'p7'], ['p7', 'p12'], ['p3', 'p10'], ['p2', 'p11'], ['p8', 'p13'], ['p9', 'p14'],
+            ['i0', 'i1'], ['i1', 'i2'], ['i2', 'i6'], ['i6', 'i3'], ['i6', 'i4'], ['i2', 'i5'],
             // the villages also join each other directly, not only through the farm
-            ['h9', 's20'], ['h11', 'kP'], ['kE1', 'p11'], ['s8', 'p12'],
+            ['h9', 's23'], ['s23', 's20'], ['h11', 'kP'], ['kE1', 'p11'], ['s8', 'p12'],
         ];
         // every building: where it stands (x, z, a slight turn rot), its path node, size and colours, and its inside (type)
         // houses: faith decides the prayer corner (i Islam, k Katolik, p Protestan, b Buddha, c Konghucu, h Hindu)
@@ -1160,15 +1160,15 @@
         const VOUT = {
             square: { name: 'alun-alun', node: 'sq', c: [1, 47.2], r: 3.3, rate: 0.12 },
             taman: { name: 'taman bermain', node: 's15', c: [-1, 61.5], r: 2.0, rate: 0.5, run: 1 },
-            sawah: { name: 'sawah', node: 's20', pace: [[-41, 50], [-35, 50]] },
-            sawah2: { name: 'sawah', node: 's22', pace: [[-41, 80], [-37, 80]] },
+            sawah: { name: 'sawah', node: 's20', pace: [[-45, 50], [-40, 50]] },
+            sawah2: { name: 'sawah', node: 's22', pace: [[-45, 80], [-40, 80]] },
             tkota: { name: 'taman kota', node: 'kP', c: [-38, -54], r: 3.6, rate: 0.1 },
             hutan: { name: 'jalan hutan', node: 'h11', pace: [[-55, -34], [-58, -40]] },
             kebunkopi: { name: 'kebun kopi', node: 'g12', pace: [[-97, -41], [-92, -41]] },
             danau: { name: 'tepi danau', node: 'g8', stand: [-111, 29.2, Math.PI * 0.95] },
             pantai: { name: 'pantai', node: 'p14', pace: [[90, 26], [96, 22]] },
             dermaga: { name: 'dermaga', node: 'p5', stand: [97, 1.0, Math.PI / 2] },
-            snorkel: { name: 'pantai pulau', node: 'i4', stand: [120.5, 91, -Math.PI / 2] },
+            snorkel: { name: 'pantai pulau', node: 'i4', stand: [122, 90.6, -Math.PI / 2] },
         };
         // the water: the farm's ponds plus the mountain lake and the sea (a huge circle whose edge is the shore)
         const LAKE = { x: -115, z: 42, r: 11.5, kind: 'lake' };
@@ -1176,7 +1176,7 @@
         const SEA = { x: 1e5, z: 1e5, r: 3.6, reach: 8, kind: 'sea', pos: new THREE.Vector3(1e5, 0, 1e5), isWater: (x, z) => H(x, z) < SEA_Y - 0.12 && !inRiver(x, z, 1.5) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 3 };
         const LAGOON = { x: 300, z: 0, r: 199.2, kind: 'sea' };
         // rice paddies slow you down
-        const PADDIES = [{ x0: -48, x1: -35.5, z0: 36, z1: 90 }, { x0: 24, x1: 42, z0: 68, z1: 90 }];
+        const PADDIES = [{ x0: -48, x1: -39.2, z0: 37, z1: 90 }, { x0: 24, x1: 42, z0: 68, z1: 90 }];
         const inPaddy = p => PADDIES.some(r => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1);
         const VBI = {};
         VB.forEach((b, i) => {
@@ -1190,6 +1190,20 @@
             b.spots = {};
             VBI[b.id] = b;
         });
+        // a path node never sits on (or right against) a building: it is nudged out until the road beside it is clear
+        for (const [id, n] of Object.entries(NODES)) {
+            const need = (id[0] === 'k' ? 2.15 : /^(s[0-2]|sq|h[0-7]|g[0-2]|p[0-5]|r|g[SNWE])/.test(id) ? 1.75 : 1.2) + 0.35;
+            for (let pass = 0; pass < 4; pass++) for (const b of VB) {
+                const c = Math.cos(b.rot), s = Math.sin(b.rot), dx = n[0] - b.x, dz = n[1] - b.z, lx = dx * c - dz * s, lz = dx * s + dz * c;
+                const ex = Math.abs(lx) - b.w / 2, ez = Math.abs(lz) - b.d / 2, d = Math.hypot(Math.max(ex, 0), Math.max(ez, 0));
+                if (d >= need && (ex > 0 || ez > 0)) continue;
+                // push straight out of the nearest side (in the building's own frame), then turn back to the world
+                let ux = 0, uz = 0, by;
+                if (ex > 0 && ez > 0) { ux = Math.sign(lx) * ex / d; uz = Math.sign(lz) * ez / d; by = need - d; }
+                else if (ex > ez) { ux = Math.sign(lx); by = need - ex; } else { uz = Math.sign(lz) || 1; by = need - ez; }
+                n[0] += (ux * c + uz * s) * by; n[1] += (-ux * s + uz * c) * by;
+            }
+        }
         const TOWN = VB.filter(b => b.shop);
         const isVRoom = f => f >= 680;
         const vRoomOf = f => VB.find(b => b.f === f);
@@ -1240,7 +1254,14 @@
         const dHouseBlock = (x, z, w, d, h, c, roofC) => { inst('city' + c, LOWBOX, dm(c), x, h / 2, z, w, h, d); inst('cityroof' + roofC, LOWBOX, dm(roofC), x, h + 0.15, z, w + 0.2, 0.3, d + 0.2); for (let y = 1.4; y < h - 0.6; y += 1.6) for (let i = -w / 2 + 0.8; i < w / 2 - 0.4; i += 1.4) inst('citywin', LOWBOX, dm(0x9fd8ff, { roughness: 0.2 }), x + i, y, z + d / 2 + 0.02, 0.7, 0.8, 0.05); addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2); };
         const dCar = (x, z, rot, c) => { inst('car' + c, LOWBOX, dm(c), x, 0.45, z, 1.6, 0.6, 3.2, rot); inst('cartop' + c, LOWBOX, dm(c), x, 0.95, z, 1.4, 0.5, 1.7, rot); inst('carwheel', LOWCYL, dm(0x222222), x, 0.25, z, 0.3, 1.7, 0.3, rot, 0, Math.PI / 2); addCircleCollider(x, z, 1.4); };
         // keep the decoration away from paths, buildings and water
-        const nearPath = (x, z, m) => PATH_PTS.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < (m + 0.8) ** 2);
+        // (the points are kept in 6×6 cells, so asking is quick)
+        let pathGrid = null, pathGridN = -1;
+        const nearPath = (x, z, m) => {
+            if (pathGridN !== PATH_PTS.length) { pathGrid = {}; pathGridN = PATH_PTS.length; for (const q of PATH_PTS) (pathGrid[Math.floor(q[0] / 6) + ',' + Math.floor(q[1] / 6)] ||= []).push(q); }
+            const r = m + 0.8, cx = Math.floor(x / 6), cz = Math.floor(z / 6), n = Math.ceil(r / 6);
+            for (let i = -n; i <= n; i++) for (let j = -n; j <= n; j++) for (const [px, pz] of pathGrid[(cx + i) + ',' + (cz + j)] || []) if ((px - x) ** 2 + (pz - z) ** 2 < r * r) return true;
+            return false;
+        };
         const nearBuilding = (x, z, m) => VB.some(b => Math.abs(x - b.x) < b.w / 2 + m && Math.abs(z - b.z) < b.d / 2 + m + 1);
         const freeSpot = (x, z, m = 2.2) => !(Math.abs(x) < 31 && Math.abs(z) < 29.5) && coastDist(x, z) > 5.5 && !nearPath(x, z, m) && !nearBuilding(x, z, m) && !inPaddy({ x, z }) && Math.hypot(x - LAKE.x, z - LAKE.z) > LAKE.r + 2.5 && !inRiver(x, z, m + 1.2);
         // ---------- ⛰️ the land: hills, mountains and a beach all round the world ----------
@@ -1444,13 +1465,37 @@
                 const [p, q] = key.split('|'), [ax, az] = NODES[p], [bx, bz] = NODES[q], len = Math.hypot(bx - ax, bz - az) || 1;
                 const lane = n => /^(r|g[SNWE])/.test(n), straight = p[0] === 'k' && q[0] === 'k' || lane(p) && lane(q);
                 let hsh = 0; for (const ch of key) hsh = (hsh * 31 + ch.charCodeAt(0)) % 9973;
-                const off = straight ? 0 : ((hsh % 100) / 100 - 0.5) * 0.34 * len;
-                const cx = (ax + bx) / 2 - (bz - az) / len * off, cz = (az + bz) / 2 + (bx - ax) / len * off, n = Math.max(2, Math.ceil(len / 1.5));
-                pts = [];
-                for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; pts.push([u * u * ax + 2 * u * t * cx + t * t * bx, u * u * az + 2 * u * t * cz + t * t * bz]); }
-                EPTS[key] = pts;
+                // the gentle bend it always had, unless that runs into something: then the nearest bend that is clear
+                const curve = (off, slide = 0) => { const cx = (ax + bx) / 2 - (bz - az) / len * off + (bx - ax) * slide, cz = (az + bz) / 2 + (bx - ax) / len * off + (bz - az) * slide, n = Math.max(2, Math.ceil(len / 1.5)), o = []; for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; o.push([u * u * ax + 2 * u * t * cx + t * t * bx, u * u * az + 2 * u * t * cz + t * t * bz]); } return o; };
+                const hw = (roadKind(p, q) === 'kota' ? 3.8 : roadKind(p, q) === 'utama' ? 3.0 : 1.9) / 2 + 0.25;
+                let best = null, bs = Infinity;
+                const tries = [[straight ? 0 : ((hsh % 100) / 100 - 0.5) * 0.34, 0]];
+                if (!straight) for (const sl of [0, -0.22, 0.22]) for (let f = 0; f <= 0.5; f += 0.06) for (const sg of f ? [1, -1] : [1]) tries.push([sg * f, sl]);
+                for (const [f, sl] of tries) { const c = curve(f * len, sl), sc = roadClash(c, hw); if (sc < bs - 1e-6) { bs = sc; best = c; } if (sc === 0) break; }
+                pts = EPTS[key] = best;
             }
             return flip ? [...pts].reverse() : pts;
+        }
+        // what a road must keep clear of besides the buildings and paddies: the town's high blocks (x, z, w, d)
+        // and fixed things in the villages (x, z, radius): the banyan, the night-watch hut, the playground, the beehives
+        const CITY_BLOCKS = [[-38, -97, 10, 6, 12, 0xc8d0d8], [-26, -99, 8, 5, 16, 0xe8e0d0], [-12, -99, 9, 5, 10, 0xd8c8b8], [10, -99, 10, 5, 18, 0xb8c8d8], [24, -98, 8, 6, 13, 0xe0d0c0], [38, -99, 9, 5, 15, 0xc8d8c8], [42, -58, 5, 9, 11, 0xd8d0c8], [42, -72, 5, 8, 14, 0xc0c8d0], [-42, -62, 5, 9, 12, 0xd0c8c0], [-40, -80, 5, 8, 10, 0xe0d8c8], [42, -40, 6, 6, 9, 0xe8e0d8], [-43, -38, 6, 6, 8, 0xd8d8e0]];
+        const ROAD_OBST = [[1, 47.2, 2.4], [-3.6, 44.6, 1.5], [-1, 61.5, 4.6], [-66.9, -12.1, 2.6]];
+        function roadClash(pts, hw) {
+            let bad = 0;
+            for (let i = 1; i < pts.length - 1; i++) {
+                const [x, z] = pts[i];
+                for (const b of VB) {
+                    if (Math.abs(x - b.x) > b.w + 4 || Math.abs(z - b.z) > b.d + 4) continue;
+                    const c = Math.cos(b.rot), s = Math.sin(b.rot), dx = x - b.x, dz = z - b.z, d = Math.hypot(Math.max(Math.abs(dx * c - dz * s) - b.w / 2, 0), Math.max(Math.abs(dx * s + dz * c) - b.d / 2, 0));
+                    if (d < hw + 0.3) bad += hw + 0.3 - d;
+                }
+                for (const q of PADDIES) { const d = Math.max(q.x0 - x, x - q.x1, q.z0 - z, z - q.z1); if (d < hw) bad += hw - d; }
+                for (const [bx, bz, w, dd] of CITY_BLOCKS) { const d = Math.hypot(Math.max(Math.abs(x - bx) - w / 2, 0), Math.max(Math.abs(z - bz) - dd / 2, 0)); if (d < hw + 0.3) bad += hw + 0.3 - d; }
+                for (const [ox, oz, r] of ROAD_OBST) { const d = Math.hypot(x - ox, z - oz) - r; if (d < hw) bad += hw - d; }
+                // and runs along a river as little as it can (crossing it, where it has to, straight over)
+                const rv = riverAt(x, z); if (rv && rv.d < rv.w + hw + 1.5) bad += 0.4;
+            }
+            return bad;
         }
         // every point along the paths, to keep trees and rocks off them
         const PATH_PTS = [];
@@ -1535,12 +1580,17 @@
             buildRiver();
             // signposts where the villages join each other
             const signG = (x, z, t) => { const before = new Set(scene.children); sign(x, z, t); const y = groundY(x, z); for (const o of scene.children) if (!before.has(o)) o.position.y += y; };
-            for (const [x, z, t] of [[-36.4, 53.8, 'Ke Hutan'], [-53.6, 21.4, 'Ke Sawah'], [-39.4, -42.6, 'Ke Hutan'], [-53, -32.6, 'Ke Kota'], [30.6, -42.4, 'Ke Pantai'], [44, -12.4, 'Ke Kota'], [31.4, 38.2, 'Ke Pantai'], [38.4, 16.6, 'Ke Sawah']]) signG(x, z, t);
+            for (const [a, b, ta, tb] of [['s23', 'h9', 'Ke Hutan', 'Ke Sawah'], ['kP', 'h11', 'Ke Hutan', 'Ke Kota'], ['kE1', 'p11', 'Ke Pantai', 'Ke Kota'], ['s8', 'p12', 'Ke Pantai', 'Ke Sawah']]) {
+                const P = edgePts(a, b);
+                for (const [i, t] of [[Math.min(3, P.length - 1), ta], [Math.max(0, P.length - 4), tb]]) { const q0 = P[Math.max(0, i - 1)], q1 = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1, nx = -(q1[1] - q0[1]) / l, nz = (q1[0] - q0[0]) / l; const room = sd => Math.min(...PATH_PTS.map(([x, z]) => Math.hypot(x - (P[i][0] + nx * 2.1 * sd), z - (P[i][1] + nz * 2.1 * sd)))) - (nearBuilding(P[i][0] + nx * 2.1 * sd, P[i][1] + nz * 2.1 * sd, 0.3) ? 9 : 0), sd = room(1) >= room(-1) ? 1 : -1; signG(P[i][0] + nx * 2.1 * sd, P[i][1] + nz * 2.1 * sd, t); }
+            }
             // the farm's gates out to the lane
             for (const [x, z, rot] of [[4, -23.2, 0], [-24.2, -2.2, Math.PI / 2], [24.2, 2, Math.PI / 2]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g); for (const sx of [-1, 1]) box(0.3, 2.2, 0.3, C.darkWood, sx * 1.9, 1.1, 0, g); box(4.2, 0.3, 0.3, C.darkWood, 0, 2.3, 0, g); }
             sign(-2.6, -22.2, 'Ke Kota'); sign(-23.2, -4.6, 'Ke Hutan'); sign(23.2, 4.4, 'Ke Pantai');
             // the welcome arch of every region
-            for (const [x, z, rot, text] of [[0.5, 38.6, 0, 'Desa Lembah Sari'], [4, -29.4, Math.PI, 'Kota Sentosa'], [-31, -2, -Math.PI / 2, 'Desa Rimbawana'], [31, 2, Math.PI / 2, 'Desa Pasir Putih'], [-90, -6, -Math.PI / 2, 'Desa Gunungsari']]) {
+            const onRoad = (a, b, x, z) => { const P = edgePts(a, b); let bi = 0, bd = Infinity; P.forEach(([px, pz], i) => { const d = Math.hypot(px - x, pz - z); if (d < bd) { bd = d; bi = i; } }); const p0 = P[Math.max(0, bi - 1)], p1 = P[Math.min(P.length - 1, bi + 1)]; return [P[bi][0], P[bi][1], Math.atan2(-(p1[0] - p0[0]), -(p1[1] - p0[1]))]; };
+            for (const [a, b, x0, z0, text] of [['s0', 's1', 0.5, 38.8, 'Desa Lembah Sari'], ['gN', 'k0', 4, -29.4, 'Kota Sentosa'], ['gW', 'h0', -31, -2, 'Desa Rimbawana'], ['gE', 'p0', 31, 2, 'Desa Pasir Putih'], ['g0', 'g1', -97.5, -8, 'Desa Gunungsari']]) {
+                const [x, z, rot] = onRoad(a, b, x0, z0);
                 const g = new THREE.Group(); g.position.set(x, groundY(x, z), z); g.rotation.y = rot; scene.add(g);
                 for (const sx of [-1, 1]) box(0.3, 2.8, 0.3, C.darkWood, sx * 2.1, 1.4, 0, g);
                 box(4.8, 0.3, 0.3, C.darkWood, 0, 2.9, 0, g); textPlate(g, text, 0, 3.35, 0.1, 3.6); textPlate(g, text, 0, 3.35, -0.1, 3.6, Math.PI);
@@ -1652,7 +1702,7 @@
                 const paddyMat = new THREE.MeshStandardMaterial({ color: 0x6fbf4a, roughness: 0.9 });
                 spots.forEach(([x, z], i) => inst('paddy', tuft, paddyMat, x, 0.02, z, 1, 0.8 + ((i * 37) % 10) / 25, 1));
                 for (const [x, z] of [[-44, 40], [-38, 86], [33, 86]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 1.0, 0.12, C.darkWood, sx * 0.9, 0.5, sz * 0.7, g); box(2.0, 0.1, 1.6, 0xc8a464, 0, 1.0, 0, g); const r = gableRoof(2.0, 2.4, 0.9, 0xd9b26a); r.rotation.y = Math.PI / 2; r.position.y = 1.9; g.add(r); addBoxCollider(x - 1.1, x + 1.1, z - 0.8, z + 0.8); }
-                for (const [x, z] of [[-36, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
+                for (const [x, z] of [[-42, 60], [-46, 75], [30, 78]]) { const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g); box(0.08, 1.6, 0.08, C.darkWood, 0, 0.8, 0, g); box(1.2, 0.07, 0.07, C.darkWood, 0, 1.25, 0, g); box(0.5, 0.55, 0.2, 0xd9534a, 0, 1.15, 0, g); ball(0.16, 0.16, 0.16, 0xe8d8a8, 0, 1.6, 0, g); const hat = mesh(new THREE.ConeGeometry(0.34, 0.18, 14), mat(0xe8c66a), g); hat.position.y = 1.78; }
                 // a water buffalo resting by the dyke
                 { const g = new THREE.Group(); g.position.set(-28.6, 0, 66); g.rotation.y = 1.2; scene.add(g); ball(0.6, 0.45, 0.95, 0x4a4a52, 0, 0.6, 0, g); ball(0.3, 0.28, 0.35, 0x4a4a52, 0, 0.75, 0.95, g); for (const sx of [-1, 1]) { const h = mesh(new THREE.TorusGeometry(0.25, 0.05, 6, 10, Math.PI), mat(0xe8e0d0), g); h.position.set(sx * 0.2, 1.0, 0.95); h.rotation.y = Math.PI / 2; } for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.14, 0.4, 0.14, 0x3a3a42, sx * 0.3, 0.2, sz * 0.55, g); addCircleCollider(-28.6, 66, 0.9); }
                 // the square: a big banyan tree with a ring bench, and the night-watch hut
@@ -1666,18 +1716,18 @@
             if (id === 'kota') {
                 // 🏙️ the town: high blocks around, a park with a fountain, parked cars, lamps and planters
                     flat(86, 68, 0x9a9a92, 0, -64, 0.03);
-                for (const [x, z, w, d, h, c] of [[-38, -97, 10, 6, 12, 0xc8d0d8], [-26, -99, 8, 5, 16, 0xe8e0d0], [-12, -99, 9, 5, 10, 0xd8c8b8], [10, -99, 10, 5, 18, 0xb8c8d8], [24, -98, 8, 6, 13, 0xe0d0c0], [38, -99, 9, 5, 15, 0xc8d8c8], [42, -58, 5, 9, 11, 0xd8d0c8], [42, -72, 5, 8, 14, 0xc0c8d0], [-42, -62, 5, 9, 12, 0xd0c8c0], [-40, -80, 5, 8, 10, 0xe0d8c8], [42, -40, 6, 6, 9, 0xe8e0d8], [-43, -38, 6, 6, 8, 0xd8d8e0]]) dHouseBlock(x, z, w, d, h, c, 0x6e737c);
-                for (const [x, z, r, c] of [[-1, -56, 0, 0xd9443a], [8.6, -58, 0, 0x3f8fd6], [-0.6, -78, 0, 0xf2f2f2], [8.6, -80, 0, 0x2b2b2b], [20, -61.6, Math.PI / 2, 0xf2c94c], [-14, -61.6, Math.PI / 2, 0x4caf6a], [34, -47.6, Math.PI / 2, 0xd9443a]]) dCar(x, z, r, c);
+                for (const [x, z, w, d, h, c] of CITY_BLOCKS) dHouseBlock(x, z, w, d, h, c, 0x6e737c);
+                for (const [x, z, r, c] of [[-1, -56, 0, 0xd9443a], [8.6, -58, 0, 0x3f8fd6], [-0.6, -78, 0, 0xf2f2f2], [8.6, -80, 0, 0x2b2b2b], [20, -61.6, Math.PI / 2, 0xf2c94c], [-14, -61.6, Math.PI / 2, 0x4caf6a]]) dCar(x, z, r, c);
                 for (const [x, z] of [[0.6, -38], [7.4, -38], [0.6, -56], [7.4, -56], [0.6, -76], [7.4, -76], [-12, -42.2], [18, -42.2], [-12, -62.2], [18, -62.2], [-12, -82.2], [18, -82.2]]) { cap(0.06, 3.4, 0x2b2b2b, x, 1.7, z, scene); ball(0.22, 0.16, 0.22, 0xfff1c9, x, 3.45, z, scene); addCircleCollider(x, z, 0.12); }
                 { const x = -38, z = -54; flat(12, 12, 0x86c062, x, z, 0.03); mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(x, 0.25, z); const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(x, 0.52, z); scene.add(fw); addCircleCollider(x, z, 1.5); for (const [dx, dz] of [[-4.5, 0], [4.5, 0], [0, 4.5]]) { box(1.4, 0.1, 0.45, C.wood, x + dx, 0.45, z + dz, scene); } for (const [dx, dz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) { dTree('kota', x + dx, z + dz, 1.0, 0x3f8a3a); solid(x + dx, z + dz, 0.3); } textPlate(scene, 'Taman Kota', x, 1.0, z + 6.2, 1.6); }
-                { const b = VBI.sekolah; flat(9, 7, 0xb8865a, b.x + 9, b.z + 0.5, 0.03); for (const sx of [-4, 4]) { box(0.1, 2.4, 0.1, 0xffffff, b.x + 9 + sx, 1.2, b.z + 0.5, scene); box(0.1, 1.0, 1.6, 0xffffff, b.x + 9 + sx, 2.4, b.z + 0.5, scene); } cap(0.04, 4.0, 0xdddddd, b.x - 6, 2.0, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xd9221f, b.x - 5.53, 3.65, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xffffff, b.x - 5.53, 3.35, b.z + 4.2, scene); addCircleCollider(b.x - 6, b.z + 4.2, 0.12); }
+                { const b = VBI.sekolah; flat(9, 7, 0xb8865a, b.x + 9, b.z + 0.5, 0.03); for (const sx of [-4, 4]) { box(0.1, 2.4, 0.1, 0xffffff, b.x + 9 + sx, 1.2, b.z + 0.5, scene); box(0.1, 1.0, 1.6, 0xffffff, b.x + 9 + sx, 2.4, b.z + 0.5, scene); } cap(0.04, 4.0, 0xdddddd, b.x - 4.4, 2.0, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xd9221f, b.x - 3.93, 3.65, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xffffff, b.x - 3.93, 3.35, b.z + 4.2, scene); addCircleCollider(b.x - 4.4, b.z + 4.2, 0.12); }
                 textPlate(scene, '🚏 Halte Kota', 9.2, 2.3, -33, 1.6); box(2.6, 0.1, 1.0, 0x3f5f8a, 9.2, 2.0, -33.4, scene); for (const sx of [-1.1, 1.1]) box(0.08, 2.0, 0.08, 0x6e737c, 9.2 + sx, 1.0, -33.4, scene);
             }
             if (id === 'hutan') {
                 // 🌳 the forest: a dense wood of tall trees and bamboo, a stream with a little bridge, logs and mushrooms
                 scatter('hutan', 900, (x, z, u) => { if (u < 0.12) { dBamboo('hutan', x, z); solid(x, z, 0.5); } else if (u < 0.55) { dTree('hutan', x, z, 1.2 + u, [0x3f7a35, 0x4f8a3a, 0x2f6b30][Math.floor(u * 100) % 3]); solid(x, z, 0.35); } else if (u < 0.75) { dPine('hutan', x, z, 1.2 + u * 0.8); solid(x, z, 0.3); } else if (u < 0.88) dBush('hutan', x, z, 1 + u, 0x3f7a35); else if (u < 0.94) { inst('hutanlog', LOWCYL, dm(0x6e4723), x, 0.25, z, 0.25, 2.2, 0.25, u * 6, 0, Math.PI / 2); } else { inst('hutanmush', LOWCONE, dm(0xd9443a), x, 0.3, z, 0.18, 0.15, 0.18); inst('hutanstem', LOWCYL, dm(0xf2f2ee), x, 0.12, z, 0.05, 0.24, 0.05); } }, 2.0);
                 for (const [x, z] of [[-40.4, -14.4], [-44.6, -14.6], [-38.2, -11.8]]) { for (let i = 0; i < 3; i++) inst('hutanplank', LOWCYL, dm(0xb07a45), x, 0.25 + i * 0.4, z, 0.22, 2.4, 0.22, 0, 0, Math.PI / 2); solid(x, z, 1.2); }
-                for (let i = 0; i < 6; i++) { const x = -64 + (i % 3) * 1.6, z = -12 + Math.floor(i / 3) * 1.8; box(0.7, 0.8, 0.6, 0xf2e2b0, x, 0.4, z, scene); box(0.8, 0.1, 0.7, 0xb07a45, x, 0.85, z, scene); solid(x, z, 0.45); }
+                for (let i = 0; i < 6; i++) { const x = -68.5 + (i % 3) * 1.6, z = -13 + Math.floor(i / 3) * 1.8; box(0.7, 0.8, 0.6, 0xf2e2b0, x, 0.4, z, scene); box(0.8, 0.1, 0.7, 0xb07a45, x, 0.85, z, scene); solid(x, z, 0.45); }
                 textPlate(scene, '🚏 Halte · angkot', -36, 2.3, -6.4, 1.6);
             }
             if (id === 'gunung') {
@@ -1805,7 +1855,7 @@
             textPlate(g, `${b.icon} ${b.name.replace('Gereja Katolik', 'Gereja').replace('Gereja Protestan', 'Gereja')}`, 0, y0 + (b.house ? 2.3 : 2.5), fz + 0.04, b.house ? 2.6 : 3.4);
             if (b.id === 'giling') { for (const [x, z] of [[2.2, fz + 0.6], [2.7, fz + 0.5], [2.45, fz + 0.9]]) ball(0.28, 0.32, 0.24, 0xd8c08a, x, 0.3, z, g); cap(0.12, 1.4, 0x6e737c, -2.2, tall + 0.9, -0.8, g); }
             if (b.id === 'pandai') { const fu = box(0.8, 0.8, 0.8, new THREE.MeshStandardMaterial({ color: 0xff7a2a, emissive: 0xff5a1a, emissiveIntensity: 0.8 }), w / 2 - 0.8, 0.4, fz + 0.6, g); fu.castShadow = false; cap(0.2, 2.2, 0x3a3a3a, -w / 2 + 0.6, tall + 1.0, -0.6, g); }
-            if (b.id === 'galangan') { const bt = new THREE.Group(); bt.position.set(0, 0.5, fz + 2.6); bt.rotation.y = Math.PI / 2; g.add(bt); jukung(bt, 0xd9b27a); for (const sx of [-1.6, 1.6]) box(0.3, 0.5, 0.3, 0x6e4723, sx, -0.25, 0, g).position.set(sx, 0.25, fz + 2.6); }
+            if (b.id === 'galangan') { const bt = new THREE.Group(); bt.position.set(-w / 2 + 1.2, 0.5, fz + 2.6); g.add(bt); jukung(bt, 0xd9b27a); for (const sz of [-1.6, 1.6]) box(0.3, 0.5, 0.3, 0x6e4723, -w / 2 + 1.2, 0.25, fz + 2.6 + sz, g); }
             if (b.id === 'pelabuhan') { cap(0.06, 4, 0xffffff, w / 2 + 0.5, 2, 0, g); box(0.8, 0.5, 0.02, 0xd9221f, w / 2 + 0.92, 3.7, 0, g); box(0.8, 0.5, 0.02, 0xffffff, w / 2 + 0.92, 3.2, 0, g); }
             addBoxCollider(b.x - w / 2, b.x + w / 2, b.z - d / 2, b.z + d / 2);
         }
@@ -9337,7 +9387,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get BRIDGES() { return BRIDGES; }, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get BRIDGES() { return BRIDGES; }, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
