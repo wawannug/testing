@@ -643,7 +643,7 @@
         const LITE = matchMedia('(pointer: coarse)').matches;
         // ✨ graphics quality: sharpness of the picture and the shadows (phones start on the middle one)
         // (the frame cap is what keeps a phone cool: Rendah and Sedang draw 30 pictures a second, Tinggi 60)
-        const GFX_KEY = 'farmora.gfx', GFX = { rendah: { dpr: 1, shadow: 0, fps: 30 }, sedang: { dpr: 1.5, shadow: 1024, fps: 30 }, tinggi: { dpr: 2, shadow: 2048, fps: 60 } };
+        const GFX_KEY = 'farmora.gfx', GFX = { rendah: { dpr: 1, shadow: 0, fps: 30, people: false }, sedang: { dpr: 1.5, shadow: 1024, fps: 30, people: false }, tinggi: { dpr: 2, shadow: 2048, fps: 60, people: true } };
         let gfx = (() => { try { const v = localStorage.getItem(GFX_KEY); if (GFX[v]) return v; } catch (e) { } return LITE ? 'sedang' : 'tinggi'; })();
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, GFX[gfx].dpr));
@@ -659,7 +659,7 @@
         scene.background = skyColor;
         scene.fog = new THREE.Fog(skyColor, 45, 85);
 
-        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 115);
         let zoom = 1, camLift = 0;
 
         const hemi = new THREE.HemisphereLight(0xe6f4ff, 0x6b8f3a, 0.9);
@@ -678,7 +678,7 @@
         const glossy = c => matCache['g' + c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.18, metalness: 0 });
         const BOX = new THREE.BoxGeometry(1, 1, 1);
         const ICO = new THREE.IcosahedronGeometry(1, 2);   // smooth, slightly lumpy sphere
-        const SPH = new THREE.SphereGeometry(1, 24, 16);
+        const SPH = new THREE.SphereGeometry(1, 14, 10), SPH_HI = new THREE.SphereGeometry(1, 22, 14);
         const CONE = new THREE.ConeGeometry(1, 1, 16);
         const CYL = new THREE.CylinderGeometry(1, 1, 1, 24);
 
@@ -710,7 +710,7 @@
         // Capsule; axis 'y' (default) or 'z' for a horizontal body
         function cap(r, len, color, x = 0, y = 0, z = 0, parent, axis = 'y') {
             const key = `c${r}|${len}`;
-            const geo = geoCache[key] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
+            const geo = geoCache[key] ||= new THREE.CapsuleGeometry(r, len, 3, 10);
             const m = mesh(geo, mat(color), parent);
             if (axis === 'z') m.rotation.x = Math.PI / 2;
             m.position.set(x, y, z);
@@ -1537,7 +1537,8 @@
                 sh.vertexShader = 'uniform float uTime;\nattribute float aDepth;\nvarying float vDepth;\nvarying vec2 vWp;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
                     vec4 wp = modelMatrix * vec4(position, 1.0);
                     vDepth = aDepth; vWp = wp.xz;
-                    transformed.y += (sin(wp.x * 0.35 + uTime * 1.3) * 0.07 + sin(wp.z * 0.28 - uTime * 1.1) * 0.06) * clamp(aDepth * 1.5, 0.15, 1.0);`);
+                    float edge = clamp(min(min(wp.x + 200.0, 180.0 - wp.x), min(wp.z + 150.0, 140.0 - wp.z)) / 20.0, 0.0, 1.0);
+                    transformed.y += (sin(wp.x * 0.35 + uTime * 1.3) * 0.07 + sin(wp.z * 0.28 - uTime * 1.1) * 0.06) * clamp(aDepth * 1.5, 0.15, 1.0) * edge;`);
                 sh.fragmentShader = 'uniform float uTime;\nvarying float vDepth;\nvarying vec2 vWp;\n' + WATER_GLSL + sh.fragmentShader
                     .replace('#include <color_fragment>', `#include <color_fragment>
                     if (vDepth < -0.5) discard;
@@ -1553,12 +1554,20 @@
                 sh.uniforms.uSunUp = sunUp;
                 sh.fragmentShader = 'uniform float uSunUp;\n' + sh.fragmentShader;
             };
-            const seaGeo = new THREE.PlaneGeometry(700, 600, LITE ? 175 : 280, LITE ? 150 : 240).rotateX(-Math.PI / 2), sp = seaGeo.attributes.position, depth = new Float32Array(sp.count);
+            // (a fine mesh only over the island and its shores; the open sea beyond is a flat ring of a few triangles)
+            const seaGeo = new THREE.PlaneGeometry(380, 290, LITE ? 108 : 152, LITE ? 83 : 116).rotateX(-Math.PI / 2), sp = seaGeo.attributes.position, depth = new Float32Array(sp.count);
             // (inland, where a river's bed dips below the sea's level, there is no sea: only the river's own water)
             for (let i = 0; i < sp.count; i++) { const x = sp.getX(i) - 10, z = sp.getZ(i) - 5, h = H(x, z); depth[i] = h < SEA_Y && inRiver(x, z, 3) && coastDist(x, z) > 10 ? -1 : Math.max(0, SEA_Y - h); }
             seaGeo.setAttribute('aDepth', new THREE.BufferAttribute(depth, 1));
             const sea = new THREE.Mesh(seaGeo, seaMat);
             sea.position.set(-10, SEA_Y, -5); sea.renderOrder = 1; scene.add(sea);
+            {
+                const ring = new THREE.Shape([[-1500, -1500], [1500, -1500], [1500, 1500], [-1500, 1500]].map(([x, y]) => new THREE.Vector2(x, y)));
+                ring.holes.push(new THREE.Path([[-190, -145], [-190, 145], [190, 145], [190, -145]].map(([x, y]) => new THREE.Vector2(x, y))));
+                const og = new THREE.ShapeGeometry(ring).rotateX(-Math.PI / 2);
+                og.setAttribute('aDepth', new THREE.BufferAttribute(new Float32Array(og.attributes.position.count).fill(SEA_Y + 1.8), 1));
+                const open = new THREE.Mesh(og, seaMat); open.position.set(-10, SEA_Y, -5); open.renderOrder = 1; scene.add(open);
+            }
             const deep = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.2 }));
             deep.position.y = SEA_Y - 1.6; deep.material.color.setHex(0x12549e); scene.add(deep);
             // where the ground meets the sea: a line of foam that runs up the sand and slides back
@@ -2722,7 +2731,7 @@
         const GRASS = { mesh: null, cells: new Map(), orig: null };
         {
             const inRect = (x, z, r, m) => x > r.minX - m && x < r.maxX + m && z > r.minZ - m && z < r.maxZ + m;
-            const blade = new THREE.ConeGeometry(0.035, 0.34, 3);
+            const blade = new THREE.ConeGeometry(0.035, 0.34, 3, 1, true);
             blade.translate(0, 0.17, 0);
             const grassMat = GRASS_MAT;
             grassMat.onBeforeCompile = sh => {
@@ -3778,7 +3787,7 @@
         // highlights, a soft nose, lips and (for girls) blush. Two pictures per look, eyes open and shut,
         // swapped for blinking and sleeping; the textures are shared by everyone with the same look.
         const faceTexCache = {};
-        const FACE_GEO = new THREE.SphereGeometry(1, 40, 28, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.95, 1.9);
+        const FACE_GEO = new THREE.SphereGeometry(1, 22, 14, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.95, 1.9);
         function faceTex(girl, hair, shut) {
             const key = `${girl ? 1 : 0}|${hair}|${shut ? 1 : 0}`;
             if (faceTexCache[key]) return faceTexCache[key];
@@ -4019,7 +4028,7 @@
             });
             // head
             const hd = new THREE.Group(); hd.position.set(0, shY + 0.21, 0); body.add(hd);
-            ball(0.1, 0.122, 0.11, skin, 0, 0, 0, hd);
+            ball(0.1, 0.122, 0.11, skin, 0, 0, 0, hd).geometry = SPH_HI;
             for (const sx of [1, -1]) ball(0.02, 0.034, 0.016, skin, 0.1 * sx, -0.005, 0, hd);
             const hairC = look.hair || (o.hc != null ? HAIR_COLORS_HEX[o.hc] : HAIR);
             const eyes = paintFace(hd, girl, hairC);
@@ -4044,6 +4053,7 @@
                 for (const p of f.mukena.parts) p.visible = false;
             }
             Object.assign(f, { body, legs, arms, knees, elbows, head: hd, eyes, girl });
+            peopleShadow(f);
             f.held = null; f.heldKey = undefined;
         }
         // the top and bottom of a one-piece or a matching set
@@ -4057,13 +4067,13 @@
             if (it.base === 'kokosarung') { Object.assign(top, { pat: null, c2: 0xc8b88a }); Object.assign(bot, { c: it.c2, pat: 'plaid', c2: 0x10201a }); }
             return { top, bot };
         }
-        const capGeo = (r, len) => geoCache[`c${r}|${len}`] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
+        const capGeo = (r, len) => geoCache[`c${r}|${len}`] ||= new THREE.CapsuleGeometry(r, len, 3, 10);
         function hair(hd, girl, head, hc = HAIR, hs = girl ? 'panjang' : 'pendek') {
             // a cap, kupluk or peci hides the top; any hat at all flattens what would poke up through it
             const covered = head && ['cap', 'kupluk', 'peci'].includes(head.kind), hatted = !!head;
             const B = (rx, ry, rz, x, y, z) => ball(rx, ry, rz, hc, x, y, z, hd);
             const tie = girl ? 0xe8577b : 0x3a2a2a;
-            const crown = (h = 0.088) => B(0.107, covered ? 0.07 : h, 0.117, 0, 0.045, -0.012);
+            const crown = (h = 0.088) => { const m = B(0.107, covered ? 0.07 : h, 0.117, 0, 0.045, -0.012); m.geometry = SPH_HI; return m; };
             const bangs = (w = 0.092, h = 0.032) => { if (!covered) B(w, h, 0.05, 0, 0.08, 0.07); };
             if (hs === 'panjang') {
                 crown(); B(0.1, 0.2, 0.055, 0, -0.11, -0.075);                    // long hair down the back
@@ -4193,6 +4203,8 @@
             }
             if (k === 'kebaya') ball(0.016, 0.016, 0.008, 0xd4af37, 0, y(0.7), zf + 0.004, body).material = glossy(0xd4af37);
         }
+        // (each part remembers whether it casts a shadow at all, so the soft round one under the feet never does)
+        const peopleShadow = f => f.group.traverse(o => { if (!o.isMesh) return; if (o.userData.cs0 === undefined) o.userData.cs0 = o.castShadow; o.castShadow = o.userData.cs0 && GFX[gfx].people; });
         function makeFarmer(look) {
             const f = { group: new THREE.Group(), heading: Math.PI, phase: 0 };
             f.pos = f.group.position;
@@ -4240,7 +4252,7 @@
             // held in the fist, pointing forward and up
             g.position.set(0, -0.32, 0.03);
             g.rotation.x = tiltOf(k);
-            g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+            g.traverse(o => { if (o.isMesh) { o.userData.cs0 = true; o.castShadow = GFX[gfx].people; } });
             return g;
         }
         function setHeld(f, k) {
@@ -9711,6 +9723,7 @@
             gfx = v; try { localStorage.setItem(GFX_KEY, v); } catch (e) { }
             const q = GFX[v];
             sun.castShadow = !!q.shadow;
+            for (const f of [player, partnerF, ...NPCS.map(n => n.f)]) if (f) peopleShadow(f);
             if (q.shadow && sun.shadow.mapSize.x !== q.shadow) { sun.shadow.mapSize.setScalar(q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
             window.dispatchEvent(new Event('resize'));
             drawGfxRow();
