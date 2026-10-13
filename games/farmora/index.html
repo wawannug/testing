@@ -292,7 +292,7 @@
         #dlg p { margin: 0; }
         .tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
         .tabs .btn { font-size: 14px; padding: 5px 10px; }
-        .tabs .btn.on { background: #ffe08a; }
+        .tabs .btn.on, #gfxRow .btn.on { background: #ffe08a; }
         .shoplist { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow: auto; text-align: left; padding: 2px; }
         .shopitem { display: flex; align-items: center; gap: 10px; background: var(--paper-2); border: 2px solid #c79a5b; border-radius: 10px; padding: 6px 8px; }
         .shopitem .ic { font-size: 26px; width: 34px; text-align: center; }
@@ -604,6 +604,8 @@
             <div id="fruitPrices" style="font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;text-align:left;max-height:30vh;overflow:auto"></div>
             <p style="font-size:13px">Telur dan susu hanya dari hewan betina, sedangkan kedua domba menghasilkan wol. Hewan yang tidak dielus sehari akan sedikit sedih. Farm ini milik kalian berdua. Progres tidak tersimpan otomatis: simpan lewat tombol 💾 atau pilih "Tidur dan simpan progres" saat tidur. Hanya ada satu save, dipakai berdua dan selalu tersinkron: save terakhir dari kalian berdualah yang dilanjutkan. Tas tiap pemain punya 30 slot; sisanya taruh di kulkas, kotak penyimpanan, atau kotak pengiriman (terjual saat tidur). Toolbar 10 slot (tombol 1–0) adalah baris atas tas; ketuk 🎒 untuk melihat 3 baris isi tas dan menukar tempat barang. Alat: ✋ tangan, 🪣 penyiram, 🫙 pemeras susu, ✂️ gunting bulu. Hewan tidur mulai pukul 20:00 sampai 05:00 dan masuk kandang saat malam atau cuaca tidak cerah; kandang bisa dimasuki lewat pintunya. Musim berganti setiap bulan (30 hari) (Semi, Panas, Kemarau, Gugur, Penghujan, Dingin). Saat hujan pohon tidak perlu disiram, pohon buah tidak berbuah di musim dingin, dan taman rooftop disiram hujan, kecuali di musim dingin saat rooftop beratap kaca dan perlu disiram. Tombol 🎵 dan 🔊 di kanan atas menyalakan/mematikan musik dan efek suara. Telur ayam dan bebek ada di dalam kandangnya. Kolam itu dangkal, jadi bisa dilewati untuk mengelus bebek. ⚡ Energi terpakai saat bekerja; isi lagi dengan makan masakan (pilih di toolbar lalu tekan 🍽️ Makan), pelukan, atau tidur. Dekati pasanganmu untuk memeluk 🤗 atau memberi hadiah 🎁. 🧰 Kotak perkakas di depan rumah berisi cangkul (olah tanah di mana saja), beliung (batu di barat), kapak (pohon kayu), pancing (tahan lalu lepas untuk melempar kail ke danau atau kolam bebek; danau tidak bisa dilewati), dan sabit (rumput liar). 🪴 Pot bisa ditaruh di mana saja di farm (bukan di air atau kandang) dan dipindah dengan ✋ tangan; isinya sayur atau tanaman hias. 🚿 Mandi di kamar mandi lantai 1. 🌾 Gerbang selatan farm menuju Lembah Persawahan (Desa Lembah Sari): Toko Tani, Pasar Tani (jual hasil panen), Penggilingan Padi (gabah jadi beras), Lumbung Desa, Balai Desa, Musala, Gereja, warung, dan rumah warga. Dunia juga tersambung ke Kota (utara), Desa Hutan dan Pegunungan (barat), Desa Pantai (timur), dan Pulau Kencana. 43 warga punya kegiatan sehari-hari; ajak ngobrol dan beri hadiah untuk menambah keakraban ❤️. 🔨 Meja kerja di sebelah kotak perkakas untuk membuat pagar, jalan batu, kursi, lampu, dan lainnya.</p>
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
+            <p style="font-size:13px;margin:6px 0 2px"><b>✨ Kualitas grafis</b> (pilih Rendah kalau HP terasa panas atau patah-patah)</p>
+            <div class="row" id="gfxRow"></div>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -639,8 +641,11 @@
         // ---------- Renderer / scene ----------
         // Phones and tablets get a lighter render: lower resolution and less grass.
         const LITE = matchMedia('(pointer: coarse)').matches;
+        // ✨ graphics quality: sharpness of the picture and the shadows (phones start on the middle one)
+        const GFX_KEY = 'farmora.gfx', GFX = { rendah: { dpr: 1, shadow: 0 }, sedang: { dpr: 1.5, shadow: 1024 }, tinggi: { dpr: 2, shadow: 2048 } };
+        let gfx = (() => { try { const v = localStorage.getItem(GFX_KEY); if (GFX[v]) return v; } catch (e) { } return LITE ? 'sedang' : 'tinggi'; })();
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, LITE ? 1.5 : 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, GFX[gfx].dpr));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -660,7 +665,7 @@
         scene.add(hemi);
         const sun = new THREE.DirectionalLight(0xfff3dd, 1.6);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(LITE ? 1024 : 2048, LITE ? 1024 : 2048);
+        sun.shadow.mapSize.setScalar(GFX[gfx].shadow || 1024); sun.castShadow = !!GFX[gfx].shadow;
         Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 80 });
         sun.shadow.bias = -0.0004;
         sun.shadow.normalBias = 0.03;
@@ -1249,13 +1254,31 @@
             }
             for (const k of Object.keys(INST)) delete INST[k];
         }
+        // 🍃 leaves move gently in the wind, each tree a little out of step with the next
+        function sway(m, amt = 1) {
+            m.onBeforeCompile = sh => {
+                sh.uniforms.uTime = waveTime;
+                sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    #ifdef USE_INSTANCING
+                    vec4 swp = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+                    #else
+                    vec4 swp = modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+                    #endif
+                    float swk = (position.y + 1.0) * ${(0.045 * amt).toFixed(3)};
+                    transformed.x += sin(uTime * 1.3 + swp.x * 0.3 + swp.z * 0.2) * swk;
+                    transformed.z += cos(uTime * 1.05 + swp.z * 0.33 - swp.x * 0.1) * swk * 0.8;`);
+            };
+            m.customProgramCacheKey = () => 'sway' + amt;
+            return m;
+        }
+        const SWAY = {}; const swayM = c => SWAY[c] ||= sway(new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }));
         const DM = {}; const dm = (c, o) => DM[c + (o ? JSON.stringify(o) : '')] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...(o || {}) });
         // decoration kinds (r = region key, so far-away batches are culled)
-        const dTree = anchored((r, x, z, s = 1, c = 0x4f9a3f) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.75 * s, z, 0.16 * s, 2.1 * s, 0.16 * s); inst(r + 'leaf' + c, LOWICO, dm(c), x, 2.3 * s, z, 1.2 * s, 1.0 * s, 1.2 * s, x * 3); inst(r + 'leaf' + c, LOWICO, dm(c), x + 0.4 * s, 2.9 * s, z - 0.2 * s, 0.8 * s, 0.7 * s, 0.8 * s, z); });
-        const dPine = anchored((r, x, z, s = 1) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.45 * s, z, 0.14 * s, 1.5 * s, 0.14 * s); for (let i = 0; i < 3; i++) inst(r + 'pine', LOWCONE, dm(0x2f6b3a), x, (1.5 + i * 0.8) * s, z, (1.3 - i * 0.35) * s, 1.4 * s, (1.3 - i * 0.35) * s, x + i); });
-        const dPalm = anchored((r, x, z, s = 1) => { const lean = ((x * 7 + z * 3) % 5) / 25; inst(r + 'ptrunk', LOWCYL, dm(0x9a7a4a), x, 1.9 * s, z, 0.13 * s, 3.8 * s, 0.13 * s, 0, lean, lean); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + x; inst(r + 'frond', LOWCONE, dm(0x4f9a3a), x + Math.cos(a) * 0.9 * s + lean * 3, 3.75 * s, z + Math.sin(a) * 0.9 * s + lean * 3, 0.3 * s, 1.7 * s, 0.12 * s, -a + Math.PI / 2, 0, 1.25); } inst(r + 'coco', LOWICO, dm(0x6e5a2a), x + lean * 3, 3.6 * s, z + lean * 3, 0.32 * s); });
-        const dBamboo = anchored((r, x, z) => { for (let i = 0; i < 7; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.18; inst(r + 'bamboo', LOWCYL, dm(0x8fb84a), x + Math.cos(a) * rr, 2.6, z + Math.sin(a) * rr, 0.07, 5.2 - (i % 3) * 0.8, 0.07, 0, Math.cos(a) * 0.06, Math.sin(a) * 0.06); } inst(r + 'bleaf', LOWICO, dm(0x6fae3a), x, 4.6, z, 1.1, 0.9, 1.1); });
-        const dBanana = anchored((r, x, z) => { inst(r + 'btrunk', LOWCYL, dm(0x8a9a4a), x, 0.9, z, 0.16, 1.8, 0.16); for (let i = 0; i < 5; i++) { const a = i * 1.25 + x; inst(r + 'bananaleaf', LOWBOX, dm(0x5fae3a), x + Math.cos(a) * 0.7, 1.9, z + Math.sin(a) * 0.7, 1.4, 0.04, 0.42, -a, 0, -0.35); } });
+        const dTree = anchored((r, x, z, s = 1, c = 0x4f9a3f) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.75 * s, z, 0.16 * s, 2.1 * s, 0.16 * s); inst(r + 'leaf' + c, LOWICO, swayM(c), x, 2.3 * s, z, 1.2 * s, 1.0 * s, 1.2 * s, x * 3); inst(r + 'leaf' + c, LOWICO, swayM(c), x + 0.4 * s, 2.9 * s, z - 0.2 * s, 0.8 * s, 0.7 * s, 0.8 * s, z); });
+        const dPine = anchored((r, x, z, s = 1) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.45 * s, z, 0.14 * s, 1.5 * s, 0.14 * s); for (let i = 0; i < 3; i++) inst(r + 'pine', LOWCONE, swayM(0x2f6b3a), x, (1.5 + i * 0.8) * s, z, (1.3 - i * 0.35) * s, 1.4 * s, (1.3 - i * 0.35) * s, x + i); });
+        const dPalm = anchored((r, x, z, s = 1) => { const lean = ((x * 7 + z * 3) % 5) / 25; inst(r + 'ptrunk', LOWCYL, dm(0x9a7a4a), x, 1.9 * s, z, 0.13 * s, 3.8 * s, 0.13 * s, 0, lean, lean); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + x; inst(r + 'frond', LOWCONE, swayM(0x4f9a3a), x + Math.cos(a) * 0.9 * s + lean * 3, 3.75 * s, z + Math.sin(a) * 0.9 * s + lean * 3, 0.3 * s, 1.7 * s, 0.12 * s, -a + Math.PI / 2, 0, 1.25); } inst(r + 'coco', LOWICO, dm(0x6e5a2a), x + lean * 3, 3.6 * s, z + lean * 3, 0.32 * s); });
+        const dBamboo = anchored((r, x, z) => { for (let i = 0; i < 7; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.18; inst(r + 'bamboo', LOWCYL, dm(0x8fb84a), x + Math.cos(a) * rr, 2.6, z + Math.sin(a) * rr, 0.07, 5.2 - (i % 3) * 0.8, 0.07, 0, Math.cos(a) * 0.06, Math.sin(a) * 0.06); } inst(r + 'bleaf', LOWICO, swayM(0x6fae3a), x, 4.6, z, 1.1, 0.9, 1.1); });
+        const dBanana = anchored((r, x, z) => { inst(r + 'btrunk', LOWCYL, dm(0x8a9a4a), x, 0.9, z, 0.16, 1.8, 0.16); for (let i = 0; i < 5; i++) { const a = i * 1.25 + x; inst(r + 'bananaleaf', LOWBOX, swayM(0x5fae3a), x + Math.cos(a) * 0.7, 1.9, z + Math.sin(a) * 0.7, 1.4, 0.04, 0.42, -a, 0, -0.35); } });
         const dRock = (r, x, z, s = 1, c = 0x9a9a92) => inst(r + 'rock' + c, LOWICO, dm(c), x, 0.25 * s, z, 0.7 * s, 0.45 * s, 0.6 * s, x + z);
         const dBush = (r, x, z, s = 1, c = 0x5f9a3f) => inst(r + 'bush' + c, LOWICO, dm(c), x, 0.35 * s, z, 0.7 * s, 0.5 * s, 0.7 * s, x);
         const dFlower = anchored((r, x, z, c) => { inst(r + 'stem', LOWCYL, dm(0x4f8a3a), x, 0.2, z, 0.02, 0.4, 0.02); inst(r + 'fl' + c, LOWICO, dm(c), x, 0.42, z, 0.09); });
@@ -1293,7 +1316,21 @@
         // the peaks: [x, z, height, spread]
         const PEAKS = [[-130, -48, 26, 12], [-137, -12, 20, 10], [-110, -60, 13, 8], [-136, 18, 15, 8], [-137, 44, 14, 5], [-80, -60, 6, 7], [-72, 60, 5, 7]];
         const SEA_Y = -0.35;
-        const waveTime = { value: 0 };
+        const waveTime = { value: 0 }, sunUp = { value: 1 }, cloudAmt = { value: 0.22 };
+        // ☁️ soft shadows of clouds drifting slowly over the land (on clear days a few, on grey days none: the sky is already dim)
+        function cloudShade(m) {
+            const prev = m.onBeforeCompile;
+            m.onBeforeCompile = (sh, r) => {
+                if (prev) prev(sh, r);
+                sh.uniforms.uTime = waveTime; sh.uniforms.uCloud = cloudAmt;
+                sh.vertexShader = 'varying vec2 vCw;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vCw = (modelMatrix * vec4(position, 1.0)).xz;`);
+                sh.fragmentShader = 'uniform float uTime;\nuniform float uCloud;\nvarying vec2 vCw;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+                    vec2 cq = vCw * 0.021 + vec2(uTime * 0.012, uTime * 0.007);
+                    float cn = sin(cq.x * 3.1 + sin(cq.y * 2.3)) * sin(cq.y * 2.7 + sin(cq.x * 1.9 + 1.3)) + 0.5 * sin(cq.x * 6.3 - cq.y * 5.1);
+                    diffuseColor.rgb *= 1.0 - uCloud * smoothstep(0.35, 0.9, cn);`);
+            };
+        }
         // how deep inland a point lies (up to 40): hills and mountains fade out well before the shore,
         // so the land always slopes gently down to a beach before the sea
         const INL = (() => {
@@ -1470,19 +1507,41 @@
             geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
             TERR = { X0, Z0, ST, gx: (X1 - X0) / ST + 1, gz: (Z1 - Z0) / ST + 1, hs, hexes };
             geo.computeVertexNormals();
-            const land = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+            const landMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
+            cloudShade(landMat);
+            const land = new THREE.Mesh(geo, landMat);
             land.receiveShadow = true; scene.add(land);
-            const seaMat = new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.18, metalness: 0.05 });
+            // 🌊 the sea and the lake take their colour from how deep they really are: clear turquoise over the sand,
+            // a deeper blue further out; small waves ripple the light and the sun glints off them
+            const seaMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.16, metalness: 0.05, transparent: true });
             seaMat.onBeforeCompile = sh => {
                 sh.uniforms.uTime = waveTime;
-                sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                sh.vertexShader = 'uniform float uTime;\nattribute float aDepth;\nvarying float vDepth;\nvarying vec2 vWp;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
                     vec4 wp = modelMatrix * vec4(position, 1.0);
-                    transformed.y += sin(wp.x * 0.35 + uTime * 1.3) * 0.07 + sin(wp.z * 0.28 - uTime * 1.1) * 0.06;`);
+                    vDepth = aDepth; vWp = wp.xz;
+                    transformed.y += (sin(wp.x * 0.35 + uTime * 1.3) * 0.07 + sin(wp.z * 0.28 - uTime * 1.1) * 0.06) * clamp(aDepth * 1.5, 0.15, 1.0);`);
+                sh.fragmentShader = 'uniform float uTime;\nvarying float vDepth;\nvarying vec2 vWp;\n' + sh.fragmentShader
+                    .replace('#include <color_fragment>', `#include <color_fragment>
+                    float dd = clamp(vDepth / 3.2, 0.0, 1.0);
+                    vec3 shallow = vec3(0.30, 0.86, 0.80), mid = vec3(0.10, 0.60, 0.80), deepC = vec3(0.07, 0.33, 0.62);
+                    diffuseColor.rgb = mix(mix(shallow, mid, smoothstep(0.0, 0.45, dd)), deepC, smoothstep(0.4, 1.0, dd));
+                    diffuseColor.a = mix(0.72, 1.0, smoothstep(0.0, 0.35, dd));`)
+                    .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+                    vec2 rp = vWp * 0.9;
+                    normal = normalize(normal + 0.09 * vec3(sin(rp.x * 1.7 + uTime * 1.6) + sin(rp.y * 2.3 - uTime * 1.2), 0.0, cos(rp.y * 1.9 + uTime * 1.4) + cos(rp.x * 2.1 - uTime)));`)
+                    .replace('#include <opaque_fragment>', `#include <opaque_fragment>
+                    float gl = sin(vWp.x * 2.7 + uTime * 1.9) * sin(vWp.y * 3.1 - uTime * 1.5) * sin((vWp.x + vWp.y) * 1.3 + uTime);
+                    gl_FragColor.rgb += vec3(1.0, 0.97, 0.85) * smoothstep(0.82, 0.98, gl) * 0.45 * uSunUp;`);
+                sh.uniforms.uSunUp = sunUp;
+                sh.fragmentShader = 'uniform float uSunUp;\n' + sh.fragmentShader;
             };
-            const sea = new THREE.Mesh(new THREE.PlaneGeometry(700, 600, 140, 120).rotateX(-Math.PI / 2), seaMat);
-            sea.position.set(-10, SEA_Y, -5); scene.add(sea);
+            const seaGeo = new THREE.PlaneGeometry(700, 600, LITE ? 175 : 280, LITE ? 150 : 240).rotateX(-Math.PI / 2), sp = seaGeo.attributes.position, depth = new Float32Array(sp.count);
+            for (let i = 0; i < sp.count; i++) { const x = sp.getX(i) - 10, z = sp.getZ(i) - 5; depth[i] = Math.max(0, SEA_Y - H(x, z)); }
+            seaGeo.setAttribute('aDepth', new THREE.BufferAttribute(depth, 1));
+            const sea = new THREE.Mesh(seaGeo, seaMat);
+            sea.position.set(-10, SEA_Y, -5); sea.renderOrder = 1; scene.add(sea);
             const deep = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f8fc8, roughness: 0.2 }));
-            deep.position.y = SEA_Y - 0.06; scene.add(deep);
+            deep.position.y = SEA_Y - 1.6; deep.material.color.setHex(0x12549e); scene.add(deep);
             // where the ground meets the sea: a line of foam that runs up the sand and slides back
             const gx = (X1 - X0) / ST + 1, foam = [];
             for (let i = 0; i < pos.count; i++) {
@@ -2084,7 +2143,7 @@
         // Trees
         const TRUNK = new THREE.CylinderGeometry(0.16, 0.26, 1.8, 12);
         const LEAF_MATS = {};
-        const leafMat = (c, pine) => LEAF_MATS[c + (pine ? 'p' : '')] ||= Object.assign(new THREE.MeshStandardMaterial({ color: c, roughness: 0.82 }), { userData: { base: new THREE.Color(c), pine, seed: (c % 97) / 97 } });
+        const leafMat = (c, pine) => LEAF_MATS[c + (pine ? 'p' : '')] ||= sway(Object.assign(new THREE.MeshStandardMaterial({ color: c, roughness: 0.82 }), { userData: { base: new THREE.Color(c), pine, seed: (c % 97) / 97 } }));
         function roundTree(x, z, s = 1) { // returns the tree's group
             const g = new THREE.Group();
             g.position.set(x, 0, z);
@@ -9389,8 +9448,15 @@
 
         const SKY_DAY = new THREE.Color(0x8fd3ff), SKY_DUSK = new THREE.Color(0xf4a261), SKY_NIGHT = new THREE.Color(0x16203d), SKY_GREY = new THREE.Color(0x98a4b0);
         let lightDay = 1;
+        const sunDir = new THREE.Vector3(14, 24, 9).normalize();
         function updateLighting() {
             const h = state.minutes / 60;
+            // ☀️ the sun climbs from the east in the morning and sets in the west, so shadows grow long and warm at both ends
+            // of the day; at night the light comes from a high moon
+            const arc = Math.min(1, Math.max(0, (h - 5.5) / 13.5));
+            if (h > 5.3 && h < 19.3) { const a = Math.PI * arc, el = Math.max(0.42, Math.sin(a) * 1.15); sunDir.set(Math.cos(a) * 1.25, el, 0.62).normalize(); }
+            else sunDir.set(-0.35, 1, 0.45).normalize();
+            const low = h > 5.3 && h < 19.3 ? 1 - Math.min(1, Math.sin(Math.PI * arc) * 1.6) : 0;
             // 0 = night, 1 = full day
             let day;
             // 04:00 is still dark; the sky slowly brightens until full day at 07:00
@@ -9409,7 +9475,9 @@
             scene.fog.color.copy(skyColor);
             scene.fog.near = lerp(16, 45, wf); scene.fog.far = lerp(52, 85, wf);
             sun.intensity = (0.08 + 1.55 * day) * wf;
-            sun.color.setHSL(lerp(0.62, 0.1, day), 0.6, lerp(0.7, 0.95, day));
+            sun.color.setHSL(lerp(0.62, lerp(0.11, 0.07, low), day), lerp(0.6, 0.85, low * day), lerp(0.7, lerp(0.95, 0.82, low), day));
+            sunUp.value = day * wf;
+            cloudAmt.value = 0.2 * day * Math.max(0, (wf - 0.6) / 0.4);
             hemi.intensity = (0.22 + 0.7 * day) * lerp(0.75, 1, wf);
             hemi.color.setHSL(lerp(0.63, 0.57, day), 0.6, lerp(0.55, 0.95, day));
             const night = 1 - day;
@@ -9529,6 +9597,18 @@
         $('eatBtn').addEventListener('click', eatHeld);
         window.addEventListener('keydown', e => { if (e.code === 'KeyF' && !e.repeat) eatHeld(); });
         $('closeHelp').addEventListener('click', () => toggleHelp(false));
+        function setGfx(v) {
+            gfx = v; try { localStorage.setItem(GFX_KEY, v); } catch (e) { }
+            const q = GFX[v];
+            sun.castShadow = !!q.shadow;
+            if (q.shadow && sun.shadow.mapSize.x !== q.shadow) { sun.shadow.mapSize.setScalar(q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
+            window.dispatchEvent(new Event('resize'));
+            drawGfxRow();
+        }
+        function drawGfxRow() {
+            $('gfxRow').replaceChildren(...[['rendah', '🐢 Rendah'], ['sedang', '⚖️ Sedang'], ['tinggi', '✨ Tinggi']].map(([k, t]) => el('button', { class: 'btn' + (gfx === k ? ' on' : ''), onclick: () => setGfx(k) }, t)));
+        }
+        drawGfxRow();
         $('helpX').addEventListener('click', () => toggleHelp(false));
         $('helpScreen').addEventListener('click', e => { if (e.target.id === 'helpScreen') toggleHelp(false); });
         // ---------- Title screen: character creator, save slot, online ----------
@@ -9600,7 +9680,7 @@
             if (b.style.left !== left) b.style.left = left;
         }
         function fitView() {
-            const w = window.innerWidth, h = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, LITE ? 1.5 : 2);
+            const w = window.innerWidth, h = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, GFX[gfx].dpr);
             if (w === view.w && h === view.h && dpr === view.dpr) return;
             Object.assign(view, { w, h, dpr });
             camera.aspect = w / h;
@@ -9777,7 +9857,7 @@
                 homeKey.position.set(f + 5, 16, 9);
                 homeKey.target.position.set(f, 0, 0);
             } else {
-                sun.position.set(camTarget.x + 14, 24, camTarget.z + 9);
+                sun.position.copy(camTarget).addScaledVector(sunDir, 30);
                 sun.target.position.copy(camTarget);
             }
 
