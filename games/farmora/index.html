@@ -1506,7 +1506,17 @@
             }
             return -9;
         }
-        function groundY(x, z) { const br = x < 150 && onBridge(x, z); if (br) return deckY(br.q, br.u); if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(H(x, z), SEA_Y + 0.05, stairY(x, z)); }
+        function groundY(x, z) { const br = x < 150 && onBridge(x, z); if (br) return deckY(br.q, br.u); if (x > 150 || inFarmFlat(x, z)) return 0; if (onPier(x, z)) return 0.41; return Math.max(walkY(x, z), SEA_Y + 0.05, stairY(x, z)); }
+        // the feet stand on what is drawn: the ground's triangles, and on a road its surface (which on a slope lies a little
+        // above the ground, so the ground never shows through it)
+        function walkY(x, z) {
+            const g = Math.max(H(x, z), meshY(x, z));
+            if (!nearPath(x, z, 0.35)) return g;
+            const top = Math.max(g, meshY(x + 0.45, z), meshY(x - 0.45, z), meshY(x, z + 0.45), meshY(x, z - 0.45)) + 0.08;
+            // (by a bridge the road comes down to the level of its deck, so stepping on and off it is smooth)
+            let k = 1; for (const q of BRIDGES) { const u = Math.abs((x - q.x) * q.nx + (z - q.z) * q.nz) - q.L / 2, v = Math.abs(-(x - q.x) * q.nz + (z - q.z) * q.nx); if (v < q.W && u < 3) k = Math.min(k, clamp(u / 3, 0, 1)); }
+            return g + (top - g) * k;
+        }
         const walkable = p => inWorld(p) && (p.x > 150 || inFarmFlat(p.x, p.z) || onPier(p.x, p.z) || !!onBridge(p.x, p.z) || H(p.x, p.z) > SEA_Y + 0.12 && !inRiver(p.x, p.z));
         // how high something built on the ground goes: on its pad, on the sea, or on a pier
         const shiftY = (x, z) => onPier(x, z) ? 0 : inFarmFlat(x, z) ? 0 : H(x, z) < SEA_Y ? SEA_Y - 0.05 : H(x, z);
