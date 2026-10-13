@@ -23,7 +23,11 @@ Template koordinatnya ada di `peta-template.png`.
 | Desa Pantai | 27 … 101 | −64 … 64 |
 | Pulau Kencana | 117 … 145 | 60 … 96 |
 
-Di antara wilayah ada daratan tambahan berbentuk elips (`BLOBS`), supaya garis pantainya melengkung.
+Di antara wilayah ada daratan tambahan berbentuk elips (`BLOBS`), supaya garis pantainya melengkung. Satu elips di utara Kota Sentosa (pusat (0, −112)) memberi kota sejalur daratan berpohon dan pantai sebelum laut.
+
+**Pegunungan** dibuat landai: puncak (`PEAKS`) lebih rendah dan lebih lebar, lereng paling curam sekitar 33°. Puncak tertinggi kira-kira 20.
+
+**Danau gunung** (pusat (−115, 42)) bentuknya tidak bulat: tepinya `lakeR(sudut)` bergelombang antara kira-kira 8 dan 15 dari pusat. Airnya air laut yang sama (warna menurut kedalaman), jadi garis tepinya mengikuti tanah dan tidak ada piringan air terpisah. Dermaga di tepi utara tetap.
 
 ## 3. Sungai (`RIVERS`)
 - **Sungai besar**:
@@ -36,11 +40,15 @@ Di antara wilayah ada daratan tambahan berbentuk elips (`BLOBS`), supaya garis p
 ## 4. Jembatan (otomatis di setiap jalur yang menyeberang sungai)
 | Di mana | Kira-kira | Menghubungkan |
 |---|---|---|
-| Gerbang selatan farm | (0.5, 31.8) | Farm ↔ Lembah Persawahan |
-| Barat Desa Hutan | (−87.5, −4.6) | Desa Hutan ↔ Desa Pegunungan |
-| Selatan Desa Hutan | (−48, 30.6) | Desa Hutan ↔ Lembah Persawahan |
-| Timur sawah | (32.6, 33.7) | Lembah Persawahan ↔ Desa Pantai |
-| Dalam desa sawah | (−32.8, 54.3), (−32.8, 79.7) | rumah warga ↔ sawah barat |
+| Gerbang selatan farm | (0.5, 32) | Farm ↔ Lembah Persawahan |
+| Barat Desa Hutan | (−87.6, −3.5) | Desa Hutan ↔ Desa Pegunungan |
+| Selatan Desa Hutan | (−46, 31) | Desa Hutan ↔ Lembah Persawahan |
+| Timur sawah | (28, 33) | Lembah Persawahan ↔ Desa Pantai |
+| Dalam desa sawah | (−33, 57), (−33, 79) | rumah warga ↔ sawah barat |
+
+- **Arah jembatan** mengikuti arah jalan di bentangan yang lebih panjang (sampai ke jalan berikutnya kalau jalannya pendek), dari tepi kering ke tepi kering.
+- **Jalan lurus ke jembatan** (`straightOnto`): lurus di atas jembatan dan 3 langkah di kedua sisinya, lalu melengkung pelan kembali ke garisnya. Kedua ujung jalan bertemu tepat dengan kedua ujung jembatan.
+- Simpang desa yang terlalu dekat dan menyamping dari ujung jembatan digeser ke garis jembatan, kecuali kalau jalannya jadi menabrak sesuatu.
 
 ## 5. Jalan (`ROAD_MAIN`, `roadKind()`)
 - **Jalan utama** (batu, lebar 3):
@@ -69,10 +77,16 @@ Di antara wilayah ada daratan tambahan berbentuk elips (`BLOBS`), supaya garis p
   - Laguna barat daya
   - Mercusuar di timur laut
 
-## 7. Untuk dikembangkan
+## 7. Air, warna jalan, kamera
+- **Muara.** Sungai memakai warna air yang sama dengan laut dan memudar ke laut di 8 langkah terakhir sebelum pantai, jadi tidak ada garis batas. Di pedalaman, laut tidak muncul di tepi dasar sungai.
+- **Gradasi jalan.** Di pertemuan dua jenis jalan (kota, utama, desa, jalan kaki), warnanya berbaur sepanjang kira-kira 4,5 langkah.
+- **Kamera.** Kalau bukit atau gunung menghalangi pandangan ke pemain, kamera naik di atasnya.
+- **Tidak berkedip.** Taman kota dan halaman sekolah sedikit lebih tinggi dari lantai kota.
+
+## 8. Untuk dikembangkan
 - `MAP_PINS.push({ x, z, icon, label })` menampilkan penanda misi atau acara di peta dunia.
 
-## 8. Pemeriksaan tata letak (otomatis)
+## 9. Pemeriksaan tata letak (otomatis)
 Setiap jalan diperiksa setiap setengah langkah: tidak boleh menyentuh bangunan, sawah, objek padat (pohon, pondok, papan, lampu, mobil), atau sungai (kecuali di jembatan), dan harus bisa dilewati pemain. Selain itu diperiksa juga:
 - bangunan yang terlalu rapat, berada di sawah, sungai, atau laut;
 - objek di dalam bangunan;
@@ -99,7 +113,7 @@ Hasil awal 65 temuan, sekarang **0**. Perbaikannya:
   - Sarang lebah, tiang bendera sekolah, satu mobil parkir, dan perahu galangan dipindah agar tidak menghalangi.
   - Tempat Kadek berdiri dipindah ke pasir.
 
-## 9. Permukaan jalan dan sambungan jembatan
+## 10. Permukaan jalan dan sambungan jembatan
 - **Alas jalan (`planRoadbed`, `roadbed`).**
   - Tanah di sepanjang jalan diratakan mengikuti rata-rata tinggi jalan sekitar ±6 langkah ke depan dan ke belakang. Dasar sungai tidak ikut dihitung.
   - Di persimpangan, alas beberapa jalan dicampur supaya tidak ada undakan.
