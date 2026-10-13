@@ -1,0 +1,619 @@
+<title>Coupleverse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one phone-width column — two player cards and the shared piggy bank on top, the square board with the
+   dice in its middle, then missions and tabs. A deliberately single light, pastel "toy board" look. */
+:root {
+  color-scheme: light;
+  --bg: #fff3ef;
+  --paper: #fffaf7;
+  --ink: #4a2c35;
+  --muted: #8f6d76;
+  --rose: #e8577b;
+  --rose-soft: #ffd6e0;
+  --sky: #4a86d9;
+  --sky-soft: #d9e8ff;
+  --leaf: #59a85f;
+  --gold: #f2b134;
+  --line: #f1d3d9;
+  --shadow: 0 3px 0 #ecc3cd;
+  --display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Nunito", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--body); font-size: 14px; margin: 0; }
+.wrap { max-width: 560px; margin: 0 auto; padding-block: 12px 40px; padding-inline: 16px; display: flex; flex-direction: column; gap: 12px; }
+button { font: inherit; cursor: pointer; border: 0; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.btn { background: var(--rose); color: #fff; font-family: var(--display); font-weight: 700; font-size: 16px; padding: 10px 18px; border-radius: 14px; box-shadow: 0 3px 0 #b93c5d; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b93c5d; }
+.btn.ghost { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); border: 1.5px solid var(--line); }
+.btn.blue { background: var(--sky); box-shadow: 0 3px 0 #2f62aa; }
+.btn.small { font-size: 13px; padding: 6px 12px; border-radius: 11px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.card { background: var(--paper); border: 1.5px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.1; text-wrap: balance; }
+.logo { font-family: var(--display); font-weight: 800; color: var(--rose); letter-spacing: -.5px; }
+.muted { color: var(--muted); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+input[type=text], textarea { font: inherit; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); }
+textarea { resize: vertical; min-height: 64px; }
+label { font-weight: 800; font-size: 13px; }
+
+/* start screen */
+.hero { padding: 22px 18px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.hero .logo { font-size: 46px; }
+.hero .tag { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--ink); }
+.avpick { display: flex; gap: 6px; flex-wrap: wrap; }
+.avpick button { font-size: 24px; width: 44px; height: 44px; border-radius: 12px; background: #fff; border: 2px solid var(--line); }
+.avpick button.on { border-color: var(--rose); background: var(--rose-soft); }
+.form { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.code { font-family: var(--display); font-size: 30px; letter-spacing: 6px; color: var(--sky); }
+
+/* top bar */
+.top { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+.pl { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; position: relative; }
+.pl.a { border-color: #bcd3f5; }
+.pl.b { border-color: #f6bfcd; }
+.pl.turn { outline: 3px solid var(--gold); }
+.pl .nm { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl .cash { font-family: var(--display); font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
+.pl .meta { font-size: 11px; color: var(--muted); }
+.piggy { padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: #fff6d9; border-color: #f3dc9c; }
+.piggy .cash { font-family: var(--display); font-weight: 800; font-size: 20px; color: #a06d00; font-variant-numeric: tabular-nums; }
+
+/* board */
+.boardBox { position: relative; width: 100%; aspect-ratio: 1; max-width: 100%; }
+.board { position: absolute; inset: 0; display: grid; grid-template-columns: 1.35fr repeat(9, 1fr) 1.35fr; grid-template-rows: 1.35fr repeat(9, 1fr) 1.35fr; gap: 2px; padding: 4px; background: #9ed38d; border-radius: 18px; box-shadow: 0 4px 0 #6fae5f; }
+.tile { position: relative; background: #fff; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(11px, 3.6vw, 20px); line-height: 1; overflow: hidden; padding: 0; color: var(--ink); }
+.tile .band { position: absolute; left: 0; right: 0; top: 0; height: 22%; }
+.tile.side-l .band { left: auto; right: 0; top: 0; bottom: 0; width: 22%; height: auto; }
+.tile.side-r .band { right: auto; left: 0; top: 0; bottom: 0; width: 22%; height: auto; }
+.tile.side-b .band { top: 0; }
+.tile.side-t .band { top: auto; bottom: 0; }
+.tile.corner { background: #fff3c4; font-size: clamp(15px, 5vw, 28px); }
+.tile.own-a { box-shadow: inset 0 0 0 3px var(--sky); }
+.tile.own-b { box-shadow: inset 0 0 0 3px var(--rose); }
+.tile .lv { position: absolute; bottom: 1px; right: 2px; font-size: 8px; letter-spacing: -1px; }
+.tile.hit { animation: hit .6s ease; }
+@keyframes hit { 50% { transform: scale(1.15); } }
+.center { grid-column: 2 / 11; grid-row: 2 / 11; background: radial-gradient(circle at 50% 40%, #fff7ef 0, #ffe6dd 70%); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; text-align: center; }
+.center .logo { font-size: clamp(22px, 7vw, 36px); }
+.center .msg { font-weight: 700; font-size: clamp(12px, 3.4vw, 15px); max-width: 92%; min-height: 2.6em; }
+.dice { width: clamp(54px, 15vw, 76px); height: clamp(54px, 15vw, 76px); background: #fff; border-radius: 16px; box-shadow: 0 4px 0 #e6b9c4, inset 0 0 0 2px #f4d4dc; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 10%; }
+.dice i { display: block; width: clamp(9px, 2.8vw, 14px); height: clamp(9px, 2.8vw, 14px); border-radius: 50%; background: var(--rose); place-self: center; visibility: hidden; }
+.dice.rolling { animation: roll .5s linear infinite; }
+@keyframes roll { 0% { transform: rotate(0) } 50% { transform: rotate(180deg) scale(.9) } 100% { transform: rotate(360deg) } }
+.pawn { position: absolute; width: 6.2%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: clamp(12px, 4vw, 22px); background: #fff; border: 2.5px solid; transform: translate(-50%, -62%); transition: left .16s ease, top .16s ease; z-index: 3; box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.pawn.a { border-color: var(--sky); }
+.pawn.b { border-color: var(--rose); }
+
+/* missions, tabs */
+.mis { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.mrow { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; }
+.mrow .bar { height: 7px; background: #f6e3e7; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+.mrow .bar b { display: block; height: 100%; background: var(--sky); border-radius: 4px; }
+.mrow.done .bar b { background: var(--leaf); }
+.mrow .ck { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); }
+.tabs { display: flex; gap: 6px; }
+.tabs button { flex: 1; background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 4px; font-weight: 800; color: var(--muted); }
+.tabs button.on { background: var(--rose-soft); color: var(--ink); border-color: #f2a9bb; }
+.panel { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+.item { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: #fff; border-radius: 12px; border: 1px solid var(--line); }
+.item .ic { font-size: 22px; }
+.item .tx { flex: 1; min-width: 0; }
+.item small { display: block; color: var(--muted); }
+.feed { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+.feed div { padding: 6px 10px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+.feed div.chat { background: #eef5ff; border-color: #cfe0fa; }
+.feed div.chat.b { background: #fff0f4; border-color: #f7cdd8; }
+
+/* banner + modal */
+.banner { padding: 10px 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: #eaf8e8; border-color: #bfe3bb; }
+.overlay { position: fixed; inset: 0; background: rgba(74, 44, 53, .35); display: grid; place-items: center; padding: 16px; z-index: 20; }
+.modal { width: min(420px, 100%); max-height: 88vh; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; text-align: center; animation: pop .25s ease; }
+@keyframes pop { from { transform: scale(.9); opacity: 0 } }
+.modal .big { font-size: 46px; }
+.modal .q { font-size: 17px; font-weight: 800; }
+.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--rose-soft); font-weight: 800; font-size: 12px; }
+table.rent { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.rent td { padding: 3px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+table.rent td:last-child { text-align: right; font-weight: 800; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 14px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; }
+.react { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); font-size: 90px; z-index: 25; animation: rise 1.4s ease forwards; pointer-events: none; }
+@keyframes rise { to { transform: translate(-50%, -120%) scale(1.3); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .dice.rolling, .tile.hit, .modal, .react { animation: none } .pawn { transition: none } }
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// ---------- the board ----------
+const GROUPS = {
+  coklat: { c: '#b07a52', n: 'Jajanan' }, pink: { c: '#f39bb5', n: 'Bunga & Foto' }, ungu: { c: '#a68ad8', n: 'Buku' },
+  oranye: { c: '#f2a65a', n: 'Kuliner' }, merah: { c: '#e5675f', n: 'Belanja' }, kuning: { c: '#f2cf5a', n: 'Pantai' },
+  hijau: { c: '#6dbf73', n: 'Kencan' }, biru: { c: '#5f9be8', n: 'Bukit & Danau' },
+};
+const T = (name, ic, kind, extra = {}) => ({ name, ic, kind, ...extra });
+const P = (name, ic, g, price) => T(name, ic, 'prop', { g, price });
+const TILES = [
+  T('Rumah Kita', '🏠', 'start'), P('Warung Kopi', '☕', 'coklat', 60), T('Kartu Pasangan', '💌', 'couple'), P('Toko Roti', '🥐', 'coklat', 60),
+  T('Tagihan Listrik', '💡', 'tax', { amt: 80 }), T('Halte Bus', '🚌', 'station', { price: 200 }), P('Toko Bunga', '💐', 'pink', 100), T('Kesempatan', '❓', 'chance'),
+  P('Kebun Mawar', '🌹', 'pink', 100), P('Studio Foto', '📸', 'pink', 120), T('Macet', '🚦', 'jail'),
+  P('Toko Buku', '📚', 'ungu', 140), T('Celengan Bersama', '🐷', 'save'), P('Perpustakaan', '🏛️', 'ungu', 140), P('Kafe Buku', '📖', 'ungu', 160),
+  T('Stasiun Kereta', '🚆', 'station', { price: 200 }), P('Rumah Makan Padang', '🍛', 'oranye', 180), T('Kartu Pasangan', '💌', 'couple'),
+  P('Kedai Bakso', '🍜', 'oranye', 180), P('Restoran Seafood', '🦐', 'oranye', 200), T('Taman Kota', '🌳', 'park'),
+  P('Butik', '👗', 'merah', 220), T('Kesempatan', '❓', 'chance'), P('Salon', '💇', 'merah', 220), P('Mal', '🛍️', 'merah', 240),
+  T('Pelabuhan', '⛴️', 'station', { price: 200 }), P('Penginapan Pantai', '🏖️', 'kuning', 260), P('Kafe Pantai', '🍹', 'kuning', 260),
+  T('Tempat Kencan', '💑', 'date'), P('Resor Mungil', '🏝️', 'kuning', 280), T('Salah Jalan', '🧭', 'gojail'),
+  P('Kafe Romantis', '🕯️', 'hijau', 300), P('Toko Kue', '🎂', 'hijau', 300), T('Kartu Pasangan', '💌', 'couple'), P('Restoran Rooftop', '🌃', 'hijau', 320),
+  T('Bandara', '✈️', 'station', { price: 200 }), T('Kesempatan', '❓', 'chance'), P('Villa Bukit', '⛰️', 'biru', 350),
+  T('Tagihan Internet', '📶', 'tax', { amt: 100 }), P('Villa Danau', '🛶', 'biru', 400),
+];
+const START_CASH = 1500, PASS_START = 200, DREAM_PRICE = 2000, DATE_COST = 100, CARD_REWARD = 60;
+const baseRent = t => Math.max(5, Math.round(t.price * 0.1 / 5) * 5);
+const RENT_MULT = [1, 3, 7];
+const upgradeCost = t => Math.round(t.price * 0.5 / 10) * 10;
+const groupTiles = g => TILES.map((t, i) => t.g === g ? i : -1).filter(i => i >= 0);
+
+const COUPLE_CARDS = [
+  ['Deep Talk', 'Apa hal kecil yang membuatmu merasa paling disayang?'],
+  ['Kenangan', 'Ceritakan momen pertama kali kamu merasa nyaman bersamanya.'],
+  ['Tebak Kesukaan', 'Tebak makanan favorit pasanganmu. Pasanganmu menilai benar atau salah.'],
+  ['Masa Depan', 'Sebutkan 3 hal yang ingin kalian lakukan berdua tahun ini.'],
+  ['Kenangan', 'Lagu apa yang selalu mengingatkanmu padanya?'],
+  ['Impian', 'Kalau besok bisa liburan berdua, ke mana kalian pergi?'],
+  ['Deep Talk', 'Kebiasaan pasanganmu apa yang diam-diam kamu suka?'],
+  ['Aktivitas', 'Kirim stiker atau pesan peluk paling lucu yang kamu punya 🤗'],
+  ['Masa Depan', 'Di rumah impian kalian, ruangan apa yang wajib ada?'],
+  ['Aktivitas', 'Rencanakan menu yang ingin kalian masak bersama minggu ini.'],
+  ['Tebak Kesukaan', 'Tebak warna favorit pasanganmu.'],
+  ['Deep Talk', 'Sebutkan satu hal yang ingin kamu ucapkan terima kasih padanya.'],
+  ['Impian', 'Kencan impian versi hemat itu seperti apa?'],
+  ['Kenangan', 'Foto berdua mana yang paling kamu suka, dan kenapa?'],
+  ['Kenangan', 'Hal apa yang paling sering bikin kalian tertawa bersama?'],
+  ['Masa Depan', 'Satu kebiasaan baik apa yang ingin kalian mulai bersama?'],
+  ['Deep Talk', 'Panggilan sayang apa yang paling kamu suka dengar?'],
+  ['Aktivitas', 'Buat satu janji kecil untuk pasanganmu minggu ini.'],
+  ['Tebak Kesukaan', 'Tebak film atau serial yang paling ingin ditonton pasanganmu.'],
+  ['Impian', 'Kalau kalian punya usaha bersama, usaha apa yang cocok?'],
+];
+const CHANCE = [
+  { t: 'Bonus kerja lembur! +150', f: (s, p) => { cash(s, p, 150); } },
+  { t: 'Traktir pasanganmu es krim: bayar 50 ke pasangan 🍦', f: (s, p) => { pay(s, p, other(p), 50); } },
+  { t: 'Pasanganmu menyelipkan uang jajan untukmu: terima 50 💕', f: (s, p) => { pay(s, other(p), p, 50); } },
+  { t: 'Investasi bersama: kamu menyetor 100 ke celengan, celengan dapat bonus 20 🐷', f: (s, p) => { const n = Math.min(100, s.players[p].cash); cash(s, p, -n); s.shared += n + (n ? 20 : 0); s.players[p].gave += n; } },
+  { t: 'Menang undian kecil di pasar malam: +100 🎟️', f: (s, p) => { cash(s, p, 100); } },
+  { t: 'Jalan-jalan sore: maju ke Taman Kota 🌳', f: (s, p) => { moveTo(s, p, 20); } },
+  { t: 'Lupa dompet: mundur 3 petak 😅', f: (s, p) => { s.players[p].pos = (s.players[p].pos + 37) % 40; } },
+  { t: 'Kena macet panjang! Pergi ke Macet 🚦', f: (s, p) => { sendJail(s, p); } },
+  { t: 'Renovasi gratis: properti termurahmu naik satu level 🔨', f: (s, p) => { const own = Object.entries(s.owners).filter(([, o]) => o.o === p && o.lvl < 3).sort((a, b) => TILES[a[0]].price - TILES[b[0]].price); if (own[0]) own[0][1].lvl++; } },
+  { t: 'Kupon diskon: properti berikutnya yang kamu beli 30% lebih murah 🏷️', f: (s, p) => { s.players[p].disc = 1; } },
+];
+const AVATARS = ['🧑🏻', '👦🏽', '🧔🏻', '👧🏻', '👩🏽', '👱🏻‍♀️', '🐻', '🐰', '🐱', '🦊'];
+
+// ---------- rules (pure functions on a state copy) ----------
+const other = p => p === 'a' ? 'b' : 'a';
+const cash = (s, p, n) => { s.players[p].cash = Math.max(0, s.players[p].cash + n); };
+const pay = (s, from, to, n) => { const k = Math.min(n, s.players[from].cash); s.players[from].cash -= k; s.players[to].cash += k; return k; };
+const sendJail = (s, p) => { s.players[p].pos = 10; s.players[p].skip = 1; };
+function moveTo(s, p, to) { const pl = s.players[p]; if (to < pl.pos) passStart(s, p); pl.pos = to; }
+function passStart(s, p) {
+  const me = s.players[p], them = s.players[other(p)];
+  let bonus = PASS_START; if (me.cash < them.cash * 0.5) bonus += 100;   // a little help for whoever is behind
+  me.cash += bonus; return bonus;
+}
+function rentOf(s, i) {
+  const t = TILES[i], o = s.owners[i]; if (!o) return 0;
+  if (t.kind === 'station') { const n = [5, 15, 25, 35].filter(k => s.owners[k] && s.owners[k].o === o.o).length; return 25 * 2 ** (n - 1); }
+  let r = baseRent(t) * RENT_MULT[o.lvl - 1];
+  if (groupTiles(t.g).every(k => s.owners[k] && s.owners[k].o === o.o)) r = Math.round(r * 1.5);
+  return r;
+}
+const priceFor = (s, p, i) => Math.round(TILES[i].price * (s.players[p].disc ? 0.7 : 1));
+function missionsOf(s) {
+  const groups = new Set(Object.keys(s.owners).map(i => TILES[i].g || 'station'));
+  return [
+    { ic: '💑', t: 'Kencan di Tempat Kencan', v: s.missions.date ? 1 : 0, max: 1 },
+    { ic: '🐷', t: 'Celengan bersama pernah berisi 500', v: Math.min(500, s.sharedMax), max: 500 },
+    { ic: '🏘️', t: 'Miliki 3 jenis properti berbeda (berdua)', v: Math.min(3, groups.size), max: 3 },
+    { ic: '💌', t: 'Jawab 5 Kartu Pasangan', v: Math.min(5, s.cardsAnswered), max: 5 },
+    { ic: '🏡', t: `Beli Rumah Impian (${DREAM_PRICE} dari celengan)`, v: s.phase === 'won' ? 1 : 0, max: 1 },
+  ];
+}
+const readyForDream = s => missionsOf(s).slice(0, 4).every(m => m.v >= m.max) && s.shared >= DREAM_PRICE;
+
+function newGame(code, a) {
+  const pl = x => ({ uid: x.uid, name: x.name, av: x.av, pos: 0, cash: START_CASH, skip: 0, rentGot: 0, gave: 0, cards: 0, disc: 0 });
+  return { code, created: Date.now(), phase: 'lobby', round: 1, turn: 'a', players: { a: pl(a), b: null }, owners: {}, shared: 0, sharedMax: 0, pot: 0, missions: { date: false }, cardsAnswered: 0, pending: null, offer: null, roll: null, last: 'Menunggu pasangan bergabung…' };
+}
+
+// One throw of the die for player p: moves, applies what can be applied at once, and leaves a decision (pending) if one is needed.
+function doRoll(s, p) {
+  const pl = s.players[p];
+  if (pl.skip) { pl.skip = 0; s.last = `${pl.name} masih terjebak macet 🚦, gilirannya lewat.`; s.roll = { by: p, n: 0, from: pl.pos, to: pl.pos, id: Date.now() }; endTurn(s); return; }
+  const n = 1 + Math.floor(Math.random() * 6), from = pl.pos, to = (from + n) % 40;
+  let note = '';
+  if (to < from) { const b = passStart(s, p); note = ` Lewat Rumah Kita: +${b}.`; }
+  pl.pos = to;
+  s.roll = { by: p, n, from, to, id: Date.now() };
+  land(s, p, note);
+}
+function land(s, p, note = '') {
+  const pl = s.players[p], i = pl.pos, t = TILES[i], o = s.owners[i];
+  const say = x => { s.last = `${pl.name} ${x}${note}`; };
+  if (t.kind === 'prop' || t.kind === 'station') {
+    if (!o) { s.pending = { type: 'buy', i }; say(`berhenti di ${t.ic} ${t.name}. Beli?`); return; }
+    if (o.o === p) {
+      if (t.kind === 'prop' && o.lvl < 3) { s.pending = { type: 'upgrade', i }; say(`mampir ke ${t.name} miliknya. Renovasi?`); return; }
+      say(`singgah di ${t.name} miliknya sendiri.`); endTurn(s); return;
+    }
+    const rent = rentOf(s, i), cap = Math.floor(pl.cash * 0.5), paid = pay(s, p, o.o, Math.min(rent, Math.max(cap, Math.min(rent, 20))));
+    s.players[o.o].rentGot += paid;
+    say(`bayar sewa ${paid} ke ${s.players[o.o].name} di ${t.name}${paid < rent ? ' (dipotong, maksimal ½ uang)' : ''}.`); endTurn(s); return;
+  }
+  if (t.kind === 'couple') { s.pending = { type: 'couple', c: Math.floor(Math.random() * COUPLE_CARDS.length) }; say('mengambil 💌 Kartu Pasangan.'); return; }
+  if (t.kind === 'chance') { const c = Math.floor(Math.random() * CHANCE.length); CHANCE[c].f(s, p); s.pending = { type: 'chance', c }; say(`mengambil ❓ Kesempatan: ${CHANCE[c].t}`); return; }
+  if (t.kind === 'tax') { const k = Math.min(t.amt, pl.cash); pl.cash -= k; s.pot += k; say(`bayar ${t.name} ${k}. Uangnya masuk Kotak Kejutan di Taman Kota.`); endTurn(s); return; }
+  if (t.kind === 'park') { const k = s.pot; pl.cash += k; s.pot = 0; say(k ? `piknik di Taman Kota dan menemukan Kotak Kejutan: +${k} 🎁` : 'piknik santai di Taman Kota 🌳'); endTurn(s); return; }
+  if (t.kind === 'gojail') { sendJail(s, p); say('salah jalan dan terjebak Macet 🚦 (lewat satu giliran).'); endTurn(s); return; }
+  if (t.kind === 'save') { s.pending = { type: 'save' }; say('sampai di 🐷 Celengan Bersama.'); return; }
+  if (t.kind === 'date') { s.pending = { type: 'date' }; say('sampai di 💑 Tempat Kencan!'); return; }
+  say(t.kind === 'start' ? 'pulang ke Rumah Kita.' : t.kind === 'jail' ? 'cuma lewat di Macet.' : `berhenti di ${t.name}.`); endTurn(s);
+}
+function endTurn(s) {
+  s.pending = null;
+  for (const p of ['a', 'b']) if (s.players[p]) s.players[p].cash = Math.max(0, s.players[p].cash);
+  s.sharedMax = Math.max(s.sharedMax, s.shared);
+  if (s.turn === 'b') s.round++;
+  s.turn = other(s.turn);
+}
+
+// ---------- store: the room in the artifact's database, or this device only ----------
+const store = { mode: null, db: null, ref: null, unsub: null, unsubFeed: null, queue: Promise.resolve() };
+let state = null, feed = [], me = { uid: null, name: '', av: AVATARS[0] }, mySlot = null, ui = { tab: 'misi', modal: null, anim: null, seenRoll: null, toast: null };
+const clone = o => JSON.parse(JSON.stringify(o));
+const LS = { get(k, d) { try { const v = localStorage.getItem('cv.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cv.' + k, JSON.stringify(v)); } catch (e) { } } };
+
+// apply a change: work on a copy of the state, then save the whole result (turn-based, so one writer at a time)
+async function act(fn) {
+  if (!state) return;
+  const s = clone(state); const r = fn(s); if (r === false) return;
+  s.sharedMax = Math.max(s.sharedMax, s.shared);
+  if (store.mode === 'local') { state = s; LS.set('local', s); onState(); return; }
+  state = s; onState();
+  store.queue = store.queue.then(() => store.ref.set(s)).catch(e => toast(e && e.code === 'invalid_argument' ? 'Kamu belum punya izin menulis di game ini. Minta pemilik membagikannya sebagai Contributor.' : 'Gagal menyimpan, coba lagi.'));
+}
+async function log(text, kind = 'log') {
+  const e = { t: Date.now(), text, kind, by: mySlot || '' };
+  if (store.mode === 'local') { feed.unshift(e); feed = feed.slice(0, 60); LS.set('feed', feed); render(); return; }
+  try { await store.db.collection(`games/${state.code}/feed`).add(e); } catch (err) { }
+}
+function subscribe(code) {
+  store.unsub && store.unsub(); store.unsubFeed && store.unsubFeed();
+  store.ref = store.db.doc('games/' + code);
+  store.unsub = store.ref.onSnapshot(snap => {
+    if (!snap.exists) { if (!state) toast('Room tidak ditemukan. Periksa kodenya.'); return; }
+    state = clone(snap.data()); onState();
+  }, () => toast('Koneksi ke room terputus. Muat ulang halaman.'));
+  store.unsubFeed = store.db.collection(`games/${code}/feed`).orderBy('t', 'desc').limit(40).onSnapshot(q => { feed = q.docs.map(d => d.data()); render(); }, () => { });
+}
+function onState() {
+  if (store.mode === 'remote' && state) { mySlot = state.players.a && state.players.a.uid === me.uid ? 'a' : state.players.b && state.players.b.uid === me.uid ? 'b' : null; LS.set('room', state.code); }
+  if (state && state.roll && state.roll.id !== ui.seenRoll) { ui.seenRoll = state.roll.id; animateRoll(state.roll); }
+  render();
+}
+// in "one phone" mode the person holding the phone is whoever's turn it is
+const actor = () => store.mode === 'local' ? state.turn : mySlot;
+const myTurn = () => state && state.phase === 'play' && actor() === state.turn && !ui.anim;
+
+// ---------- actions ----------
+function rollDice() {
+  if (!myTurn() || state.pending) return;
+  act(s => { doRoll(s, s.turn); });
+}
+function resolve(choice, extra) {
+  const cur = state.pending; if (!cur || !myTurn()) return;
+  const p = state.turn, nm = state.players[p].name;
+  act(s => {
+    const pl = s.players[p];
+    if (cur.type === 'buy' && choice === 'yes') {
+      const price = cur.i % 10 === 5 ? TILES[cur.i].price : priceFor(s, p, cur.i);
+      if (pl.cash < price) return false;
+      pl.cash -= price; pl.disc = 0; s.owners[cur.i] = { o: p, lvl: 1 }; s.last = `${nm} membeli ${TILES[cur.i].ic} ${TILES[cur.i].name} seharga ${price}.`;
+    }
+    if (cur.type === 'upgrade' && choice === 'yes') { const c = upgradeCost(TILES[cur.i]); if (pl.cash < c) return false; pl.cash -= c; s.owners[cur.i].lvl++; s.last = `${nm} merenovasi ${TILES[cur.i].name} ke level ${s.owners[cur.i].lvl} 🔨`; }
+    if (cur.type === 'couple') {
+      if (choice === 'yes') { s.cardsAnswered++; pl.cards++; s.shared += CARD_REWARD; s.last = `${nm} menjawab Kartu Pasangan. Celengan +${CARD_REWARD} 💕`; }
+      else s.last = `${nm} melewati Kartu Pasangan (tidak apa-apa 😊).`;
+    }
+    if (cur.type === 'save' && choice === 'yes') { const k = Math.min(100, pl.cash); pl.cash -= k; pl.gave += k; s.shared += k + 20; s.last = `${nm} menyetor ${k} ke celengan, celengan dapat bonus 20 🐷`; }
+    if (cur.type === 'date' && choice === 'yes') { if (s.shared < DATE_COST) return false; s.shared -= DATE_COST; s.missions.date = true; s.last = `${nm} mengajak kencan! Misi kencan selesai 💑`; }
+    endTurn(s);
+  });
+  if (cur.type === 'couple' && choice === 'yes') { const [cat, q] = COUPLE_CARDS[cur.c]; memory(`💌 ${cat}`, q, (extra || '').trim()); }
+  if (cur.type === 'date' && choice === 'yes') memory('💑 Kencan pertama di game', 'Kalian berdua kencan di Tempat Kencan.', '');
+  ui.modal = null;
+}
+function memory(title, q, a) {
+  const e = { t: Date.now(), title, q, a, who: state.players[actor()].name };
+  if (store.mode === 'local') { const al = LS.get('album', []); al.unshift(e); LS.set('album', al.slice(0, 100)); return; }
+  store.db.collection(`games/${state.code}/album`).add(e).catch(() => { });
+}
+function deposit(n) {
+  const p = actor(); if (!p || !state || state.phase !== 'play') return;
+  if (state.players[p].cash < n) { toast('Uangmu belum cukup.'); return; }
+  act(s => { s.players[p].cash -= n; s.players[p].gave += n; s.shared += n; });
+  log(`🐷 ${state.players[p].name} menyetor ${n} ke celengan bersama.`);
+}
+function gift(n) {
+  const p = actor(); if (!p) return;
+  if (state.players[p].cash < n) { toast('Uangmu belum cukup.'); return; }
+  act(s => { pay(s, p, other(p), n); });
+  log(`🎁 ${state.players[p].name} mengirim ${n} untuk ${state.players[other(p)].name}.`);
+}
+function buyDream() {
+  if (!readyForDream(state)) return;
+  act(s => { s.shared -= DREAM_PRICE; s.phase = 'won'; s.last = 'Kalian membeli Rumah Impian! 🏡💗'; });
+  memory('🏡 Rumah Impian', 'Kalian menyelesaikan semua misi bersama.', '');
+}
+function offerTrade(i, price) {
+  const p = actor(); act(s => { s.offer = { from: p, i, price }; });
+  log(`🤝 ${state.players[p].name} menawarkan ${TILES[i].name} seharga ${price}.`); ui.modal = null;
+}
+function answerOffer(yes) {
+  const o = state.offer; if (!o) return;
+  const buyer = other(o.from);
+  if (yes && state.players[buyer].cash < o.price) { toast('Uangnya belum cukup untuk tawaran ini.'); return; }
+  act(s => { if (yes && s.owners[o.i] && s.owners[o.i].o === o.from) { pay(s, buyer, o.from, o.price); s.owners[o.i].o = buyer; } s.offer = null; });
+  log(yes ? `🤝 Deal! ${TILES[o.i].name} sekarang milik ${state.players[buyer].name}.` : `🙅 Tawaran ${TILES[o.i].name} ditolak.`);
+}
+function chat(text) { text = (text || '').trim().slice(0, 140); if (text) log(text, 'chat'); }
+
+// ---------- the dice and the walk ----------
+function animateRoll(r) {
+  if (!r.n) return;
+  ui.anim = { p: r.by, at: r.from, rolling: true }; render();
+  setTimeout(() => {
+    ui.anim.rolling = false; ui.anim.face = r.n; let k = 0;
+    const step = () => { if (!ui.anim) return; k++; ui.anim.at = (r.from + k) % 40; render(); if (k < r.n) setTimeout(step, 170); else setTimeout(() => { ui.anim = null; render(); }, 250); };
+    setTimeout(step, 250);
+  }, 650);
+}
+
+// ---------- render ----------
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = id => document.getElementById(id);
+function toast(t) { ui.toast = t; render(); clearTimeout(toast.h); toast.h = setTimeout(() => { ui.toast = null; render(); }, 2600); }
+function cell(i) {
+  if (i === 0) return [11, 11]; if (i < 10) return [11, 11 - i]; if (i === 10) return [11, 1]; if (i < 20) return [11 - (i - 10), 1];
+  if (i === 20) return [1, 1]; if (i < 30) return [1, 1 + (i - 20)]; if (i === 30) return [1, 11]; return [1 + (i - 30), 11];
+}
+const side = i => i % 10 === 0 ? 'corner' : i < 10 ? 'side-b' : i < 20 ? 'side-l' : i < 30 ? 'side-t' : 'side-r';
+const pips = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+
+function render() {
+  const app = $('app');
+  if (!state) { app.innerHTML = startScreen(); bindStart(); return paintOverlay(); }
+  const s = state, A = s.players.a, B = s.players.b;
+  const turnName = s.players[s.turn] ? s.players[s.turn].name : '';
+  const face = ui.anim ? (ui.anim.face || 1) : (s.roll && s.roll.n) || 1;
+  const pos = p => ui.anim && ui.anim.p === p ? ui.anim.at : s.players[p] ? s.players[p].pos : 0;
+  const props = p => Object.values(s.owners).filter(o => o.o === p).length;
+  const plCard = (p, X) => X ? `<div class="pl card ${p}${s.turn === p && s.phase === 'play' ? ' turn' : ''}">
+      <div class="nm">${esc(X.av)} ${esc(X.name)}${actor() === p && store.mode === 'remote' ? ' <span class="chip">kamu</span>' : ''}</div>
+      <div class="cash">💰 ${X.cash}</div><div class="meta">🏠 ${props(p)} properti · 💌 ${X.cards}</div></div>`
+    : `<div class="pl card ${p}"><div class="nm">⏳ Menunggu…</div><div class="meta">Bagikan kode room ke pasanganmu</div></div>`;
+  let center = '';
+  if (s.phase === 'lobby') center = `<div class="logo">Coupleverse</div><div class="msg">Kode room</div><div class="code">${esc(s.code)}</div><div class="muted" style="font-size:12px">Minta pasanganmu membuka halaman ini lalu memasukkan kode ini.</div>`;
+  else if (s.phase === 'won') center = `<div class="logo">Rumah Impian!</div><div style="font-size:44px">🏡💗</div><div class="msg">Kalian menang bersama dalam ${s.round} hari.</div><button class="btn small" data-a="titles">Lihat gelar</button>`;
+  else center = `<div class="logo">Coupleverse</div>
+      <div class="dice${ui.anim && ui.anim.rolling ? ' rolling' : ''}" aria-label="Dadu menunjukkan ${face}">${Array.from({ length: 9 }, (_, k) => `<i style="visibility:${pips[face].includes(k) ? 'visible' : 'hidden'}"></i>`).join('')}</div>
+      <div class="msg">${esc(s.last)}</div>
+      ${s.pending && s.pending.type === 'couple' && !ui.anim ? `<div class="chip">💌 ${esc(COUPLE_CARDS[s.pending.c][0])}</div><div style="font-weight:800;font-size:13px">${esc(COUPLE_CARDS[s.pending.c][1])}</div>` : ''}
+      ${s.pending ? (myTurn() ? '' : `<div class="chip">Menunggu ${esc(turnName)} memutuskan…</div>`) : myTurn() ? `<button class="btn" data-a="roll">Lempar Dadu</button>` : `<div class="chip">Giliran ${esc(turnName)}</div>`}
+      ${s.pending && myTurn() ? `<button class="btn small" data-a="decide">Lanjutkan pilihan</button>` : ''}
+      <div class="muted" style="font-size:11px">Hari ${s.round}${s.pot ? ` · 🎁 Kotak Kejutan ${s.pot}` : ''}</div>`;
+  const tiles = TILES.map((t, i) => {
+    const [r, c] = cell(i), o = s.owners[i];
+    return `<button class="tile ${side(i)}${o ? ' own-' + o.o : ''}" style="grid-row:${r};grid-column:${c}" data-tile="${i}" aria-label="${esc(t.name)}">
+      ${t.g ? `<span class="band" style="background:${GROUPS[t.g].c}"></span>` : ''}<span>${t.ic}</span>${o && t.kind === 'prop' ? `<span class="lv">${'★'.repeat(o.lvl)}</span>` : ''}</button>`;
+  }).join('');
+  const pawnAt = (p, X) => { if (!X) return ''; const [r, c] = cell(pos(p)); const same = A && B && pos('a') === pos('b'); const off = same ? (p === 'a' ? -1.6 : 1.6) : 0; const fr = k => k === 1 ? 0.0577 : k === 11 ? 0.9423 : (k - 0.15) / 11.7; return `<div class="pawn ${p}" style="left:${(fr(c) * 100 + off).toFixed(2)}%;top:${(fr(r) * 100).toFixed(2)}%">${esc(X.av)}</div>`; };
+  const ms = missionsOf(s), done = ms.filter(m => m.v >= m.max).length;
+  const offer = s.offer && s.phase === 'play' ? s.offer : null;
+  const offerBox = offer ? (actor() === other(offer.from) || store.mode === 'local'
+    ? `<div class="banner card"><div>🤝 <b>${esc(s.players[offer.from].name)}</b> menawarkan ${TILES[offer.i].ic} ${esc(TILES[offer.i].name)} seharga <b>${offer.price}</b>.</div><div class="row"><button class="btn small" data-a="offer-yes">Terima</button><button class="btn small ghost" data-a="offer-no">Tolak</button></div></div>`
+    : `<div class="banner card"><div>🤝 Menunggu jawaban atas tawaran ${esc(TILES[offer.i].name)} (${offer.price}).</div><button class="btn small ghost" data-a="offer-no">Batalkan</button></div>`) : '';
+  app.innerHTML = `
+    <div class="top">${plCard('a', A)}${plCard('b', B)}</div>
+    <div class="piggy card"><div><div style="font-size:12px;font-weight:800">🐷 Celengan bersama</div><div class="cash">${s.shared}</div></div>
+      <div class="row" style="gap:6px"><span class="muted" style="font-size:12px">Setor:</span><button class="btn small blue" data-a="dep50" ${s.phase !== 'play' ? 'disabled' : ''}>+50</button><button class="btn small blue" data-a="dep100" ${s.phase !== 'play' ? 'disabled' : ''}>+100</button></div></div>
+    ${offerBox}
+    <div class="boardBox"><div class="board">${tiles}<div class="center">${center}</div></div>${pawnAt('a', A)}${pawnAt('b', B)}</div>
+    <div class="mis card"><div class="row" style="justify-content:space-between"><h3>❤️ Misi Bersama</h3><span class="chip">${done}/5</span></div>
+      ${ms.map((m, k) => `<div class="mrow${m.v >= m.max ? ' done' : ''}"><span style="font-size:20px">${m.ic}</span><div><div style="font-weight:700;font-size:13px">${esc(m.t)}</div><div class="bar"><b style="width:${Math.round(m.v / m.max * 100)}%"></b></div></div><span class="ck">${m.v >= m.max ? '✓' : `${m.v}/${m.max}`}</span></div>`).join('')}
+      ${s.phase === 'play' ? `<button class="btn" data-a="dream" ${readyForDream(s) ? '' : 'disabled'}>🏡 Beli Rumah Impian (${DREAM_PRICE})</button>` : ''}</div>
+    <div class="tabs" role="tablist">${[['prop', '🏠 Properti'], ['album', '📸 Album'], ['chat', '💬 Obrolan'], ['help', '📖 Aturan']].map(([k, l]) => `<button role="tab" class="${ui.tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>
+    <div class="panel card" id="panel">${panel()}</div>
+    <div class="row" style="justify-content:center"><button class="btn small ghost" data-a="leave">Keluar dari room</button></div>`;
+  bindGame(); paintOverlay();
+  if (s.pending && myTurn() && !ui.modal && !ui.anim) { ui.modal = { type: 'pending' }; paintOverlay(); }
+}
+function panel() {
+  const s = state;
+  if (ui.tab === 'prop') {
+    const rows = Object.entries(s.owners).sort((a, b) => a[0] - b[0]).map(([i, o]) => { const t = TILES[i]; return `<button class="item" data-tile="${i}" style="text-align:left;width:100%"><span class="ic">${t.ic}</span><span class="tx"><b>${esc(t.name)}</b><small>${esc(s.players[o.o].name)} · ${t.kind === 'prop' ? 'level ' + o.lvl + ' · ' : ''}sewa ${rentOf(s, +i)}</small></span>${t.g ? `<span style="width:12px;height:12px;border-radius:4px;background:${GROUPS[t.g].c}"></span>` : ''}</button>`; });
+    const p = actor();
+    return `${rows.length ? rows.join('') : '<div class="muted">Belum ada properti yang dibeli. Lempar dadu dan beli petak yang kosong.</div>'}
+      ${p && s.phase === 'play' && s.players[other(p)] ? `<div class="row" style="margin-top:6px"><span class="muted">Kirim bantuan ke ${esc(s.players[other(p)].name)}:</span><button class="btn small ghost" data-a="gift50">50</button><button class="btn small ghost" data-a="gift100">100</button></div>` : ''}`;
+  }
+  if (ui.tab === 'album') {
+    const al = ui.album || [];
+    return al.length ? al.map(e => `<div class="item"><span class="ic">📸</span><span class="tx"><b>${esc(e.title)}</b><small>${esc(e.q)}</small>${e.a ? `<div>“${esc(e.a)}” — ${esc(e.who)}</div>` : `<small>${esc(e.who)}</small>`}</span></div>`).join('') : '<div class="muted">Kartu Pasangan yang kalian jawab dan momen kencan tersimpan di sini sebagai kenangan.</div>';
+  }
+  if (ui.tab === 'chat') {
+    return `<div class="row">${['❤️', '😆', '😭', '😡', '🤗', '🥺'].map(e => `<button class="btn small ghost" data-react="${e}">${e}</button>`).join('')}</div>
+      <form id="chatForm" class="row" style="flex-wrap:nowrap"><input type="text" id="chatIn" maxlength="140" placeholder="Tulis pesan…" autocomplete="off"><button class="btn small" type="submit">Kirim</button></form>
+      <div class="feed">${feed.map(e => `<div class="${e.kind === 'chat' ? 'chat ' + e.by : ''}">${e.kind === 'chat' && state.players[e.by] ? `<b>${esc(state.players[e.by].name)}:</b> ` : ''}${esc(e.text)}</div>`).join('') || '<span class="muted">Belum ada pesan.</span>'}</div>`;
+  }
+  return `<div><b>Cara main</b></div>
+    <div>• Bergantian lempar satu dadu dan jalankan pionmu.</div>
+    <div>• Petak kosong boleh dibeli; mampir lagi ke propertimu untuk renovasi (maksimal ★★★).</div>
+    <div>• Berhenti di properti pasangan berarti bayar sewa, tapi <b>sewa maksimal setengah uangmu</b>, jadi tidak ada yang bangkrut.</div>
+    <div>• Punya satu warna lengkap: sewanya ×1,5. Lewat Rumah Kita: +${PASS_START} (+100 lagi bagi yang uangnya tinggal setengah dari pasangan).</div>
+    <div>• 💌 Kartu Pasangan: jawab untuk menambah celengan ${CARD_REWARD}, atau lewati tanpa hukuman.</div>
+    <div>• 🐷 Celengan bersama diisi lewat tombol +50/+100, petak Celengan, dan kartu. Pakai untuk kencan dan Rumah Impian.</div>
+    <div>• Tagihan masuk ke 🎁 Kotak Kejutan; siapa pun yang berhenti di Taman Kota mengambil isinya.</div>
+    <div>• Menang bersama: selesaikan 4 misi pertama, lalu beli Rumah Impian dari celengan.</div>`;
+}
+function startScreen() {
+  const saved = LS.get('room', null);
+  return `<div class="card hero"><div class="logo">Coupleverse</div><div class="tag">Our Little World ❤️</div>
+      <div class="muted">Game papan berdua: kumpulkan properti sendiri, isi celengan bersama, jawab Kartu Pasangan, dan beli Rumah Impian kalian.</div></div>
+    <div class="card form">
+      <label for="nm">Namamu</label><input type="text" id="nm" maxlength="16" value="${esc(me.name)}" placeholder="misalnya Wawan">
+      <label>Pilih karaktermu</label><div class="avpick">${AVATARS.map(a => `<button type="button" class="${me.av === a ? 'on' : ''}" data-av="${a}">${a}</button>`).join('')}</div>
+      ${store.mode === 'remote' ? `
+        <button class="btn" data-a="create">Buat Room</button>
+        <label for="codeIn">Atau gabung dengan kode dari pasanganmu</label>
+        <div class="row" style="flex-wrap:nowrap"><input type="text" id="codeIn" maxlength="6" placeholder="KODE" style="text-transform:uppercase;letter-spacing:3px"><button class="btn blue" data-a="join">Gabung</button></div>
+        ${saved ? `<button class="btn ghost" data-a="resume">Lanjutkan room ${esc(saved)}</button>` : ''}`
+      : `<div class="muted">Mode online belum tersedia di tampilan ini. Kalian tetap bisa main bergantian di satu HP.</div>`}
+      <button class="btn ghost" data-a="local">Main berdua di satu HP</button>
+    </div>`;
+}
+function paintOverlay() {
+  let ov = $('ov'); if (ov) ov.remove();
+  if (ui.toast) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = ui.toast; t.id = 'tst'; const o = $('tst'); if (o) o.remove(); document.body.append(t); } else { const o = $('tst'); if (o) o.remove(); }
+  if (!ui.modal || !state) return;
+  const s = state, m = ui.modal;
+  let html = '';
+  if (m.type === 'pending') {
+    const cur = s.pending; if (!cur || !myTurn()) { ui.modal = null; return; }
+    const pl = s.players[s.turn];
+    if (cur.type === 'buy') { const t = TILES[cur.i], price = t.kind === 'station' ? t.price : priceFor(s, s.turn, cur.i); html = `<div class="big">${t.ic}</div><h2>${esc(t.name)}</h2>${t.g ? `<span class="chip" style="background:${GROUPS[t.g].c};color:#fff">${GROUPS[t.g].n}</span>` : '<span class="chip">Transportasi</span>'}
+      ${rentTable(cur.i)}<div class="q">Harga ${price}${pl.disc && t.kind === 'prop' ? ' (diskon 30%)' : ''} · uangmu ${pl.cash}</div>
+      <div class="row" style="justify-content:center"><button class="btn" data-r="yes" ${pl.cash < price ? 'disabled' : ''}>Beli</button><button class="btn ghost" data-r="no">Lewati</button></div>`; }
+    if (cur.type === 'upgrade') { const t = TILES[cur.i], c = upgradeCost(t); html = `<div class="big">${t.ic}🔨</div><h2>Renovasi ${esc(t.name)}?</h2><div>Level ${s.owners[cur.i].lvl} → ${s.owners[cur.i].lvl + 1}, sewa naik dari ${rentOf(s, cur.i)} ke ${Math.round(baseRent(t) * RENT_MULT[s.owners[cur.i].lvl] * (groupTiles(t.g).every(k => s.owners[k] && s.owners[k].o === s.turn) ? 1.5 : 1))}.</div>
+      <div class="row" style="justify-content:center"><button class="btn" data-r="yes" ${pl.cash < c ? 'disabled' : ''}>Renovasi (${c})</button><button class="btn ghost" data-r="no">Nanti saja</button></div>`; }
+    if (cur.type === 'couple') { const [cat, q] = COUPLE_CARDS[cur.c]; html = `<div class="big">💌</div><span class="chip">${esc(cat)}</span><div class="q">${esc(q)}</div>
+      <textarea id="ans" maxlength="240" placeholder="Tulis jawabanmu (opsional), atau ngobrol langsung lalu tekan Jawab"></textarea>
+      <div class="muted" style="font-size:12px">Menjawab menambah celengan ${CARD_REWARD}. Melewati tidak ada hukumannya.</div>
+      <div class="row" style="justify-content:center"><button class="btn" data-r="yes">Jawab</button><button class="btn ghost" data-r="no">Lewati</button></div>`; }
+    if (cur.type === 'chance') html = `<div class="big">❓</div><h2>Kesempatan</h2><div class="q">${esc(CHANCE[cur.c].t)}</div><button class="btn" data-r="ok">Oke</button>`;
+    if (cur.type === 'save') html = `<div class="big">🐷</div><h2>Celengan Bersama</h2><div>Setor 100 dari uangmu dan celengan mendapat bonus 20.</div><div class="row" style="justify-content:center"><button class="btn" data-r="yes" ${pl.cash < 1 ? 'disabled' : ''}>Setor 100</button><button class="btn ghost" data-r="no">Lain kali</button></div>`;
+    if (cur.type === 'date') html = s.missions.date
+      ? `<div class="big">💑</div><h2>Tempat Kencan</h2><div>Misi kencan sudah selesai. Ceritakan rencana kencan berikutnya ke pasanganmu 😊</div><button class="btn" data-r="no">Oke</button>`
+      : `<div class="big">💑</div><h2>Kencan yuk!</h2><div>Pakai ${DATE_COST} dari celengan bersama untuk kencan di Kafe Romantis. Misi kencan langsung selesai.</div><div class="muted">Celengan sekarang: ${s.shared}</div>
+        <div class="row" style="justify-content:center"><button class="btn" data-r="yes" ${s.shared < DATE_COST ? 'disabled' : ''}>Kencan (−${DATE_COST})</button><button class="btn ghost" data-r="no">Nanti</button></div>`;
+  }
+  if (m.type === 'tile') {
+    const i = m.i, t = TILES[i], o = s.owners[i], p = actor();
+    html = `<div class="big">${t.ic}</div><h2>${esc(t.name)}</h2>${t.g ? `<span class="chip" style="background:${GROUPS[t.g].c};color:#fff">${GROUPS[t.g].n}</span>` : ''}
+      ${t.price ? rentTable(i) + `<div>Harga ${t.price}${o ? ` · milik <b>${esc(s.players[o.o].name)}</b>${t.kind === 'prop' ? ' · level ' + o.lvl : ''}` : ' · belum ada pemiliknya'}</div>` : `<div>${tileHelp(t)}</div>`}
+      ${o && o.o === p && s.phase === 'play' && !s.offer && s.players[other(p)] ? `<form id="offerForm" class="row" style="justify-content:center"><input type="text" id="offerPrice" inputmode="numeric" value="${t.price}" style="width:100px"><button class="btn small" type="submit">Tawarkan ke pasangan</button></form>` : ''}
+      <button class="btn ghost" data-close>Tutup</button>`;
+  }
+  if (m.type === 'titles') {
+    const A = s.players.a, B = s.players.b, cnt = p => Object.values(s.owners).filter(o => o.o === p).length;
+    const best = (f, lab, ic) => { const a = f('a'), b = f('b'); const w = a === b ? 'Seri' : a > b ? A.name : B.name; return `<div class="item"><span class="ic">${ic}</span><span class="tx"><b>${lab}</b><small>${esc(w)} (${a} : ${b})</small></span></div>`; };
+    html = `<div class="big">🏡💗</div><h2>Rumah Impian milik kalian</h2><div>Selesai di hari ke-${s.round}.</div>
+      ${best(p => cnt(p), 'Juragan Properti', '🏘️')}${best(p => s.players[p].rentGot, 'Raja Sewa', '💰')}${best(p => s.players[p].gave, 'Si Paling Menabung', '🐷')}${best(p => s.players[p].cards, 'Pujangga Hati', '💌')}
+      <button class="btn" data-a="again">Main lagi</button><button class="btn ghost" data-close>Tutup</button>`;
+  }
+  if (m.type === 'leave') html = `<div class="big">🚪</div><h2>Keluar dari room?</h2><div>Progres room tetap tersimpan. Kamu bisa kembali dengan kode <b>${esc(s.code || '')}</b>.</div><div class="row" style="justify-content:center"><button class="btn" data-a="leave-yes">Keluar</button><button class="btn ghost" data-close>Batal</button></div>`;
+  ov = document.createElement('div'); ov.className = 'overlay'; ov.id = 'ov'; ov.innerHTML = `<div class="modal card" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.append(ov);
+  ov.addEventListener('click', e => {
+    if (e.target === ov && m.type !== 'pending') { ui.modal = null; paintOverlay(); }
+    const r = e.target.closest('[data-r]'); if (r) { const ans = $('ans'); resolve(r.dataset.r === 'ok' ? 'no' : r.dataset.r, ans ? ans.value : ''); paintOverlay(); }
+    if (e.target.closest('[data-close]')) { ui.modal = null; paintOverlay(); }
+    const a = e.target.closest('[data-a]'); if (a) handle(a.dataset.a);
+  });
+  const of = $('offerForm'); if (of) of.addEventListener('submit', e => { e.preventDefault(); const v = Math.max(0, Math.round(+$('offerPrice').value || 0)); offerTrade(m.i, v); paintOverlay(); });
+}
+const rentTable = i => { const t = TILES[i]; if (t.kind === 'station') return `<table class="rent"><tr><td>Punya 1 transportasi</td><td>25</td></tr><tr><td>2</td><td>50</td></tr><tr><td>3</td><td>100</td></tr><tr><td>4</td><td>200</td></tr></table>`; return `<table class="rent">${RENT_MULT.map((m, k) => `<tr><td>Sewa ${'★'.repeat(k + 1)}</td><td>${baseRent(t) * m}</td></tr>`).join('')}<tr><td>Renovasi</td><td>${upgradeCost(t)}</td></tr></table>`; };
+const tileHelp = t => ({ start: `Lewat sini dapat ${PASS_START}.`, couple: 'Ambil Kartu Pasangan: pertanyaan dan aktivitas romantis.', chance: 'Kartu kejutan: bisa untung, bisa apes.', tax: `Bayar ${t.amt}, uangnya masuk Kotak Kejutan.`, jail: 'Kalau kena macet, lewat satu giliran.', gojail: 'Langsung ke Macet!', park: 'Ambil isi Kotak Kejutan.', save: 'Setor ke celengan, dapat bonus 20.', date: `Kencan pakai ${DATE_COST} dari celengan untuk menyelesaikan misi.` }[t.kind] || '');
+
+function handle(a) {
+  if (a === 'roll') rollDice();
+  if (a === 'decide') { ui.modal = { type: 'pending' }; paintOverlay(); }
+  if (a === 'dep50') deposit(50); if (a === 'dep100') deposit(100);
+  if (a === 'gift50') gift(50); if (a === 'gift100') gift(100);
+  if (a === 'dream') buyDream();
+  if (a === 'offer-yes') answerOffer(true); if (a === 'offer-no') answerOffer(false);
+  if (a === 'titles') { ui.modal = { type: 'titles' }; paintOverlay(); }
+  if (a === 'leave') { ui.modal = { type: 'leave' }; paintOverlay(); }
+  if (a === 'leave-yes') { store.unsub && store.unsub(); store.unsubFeed && store.unsubFeed(); store.unsubAlbum && store.unsubAlbum(); state = null; feed = []; ui.modal = null; LS.set('room', null); if (store.mode === 'local') { LS.set('local', null); store.mode = store.db ? 'remote' : 'local'; } render(); }
+  if (a === 'again') { ui.modal = null; const A = state.players.a, B = state.players.b; act(s => { const g = newGame(s.code, A); g.players.b = newGame('', B).players.a; g.phase = 'play'; g.last = 'Permainan baru dimulai! Giliran ' + A.name + '.'; Object.assign(s, g); }); }
+}
+function bindGame() {
+  $('app').querySelectorAll('[data-a]').forEach(b => b.onclick = () => handle(b.dataset.a));
+  $('app').querySelectorAll('[data-tile]').forEach(b => b.onclick = () => { ui.modal = { type: 'tile', i: +b.dataset.tile }; paintOverlay(); });
+  $('app').querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { ui.tab = b.dataset.tab; if (ui.tab === 'album') loadAlbum(); render(); });
+  $('app').querySelectorAll('[data-react]').forEach(b => b.onclick = () => { chat(b.dataset.react); burst(b.dataset.react); });
+  const cf = $('chatForm'); if (cf) cf.onsubmit = e => { e.preventDefault(); chat($('chatIn').value); $('chatIn').value = ''; };
+}
+function burst(e) { const d = document.createElement('div'); d.className = 'react'; d.textContent = e; document.body.append(d); setTimeout(() => d.remove(), 1500); }
+let lastFeedT = Date.now();
+function watchReactions() { const top = feed[0]; if (top && top.t > lastFeedT && top.kind === 'chat' && top.by !== mySlot && /^\p{Extended_Pictographic}/u.test(top.text) && top.text.length <= 4) burst(top.text); if (top) lastFeedT = Math.max(lastFeedT, top.t); }
+function loadAlbum() {
+  if (store.mode === 'local') { ui.album = LS.get('album', []); return; }
+  if (store.unsubAlbum) return;
+  store.unsubAlbum = store.db.collection(`games/${state.code}/album`).orderBy('t', 'desc').limit(60).onSnapshot(q => { ui.album = q.docs.map(d => d.data()); if (ui.tab === 'album') render(); }, () => { });
+}
+function bindStart() {
+  const nm = $('nm'); nm.oninput = () => { me.name = nm.value; LS.set('me', { name: me.name, av: me.av }); };
+  document.querySelectorAll('[data-av]').forEach(b => b.onclick = () => { me.av = b.dataset.av; LS.set('me', { name: me.name, av: me.av }); render(); });
+  document.querySelectorAll('[data-a]').forEach(b => b.onclick = () => start(b.dataset.a));
+}
+const needName = () => { if (!me.name.trim()) { toast('Isi namamu dulu ya.'); return true; } me.name = me.name.trim().slice(0, 16); return false; };
+async function start(a) {
+  if (a === 'local') {
+    if (needName()) return;
+    const saved = LS.get('local', null);
+    store.mode = 'local'; feed = LS.get('feed', []);
+    if (saved && saved.phase !== 'lobby') { state = saved; ui.seenRoll = saved.roll && saved.roll.id; render(); return; }
+    const s = newGame('LOKAL', { uid: 'a', name: me.name, av: me.av }); s.players.b = newGame('', { uid: 'b', name: 'Pasangan', av: '👧🏻' }).players.a; s.phase = 'play'; s.last = `Bergantian di satu HP. Giliran ${me.name}.`;
+    state = s; LS.set('local', s); ui.seenRoll = null; feed = []; LS.set('feed', []); render(); return;
+  }
+  if (needName()) return;
+  if (a === 'create') {
+    const code = Array.from({ length: 5 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join('');
+    const s = newGame(code, me);
+    try { await store.db.doc('games/' + code).set(s); } catch (e) { toast('Room tidak bisa dibuat. Kamu mungkin hanya punya akses lihat.'); return; }
+    state = s; mySlot = 'a'; subscribe(code); log(`🏠 ${me.name} membuat room ${code}.`); render(); return;
+  }
+  if (a === 'join' || a === 'resume') {
+    const code = a === 'resume' ? LS.get('room', '') : ($('codeIn').value || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{4,6}$/.test(code)) { toast('Kode room terdiri dari 5 huruf/angka.'); return; }
+    const snap = await store.db.doc('games/' + code).get().catch(() => null);
+    if (!snap || !snap.exists) { toast('Room tidak ditemukan. Periksa kodenya.'); return; }
+    const s = clone(snap.data());
+    const mine = (s.players.a && s.players.a.uid === me.uid) || (s.players.b && s.players.b.uid === me.uid);
+    if (!mine) {
+      if (s.players.b) { toast('Room ini sudah penuh.'); return; }
+      s.players.b = newGame('', me).players.a; s.phase = 'play'; s.last = `${me.name} bergabung! Giliran ${s.players.a.name} melempar dadu.`;
+      try { await store.db.doc('games/' + code).set(s); } catch (e) { toast('Tidak bisa bergabung. Minta pemilik halaman membagikannya sebagai Contributor.'); return; }
+    }
+    state = s; ui.seenRoll = s.roll && s.roll.id; subscribe(code); if (!mine) log(`💞 ${me.name} bergabung ke room.`); render();
+  }
+}
+
+// ---------- boot ----------
+(async function boot() {
+  const m = LS.get('me', null); if (m) { me.name = m.name || ''; me.av = m.av || AVATARS[0]; }
+  me.uid = LS.get('uid', null) || ('local-' + Math.random().toString(36).slice(2, 10)); LS.set('uid', me.uid);
+  store.mode = 'local'; render();
+  const cl = window.claude;
+  if (!cl || !cl.use) return;
+  const [db, user] = await Promise.all([cl.use('db').catch(() => null), cl.use('user').catch(() => null)]);
+  if (user) { try { const id = await user.id(); if (id) me.uid = id; } catch (e) { } }
+  if (db) { store.db = db; if (!state) { store.mode = 'remote'; render(); } }
+})();
+const _render = render;
+render = function () { _render(); if (store.mode === 'remote') watchReactions(); };
+</script>
