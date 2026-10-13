@@ -355,6 +355,11 @@
         .clothgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 50vh; overflow: auto; }
         .btn.cloth { display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: left; padding: 5px 8px; }
         .btn.cloth.on { background: #ffe08a; box-shadow: 0 0 0 3px var(--green) inset; }
+        .mirrorbox { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 2px 0 4px; }
+        .mirrorbox canvas { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #e6b8c8; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+        .mirrorbox small { font-size: 11px; font-weight: 600; }
+        .salongrid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); max-height: 34vh; }
+        .salongrid .gridhead { grid-column: 1 / -1; font-size: 13px; margin-top: 2px; }
         .swatch { flex: none; width: 32px; height: 32px; border-radius: 8px; border: 2px solid var(--wood); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
         .shopitem .swatch { width: 34px; height: 34px; }
         .tabs.chips .btn { font-size: 12.5px; padding: 3px 8px; }
@@ -3508,6 +3513,11 @@
         // shoes and headwear. Clothes are drawn from the outfit, so changing clothes only rebuilds the farmer.
         const SKIN = { [NA]: 0xe9b993, [NW]: 0xd9a077 };
         const HAIR = 0x2a1a12;
+        // 💇 hairstyles the salon can do (any of them for anyone); the first of each group is the everyday one
+        const HAIR_STYLES = [['panjang', 'Panjang lurus', '👩'], ['bob', 'Bob sebahu', '💁'], ['kuncir', 'Kuncir kuda', '🎀'], ['sanggul', 'Sanggul', '🍡'], ['kepang', 'Kepang dua', '🪢'], ['ikal', 'Ikal panjang', '🌊'],
+            ['pendek', 'Pendek rapi', '👦'], ['cepak', 'Cepak', '💈'], ['samping', 'Belah samping', '🧑'], ['jambul', 'Jambul', '🦚'], ['gondrong', 'Gondrong', '🎸'], ['keriting', 'Keriting', '🌀']];
+        const HAIR_STYLE_IDS = HAIR_STYLES.map(h => h[0]);
+        const hairStyleOf = (o, girl) => o && HAIR_STYLE_IDS.includes(o.hs) ? o.hs : girl ? 'panjang' : 'pendek';
         const patCache = {};
         // fabric patterns drawn once on a small canvas
         function fabric(c, pat, c2) {
@@ -3597,6 +3607,7 @@
             const d = DEFAULT_OUTFIT[g], ok = (id, slot) => CLOTH[id] && CLOTH[id].slot === slot;
             o = o && typeof o === 'object' ? o : {};
             const hc = Number.isInteger(o.hc) && o.hc >= 0 && o.hc < 6 ? { hc: o.hc } : {};
+            if (HAIR_STYLE_IDS.includes(o.hs)) hc.hs = o.hs;
             return { ...hc, t: ok(o.t, 'top') ? o.t : d.t, b: ok(o.b, 'bottom') ? o.b : d.b, f: o.f === null ? null : ok(o.f, 'full') ? o.f : (o.t || o.b ? null : d.f), s: o.s === 'none' || ok(o.s, 'shoes') ? o.s : d.s, h: o.h === null ? null : ok(o.h, 'head') ? o.h : (o.h === undefined ? d.h : null) };
         }
 
@@ -3710,7 +3721,7 @@
             const hijab = head && head.kind === 'hijab';
             // hair and headwear sit in their own group so a mukena can cover them during prayer
             const hairG = new THREE.Group(); hd.add(hairG);
-            if (!hijab) hair(hairG, girl, head, look.hair || (o.hc != null ? [0x2a1a12, 0x4a2a14, 0x7a4a24, 0xa0703a, 0x1a1e2e, 0x8a8a8a][o.hc] : undefined));
+            if (!hijab) hair(hairG, girl, head, look.hair || (o.hc != null ? [0x2a1a12, 0x4a2a14, 0x7a4a24, 0xa0703a, 0x1a1e2e, 0x8a8a8a][o.hc] : undefined), hairStyleOf(o, girl));
             if (head) hat(hairG, head, girl);
             f.mukena = null; f.mukOn = false;
             if (girl) {
@@ -3742,14 +3753,68 @@
             return { top, bot };
         }
         const capGeo = (r, len) => geoCache[`c${r}|${len}`] ||= new THREE.CapsuleGeometry(r, len, 6, 16);
-        function hair(hd, girl, head, hc = HAIR) {
-            const covered = head && ['cap', 'kupluk', 'peci'].includes(head.kind);
-            ball(0.107, covered ? 0.07 : 0.088, 0.117, hc, 0, 0.045, -0.012, hd);
-            if (girl) {
-                ball(0.1, 0.2, 0.055, hc, 0, -0.11, -0.075, hd);              // long hair down the back
-                for (const sx of [1, -1]) ball(0.028, 0.12, 0.04, hc, 0.092 * sx, -0.06, 0.02, hd);
-                if (!covered) ball(0.092, 0.032, 0.05, hc, 0, 0.08, 0.07, hd); // bangs
-            } else if (!covered) ball(0.09, 0.028, 0.05, hc, 0, 0.085, 0.07, hd);
+        function hair(hd, girl, head, hc = HAIR, hs = girl ? 'panjang' : 'pendek') {
+            // a cap, kupluk or peci hides the top; any hat at all flattens what would poke up through it
+            const covered = head && ['cap', 'kupluk', 'peci'].includes(head.kind), hatted = !!head;
+            const B = (rx, ry, rz, x, y, z) => ball(rx, ry, rz, hc, x, y, z, hd);
+            const tie = girl ? 0xe8577b : 0x3a2a2a;
+            const crown = (h = 0.088) => B(0.107, covered ? 0.07 : h, 0.117, 0, 0.045, -0.012);
+            const bangs = (w = 0.092, h = 0.032) => { if (!covered) B(w, h, 0.05, 0, 0.08, 0.07); };
+            if (hs === 'panjang') {
+                crown(); B(0.1, 0.2, 0.055, 0, -0.11, -0.075);                    // long hair down the back
+                for (const sx of [1, -1]) B(0.028, 0.12, 0.04, 0.092 * sx, -0.06, 0.02);
+                bangs();
+            } else if (hs === 'bob') {
+                crown(); B(0.112, 0.1, 0.07, 0, -0.025, -0.055);                   // a rounded bob, chin length
+                for (const sx of [1, -1]) B(0.034, 0.08, 0.06, 0.09 * sx, -0.03, 0.005);
+                bangs(0.095, 0.036);
+            } else if (hs === 'kuncir') {
+                crown(); bangs();
+                B(0.05, 0.045, 0.042, 0, 0.02, -0.12);                             // gathered at the back
+                ball(0.022, 0.022, 0.022, tie, 0, 0.02, -0.158, hd);
+                B(0.038, 0.11, 0.034, 0, -0.08, -0.165).rotation.x = 0.28;          // the tail
+                B(0.026, 0.04, 0.024, 0, -0.18, -0.19);
+            } else if (hs === 'sanggul') {
+                crown(); bangs(0.09, 0.026);
+                if (hatted) B(0.05, 0.045, 0.045, 0, -0.01, -0.135);                // a low bun under a hat
+                else B(0.055, 0.05, 0.05, 0, 0.1, -0.105);
+                for (const sx of [1, -1]) B(0.012, 0.04, 0.012, 0.093 * sx, -0.035, 0.045); // two loose strands
+            } else if (hs === 'kepang') {
+                crown(); bangs();
+                for (const sx of [1, -1]) {
+                    for (let i = 0; i < 5; i++) B(0.025 - i * 0.0012, 0.026, 0.025, (0.088 + i * 0.003) * sx, -0.045 - i * 0.036, -0.02 + i * 0.016);
+                    ball(0.015, 0.011, 0.015, tie, 0.103 * sx, -0.215, 0.05, hd);
+                    B(0.015, 0.022, 0.015, 0.104 * sx, -0.238, 0.052);
+                }
+            } else if (hs === 'ikal') {
+                crown(0.094); B(0.1, 0.13, 0.06, 0, -0.08, -0.07);
+                for (let r = 0; r < 4; r++) for (let i = 0; i < 5; i++) {        // soft curls down the back and the sides
+                    const a = (i - 2) * 0.62 + (r % 2 ? 0.3 : 0), y = -0.02 - r * 0.062;
+                    B(0.046, 0.046, 0.042, Math.sin(a) * 0.1, y, -Math.cos(a) * 0.08 - 0.01);
+                }
+                for (const sx of [1, -1]) for (let r = 0; r < 3; r++) B(0.032, 0.036, 0.032, (0.098 + r * 0.008) * sx, -0.03 - r * 0.06, 0.01);
+                if (!covered) for (const x of [-0.055, 0, 0.055]) B(0.04, 0.03, 0.04, x, 0.085, 0.066);
+            } else if (hs === 'pendek') {
+                crown(); if (!covered) B(0.09, 0.028, 0.05, 0, 0.085, 0.07);
+            } else if (hs === 'cepak') {
+                B(0.103, covered ? 0.065 : 0.075, 0.113, 0, 0.05, -0.006);         // close-cropped all over
+            } else if (hs === 'samping') {
+                crown();
+                if (!covered) { B(0.07, 0.034, 0.052, 0.028, 0.09, 0.066).rotation.z = -0.3; B(0.045, 0.026, 0.045, -0.058, 0.095, 0.058); }
+            } else if (hs === 'jambul') {
+                crown(0.08);
+                if (!hatted) { const q = B(0.065, 0.045, 0.062, 0, 0.125, 0.045); q.rotation.x = -0.45; B(0.08, 0.025, 0.05, 0, 0.09, 0.07); }
+                else if (!covered) B(0.09, 0.028, 0.05, 0, 0.085, 0.07);
+            } else if (hs === 'gondrong') {
+                crown(); B(0.106, 0.105, 0.062, 0, -0.045, -0.07);                  // to the nape and the shoulders
+                for (const sx of [1, -1]) B(0.03, 0.085, 0.045, 0.095 * sx, -0.035, -0.012);
+                if (!covered) { B(0.05, 0.03, 0.05, 0.04, 0.085, 0.068).rotation.z = -0.2; B(0.05, 0.03, 0.05, -0.04, 0.085, 0.068).rotation.z = 0.2; }
+            } else if (hs === 'keriting') {
+                crown(hatted ? 0.088 : 0.1);
+                const n = hatted ? 8 : 12;                                           // tight curls all round
+                for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; if (hatted && Math.cos(a) > 0.5) continue; B(0.042, 0.042, 0.042, Math.sin(a) * 0.1, (hatted ? 0.0 : 0.06) + Math.max(0, Math.cos(a)) * 0.04, Math.cos(a) * 0.1 - 0.02); }
+                if (!hatted) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; B(0.045, 0.04, 0.045, Math.sin(a) * 0.055, 0.125, Math.cos(a) * 0.055 - 0.02); }
+            }
         }
         function hat(hd, it, girl) {
             const m = mat(it.c);
@@ -6515,12 +6580,50 @@
                 [...amt.filter(a => state.gold >= a).map(a => ({ t: `Setor ${a.toLocaleString('id-ID')}`, keep: 1, f: () => { sendAct('bank', 'in|' + a); setTimeout(() => { if (dlgOpen()) openBank(); }, 350); } })),
                 ...amt.filter(a => (state.bank || 0) >= a).map(a => ({ t: `Ambil ${a.toLocaleString('id-ID')}`, keep: 1, f: () => { sendAct('bank', 'out|' + a); setTimeout(() => { if (dlgOpen()) openBank(); }, 350); } })), { t: 'Tutup' }]);
         }
-        // 💇 the salon: a new hair colour
+        // 💇 the salon: a new hairstyle and/or hair colour, tried on in the mirror before paying
         const HAIR_COLORS = [['Hitam', 0x2a1a12], ['Cokelat tua', 0x4a2a14], ['Cokelat', 0x7a4a24], ['Karamel', 0xa0703a], ['Hitam kebiruan', 0x1a1e2e], ['Abu-abu', 0x8a8a8a]];
-        const SALON_FEE = 80;
+        const SALON_FEE = 80, STYLE_FEE = 120;
+        const salonFee = x => String(x).split(',').reduce((n, p) => n + (p[0] === 's' ? STYLE_FEE : p[0] === 'c' ? SALON_FEE : 0), 0);
+        let salonTry = null, mirror = null, mirrorYaw = 0;
+        const MIRROR_YAWS = [0.35, 1.5, 2.75];
+        // a small portrait of you with the hair you are trying, drawn by its own little renderer
+        function mirrorShot(o) {
+            if (!mirror) {
+                const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(Math.min(window.devicePixelRatio, 2)); r.setSize(150, 150);
+                r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.domElement.className = 'mirror';
+                const S = new THREE.Scene(); S.background = new THREE.Color(0xf8e6ec);
+                S.add(new THREE.HemisphereLight(0xffffff, 0x8a7a66, 1.6)); const d = new THREE.DirectionalLight(0xfff2dd, 2.1); d.position.set(1.5, 3, 4); S.add(d);
+                mirror = { r, S, cam: new THREE.PerspectiveCamera(24, 1, 0.1, 10), f: null };
+            }
+            const m = mirror;
+            if (m.f) m.S.remove(m.f.group);
+            const f = m.f = { group: new THREE.Group(), heading: 0, phase: 0 }; f.pos = f.group.position;
+            buildFarmer(f, { ...look, o });
+            for (let i = 0; i < 6; i++) animateFarmer(f, 0, 0.2);
+            f.group.rotation.set(0, MIRROR_YAWS[mirrorYaw], 0); m.S.add(f.group); f.group.updateMatrixWorld(true);
+            const p = new THREE.Vector3(); f.head.getWorldPosition(p);
+            m.cam.position.set(p.x + 0.1, p.y + 0.05, p.z + 1.05); m.cam.lookAt(p.x, p.y - 0.07, p.z);
+            m.r.render(m.S, m.cam);
+            return m.r.domElement;
+        }
         function openSalon() {
-            openDlg('💇 Salon Cantik', [el('p', { text: `Ganti warna rambut ${SALON_FEE} G. Kak Dewi siap menata!` }), el('p', { class: 'small-note', text: 'Rambut yang tertutup hijab atau peci tetap rapi di dalamnya 😊' })],
-                [...HAIR_COLORS.map(([nm], i) => ({ t: nm, f: () => { if (state.gold < SALON_FEE) { toast('Uangnya tidak cukup 💇'); return; } sendAct('salon', i); look.o = { ...look.o, hc: i }; applyLook(); toast(`💇 Rambut baru: ${nm}! Cantik/ganteng sekali ✨`); } })), { t: 'Nanti saja' }]);
+            const girl = look.g === 'f', cur = { hs: hairStyleOf(look.o, girl), hc: look.o.hc != null ? look.o.hc : 0 };
+            const t = salonTry ||= { ...cur };
+            const order = [t.hs !== cur.hs ? 's' + t.hs : '', t.hc !== cur.hc ? 'c' + t.hc : ''].filter(Boolean).join(','), fee = salonFee(order);
+            const pick = (k, v) => { t[k] = v; openSalon(); };
+            const styleBtn = ([id, nm, ic]) => el('button', { class: 'btn cloth' + (t.hs === id ? ' on' : ''), onclick: () => pick('hs', id) }, el('span', { class: 'swatch', text: ic }), el('span', { text: nm + (cur.hs === id ? ' ✓' : '') }));
+            const colorBtn = ([nm, c], i) => el('button', { class: 'btn cloth' + (t.hc === i ? ' on' : ''), onclick: () => pick('hc', i) }, el('span', { class: 'swatch', style: `background:#${c.toString(16).padStart(6, '0')}` }), el('span', { text: nm + (cur.hc === i ? ' ✓' : '') }));
+            const hid = look.o.h && CLOTH[look.o.h] && CLOTH[look.o.h].kind === 'hijab';
+            openDlg('💇 Salon Cantik', [
+                el('div', { class: 'mirrorbox' }, mirrorShot({ ...look.o, h: null, hs: t.hs, hc: t.hc }), el('button', { class: 'btn', onclick: () => { mirrorYaw = (mirrorYaw + 1) % MIRROR_YAWS.length; openSalon(); } }, '🔄 Putar cermin'), el('small', { text: '🪞 Coba dulu, bayar kalau suka' })),
+                el('p', { class: 'small-note', text: `Gaya baru ${STYLE_FEE} G · warna baru ${SALON_FEE} G. Semua gaya boleh dipilih siapa saja. Kak Dewi siap menata!` + (look.o.h ? (hid ? ' Di cermin hijabnya dilepas dulu, nanti rambutnya tetap rapi di dalam hijab 😊' : ' Di cermin topinya dilepas dulu supaya gayanya kelihatan.') : '') }),
+                el('div', { class: 'clothgrid salongrid' }, el('b', { class: 'gridhead', text: '✂️ Gaya rambut' }), HAIR_STYLES.map(styleBtn), el('b', { class: 'gridhead', text: '🎨 Warna rambut' }), HAIR_COLORS.map(colorBtn)),
+            ], [{ t: order ? `💇 Tata sekarang · ${fee} G` : 'Pilih gaya atau warna ✂️', big: true, keep: !order, f: () => {
+                if (!order) return;
+                if (state.gold < fee) { toast('Uangnya tidak cukup 💇'); return; }
+                sendAct('salon', order); look.o = { ...look.o, hs: t.hs, hc: t.hc }; salonTry = null; applyLook();
+                toast(`💇 Rambut baru: ${HAIR_STYLES.find(h => h[0] === t.hs)[1].toLowerCase()}, ${HAIR_COLORS[t.hc][0].toLowerCase()}! Keren sekali ✨`);
+            } }, { t: 'Nanti saja', f: () => { salonTry = null; } }]);
         }
         // 📮 the post office: a postcard for your partner
         const POSTCARDS = ['Aku kangen, cepat pulang ya 💕', 'Terima kasih sudah menemaniku berkebun 🌻', 'Hari ini indah karena ada kamu ☀️', 'Semangat ya kerjanya hari ini! 💪', 'Nanti malam kita masak bareng, yuk 🍲', 'Kamu orang terbaik di dunia 🌏'];
@@ -6568,7 +6671,7 @@
             const COUNTER = { terminal: [2.4, -1.2], super: [3.2, 2.2], salon: [1.2, -1.2], kriya: [1.0, -1.8], pandai: [0, -0.9], tambang: [2.4, 1.8], kopi: [2.6, 1.6], lelang: [0, -2.2], galangan: [2.2, -0.6], inap: [-3.4, -0.2], rs: [-1, -0.85], giling: [0.4, -0.6], warung: [0, -1.2], wkopi: [0, -1.2], seafood: [0, -1.2] };
             const busy = kp => `${kp.name} sedang ${ACT_TEXT[kp.st && kp.st.a] || 'pergi'}`;
             const FN = {
-                giling: ['Giling gabah jadi beras 🏭', openGiling], lumbung: ['Titip atau ambil di lumbung 🏚️', openLumbung], bank: ['Menabung di bank 🏦', openBank], salon: ['Ganti warna rambut 💇', openSalon],
+                giling: ['Giling gabah jadi beras 🏭', openGiling], lumbung: ['Titip atau ambil di lumbung 🏚️', openLumbung], bank: ['Menabung di bank 🏦', openBank], salon: ['Ganti gaya & warna rambut 💇', openSalon],
                 pos: ['Kirim kartu pos 💌', openPos], terminal: ['Naik bus ke desa lain 🚌', () => openHalte('kota')], herbal: ['Racik jamu 🌿', () => openMake('herbal')], kopi: ['Sangrai kopi ☕', () => openMake('kopi')],
                 kriya: ['Buat kerajinan 🧺', () => openMake('kriya')], pandai: ['Tempa alat ⚒️', openPandai], pelabuhan: ['Naik kapal ke Pulau Kencana ⛴️', () => openBoat(true)],
                 galangan: [() => boatToday() ? 'Perahu sudah disewa hari ini 🛶' : `Sewa perahu hari ini · 150 G 🛶`, () => { if (boatToday()) { toast('Perahu sudah siap. Memancinglah di laut, ikan laut dalam bisa didapat hari ini 🎣'); return; } if (state.gold < 150) { toast('Uangnya tidak cukup 🛶'); return; } sendAct('perahu'); }],
@@ -6677,7 +6780,13 @@
                 if (dir === 'in' && state.gold >= n) { state.gold -= n; state.bank = (state.bank || 0) + n; emitEvent(`🏦 Menabung ${n.toLocaleString('id-ID')} G · tabungan ${state.bank.toLocaleString('id-ID')} G`, 'sell', null, who); }
                 else if (dir === 'out' && (state.bank || 0) >= n) { state.bank -= n; state.gold += n; emitEvent(`🏦 Mengambil ${n.toLocaleString('id-ID')} G dari tabungan`, 'sell', null, who); }
             },
-            salon(who, i) { if (!atWork(KEEPER.salon) || state.gold < SALON_FEE) return; state.gold -= SALON_FEE; emitEvent(`💇 ${who} ganti warna rambut jadi ${(HAIR_COLORS[+i] || HAIR_COLORS[0])[0].toLowerCase()} ✨`, 'heart1', null, who); },
+            salon(who, x) {
+                const parts = String(x).split(','), fee = salonFee(x);
+                if (!fee || !atWork(KEEPER.salon) || state.gold < fee) return; state.gold -= fee;
+                const sty = parts.find(p => p[0] === 's'), col = parts.find(p => p[0] === 'c');
+                const say = [sty && (HAIR_STYLES.find(h => h[0] === sty.slice(1)) || [0, 'gaya baru'])[1].toLowerCase(), col && (HAIR_COLORS[+col.slice(1)] || HAIR_COLORS[0])[0].toLowerCase()].filter(Boolean).join(', warna ');
+                emitEvent(`💇 ${who} ganti rambut jadi ${say} ✨`, 'heart1', null, who);
+            },
             pos(who, i) { if (!atWork(KEEPER.pos) || state.gold < 10) return; state.gold -= 10; addEnergy(who, 5); addEnergy(otherOf(who), 5); emitEvent(`💌 Kartu pos dari ${who} untuk ${otherOf(who)}: “${POSTCARDS[+i] || POSTCARDS[0]}”`.slice(0, 90), 'hearts', null, who); },
             make(who, x) {
                 const [type, id] = String(x).split('|'), c = (MAKES[type] || []).find(c => c.id === id), b = VB.find(b => b.type === type);
@@ -9483,7 +9592,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get BRIDGES() { return BRIDGES; }, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get BRIDGES() { return BRIDGES; }, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

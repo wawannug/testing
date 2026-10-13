@@ -120,7 +120,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
     - Bank (tabungan bersama, bunga 3% tiap awal musim);
     - Supermarket (bahan masak dan alat dapur, buka sampai malam);
     - SD Negeri Sentosa (anak-anak semua desa bersekolah di sini; ada perpustakaan berisi tips);
-    - Salon (ganti warna rambut, 80 G, terlihat juga di layar pasangan);
+    - Salon (12 gaya rambut 120 G dan 6 warna 80 G, dicoba dulu di cermin yang bisa diputar; terlihat juga di layar pasangan);
     - Kantor Pos (kartu pos untuk pasangan, +5 ⚡ untuk berdua);
     - Terminal Bus, Vihara Dharma, taman kota, gedung tinggi, mobil, dan lampu jalan.
   - 🌳 **Desa Hutan:**
