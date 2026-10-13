@@ -1235,7 +1235,11 @@
         const LOWICO = new THREE.IcosahedronGeometry(1, 0), LOWCONE = new THREE.ConeGeometry(1, 1, 7), LOWCYL = new THREE.CylinderGeometry(1, 1, 1, 7), LOWBOX = new THREE.BoxGeometry(1, 1, 1);
         // batches are cut into 30×30 squares so the ones off screen are skipped; small things cast no shadow
         const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy|reed/;
-        function inst(key, geo, m, x, y, z, sx = 1, sy = sx, sz = sx, ry = 0, rx = 0, rz = 0) { const k = key + '@' + Math.floor(x / 30) + ',' + Math.floor(z / 30); (INST[k] ||= { geo, m, list: [], shadow: !NO_SHADOW.test(key) }).list.push([x, y + shiftY(x, z), z, sx, sy, sz, rx, ry, rz]); }
+        // a thing made of several parts (a tree's trunk and leaves) sits on the ground under its middle, so
+        // the parts stay together on a slope or at the edge of the flat farm instead of each finding its own ground
+        let instBase = null;
+        function inst(key, geo, m, x, y, z, sx = 1, sy = sx, sz = sx, ry = 0, rx = 0, rz = 0) { const k = key + '@' + Math.floor(x / 30) + ',' + Math.floor(z / 30); (INST[k] ||= { geo, m, list: [], shadow: !NO_SHADOW.test(key) }).list.push([x, y + (instBase ? shiftY(instBase[0], instBase[1]) : shiftY(x, z)), z, sx, sy, sz, rx, ry, rz]); }
+        const anchored = fn => (...a) => { const [, x, z] = typeof a[0] === 'string' ? a : [0, ...a]; instBase = [x, z]; try { fn(...a); } finally { instBase = null; } };
         function flushInst(parent = scene) {
             const mx = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
             for (const b of Object.values(INST)) {
@@ -1247,17 +1251,17 @@
         }
         const DM = {}; const dm = (c, o) => DM[c + (o ? JSON.stringify(o) : '')] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...(o || {}) });
         // decoration kinds (r = region key, so far-away batches are culled)
-        const dTree = (r, x, z, s = 1, c = 0x4f9a3f) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.9 * s, z, 0.16 * s, 1.8 * s, 0.16 * s); inst(r + 'leaf' + c, LOWICO, dm(c), x, 2.3 * s, z, 1.2 * s, 1.0 * s, 1.2 * s, x * 3); inst(r + 'leaf' + c, LOWICO, dm(c), x + 0.4 * s, 2.9 * s, z - 0.2 * s, 0.8 * s, 0.7 * s, 0.8 * s, z); };
-        const dPine = (r, x, z, s = 1) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.6 * s, z, 0.14 * s, 1.2 * s, 0.14 * s); for (let i = 0; i < 3; i++) inst(r + 'pine', LOWCONE, dm(0x2f6b3a), x, (1.5 + i * 0.8) * s, z, (1.3 - i * 0.35) * s, 1.4 * s, (1.3 - i * 0.35) * s, x + i); };
-        const dPalm = (r, x, z, s = 1) => { const lean = ((x * 7 + z * 3) % 5) / 25; inst(r + 'ptrunk', LOWCYL, dm(0x9a7a4a), x, 1.9 * s, z, 0.13 * s, 3.8 * s, 0.13 * s, 0, lean, lean); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + x; inst(r + 'frond', LOWCONE, dm(0x4f9a3a), x + Math.cos(a) * 0.9 * s + lean * 3, 3.75 * s, z + Math.sin(a) * 0.9 * s + lean * 3, 0.3 * s, 1.7 * s, 0.12 * s, -a + Math.PI / 2, 0, 1.25); } inst(r + 'coco', LOWICO, dm(0x6e5a2a), x + lean * 3, 3.6 * s, z + lean * 3, 0.32 * s); };
-        const dBamboo = (r, x, z) => { for (let i = 0; i < 7; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.18; inst(r + 'bamboo', LOWCYL, dm(0x8fb84a), x + Math.cos(a) * rr, 2.6, z + Math.sin(a) * rr, 0.07, 5.2 - (i % 3) * 0.8, 0.07, 0, Math.cos(a) * 0.06, Math.sin(a) * 0.06); } inst(r + 'bleaf', LOWICO, dm(0x6fae3a), x, 4.6, z, 1.1, 0.9, 1.1); };
-        const dBanana = (r, x, z) => { inst(r + 'btrunk', LOWCYL, dm(0x8a9a4a), x, 0.9, z, 0.16, 1.8, 0.16); for (let i = 0; i < 5; i++) { const a = i * 1.25 + x; inst(r + 'bananaleaf', LOWBOX, dm(0x5fae3a), x + Math.cos(a) * 0.7, 1.9, z + Math.sin(a) * 0.7, 1.4, 0.04, 0.42, -a, 0, -0.35); } };
+        const dTree = anchored((r, x, z, s = 1, c = 0x4f9a3f) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.75 * s, z, 0.16 * s, 2.1 * s, 0.16 * s); inst(r + 'leaf' + c, LOWICO, dm(c), x, 2.3 * s, z, 1.2 * s, 1.0 * s, 1.2 * s, x * 3); inst(r + 'leaf' + c, LOWICO, dm(c), x + 0.4 * s, 2.9 * s, z - 0.2 * s, 0.8 * s, 0.7 * s, 0.8 * s, z); });
+        const dPine = anchored((r, x, z, s = 1) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.45 * s, z, 0.14 * s, 1.5 * s, 0.14 * s); for (let i = 0; i < 3; i++) inst(r + 'pine', LOWCONE, dm(0x2f6b3a), x, (1.5 + i * 0.8) * s, z, (1.3 - i * 0.35) * s, 1.4 * s, (1.3 - i * 0.35) * s, x + i); });
+        const dPalm = anchored((r, x, z, s = 1) => { const lean = ((x * 7 + z * 3) % 5) / 25; inst(r + 'ptrunk', LOWCYL, dm(0x9a7a4a), x, 1.9 * s, z, 0.13 * s, 3.8 * s, 0.13 * s, 0, lean, lean); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + x; inst(r + 'frond', LOWCONE, dm(0x4f9a3a), x + Math.cos(a) * 0.9 * s + lean * 3, 3.75 * s, z + Math.sin(a) * 0.9 * s + lean * 3, 0.3 * s, 1.7 * s, 0.12 * s, -a + Math.PI / 2, 0, 1.25); } inst(r + 'coco', LOWICO, dm(0x6e5a2a), x + lean * 3, 3.6 * s, z + lean * 3, 0.32 * s); });
+        const dBamboo = anchored((r, x, z) => { for (let i = 0; i < 7; i++) { const a = i * 2.4, rr = 0.35 + (i % 3) * 0.18; inst(r + 'bamboo', LOWCYL, dm(0x8fb84a), x + Math.cos(a) * rr, 2.6, z + Math.sin(a) * rr, 0.07, 5.2 - (i % 3) * 0.8, 0.07, 0, Math.cos(a) * 0.06, Math.sin(a) * 0.06); } inst(r + 'bleaf', LOWICO, dm(0x6fae3a), x, 4.6, z, 1.1, 0.9, 1.1); });
+        const dBanana = anchored((r, x, z) => { inst(r + 'btrunk', LOWCYL, dm(0x8a9a4a), x, 0.9, z, 0.16, 1.8, 0.16); for (let i = 0; i < 5; i++) { const a = i * 1.25 + x; inst(r + 'bananaleaf', LOWBOX, dm(0x5fae3a), x + Math.cos(a) * 0.7, 1.9, z + Math.sin(a) * 0.7, 1.4, 0.04, 0.42, -a, 0, -0.35); } });
         const dRock = (r, x, z, s = 1, c = 0x9a9a92) => inst(r + 'rock' + c, LOWICO, dm(c), x, 0.25 * s, z, 0.7 * s, 0.45 * s, 0.6 * s, x + z);
         const dBush = (r, x, z, s = 1, c = 0x5f9a3f) => inst(r + 'bush' + c, LOWICO, dm(c), x, 0.35 * s, z, 0.7 * s, 0.5 * s, 0.7 * s, x);
-        const dFlower = (r, x, z, c) => { inst(r + 'stem', LOWCYL, dm(0x4f8a3a), x, 0.2, z, 0.02, 0.4, 0.02); inst(r + 'fl' + c, LOWICO, dm(c), x, 0.42, z, 0.09); };
+        const dFlower = anchored((r, x, z, c) => { inst(r + 'stem', LOWCYL, dm(0x4f8a3a), x, 0.2, z, 0.02, 0.4, 0.02); inst(r + 'fl' + c, LOWICO, dm(c), x, 0.42, z, 0.09); });
         const dMount = (x, z, rad, h, c = 0x7a8a6a, snow) => { const m = mesh(new THREE.ConeGeometry(rad, h, 9), dm(c), scene); m.position.set(x, h / 2 - 0.3, z); m.castShadow = false; if (snow) { const s = mesh(new THREE.ConeGeometry(rad * 0.3, h * 0.3, 9), dm(0xffffff), scene); s.position.set(x, h * 0.85 - 0.3, z); s.castShadow = false; } };
-        const dHouseBlock = (x, z, w, d, h, c, roofC) => { inst('city' + c, LOWBOX, dm(c), x, h / 2, z, w, h, d); inst('cityroof' + roofC, LOWBOX, dm(roofC), x, h + 0.15, z, w + 0.2, 0.3, d + 0.2); for (let y = 1.4; y < h - 0.6; y += 1.6) for (let i = -w / 2 + 0.8; i < w / 2 - 0.4; i += 1.4) inst('citywin', LOWBOX, dm(0x9fd8ff, { roughness: 0.2 }), x + i, y, z + d / 2 + 0.02, 0.7, 0.8, 0.05); addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2); };
-        const dCar = (x, z, rot, c) => { inst('car' + c, LOWBOX, dm(c), x, 0.45, z, 1.6, 0.6, 3.2, rot); inst('cartop' + c, LOWBOX, dm(c), x, 0.95, z, 1.4, 0.5, 1.7, rot); inst('carwheel', LOWCYL, dm(0x222222), x, 0.25, z, 0.3, 1.7, 0.3, rot, 0, Math.PI / 2); addCircleCollider(x, z, 1.4); };
+        const dHouseBlock = anchored((x, z, w, d, h, c, roofC) => { inst('city' + c, LOWBOX, dm(c), x, h / 2, z, w, h, d); inst('cityroof' + roofC, LOWBOX, dm(roofC), x, h + 0.15, z, w + 0.2, 0.3, d + 0.2); for (let y = 1.4; y < h - 0.6; y += 1.6) for (let i = -w / 2 + 0.8; i < w / 2 - 0.4; i += 1.4) inst('citywin', LOWBOX, dm(0x9fd8ff, { roughness: 0.2 }), x + i, y, z + d / 2 + 0.02, 0.7, 0.8, 0.05); addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2); });
+        const dCar = anchored((x, z, rot, c) => { inst('car' + c, LOWBOX, dm(c), x, 0.45, z, 1.6, 0.6, 3.2, rot); inst('cartop' + c, LOWBOX, dm(c), x, 0.95, z, 1.4, 0.5, 1.7, rot); inst('carwheel', LOWCYL, dm(0x222222), x, 0.25, z, 0.3, 1.7, 0.3, rot, 0, Math.PI / 2); addCircleCollider(x, z, 1.4); });
         // keep the decoration away from paths, buildings and water
         // (the points are kept in 6×6 cells, so asking is quick)
         let pathGrid = null, pathGridN = -1;
@@ -2149,6 +2153,90 @@
                 g.visible = false;
                 weedVis.push({ g });
             });
+        }
+        // 🌳🪨 wild trees and stones in the countryside round the villages: sprouts come up by themselves and grow
+        // into trees over a few nights; fell them for wood, break the stones for stone (now and then a little ore)
+        const WILD_REG = ['hutan', 'gunung', 'sawah', 'pantai'], WILD_TREES = 10, WILD_ROCKS = 7, WILD_GROW = 3, WILD_MAX = 80, ROCK_HITS = 2;
+        const wildHits = w => w.k === 'r' ? ROCK_HITS : w.g >= WILD_GROW ? 3 : 2;
+        function wildSpot(rid) {
+            const r = REGI[rid];
+            for (let n = 0; n < 40; n++) {
+                const x = r.x0 + 4 + Math.random() * (r.x1 - r.x0 - 8), z = r.z0 + 4 + Math.random() * (r.z1 - r.z0 - 8);
+                if (regionOf({ x, z }) !== r || !freeSpot(x, z, 2.6) || !walkable({ x, z })) continue;
+                if (state.wild.some(w => Math.hypot(w.x - x, w.z - z) < 3)) continue;
+                if (colliders.some(c => !c.off && (c.t === 'c' ? Math.hypot(c.x - x, c.z - z) < c.r + 1.4 : x > c.minX - 1.4 && x < c.maxX + 1.4 && z > c.minZ - 1.4 && z < c.maxZ + 1.4))) continue;
+                return [Math.round(x * 10) / 10, Math.round(z * 10) / 10];
+            }
+            return null;
+        }
+        // the host tops every region up: all at once for a new farm, a couple of sprouts and a stone a night after that
+        function wildSpawn(first) {
+            state.wild ||= []; state.wildN ||= 0;
+            for (const rid of WILD_REG) {
+                const here = state.wild.filter(w => w.r === rid), nt = here.filter(w => w.k === 't').length, nr = here.length - nt;
+                const addT = Math.max(0, first ? WILD_TREES - nt : Math.min(2, WILD_TREES - nt)), addR = Math.max(0, first ? WILD_ROCKS - nr : Math.min(1, WILD_ROCKS - nr));
+                for (let i = 0; i < addT + addR && state.wild.length < WILD_MAX; i++) {
+                    const p = wildSpot(rid); if (!p) break;
+                    const tree = i < addT;
+                    state.wild.push({ i: ++state.wildN, k: tree ? 't' : 'r', r: rid, x: p[0], z: p[1], g: tree ? (first ? [3, 3, 3, 2, 1, 0][Math.floor(Math.random() * 6)] : 0) : WILD_GROW, s: 0, h: 0, d: 0 });
+                }
+            }
+        }
+        function wildNight() {
+            for (const w of state.wild || []) if (w.k === 't' && w.s === 0 && w.g < WILD_GROW) w.g++;
+            state.wild = (state.wild || []).filter(w => !(w.s === 1 && state.day + 1 - w.d >= 2)); // stumps rot away after two nights
+            wildSpawn(false);
+        }
+        function wildModel(w) {
+            const g = new THREE.Group(), h = (w.i * 2654435761 % 1000) / 1000, pine = w.r === 'gunung' && h < 0.6;
+            if (w.k === 'r') {
+                const c = [0x8d9299, 0x9a958a, 0x7f8790][w.i % 3];
+                const a = mesh(ICO, mat(c), g); a.scale.set(0.55, 0.38, 0.48); a.position.y = 0.26; a.rotation.y = h * 6;
+                const b = mesh(ICO, mat(0x7b8088), g); b.scale.set(0.28, 0.22, 0.26); b.position.set(0.42, 0.14, 0.18);
+                return g;
+            }
+            if (w.s === 1) {
+                const st = mesh(CYL, mat(C.darkBrown), g); st.scale.set(0.26, 0.32, 0.26); st.position.y = 0.16;
+                const top = mesh(CYL, mat(0xd8b07a), g); top.scale.set(0.23, 0.02, 0.23); top.position.y = 0.325;
+                return g;
+            }
+            const leaf = pine ? leafMat(0x3f8a4a, true) : leafMat([C.leaf1, C.leaf2, C.leaf3][w.i % 3]);
+            if (w.g === 0) {                                                       // a sprout: two leaves on a stalk
+                const st = mesh(CYL, mat(0x6a8a3a), g); st.scale.set(0.02, 0.25, 0.02); st.position.y = 0.12;
+                for (const sx of [1, -1]) { const l = mesh(SPH, leaf, g); l.scale.set(0.09, 0.03, 0.05); l.position.set(0.07 * sx, 0.26, 0); l.rotation.z = -0.4 * sx; }
+                return g;
+            }
+            if (w.g === 1) {                                                       // a sapling
+                const st = mesh(TRUNK, mat(C.darkBrown), g); st.scale.set(0.22, 0.45, 0.22); st.position.y = 0.4;
+                const l = mesh(pine ? CONE : ICO, leaf, g); if (pine) l.scale.set(0.4, 0.7, 0.4); else l.scale.setScalar(0.38); l.position.y = 0.95;
+                return g;
+            }
+            const sc = w.g >= WILD_GROW ? 0.85 + h * 0.3 : 0.55;
+            const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.set(sc, sc * 1.1, sc); trunk.position.y = 0.85 * sc;
+            if (pine) for (let i = 0; i < 3; i++) { const c = mesh(CONE, leaf, g); c.scale.set((1.4 - i * 0.35) * sc, 1.5 * sc, (1.4 - i * 0.35) * sc); c.position.y = (1.7 + i * 0.85) * sc; }
+            else for (const [px, py, pz, r] of [[0, 2.3, 0, 1.15], [0.6, 2.0, 0.3, 0.72], [-0.55, 2.1, -0.2, 0.78], [0.15, 2.95, -0.1, 0.78]]) { const f = mesh(ICO, leaf, g); f.scale.setScalar(r * sc); f.position.set(px * sc, py * sc, pz * sc); f.rotation.y = h * 5 + px; }
+            return g;
+        }
+        const wildVis = new Map();
+        let wildSig = '';
+        function updateWild() {
+            if (!state.wild) { if (net.mode !== 'guest') wildSpawn(true); else return; }
+            const sig = state.wild.map(w => `${w.i}.${w.g}.${w.s}`).join(',');
+            if (sig === wildSig) return;
+            wildSig = sig;
+            const keep = new Set();
+            for (const w of state.wild) {
+                const key = `${w.g}.${w.s}`, v = wildVis.get(w.i);
+                keep.add(w.i);
+                if (v && v.key === key) continue;
+                if (v) scene.remove(v.g);
+                const g = wildModel(w); g.position.set(w.x, groundY(w.x, w.z) - 0.04, w.z); scene.add(g);
+                const col = v ? v.col : { t: 'c', x: w.x, z: w.z, r: 0 };
+                if (!v) colliders.push(col);
+                col.r = w.k === 'r' ? 0.6 : w.s ? 0.3 : w.g >= 2 ? 0.42 : 0; col.off = !col.r;
+                wildVis.set(w.i, { g, col, key });
+            }
+            for (const [i, v] of wildVis) if (!keep.has(i)) { scene.remove(v.g); const k = colliders.indexOf(v.col); if (k >= 0) colliders.splice(k, 1); wildVis.delete(i); }
         }
         // 🔨 the workbench, next to the tool chest
         const WORKBENCH = new THREE.Vector3(-1.1, 0, -10.25);
@@ -3517,6 +3605,58 @@
         const HAIR_STYLES = [['panjang', 'Panjang lurus', '👩'], ['bob', 'Bob sebahu', '💁'], ['kuncir', 'Kuncir kuda', '🎀'], ['sanggul', 'Sanggul', '🍡'], ['kepang', 'Kepang dua', '🪢'], ['ikal', 'Ikal panjang', '🌊'],
             ['pendek', 'Pendek rapi', '👦'], ['cepak', 'Cepak', '💈'], ['samping', 'Belah samping', '🧑'], ['jambul', 'Jambul', '🦚'], ['gondrong', 'Gondrong', '🎸'], ['keriting', 'Keriting', '🌀']];
         const HAIR_STYLE_IDS = HAIR_STYLES.map(h => h[0]);
+        const HAIR_COLORS_HEX = [0x2a1a12, 0x4a2a14, 0x7a4a24, 0xa0703a, 0x1a1e2e, 0x8a8a8a];
+        // 🙂 the face is painted on a thin shell over the front of the head: brows, eyes with an iris and
+        // highlights, a soft nose, lips and (for girls) blush. Two pictures per look, eyes open and shut,
+        // swapped for blinking and sleeping; the textures are shared by everyone with the same look.
+        const faceTexCache = {};
+        const FACE_GEO = new THREE.SphereGeometry(1, 40, 28, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.95, 1.9);
+        function faceTex(girl, hair, shut) {
+            const key = `${girl ? 1 : 0}|${hair}|${shut ? 1 : 0}`;
+            if (faceTexCache[key]) return faceTexCache[key];
+            const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.scale(0.5, 0.5);
+            const sep = 100, ey = 252, hx = '#' + hair.toString(16).padStart(6, '0');
+            for (const s of [-1, 1]) { const gr = g.createRadialGradient(256 + s * 150, 336, 4, 256 + s * 150, 336, 62); gr.addColorStop(0, girl ? 'rgba(240,120,120,0.45)' : 'rgba(220,120,100,0.2)'); gr.addColorStop(1, 'rgba(240,120,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, 512, 512); }
+            // brows, in the hair colour
+            g.strokeStyle = hx; g.lineCap = 'round';
+            for (const s of [-1, 1]) { g.lineWidth = girl ? 9 : 13; g.beginPath(); g.moveTo(256 + s * (sep - 48), 196 + (girl ? 4 : 0)); g.quadraticCurveTo(256 + s * sep, 176, 256 + s * (sep + 50), 194 + (girl ? 8 : 4)); g.stroke(); }
+            for (const s of [-1, 1]) {
+                const x = 256 + s * sep, y = ey, rx = 42, ry = 47;
+                if (shut) {
+                    // closed: the lid line curving down, lashes for girls
+                    g.strokeStyle = '#2b1a14'; g.lineWidth = 8; g.beginPath(); g.arc(x, y - 22, 44, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
+                    if (girl) { g.lineWidth = 5; const a = s > 0 ? Math.PI * 0.15 : Math.PI * 0.85, px = x + Math.cos(a) * 44, py = y - 22 + Math.sin(a) * 44; g.beginPath(); g.moveTo(px, py); g.lineTo(px + s * 14, py - 4); g.stroke(); }
+                    continue;
+                }
+                g.save(); g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = '#fbf8f4'; g.fill(); g.clip();
+                g.fillStyle = 'rgba(120,80,70,0.18)'; g.fillRect(x - rx, y - ry, rx * 2, ry * 0.45);       // the upper lid's shadow
+                const ir = 32, iy = y + 5;
+                const gi = g.createRadialGradient(x, iy + 6, 2, x, iy, ir); gi.addColorStop(0, '#9a6a3a'); gi.addColorStop(0.65, '#5a3820'); gi.addColorStop(1, '#2e1c10'); g.fillStyle = gi; g.beginPath(); g.arc(x, iy, ir, 0, Math.PI * 2); g.fill();
+                g.fillStyle = '#140c08'; g.beginPath(); g.arc(x, iy, ir * 0.45, 0, Math.PI * 2); g.fill();
+                g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x + 11, iy - 13, 10, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(x - 10, iy + 11, 4.5, 0, Math.PI * 2); g.fill();
+                g.restore();
+                g.strokeStyle = '#2b1a14'; g.lineWidth = girl ? 8 : 6; g.beginPath(); g.ellipse(x, y, rx + 1, ry + 1, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+                if (girl) { g.lineWidth = 5; for (const t of [0.0, 0.1]) { const a = s > 0 ? Math.PI * (1.95 - t) : Math.PI * (1.05 + t); const px = x + Math.cos(a) * (rx + 1), py = y + Math.sin(a) * (ry + 1); g.beginPath(); g.moveTo(px, py); g.lineTo(px + s * 15, py - 11 + t * 40); g.stroke(); } }
+                g.strokeStyle = 'rgba(80,45,35,0.35)'; g.lineWidth = 3; g.beginPath(); g.ellipse(x, y, rx, ry, 0, Math.PI * 0.2, Math.PI * 0.8); g.stroke();
+            }
+            // nose: a soft shadow down one side and two nostrils
+            g.strokeStyle = 'rgba(150,80,60,0.55)'; g.lineWidth = 6; g.beginPath(); g.moveTo(268, 286); g.quadraticCurveTo(282, 322, 264, 334); g.stroke();
+            g.fillStyle = 'rgba(150,80,60,0.35)'; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(256 + s * 12, 336, 6, 4, 0, 0, Math.PI * 2); g.fill(); }
+            // lips
+            g.fillStyle = girl ? '#d9646e' : '#b8665c'; g.beginPath(); g.moveTo(214, 378); g.quadraticCurveTo(236, 362, 256, 370); g.quadraticCurveTo(276, 362, 298, 378); g.quadraticCurveTo(256, 408, 214, 378); g.fill();
+            g.strokeStyle = 'rgba(90,30,30,0.75)'; g.lineWidth = 4.5; g.beginPath(); g.moveTo(214, 378); g.quadraticCurveTo(256, 390, 298, 378); g.stroke();
+            g.fillStyle = 'rgba(255,255,255,0.35)'; g.beginPath(); g.ellipse(264, 392, 11, 3, 0, 0, Math.PI * 2); g.fill();
+            const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+            return faceTexCache[key] = t;
+        }
+        // returns the farmer's "eyes": one stand-in whose scale.y, set by the blink and sleep code, picks the open or shut picture
+        function paintFace(hd, girl, hair) {
+            const open = faceTex(girl, hair, false), shut = faceTex(girl, hair, true);
+            const m = new THREE.MeshStandardMaterial({ map: open, transparent: true, roughness: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+            const shell = new THREE.Mesh(FACE_GEO, m); shell.scale.set(0.1 * 1.006, 0.122 * 1.006, 0.11 * 1.006); shell.renderOrder = 2; hd.add(shell);
+            let y = 1;
+            return [{ scale: { x: 1, get y() { return y; }, set y(v) { y = v; m.map = v < 0.5 ? shut : open; } } }];
+        }
         const hairStyleOf = (o, girl) => o && HAIR_STYLE_IDS.includes(o.hs) ? o.hs : girl ? 'panjang' : 'pendek';
         const patCache = {};
         // fabric patterns drawn once on a small canvas
@@ -3713,15 +3853,12 @@
             const hd = new THREE.Group(); hd.position.set(0, shY + 0.21, 0); body.add(hd);
             ball(0.1, 0.122, 0.11, skin, 0, 0, 0, hd);
             for (const sx of [1, -1]) ball(0.02, 0.034, 0.016, skin, 0.1 * sx, -0.005, 0, hd);
-            const eyes = [eye(hd, 0.038, 0.012, 0.096, 0.016), eye(hd, -0.038, 0.012, 0.096, 0.016)];
-            for (const sx of [1, -1]) box(0.036, 0.008, 0.008, HAIR, 0.039 * sx, 0.042, 0.1, hd).rotation.z = sx * (girl ? -0.1 : 0.06);
-            ball(0.012, 0.018, 0.014, skin, 0, -0.02, 0.108, hd);
-            box(0.032, 0.007, 0.006, girl ? 0xd0606a : 0xa8584e, 0, -0.058, 0.104, hd);
-            if (girl) for (const sx of [1, -1]) ball(0.02, 0.012, 0.006, 0xf08f80, 0.06 * sx, -0.03, 0.093, hd).castShadow = false;
+            const hairC = look.hair || (o.hc != null ? HAIR_COLORS_HEX[o.hc] : HAIR);
+            const eyes = paintFace(hd, girl, hairC);
             const hijab = head && head.kind === 'hijab';
             // hair and headwear sit in their own group so a mukena can cover them during prayer
             const hairG = new THREE.Group(); hd.add(hairG);
-            if (!hijab) hair(hairG, girl, head, look.hair || (o.hc != null ? [0x2a1a12, 0x4a2a14, 0x7a4a24, 0xa0703a, 0x1a1e2e, 0x8a8a8a][o.hc] : undefined), hairStyleOf(o, girl));
+            if (!hijab) hair(hairG, girl, head, hairC, hairStyleOf(o, girl));
             if (head) hat(hairG, head, girl);
             f.mukena = null; f.mukOn = false;
             if (girl) {
@@ -4076,7 +4213,7 @@
             if (id === 'cook') return 3;
             const p = String(id).split(':')[0];
             if (id === 'catch') return state.up && state.up.pancing ? 1 : 2;
-            const base = { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, craft: 1, deco: 1, poop: 1, trough: 1, trougho: 1, rock: 4, log: 4, weed: 1 }[p] || 0;
+            const base = { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, craft: 1, deco: 1, poop: 1, trough: 1, trougho: 1, rock: 4, log: 4, wild: 3, weed: 1 }[p] || 0;
             return base > 1 && state.up && Object.keys(state.up).some(t => UP_IDS[t] && UP_IDS[t].includes(p)) ? Math.ceil(base / 2) : base;
         }
         let warnLate = 0;
@@ -4126,7 +4263,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), wild: null, wildN: 0, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -4149,6 +4286,8 @@
             st.rocks = Array.isArray(saved.rocks) && saved.rocks.length === ROCK_POS.length ? saved.rocks.map(v => v ? 1 : 0) : base.rocks;
             st.logs = Array.isArray(saved.logs) && saved.logs.length === WOOD_POS.length ? saved.logs.map(l => ({ s: [0, 1, 2].includes(l && l.s) ? l.s : 0, hp: Number.isFinite(l && l.hp) ? l.hp : 3, d: +(l && l.d) || 0 })) : base.logs;
             st.weeds = Array.isArray(saved.weeds) && saved.weeds.length === WEED_POS.length ? saved.weeds.map(v => v ? 1 : 0) : base.weeds;
+            st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
+            st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             if (saved.inv && !saved.bags) for (const [k, n] of Object.entries(cleanItems(saved.inv))) st.store.chest[k] = (st.store.chest[k] || 0) + n;
             delete st.inv;
             st.eggs = Array.isArray(saved.eggs) ? saved.eggs.filter(e => Array.isArray(e) && e.every(Number.isFinite)).slice(0, EGG_MAX) : base.eggs;
@@ -5394,6 +5533,7 @@
             rockVis.forEach((v, i) => { const on = !state.rocks[i]; v.g.visible = on; v.col.off = !on; });
             woodVis.forEach((v, i) => { const s = state.logs[i].s; v.tree.visible = s === 0; v.stump.visible = s === 1; v.col.off = s === 2; v.col.r = s === 1 ? 0.3 : 0.45; });
             weedVis.forEach((v, i) => { v.g.visible = !!state.weeds[i]; });
+            updateWild();
             updateTiles();
             updateFPots();
             updatePoop();
@@ -6650,7 +6790,7 @@
         }
         // ⚒️ the blacksmith: a tool tempered once is lighter, so work with it costs half the energy
         const UPGRADES = { cangkul: { besi: 3, gold: 400 }, penyiram: { besi: 2, gold: 300 }, beliung: { besi: 3, gold: 400 }, kapak: { besi: 3, gold: 400 }, sabit: { besi: 2, gold: 250 }, pancing: { besi: 2, gold: 300 } };
-        const UP_IDS = { cangkul: ['tile'], penyiram: ['pot', 'tr'], beliung: ['rock'], kapak: ['log'], sabit: ['weed'], pancing: ['catch'] };
+        const UP_IDS = { cangkul: ['tile'], penyiram: ['pot', 'tr'], beliung: ['rock', 'wild'], kapak: ['log', 'wild'], sabit: ['weed'], pancing: ['catch'] };
         function openPandai() {
             const body = Object.entries(UPGRADES).map(([t, c]) => {
                 const done = state.up && state.up[t], ok = !done && have(USER, 'besi') >= c.besi && state.gold >= c.gold;
@@ -7623,6 +7763,31 @@
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
             // 🌳 a fruit tree you planted: water it, pick it, or fell it with the axe
+            wild(who, x) {
+                const [a, t] = String(x).split('|'), w = (state.wild || []).find(v => v.i === +a);
+                if (!w) return;
+                const at = [w.x, groundY(w.x, w.z) + (w.k === 't' && !w.s ? 1.4 : 0.6), w.z], drop = () => { state.wild = state.wild.filter(v => v !== w); };
+                const hint = (k, what) => emitEvent(`Untuk ${what}, ${toolHint(k)} dulu. Ambil di kotak perkakas 🧰`, 'none', null, who);
+                if (w.k === 'r') {
+                    if (t !== 'beliung') { hint('beliung', 'memecah batu'); return; }
+                    if (bagRoom(who, 'batu') < 2) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    if (++w.h < ROCK_HITS) { emitEvent(`Tak! Memecah batu ⛏️ · ${ROCK_HITS - w.h} pukulan lagi`, 'icon:⛏️', at, who); return; }
+                    drop();
+                    const got = [['batu', 1 + (Math.random() < 0.5 ? 1 : 0)]], roll = Math.random();
+                    if (roll < 0.05) got.push(['besi', 1]); else if (roll < 0.2) got.push(['tembaga', 1]);
+                    for (const [k, n] of got) addBag(who, k, n);
+                    emitEvent(`Batu pecah ⛏️ · dapat ${got.map(([k, n]) => `${PRODUCTS[k].icon} ${PRODUCTS[k].label}${n > 1 ? ' ×' + n : ''}`).join(', ')}`, 'icon:🪨', at, who);
+                    return;
+                }
+                if (w.g < 2) { emitEvent(`Masih tunas 🌱 · biarkan tumbuh, jadi pohon ${WILD_GROW - w.g} hari lagi`, 'none', null, who); return; }
+                if (t !== 'kapak') { hint('kapak', 'menebang'); return; }
+                if (bagRoom(who, 'kayu') < 3) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                if (w.s === 1) { drop(); addBag(who, 'kayu', 1); emitEvent('Tunggul dibersihkan · dapat 🪵 Kayu', 'icon:🪵', at, who); return; }
+                if (++w.h < wildHits(w)) { emitEvent(`Tok! Menebang pohon 🪓 · ${wildHits(w) - w.h} ayunan lagi`, 'icon:🪓', at, who); return; }
+                const n = w.g >= WILD_GROW ? 3 : 1;
+                Object.assign(w, { s: 1, h: 0, d: state.day }); addBag(who, 'kayu', n);
+                emitEvent(`Pohon tumbang! Dapat 🪵 Kayu${n > 1 ? ' ×' + n : ''}`, 'icon:🪵', at, who);
+            },
             ptree(who, x) {
                 const [a, b, arg = ''] = String(x).split('|'), ix = parseInt(a, 10), iz = parseInt(b, 10);
                 const i = state.ptrees.findIndex(t => t.x === ix && t.z === iz);
@@ -8390,6 +8555,27 @@
                 opts.length ? el('div', { class: 'seedgrid' }, opts) : el('p', { class: 'small-note', text: 'Belum ada di tasmu. Beli lewat laptop 💻 di rumah, atau ambil dari kotak penyimpanan 📦.' }),
             ].filter(Boolean));
         }
+        const wildIts = new Map();
+        function wildIt(w) {
+            let it = wildIts.get(w.i);
+            if (it) return it;
+            const id = w.i, cur = () => (state.wild || []).find(v => v.i === id);
+            it = {
+                id: 'wild', pos: new THREE.Vector3(w.x, 0, w.z), reach: w.k === 't' ? 1.7 : 1.45,
+                label() {
+                    const v = cur();
+                    if (!v) return '';
+                    if (v.k === 'r') return tool === 'beliung' ? `Pecahkan batu liar ⛏️ (${ROCK_HITS - v.h} pukulan)` : `Batu liar 🪨 · ${toolHint('beliung')} untuk memecah`;
+                    if (v.g < 2) return `🌱 Tunas pohon liar · bisa ditebang ${2 - v.g} hari lagi`;
+                    if (v.s === 1) return tool === 'kapak' ? 'Bersihkan tunggul 🪓' : `Tunggul pohon · ${toolHint('kapak')}`;
+                    const young = v.g < WILD_GROW ? ' muda' : '';
+                    return tool === 'kapak' ? `Tebang pohon${young} 🪓 (${wildHits(v) - v.h} ayunan lagi)` : `Pohon liar${young} 🌳 · ${toolHint('kapak')} untuk menebang`;
+                },
+                choose(cb) { cb(`${id}|${tool}`); },
+            };
+            wildIts.set(id, it);
+            return it;
+        }
         const ptreeIts = new Map();
         function ptreeIt(d) {
             const key = ptreeKey(d);
@@ -8493,6 +8679,12 @@
             if (outside) for (const p of state.poop) {
                 const d = Math.hypot(p.x - player.pos.x, p.z - player.pos.z);
                 if (d < 0.95 && d < bestD) { POOP_IT.pos.set(p.x, 0, p.z); POOP_IT.at = p; best = POOP_IT; bestD = d; }
+            }
+            if (outside) for (const w of state.wild || []) {
+                const d = Math.hypot(w.x - player.pos.x, w.z - player.pos.z);
+                if (d > 2) continue;
+                const it = wildIt(w);
+                if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
             for (const t of state.ptrees) {
                 if (!FDEF[t.k]) continue;
@@ -8799,7 +8991,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit)],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -8895,6 +9087,7 @@
             if (typeof w.ti === 'string') state.tiles = decTiles(w.ti);
             if (Array.isArray(w.fp)) state.fpots = w.fp.filter(v => Array.isArray(v)).slice(0, FPOT_MAX).map(v => ({ x: v[0] / 10, z: v[1] / 10, s: GARDEN[v[2]] ? GARDEN[v[2]].key : null, p: (+v[3] || 0) / 2, w: !!(v[4] & 1), f: !!(v[4] & 2), dry: v[4] >> 2, c: v[5] === 1 ? NA : v[5] === 2 ? NW : null }));
             if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && ALL_FRUITS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: ALL_FRUITS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
+            if (Array.isArray(w.wl)) state.wild = w.wl.filter(v => Array.isArray(v) && WILD_REG[v[2]]).slice(0, WILD_MAX).map(v => ({ i: v[0] | 0, k: v[1] ? 'r' : 't', r: WILD_REG[v[2]], x: v[3] / 10, z: v[4] / 10, g: +v[5] || 0, s: +v[6] || 0, h: +v[7] || 0, d: 0 }));
             if (Array.isArray(w.rk) && w.rk.length === ROCK_POS.length) state.rocks = w.rk.map(v => v ? 1 : 0);
             if (Array.isArray(w.lg) && w.lg.length === WOOD_POS.length) state.logs = w.lg.map(v => ({ s: Array.isArray(v) ? +v[0] || 0 : 0, hp: Array.isArray(v) ? +v[1] || 0 : 3, d: 0 }));
             if (Array.isArray(w.wq) && w.wq.length === WEED_POS.length) state.weeds = w.wq.map(v => v ? 1 : 0);
@@ -9170,6 +9363,7 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
+                wildNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
@@ -9592,7 +9786,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get BRIDGES() { return BRIDGES; }, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get BRIDGES() { return BRIDGES; }, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
