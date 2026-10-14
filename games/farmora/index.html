@@ -677,7 +677,8 @@
         const mat = c => matCache[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.82, metalness: 0 });
         const glossy = c => matCache['g' + c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.18, metalness: 0 });
         const BOX = new THREE.BoxGeometry(1, 1, 1);
-        const ICO = new THREE.IcosahedronGeometry(1, 2);   // smooth, slightly lumpy sphere
+        const ICO = new THREE.IcosahedronGeometry(1, 1);   // a lumpy sphere (rocks, bushes, leaves) in the low-poly style
+        const ICO1 = new THREE.IcosahedronGeometry(1, 1);  // a tree's leafy clump: a few more facets, far fewer triangles
         const SPH = new THREE.SphereGeometry(1, 14, 10), SPH_HI = new THREE.SphereGeometry(1, 22, 14);
         const CONE = new THREE.ConeGeometry(1, 1, 16);
         const CYL = new THREE.CylinderGeometry(1, 1, 1, 24);
@@ -2304,7 +2305,7 @@
             const c = [C.leaf1, C.leaf2, C.leaf3][Math.floor(srand() * 3)];
             const lighter = new THREE.Color(c).offsetHSL(0, 0, 0.06).getHex();
             for (const [px, py, pz, r, cc] of [[0, 2.3, 0, 1.15, c], [0.65, 2.0, 0.3, 0.75, c], [-0.6, 2.1, -0.2, 0.8, c], [0.2, 3.0, -0.1, 0.8, lighter], [-0.15, 2.4, 0.7, 0.65, lighter]]) {
-                const f = mesh(ICO, leafMat(cc), g); f.scale.setScalar(r * s); f.position.set(px * s, py * s, pz * s); f.rotation.y = srand() * 3;
+                const f = mesh(ICO1, leafMat(cc), g); f.scale.setScalar(r * s); f.position.set(px * s, py * s, pz * s); f.rotation.y = srand() * 3;
             }
             if (srand() < 0.35) for (let i = 0; i < 4; i++) {
                 const f = mesh(SPH, glossy(0xe8413a), g); f.scale.setScalar(0.12 * s);
@@ -2426,7 +2427,7 @@
             const sc = w.g >= WILD_GROW ? 0.85 + h * 0.3 : 0.55;
             const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.set(sc, sc * 1.1, sc); trunk.position.y = 0.85 * sc;
             if (pine) for (let i = 0; i < 3; i++) { const c = mesh(CONE, leaf, g); c.scale.set((1.4 - i * 0.35) * sc, 1.5 * sc, (1.4 - i * 0.35) * sc); c.position.y = (1.7 + i * 0.85) * sc; }
-            else for (const [px, py, pz, r] of [[0, 2.3, 0, 1.15], [0.6, 2.0, 0.3, 0.72], [-0.55, 2.1, -0.2, 0.78], [0.15, 2.95, -0.1, 0.78]]) { const f = mesh(ICO, leaf, g); f.scale.setScalar(r * sc); f.position.set(px * sc, py * sc, pz * sc); f.rotation.y = h * 5 + px; }
+            else for (const [px, py, pz, r] of [[0, 2.3, 0, 1.15], [0.6, 2.0, 0.3, 0.72], [-0.55, 2.1, -0.2, 0.78], [0.15, 2.95, -0.1, 0.78]]) { const f = mesh(ICO1, leaf, g); f.scale.setScalar(r * sc); f.position.set(px * sc, py * sc, pz * sc); f.rotation.y = h * 5 + px; }
             return g;
         }
         const wildVis = new Map();
@@ -4243,7 +4244,7 @@
         function makeFarmer(look) {
             const f = { group: new THREE.Group(), heading: Math.PI, phase: 0 };
             f.pos = f.group.position;
-            buildFarmer(f, look);
+            buildFarmer(f, look); f.group.userData.person = 1;
             scene.add(f.group);
             return f;
         }
@@ -6784,6 +6785,8 @@
                 f.heading = s.k ? h : lerpAngle(f.heading, h, Math.min(1, dt * 8));
                 f.group.rotation.set(0, f.heading, 0);
                 if (s.moving) f.phase += dt * s.sp * 2.6;
+                // (one off the edge of the screen keeps walking its route, but its arms and legs are not posed: nobody sees them)
+                if (sc === scene && !onScreen(f.pos)) continue;
                 setHeld(f, !s.moving && s.a === 'fish' ? 'pancing' : s.a === 'farm' ? 'sabit' : null);
                 animateFarmer(f, s.moving, dt);
                 f.head.rotation.set(0, 0, 0);
@@ -9757,7 +9760,7 @@
         function setGfx(v) {
             gfx = v; try { localStorage.setItem(GFX_KEY, v); } catch (e) { }
             const q = GFX[v];
-            sun.castShadow = !!q.shadow;
+            sun.castShadow = !!q.shadow; perf.done = true; shadowSweep = 0;
             for (const f of [player, partnerF, ...NPCS.map(n => n.f)]) if (f) peopleShadow(f);
             if (q.shadow && sun.shadow.mapSize.x !== q.shadow) { sun.shadow.mapSize.setScalar(q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
             window.dispatchEvent(new Event('resize'));
@@ -9921,6 +9924,36 @@
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
 
+        const _sv = new THREE.Vector3();
+        const onScreen = p => { _sv.set(p.x, p.y + 0.9, p.z).project(camera); return _sv.z < 1 && Math.abs(_sv.x) < 1.3 && Math.abs(_sv.y) < 1.3; };
+        // 1. 🌤️ on Rendah and Sedang only the bigger things cast the sun's shadow (a house, a tree, a fence post);
+        // small ones (a pot, a crop, a pebble, the grass) do not, which is most of the shadow work on the farm
+        let shadowSweep = 0;
+        function trimShadows() {
+            const all = GFX[gfx].people;
+            // (the farm animals stand on their own soft round shadows too, like people)
+            for (const a of animals) if (a.group) a.group.userData.person = 2;
+            scene.traverse(o => {
+                if (!o.isMesh || o.userData.cs0 === false) return;
+                if (o.userData.cs0 === undefined) { if (!o.castShadow) { o.userData.cs0 = false; return; } o.userData.cs0 = true; }
+                let p = o; while (p && !p.userData.person) p = p.parent; if (p) { if (p.userData.person === 2) o.castShadow = all; return; } // people have their own rule
+                const g = o.geometry; if (!g.boundingSphere) g.computeBoundingSphere();
+                const big = o.isInstancedMesh ? o !== GRASS.mesh : g.boundingSphere.radius * o.matrixWorld.getMaxScaleOnAxis() > 0.45;
+                o.castShadow = all || big;
+            });
+        }
+        // 2. 🐢 if the phone cannot keep up (well under its frame cap for a while), the quality steps down once by itself
+        const perf = { t0: 0, n: 0, done: false };
+        function watchPerf(now) {
+            if (perf.done || !started || dlgOpen() || gfx === 'rendah' || document.hidden) { perf.t0 = 0; return; }
+            if (!perf.t0) { perf.t0 = now; perf.n = 0; return; }
+            perf.n++;
+            if (now - perf.t0 < 8000) return;
+            const fps = perf.n / ((now - perf.t0) / 1000); perf.t0 = 0;
+            // (two slow stretches in a row, so a moment of loading a village does not count)
+            perf.low = fps < GFX[gfx].fps * 0.65 ? (perf.low || 0) + 1 : 0;
+            if (perf.low >= 2) { const next = gfx === 'tinggi' ? 'sedang' : 'rendah'; setGfx(next); toast(`🐢 HP-mu terasa berat, kualitas grafis diturunkan ke ${next === 'sedang' ? 'Sedang' : 'Rendah'}. Bisa diubah lagi di menu ?`); perf.done = true; }
+        }
         let lastFrame = 0;
         function tick(now) {
             requestAnimationFrame(tick);
@@ -9930,9 +9963,10 @@
             if (fcap < 60 && now - lastFrame < 1000 / fcap - 4) return;
             lastFrame = now;
             fitView();
+            if ((shadowSweep -= 1) <= 0) { shadowSweep = 150; trimShadows(); }
             placeBadge();
             const dt = Math.min(clock.getDelta(), 0.05);
-            elapsed += dt;
+            elapsed += dt; watchPerf(now);
             const helpOpen = !$('helpScreen').classList.contains('hidden');
 
             if (started && !sleeping && !helpOpen && net.mode !== 'guest') {
@@ -10039,7 +10073,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { perf, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
