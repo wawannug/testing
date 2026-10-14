@@ -793,6 +793,7 @@
 
         // ---------- Collision ----------
         const colliders = [];
+        const FADERS = []; // groups that turn see-through when they hide you
         function addBoxCollider(minX, maxX, minZ, maxZ) { colliders.push({ t: 'b', minX, maxX, minZ, maxZ }); }
         function addCircleCollider(x, z, r) { colliders.push({ t: 'c', x, z, r }); }
         // an oval (a hill), turned by rot; r is its larger radius, for the checks that only need a rough circle
@@ -915,7 +916,7 @@
         // House: two floors with a front balcony and a rooftop garden
         const HOUSE = { x: -10, z: -14, w: 8, d: 6 };
         {
-            const g = new THREE.Group(); g.position.set(HOUSE.x, 0, HOUSE.z); scene.add(g);
+            const g = new THREE.Group(); g.position.set(HOUSE.x, 0, HOUSE.z); scene.add(g); FADERS.push({ g });
             const W = HOUSE.w, D = HOUSE.d, front = D / 2 + 0.05, wall2 = 0xead6ae;
             box(W, 3.0, D, 0xf3e2c0, 0, 1.5, 0, g);
             box(W + 0.1, 0.25, D + 0.1, C.white, 0, 0.12, 0, g);
@@ -1440,17 +1441,28 @@
             if (!ws || bd > 2) return h;
             return lerp(ys / ws, h, sstep(0.2, 2, bd));
         }
+        const RAMP = 13; // metres of even slope off each end of a bridge
         function planRoadbed() {
             const grid = {}, add = (x, z, y, hw) => (grid[Math.floor(x / 4) + ',' + Math.floor(z / 4)] ||= []).push([x, z, y, hw]);
             const lay = (pts, hw) => {
                 const S = []; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.75)); for (let k = 0; k < n; k++) S.push([x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n]); }
                 S.push(pts[pts.length - 1]);
                 const raw = S.map(([x, z]) => H(x, z)), wet = S.map(([x, z]) => inRiver(x, z, 0.6));
+                const onB = S.map(([x, z]) => BRIDGES.some(q => Math.hypot(x - q.x, z - q.z) < q.L / 2 - 0.3)), skip = S.map(([x, z], i) => inFarmFlat(x, z) || inRiver(x, z, 0.6) || onB[i]);
+                const Y = S.map(([x, z], i) => { if (skip[i]) return null; let t = 0, n = 0; for (let k = Math.max(0, i - 8); k <= Math.min(S.length - 1, i + 8); k++) if (!wet[k]) { t += raw[k]; n++; } return t / n; });
+                // off the end of a bridge the road climbs (or drops) at an even slope for about 13 steps, so the bank of a
+                // river valley is a gentle ramp instead of a steep step up
                 S.forEach(([x, z], i) => {
-                    if (inFarmFlat(x, z) || inRiver(x, z, 0.6) || BRIDGES.some(q => Math.hypot(x - q.x, z - q.z) < q.L / 2 - 0.3)) return;
-                    let t = 0, n = 0; for (let k = Math.max(0, i - 8); k <= Math.min(S.length - 1, i + 8); k++) if (!wet[k]) { t += raw[k]; n++; }
-                    add(x, z, t / n, hw);
+                    if (Y[i] == null) return;
+                    for (const q of BRIDGES) {
+                        const u = (x - q.x) * q.nx + (z - q.z) * q.nz, v = -(x - q.x) * q.nz + (z - q.z) * q.nx, au = Math.abs(u);
+                        if (Math.abs(v) > 3 || au < q.L / 2 - 0.3 || au > q.L / 2 + RAMP) continue;
+                        const sd = Math.sign(u), r = q.ramp ||= {}, key = sd > 0 ? 'b' : 'a';
+                        r[key] ||= [H(q.x + q.nx * sd * q.L / 2, q.z + q.nz * sd * q.L / 2), H(q.x + q.nx * sd * (q.L / 2 + RAMP), q.z + q.nz * sd * (q.L / 2 + RAMP))];
+                        Y[i] = lerp(r[key][0], r[key][1], (au - q.L / 2) / RAMP);
+                    }
                 });
+                S.forEach(([x, z], i) => { if (Y[i] != null) add(x, z, Y[i], hw); });
             };
             for (const [a, b] of EDGES) { const k = roadKind(a, b); if (k !== 'kota') lay(edgePts(a, b), ROAD_STYLE[k].w / 2 + 0.25); }
             RB = grid;
@@ -2072,7 +2084,7 @@
         // the outside of one building
         const CAVE_HZ = -1.2; // the mine's hill stands this far back, so its timbered mouth sticks out of it
         function buildVBuilding(b) {
-            const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.rot; scene.add(g);
+            const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.rot; scene.add(g); FADERS.push({ g });
             const { w, d } = b, st = b.style, tall = st === 'city' || st === 'school' ? 5.6 : st === 'balai' ? 3.2 : st === 'church' ? 3.6 : b.house ? 2.7 : 3.0;
             const y0 = st === 'stilt' ? 0.8 : 0, fz = d / 2 + 0.02;
             if (st === 'cave') {
@@ -2299,7 +2311,7 @@
         const LEAF_MATS = {};
         const leafMat = (c, pine) => LEAF_MATS[c + (pine ? 'p' : '')] ||= sway(Object.assign(new THREE.MeshStandardMaterial({ color: c, roughness: 0.82 }), { userData: { base: new THREE.Color(c), pine, seed: (c % 97) / 97 } }));
         function roundTree(x, z, s = 1) { // returns the tree's group
-            const g = new THREE.Group();
+            const g = new THREE.Group(); FADERS.push({ g });
             g.position.set(x, 0, z);
             const trunk = mesh(TRUNK, mat(C.darkBrown), g); trunk.scale.setScalar(s); trunk.position.y = 0.9 * s;
             const c = [C.leaf1, C.leaf2, C.leaf3][Math.floor(srand() * 3)];
@@ -2443,7 +2455,7 @@
                 keep.add(w.i);
                 if (v && v.key === key) continue;
                 if (v) scene.remove(v.g);
-                const g = wildModel(w); g.position.set(w.x, groundY(w.x, w.z) - 0.04, w.z); scene.add(g);
+                const g = wildModel(w); g.position.set(w.x, groundY(w.x, w.z) - 0.04, w.z); scene.add(g); if (w.k === 't' && w.g >= 2 && !w.s) FADERS.push({ g });
                 const col = v ? v.col : { t: 'c', x: w.x, z: w.z, r: 0 };
                 if (!v) colliders.push(col);
                 col.r = w.k === 'r' ? 0.6 : w.s ? 0.3 : w.g >= 2 ? 0.42 : 0; col.off = !col.r;
@@ -3824,8 +3836,9 @@
         // swapped for blinking and sleeping; the textures are shared by everyone with the same look.
         const faceTexCache = {};
         const FACE_GEO = new THREE.SphereGeometry(1, 22, 14, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.95, 1.9);
-        function faceTex(girl, hair, shut) {
-            const key = `${girl ? 1 : 0}|${hair}|${shut ? 1 : 0}`;
+        // (mood: 0 the everyday face, 1 eyes shut, 2 a big smile with happy closed eyes)
+        function faceTex(girl, hair, shut, smile) {
+            const key = `${girl ? 1 : 0}|${hair}|${shut ? 1 : smile ? 2 : 0}`;
             if (faceTexCache[key]) return faceTexCache[key];
             const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.scale(0.5, 0.5);
             const sep = 100, ey = 252, hx = '#' + hair.toString(16).padStart(6, '0');
@@ -3839,6 +3852,12 @@
                     // closed: the lid line curving down, lashes for girls
                     g.strokeStyle = '#2b1a14'; g.lineWidth = 8; g.beginPath(); g.arc(x, y - 22, 44, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
                     if (girl) { g.lineWidth = 5; const a = s > 0 ? Math.PI * 0.15 : Math.PI * 0.85, px = x + Math.cos(a) * 44, py = y - 22 + Math.sin(a) * 44; g.beginPath(); g.moveTo(px, py); g.lineTo(px + s * 14, py - 4); g.stroke(); }
+                    continue;
+                }
+                if (smile) {
+                    // happy eyes: curved up like ^ ^, with lashes for girls
+                    g.strokeStyle = '#2b1a14'; g.lineWidth = 9; g.beginPath(); g.arc(x, y + 18, 44, Math.PI * 1.12, Math.PI * 1.88); g.stroke();
+                    if (girl) for (const t of [0.05, 0.2]) { g.lineWidth = 5; g.beginPath(); const a = Math.PI * (s < 0 ? 1.12 + t : 1.88 - t); g.moveTo(x + Math.cos(a) * 44, y + 18 + Math.sin(a) * 44); g.lineTo(x + Math.cos(a) * 58, y + 18 + Math.sin(a) * 58); g.stroke(); }
                     continue;
                 }
                 g.save(); g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = '#fbf8f4'; g.fill(); g.clip();
@@ -3855,6 +3874,14 @@
             // nose: a soft shadow down one side and two nostrils
             g.strokeStyle = 'rgba(150,80,60,0.55)'; g.lineWidth = 6; g.beginPath(); g.moveTo(268, 286); g.quadraticCurveTo(282, 322, 264, 334); g.stroke();
             g.fillStyle = 'rgba(150,80,60,0.35)'; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(256 + s * 12, 336, 6, 4, 0, 0, Math.PI * 2); g.fill(); }
+            if (smile) {
+                // an open smile with teeth and a little tongue
+                g.fillStyle = '#7a2e2e'; g.beginPath(); g.moveTo(198, 364); g.quadraticCurveTo(256, 440, 314, 364); g.quadraticCurveTo(256, 382, 198, 364); g.fill();
+                g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(208, 368); g.quadraticCurveTo(256, 388, 304, 368); g.quadraticCurveTo(256, 394, 208, 368); g.fill();
+                g.fillStyle = '#e6787c'; g.beginPath(); g.ellipse(256, 408, 22, 8, 0, 0, Math.PI * 2); g.fill();
+                const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+                return faceTexCache[key] = t;
+            }
             // lips
             g.fillStyle = girl ? '#d9646e' : '#b8665c'; g.beginPath(); g.moveTo(214, 378); g.quadraticCurveTo(236, 362, 256, 370); g.quadraticCurveTo(276, 362, 298, 378); g.quadraticCurveTo(256, 408, 214, 378); g.fill();
             g.strokeStyle = 'rgba(90,30,30,0.75)'; g.lineWidth = 4.5; g.beginPath(); g.moveTo(214, 378); g.quadraticCurveTo(256, 390, 298, 378); g.stroke();
@@ -3864,12 +3891,21 @@
         }
         // returns the farmer's "eyes": one stand-in whose scale.y, set by the blink and sleep code, picks the open or shut picture
         function paintFace(hd, girl, hair) {
-            const open = faceTex(girl, hair, false), shut = faceTex(girl, hair, true);
+            const open = faceTex(girl, hair, false), shut = faceTex(girl, hair, true), happy = faceTex(girl, hair, false, true);
             const m = new THREE.MeshStandardMaterial({ map: open, transparent: true, roughness: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
             const shell = new THREE.Mesh(FACE_GEO, m); shell.scale.set(0.1 * 1.006, 0.122 * 1.006, 0.11 * 1.006); shell.renderOrder = 2; hd.add(shell);
             let y = 1;
-            return [{ scale: { x: 1, get y() { return y; }, set y(v) { y = v; m.map = v < 0.5 ? shut : open; } } }];
+            const eye = { mood: 0, scale: { x: 1, get y() { return y; }, set y(v) { y = v; m.map = v < 0.5 ? shut : eye.mood ? happy : open; } } };
+            return [eye];
         }
+        // 💇 every villager has a hairstyle of their own: grey-haired elders keep a bun or a short crop, children braids or a ponytail
+        const npcHair = n => {
+            let h = 0; for (const ch of n.id) h = (h * 31 + ch.charCodeAt(0)) % 997;
+            const grey = n.hair != null && ((n.hair >> 16) & 255) > 0x80;
+            const pick = n.g === 'f' ? (n.kid ? ['kepang', 'kuncir', 'bob'] : grey ? ['sanggul', 'bob'] : ['panjang', 'bob', 'kuncir', 'sanggul', 'ikal', 'kepang'])
+                : (n.kid ? ['pendek', 'jambul', 'keriting'] : grey ? ['cepak', 'pendek', 'samping'] : ['pendek', 'cepak', 'samping', 'jambul', 'gondrong', 'keriting']);
+            return n.id === 'dewi' ? 'sanggul' : pick[h % pick.length];
+        };
         const hairStyleOf = (o, girl) => o && HAIR_STYLE_IDS.includes(o.hs) ? o.hs : girl ? 'panjang' : 'pendek';
         const patCache = {};
         // fabric patterns drawn once on a small canvas
@@ -4383,7 +4419,10 @@
                 // the head rests to one side
                 f.head.rotation.set(0.12 * e, (hi ? 0.35 : -0.35) * e, (hi ? 0.18 : -0.18) * e);
             }
-            const pb = ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
+            // 😊 a smile while hugging, chatting, or over a gift or a lucky catch
+            const happy = (f.joyT != null && elapsed - f.joyT < JOY_TIME + 1) || (f.hugT != null && elapsed - f.hugT < 4) || (f.talkT != null && elapsed - f.talkT < 4) || (f.smileT || 0) > elapsed;
+            for (const e of f.eyes) e.mood = happy ? 1 : 0;
+            const pb = !happy && ((elapsed + (f.blinkSeed || 0)) % 3.7) < 0.12 ? 0.12 : 1;
             for (const e of f.eyes) e.scale.y = e.scale.x * pb;
         }
         function nameTag(text) {
@@ -6748,7 +6787,7 @@
         function initVillage() {
             buildHome();
             for (const n of NPCS) {
-                n.f = makeFarmer({ n: n.id, g: n.g, o: n.o, skin: n.skin, hair: n.hair, kid: n.kid });
+                n.f = makeFarmer({ n: n.id, g: n.g, o: { hs: npcHair(n), ...n.o }, skin: n.skin, hair: n.hair, kid: n.kid });
                 n.f.group.visible = false;
                 n.tag = nameTag(n.name); n.tag.position.y = n.kid ? 1.75 : 2.25; n.tag.scale.multiplyScalar(0.8); n.f.group.add(n.tag);
                 n.f.blinkSeed = NPCS.indexOf(n) * 0.7;
@@ -6828,7 +6867,7 @@
         let talkNpc = null;
         function openNpcDlg(n) {
             const s = n.st, d = npcData(n.id), b = bitOf(USER);
-            n.talkT = elapsed;
+            n.talkT = elapsed; if (n.f) n.f.talkT = elapsed; player.talkT = elapsed;
             // both stop and face each other while talking
             talkNpc = n; clearGoal();
             if (!n.hold) n.hold = { s: { ...(n.blend ? { ...s, x: n.f.pos.x, z: n.f.pos.z } : s) }, until: elapsed + 1.2 };
@@ -9924,6 +9963,32 @@
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
 
+        // 👻 a house or a tree standing between the camera and you turns see-through (as in Stardew Valley), so you are never lost behind it
+        const fadeMats = new Map(), _ray = new THREE.Ray(), _head = new THREE.Vector3(), _dir = new THREE.Vector3(), _hit = new THREE.Vector3();
+        const fadeOf = m => { let f = fadeMats.get(m); if (!f) { f = m.clone(); f.transparent = true; f.opacity = 0.32; f.depthWrite = false; fadeMats.set(m, f); } return f; };
+        function setFade(f, on) {
+            f.on = on;
+            f.g.traverse(o => { if (!o.isMesh || Array.isArray(o.material)) return; if (on) { if (!o.userData.m0) o.userData.m0 = o.material; o.material = fadeOf(o.userData.m0); } else if (o.userData.m0) { o.material = o.userData.m0; } });
+        }
+        let fadeTick = 0;
+        function updateFades() {
+            if ((fadeTick = (fadeTick + 1) % 4)) return;
+            const indoors = inHome(player.pos);
+            _head.set(player.pos.x, player.pos.y + 1.0, player.pos.z); _dir.subVectors(camera.position, _head); const far = _dir.length(); _dir.normalize(); _ray.set(_head, _dir);
+            for (let i = FADERS.length - 1; i >= 0; i--) {
+                const f = FADERS[i];
+                if (!f.g.parent) { if (f.on) setFade(f, false); FADERS.splice(i, 1); continue; }
+                let want = false;
+                if (!indoors && f.g.visible && (!f.g.parent.isGroup || f.g.parent.visible)) {
+                    const box = f.box ||= new THREE.Box3().setFromObject(f.g);
+                    if (Math.abs(box.min.x + box.max.x - 2 * _head.x) < 50 && Math.abs(box.min.z + box.max.z - 2 * _head.z) < 60 && !box.containsPoint(_head)) {
+                        const hit = _ray.intersectBox(box, _hit);
+                        want = !!hit && hit.distanceTo(_head) < far;
+                    }
+                }
+                if (want !== !!f.on) setFade(f, want);
+            }
+        }
         const _sv = new THREE.Vector3();
         const onScreen = p => { _sv.set(p.x, p.y + 0.9, p.z).project(camera); return _sv.z < 1 && Math.abs(_sv.x) < 1.3 && Math.abs(_sv.y) < 1.3; };
         // 1. 🌤️ on Rendah and Sedang only the bigger things cast the sun's shadow (a house, a tree, a fence post);
@@ -9964,6 +10029,7 @@
             lastFrame = now;
             fitView();
             if ((shadowSweep -= 1) <= 0) { shadowSweep = 150; trimShadows(); }
+            if (started) updateFades();
             placeBadge();
             const dt = Math.min(clock.getDelta(), 0.05);
             elapsed += dt; watchPerf(now);
