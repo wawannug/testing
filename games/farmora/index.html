@@ -606,6 +606,7 @@
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <p style="font-size:13px;margin:6px 0 2px"><b>✨ Kualitas grafis</b> (HP terasa panas atau patah-patah? Pilih Rendah: gambar 30 kali sedetik, tanpa bayangan, lebih hemat baterai)</p>
             <div class="row" id="gfxRow"></div>
+            <div class="row"><button class="btn" id="journalBtn">📔 Jurnal berdua</button></div>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -2438,6 +2439,61 @@
         // 🌳🪨 wild trees and stones in the countryside round the villages: sprouts come up by themselves and grow
         // into trees over a few nights; fell them for wood, break the stones for stone (now and then a little ore)
         const WILD_REG = ['hutan', 'gunung', 'sawah', 'pantai'], WILD_TREES = 10, WILD_ROCKS = 7, WILD_GROW = 3, WILD_MAX = 80, ROCK_HITS = 2;
+        // 📔 the couple's journal: the moments worth remembering, written as they happen (newest last)
+        const JR_MAX = 120;
+        function jot(text) { (state.jr ||= []).push([state.day, text]); if (state.jr.length > JR_MAX) state.jr.splice(0, state.jr.length - JR_MAX); }
+        const firstTime = key => { state.firsts ||= {}; if (state.firsts[key]) return false; state.firsts[key] = state.day; return true; };
+        // 📝 villagers' requests: up to three at a time on the village board; each runs three days
+        function reqNight() {
+            if (net.mode === 'guest') return;
+            state.req = (state.req || []).filter(r => r.due >= state.day + 1);
+            reqFill(1);
+        }
+        function reqFill(n) {
+            state.req ||= [];
+            for (let t = 0; t < 30 && n > 0 && state.req.length < 3; t++) {
+                const p = NPCS[Math.floor(Math.random() * NPCS.length)];
+                if (p.kid || state.req.some(r => r.n === p.id)) continue;
+                const pool = [...(p.like || []), ...(p.love || [])].filter(k => ITEMS[k] && PRODUCTS[k] && PRODUCTS[k].price > 0);
+                if (!pool.length) continue;
+                const k = pool[Math.floor(Math.random() * pool.length)], price = PRODUCTS[k].price, q = clamp(Math.round(240 / price), 1, 5);
+                state.req.push({ i: Math.floor(Math.random() * 1e6), n: p.id, k, q, g: Math.round(price * q * 1.3 / 10) * 10 + 30, due: state.day + 3 });
+                n--;
+            }
+        }
+        // 🏗️ what can be built on the farm with wood and stone
+        const BUILDS = {
+            gudang: { label: 'Gudang', icon: '🏚️', need: { kayu: 20, batu: 15 }, gold: 500, x: -17, z: -19.8, w: 6, d: 4.4, note: 'Lumbung pribadi: simpan barang sebanyak apa pun, dipakai berdua' },
+            pendopo: { label: 'Pendopo taman', icon: '🛖', need: { kayu: 15, batu: 6 }, gold: 300, x: -7, z: 0, w: 4.4, d: 4.4, note: 'Tempat bersantai berdua: +15 ⚡ sekali sehari masing-masing' },
+        };
+        function buildWhy(B) {
+            const inR = (x, z, m = 0.6) => Math.abs(x - B.x) < B.w / 2 + m && Math.abs(z - B.z) < B.d / 2 + m;
+            if (Object.keys(state.tiles).some(k => { const [x, z] = k.split(',').map(Number); return inR(x, z); }) || state.ptrees.some(t => inR(t.x, t.z, 1.5)) || state.fpots.some(p => inR(p.x, p.z)) || state.deco.some(d => inR(d.x, d.z)))
+                return `Kosongkan dulu tempatnya (sekitar ${Math.round(B.x)}, ${Math.round(B.z)}): ada tanah cangkulan, tanaman, pot, atau hiasan di sana`;
+            return '';
+        }
+        const buildVis = {};
+        function updateBuilds() {
+            for (const [key, B] of Object.entries(BUILDS)) {
+                if (!state.build || !state.build[key] || buildVis[key]) continue;
+                const g = new THREE.Group(); g.position.set(B.x, 0, B.z); scene.add(g); FADERS.push({ g });
+                if (key === 'gudang') {
+                    const wall = patternMat(0x9a6b42, 'wood');
+                    mesh(BOX, wall, g).scale.set(B.w, 2.6, B.d); g.children[0].position.y = 1.3;
+                    const roof = gableRoof(B.w + 0.6, B.d + 0.6, 1.2, 0x8a3b2a); roof.position.y = 2.6; roof.material = patternMat(0x8a3b2a, 'tile'); g.add(roof);
+                    box(1.6, 2.0, 0.1, 0x5a3a1e, 0, 1.0, B.d / 2 + 0.03, g); for (const sx of [-0.4, 0.4]) box(0.06, 1.8, 0.04, 0x3a2412, sx, 1.0, B.d / 2 + 0.09, g);
+                    textPlate(g, '🏚️ Gudang', 0, 2.35, B.d / 2 + 0.06, 1.8);
+                    addBoxCollider(B.x - B.w / 2, B.x + B.w / 2, B.z - B.d / 2, B.z + B.d / 2);
+                } else {
+                    box(B.w, 0.12, B.d, 0xb07a45, 0, 0.06, 0, g);
+                    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { box(0.18, 2.4, 0.18, 0x6e4723, sx * (B.w / 2 - 0.25), 1.2, sz * (B.d / 2 - 0.25), g); addCircleCollider(B.x + sx * (B.w / 2 - 0.25), B.z + sz * (B.d / 2 - 0.25), 0.18); }
+                    const r = mesh(new THREE.ConeGeometry(B.w * 0.74, 1.4, 4), patternMat(0x7a4a2a, 'tile'), g); r.rotation.y = Math.PI / 4; r.position.y = 3.1;
+                    for (const sz of [-1, 1]) box(2.2, 0.1, 0.5, 0x8a5a33, 0, 0.5, sz * 1.2, g);
+                    for (const sz of [-1, 1]) for (const sx of [-0.9, 0.9]) box(0.08, 0.45, 0.08, 0x6e4723, sx, 0.25, sz * 1.2, g);
+                }
+                buildVis[key] = g;
+            }
+        }
         const wildHits = w => w.k === 'r' ? ROCK_HITS : w.g >= WILD_GROW ? 3 : 2;
         function wildSpot(rid) {
             const r = REGI[rid];
@@ -4575,7 +4631,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), wild: null, wildN: 0, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), wild: null, wildN: 0, req: null, jr: [], build: {}, hugs: 0, firsts: {}, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -4600,6 +4656,11 @@
             st.weeds = Array.isArray(saved.weeds) && saved.weeds.length === WEED_POS.length ? saved.weeds.map(v => v ? 1 : 0) : base.weeds;
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
+            st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
+            st.jr = Array.isArray(saved.jr) ? saved.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string').slice(-JR_MAX).map(e => [e[0] | 0, e[1].slice(0, 160)]) : [];
+            st.build = {}; for (const k of Object.keys(BUILDS)) if (saved.build && saved.build[k]) st.build[k] = saved.build[k] | 0;
+            st.hugs = saved.hugs | 0; st.firsts = saved.firsts && typeof saved.firsts === 'object' ? { ...saved.firsts } : {};
+            if (st.build.gudang) st.store.gudang = cleanItems((saved.store || {}).gudang);
             if (saved.inv && !saved.bags) for (const [k, n] of Object.entries(cleanItems(saved.inv))) st.store.chest[k] = (st.store.chest[k] || 0) + n;
             delete st.inv;
             st.eggs = Array.isArray(saved.eggs) ? saved.eggs.filter(e => Array.isArray(e) && e.every(Number.isFinite)).slice(0, EGG_MAX) : base.eggs;
@@ -5845,7 +5906,8 @@
             rockVis.forEach((v, i) => { const on = !state.rocks[i]; v.g.visible = on; v.col.off = !on; });
             woodVis.forEach((v, i) => { const s = state.logs[i].s; v.tree.visible = s === 0; v.stump.visible = s === 1; v.col.off = s === 2; v.col.r = s === 1 ? 0.3 : 0.45; });
             weedVis.forEach((v, i) => { v.g.visible = !!state.weeds[i]; });
-            updateWild();
+            updateWild(); updateBuilds();
+            if (net.mode !== 'guest' && started && !state.req) reqFill(3);
             updateTiles();
             updateFPots();
             updatePoop();
@@ -6167,7 +6229,13 @@
                 if (!ok) b.disabled = true;
                 return el('div', { class: 'shopitem' }, el('span', { class: 'ic' }, iconEl(c.out)), el('span', { class: 'nm' }, el('b', { text: `${ITEMS[c.out].label}${c.n > 1 ? ' ×' + c.n : ''}` }), el('small', { text: need }), el('small', { text: c.note })), b);
             }));
-            openDlg('🔨 Meja kerja', [el('p', { class: 'small-note', text: 'Buat barang dari bahan di tasmu. Kayu dari menebang pohon (kapak), batu dan bijih dari memecah batu (beliung), rumput dari sabit, tanah liat kadang muncul saat mencangkul. Bahan juga dijual di Penggergajian Kayu Pak Markus (Desa Hutan). Barang jadi dipasang dengan memegangnya lalu menekan tombol aksi; ambil lagi dengan ✋ tangan.' }), list]);
+            const builds = el('div', { class: 'shoplist' }, Object.entries(BUILDS).map(([key, B]) => {
+                const done = state.build[key], ok = !done && state.gold >= B.gold && Object.entries(B.need).every(([k, n]) => have(USER, k) >= n);
+                const need = Object.entries(B.need).map(([k, n]) => `${ITEMS[k].icon} ${have(USER, k)}/${n}`).join(' · ') + ` · 💰 ${B.gold} G`;
+                const bt = el('button', { class: 'btn', onclick: () => { sendAct('build', key); setTimeout(() => { if (dlgOpen()) openCraft(); }, 400); } }, done ? '✓ Sudah' : 'Bangun'); if (!ok) bt.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: B.icon }), el('span', { class: 'nm' }, el('b', { text: B.label }), el('small', { text: B.note }), el('small', { text: done ? 'Sudah berdiri di farm' : need })), bt);
+            }));
+            openDlg('🔨 Meja kerja', [el('h4', { text: '🏗️ Bangun di farm' }), builds, el('h4', { text: '🪚 Buat barang' }),el('p', { class: 'small-note', text: 'Buat barang dari bahan di tasmu. Kayu dari menebang pohon (kapak), batu dan bijih dari memecah batu (beliung), rumput dari sabit, tanah liat kadang muncul saat mencangkul. Bahan juga dijual di Penggergajian Kayu Pak Markus (Desa Hutan). Barang jadi dipasang dengan memegangnya lalu menekan tombol aksi; ambil lagi dengan ✋ tangan.' }), list]);
             liveDlg = openCraft;
         }
         // ---- the village shops: no courier, things go straight into your bag ----
@@ -6959,8 +7027,13 @@
             openDlg('📋 Papan Pengumuman Desa', [
                 el('p', { class: 'small-note', text: `${DAY_NAMES[wd]}, Hari ${state.day} · ${seasonOf(state.day).icon} ${seasonOf(state.day).label} · pukul ${fmtTime(m)}` }),
                 el('p', { text: '📢 Kegiatan: 🕌 salat berjamaah 5 waktu di Musala Al-Ikhlas dan Masjid Al-Hikmah (Jumat siang salat Jumat) · ⛪ misa Minggu 07:00 di Gereja St. Yusuf, ibadah Minggu 08:00 di Gereja Imanuel · ☸️ Vihara, 🏮 Kelenteng, 🛕 Pura buka setiap hari · 🧺 Pasar Tani buka pagi 06:00–12:00 · 🔨 lelang ikan subuh 04:00–08:00 · 🏚️ lumbung dan 🏦 bank membagi hasil tiap awal musim · 🚌 angkot dari setiap halte.' }),
-                el('h4', { text: '🕒 Jadwal tempat' }), el('div', { class: 'shoplist' }, rows),
-                el('h4', { text: '👥 Warga semua desa' }), el('div', { class: 'shoplist' }, people),
+                el('h4', { text: '📝 Permintaan warga' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, (state.req || []).length ? state.req.map(r => {
+                    const n = NPCI[r.n], it = ITEMS[r.k], left = r.due - state.day, ok = have(USER, r.k) >= r.q;
+                    const bt = el('button', { class: 'btn', onclick: () => { sendAct('req', r.i); setTimeout(() => { if (dlgOpen()) openBoard(); }, 400); } }, ok ? 'Serahkan' : `${have(USER, r.k)}/${r.q}`); if (!ok) bt.disabled = true;
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic' }, iconEl(r.k)), el('span', { class: 'nm' }, el('b', { text: `${n.name} minta ${r.q} ${it.label}` }), el('small', { text: `Hadiah ${r.g} G + 💗 · ${left > 0 ? `${left} hari lagi` : 'hari terakhir!'} · ${npcWhere(n)}` })), bt);
+                }) : [el('p', { class: 'small-note', text: 'Belum ada permintaan. Besok pagi mungkin ada yang butuh bantuan.' })]),
+                el('h4', { text: '🕒 Jadwal tempat' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:36vh' }, rows),
+                el('h4', { text: '👥 Warga semua desa' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:36vh' }, people),
             ]);
             liveDlg = openBoard;
         }
@@ -7405,6 +7478,9 @@
             return cv;
         }
         function openMap() {
+            // a red pin over each villager who is waiting for something on the board
+            MAP_PINS.length = 0;
+            for (const r of state.req || []) { const n = NPCI[r.n], h = n && VBI[n.home]; if (h) MAP_PINS.push({ x: h.x, z: h.z, icon: '📝', label: `${n.name}: ${r.q} ${ITEMS[r.k].label}` }); }
             const where = placeName(player.pos), world = mapTab !== 'farm', cv = world ? worldMap(mapZoom) : farmMap();
             const tabs = el('div', { class: 'tabs chips' }, [['dunia', '🌍 Dunia'], ['farm', '🏡 Farm']].map(([t, l]) => el('button', { class: 'btn' + (t === mapTab ? ' on' : ''), onclick: () => { mapTab = t; openMap(); } }, l)),
                 world ? el('button', { class: 'btn', onclick: () => { mapZoom = mapZoom > 1 ? 1 : 2.6; openMap(); } }, mapZoom > 1 ? '🔍 Perkecil' : '🔍 Perbesar') : null);
@@ -7613,6 +7689,7 @@
             chest: { title: '📦 Kotak penyimpanan', name: 'Kotak', note: 'Simpan apa saja di sini, dipakai bersama.' },
             bin: { title: '🧺 Kotak pengiriman', name: 'Akan dijual', note: 'Barang di sini terjual saat kalian tidur.' },
             kit: { title: '🗄️ Rak alat masak', name: 'Rak dapur', note: 'Alat masak di rak ini (atau di tasmu) dipakai saat memasak dan tidak habis. Alat baru dari toko online datang lewat paket ke tasmu, simpan di sini.' },
+            gudang: { title: '🏚️ Gudang', name: 'Gudang', note: 'Gudang kalian berdua: simpan apa saja di sini, sebanyak apa pun.' },
             tools: { title: '🧰 Kotak perkakas', name: 'Perkakas', note: 'Ambil alat yang mau dipakai: 🧹 sapu (kotoran hewan), 🪏 cangkul (olah tanah di mana saja), ⛏️ beliung (pecah batu), 🪓 kapak (tebang pohon), 🎣 pancing (kolam), 🌾 sabit (rumput liar). Penyiram selalu ada di tasmu.' },
         };
         function openStorage(c) {
@@ -7928,6 +8005,7 @@
                     if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     addBag(who, d.out || d.key, d.yield);
                     state.tiles[k] = { e: state.day };
+                    if (firstTime('panen:' + d.key)) jot(`🌱 Panen ${d.icon} ${d.label} yang pertama, oleh ${who}`);
                     emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!${d.out ? ` · jadi ${PRODUCTS[d.out].icon} ${PRODUCTS[d.out].label}` : ''}`, 'icon:' + d.icon, at, who); return;
                 }
                 if (!p.w) {
@@ -8188,6 +8266,8 @@
                 const k = x === 'sepatu' || FISH_DEF[x] ? x : rollFish(true);
                 if (!addBag(who, k, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                 const f = FISH_DEF[k];
+                if (f && f.d >= 70) jot(`🎣 ${who} menangkap ${PRODUCTS[k].icon} ${PRODUCTS[k].label}, ikan langka! ⭐`);
+                else if (k !== 'sepatu' && firstTime('ikan')) jot(`🎣 Ikan pertama: ${who} dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}`);
                 emitEvent(k === 'sepatu' ? 'Eh, yang tersangkut malah 👢 sepatu bot tua 😅' : `Dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}!${f.d >= 70 ? ' ⭐ Ikan langka!' : ''} 🎣`, 'icon:' + PRODUCTS[k].icon, null, who);
             },
             eat(who, k) {
@@ -8200,6 +8280,7 @@
             hug(who) {
                 // a hug warms you both up a little
                 addEnergy(who, 5); addEnergy(otherOf(who), 5);
+                state.hugs = (state.hugs || 0) + 1; if ([1, 10, 25, 50, 100, 200, 365, 500, 1000].includes(state.hugs)) jot(`🤗 Pelukan ke-${state.hugs} untuk ${who} dan ${otherOf(who)}`);
                 emitEvent(`Memeluk ${otherOf(who)} 🤗 +5 ⚡ untuk berdua`, 'hug', null, who);
             },
             give(who, k) {
@@ -8217,6 +8298,37 @@
                 emitEvent('Alhamdulillah, sudah melaksanakan ibadah hari ini 🤲✨', 'none', null, who);
             },
         };
+        Object.assign(ACTIONS, {
+            // 📝 hand in what a villager asked for
+            req(who, x) {
+                const r = (state.req || []).find(r => r.i === +x), n = r && NPCI[r.n];
+                if (!r || !n) return;
+                if (have(who, r.k) < r.q) { emitEvent(`Belum cukup: perlu ${r.q} ${ITEMS[r.k].icon} ${ITEMS[r.k].label}`, 'none', null, who); return; }
+                for (let i = 0; i < r.q; i++) takeBag(who, r.k);
+                state.gold += r.g; addFriend(n.id, who, 30); state.req = state.req.filter(q => q !== r);
+                emitEvent(`📝 ${n.name} senang sekali! +${r.g} G dan 💗 makin akrab`, 'sell', null, who);
+                jot(`🤝 ${who} membantu ${n.name}: ${r.q} ${ITEMS[r.k].icon} ${ITEMS[r.k].label}`);
+            },
+            // 🏗️ put up a building on the farm with wood, stone and money
+            build(who, key) {
+                const B = BUILDS[key];
+                if (!B || state.build[key]) return;
+                if (state.gold < B.gold || Object.entries(B.need).some(([k, n]) => have(who, k) < n)) { emitEvent(`Bahan atau uangnya belum cukup untuk ${B.label}`, 'none', null, who); return; }
+                const why = buildWhy(B); if (why) { emitEvent(why, 'none', null, who); return; }
+                for (const [k, n] of Object.entries(B.need)) for (let i = 0; i < n; i++) takeBag(who, k);
+                state.gold -= B.gold; state.build[key] = state.day;
+                if (key === 'gudang') state.store.gudang ||= {};
+                emitEvent(`🏗️ ${B.icon} ${B.label} selesai dibangun!`, 'sell', null, who);
+                jot(`🏗️ ${who} membangun ${B.icon} ${B.label} di farm`);
+            },
+            // a rest in the pendopo: once a day each, a little energy back
+            pendopo(who) {
+                if (!state.build.pendopo) return;
+                if (!dailyLeft('pendopo', who, 1)) { emitEvent('Sudah bersantai di pendopo hari ini 🛖', 'none', null, who); return; }
+                useDaily('pendopo', who); addEnergy(who, 15);
+                emitEvent('Bersantai di pendopo, angin sepoi-sepoi 🍃 +15 ⚡', 'none', null, who);
+            },
+        });
         function deliverOrders() {
             if (net.mode !== 'host' || !state.orders.length) return;
             const now = absMin();
@@ -8813,6 +8925,10 @@
         initVillage();
         Object.assign(ACTIONS, VILLAGE_ACTIONS);
         const INTERACTABLES = interactables();
+        INTERACTABLES.push(
+            { id: 'gudang', pos: new THREE.Vector3(BUILDS.gudang.x, 0, BUILDS.gudang.z + BUILDS.gudang.d / 2 + 0.6), reach: 1.5, local: true, when: () => !!state.build.gudang, label: () => 'Buka gudang 🏚️', act: () => openStorage('gudang') },
+            { id: 'pendopo', pos: new THREE.Vector3(BUILDS.pendopo.x, 0, BUILDS.pendopo.z), reach: 2.0, when: () => !!state.build.pendopo, label: () => dailyLeft('pendopo', USER, 1) ? 'Bersantai di pendopo 🛖 (+15 ⚡)' : 'Pendopo 🛖 · sudah bersantai hari ini' },
+        );
         let focus = null;
         // the square of ground just in front of you
         const TILE_IT = {
@@ -9304,8 +9420,8 @@
                 state.looks[USER] = { o: look.o };
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
-                    st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit)],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -9397,7 +9513,11 @@
             if (Number.isFinite(w.gold)) state.gold = w.gold;
             if (WEATHER_INFO[w.we]) state.weather = w.we;
             if (w.bg) for (const u of Object.keys(CHARACTERS)) state.bags[u] = toSlots(decBag(w.bg[u]));
-            if (Array.isArray(w.st)) state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]), kit: decItems(w.st[4]) };
+            if (Array.isArray(w.st)) { state.store = { fridge: decItems(w.st[0]), chest: decItems(w.st[1]), bin: decItems(w.st[2]), tools: decItems(w.st[3]), kit: decItems(w.st[4]) }; if (w.st[5] != null) state.store.gudang = decItems(w.st[5]); }
+            if (Array.isArray(w.rq)) state.req = w.rq.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4);
+            if (Array.isArray(w.jr)) state.jr = w.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string');
+            if (w.bd && typeof w.bd === 'object') state.build = { ...w.bd };
+            if (Number.isFinite(w.hg)) state.hugs = w.hg;
             if (typeof w.ti === 'string') state.tiles = decTiles(w.ti);
             if (Array.isArray(w.fp)) state.fpots = w.fp.filter(v => Array.isArray(v)).slice(0, FPOT_MAX).map(v => ({ x: v[0] / 10, z: v[1] / 10, s: GARDEN[v[2]] ? GARDEN[v[2]].key : null, p: (+v[3] || 0) / 2, w: !!(v[4] & 1), f: !!(v[4] & 2), dry: v[4] >> 2, c: v[5] === 1 ? NA : v[5] === 2 ? NW : null }));
             if (Array.isArray(w.pt)) state.ptrees = w.pt.filter(v => Array.isArray(v) && ALL_FRUITS[v[0]]).slice(0, PTREE_MAX).map(v => ({ k: ALL_FRUITS[v[0]].key, x: v[1] | 0, z: v[2] | 0, g: +v[3] || 0, w: !!v[4], p: +v[5] || 0, r: +v[6] || 0, dry: +v[7] || 0 }));
@@ -9677,7 +9797,7 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight();
+                wildNight(); reqNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
@@ -9693,7 +9813,7 @@
                 $('fade').classList.remove('show');
                 sleeping = false;
                 toast(`☀️ Selamat pagi! ${DAY_NAMES[(state.day - 1) % 7]}, Hari ${state.day} · ${weatherName(state.weather, newSeason)}`);
-                if (newSeason !== oldSeason) emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, '');
+                if (newSeason !== oldSeason) { emitEvent(`${newSeason.icon} ${newSeason.label} dimulai!`, 'sell', null, ''); if (net.mode !== 'guest') jot(`${newSeason.icon} ${newSeason.label} dimulai, tahun bersama terus berjalan`); }
                 if (state.recapLumbung) { emitEvent(`🏚️ Lumbung desa membagi hasil awal musim: +${state.recapLumbung} biji-bijian`, 'none', null, ''); delete state.recapLumbung; }
                 if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
                 if (nSold) chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
@@ -9865,6 +9985,15 @@
             $('gfxRow').replaceChildren(...[['rendah', '🐢 Rendah · 30 fps'], ['sedang', '⚖️ Sedang · 30 fps'], ['tinggi', '✨ Tinggi · 60 fps']].map(([k, t]) => el('button', { class: 'btn' + (gfx === k ? ' on' : ''), onclick: () => setGfx(k) }, t)));
         }
         drawGfxRow();
+        // 📔 the journal: every moment worth remembering, newest first
+        function openJournal() {
+            const list = (state.jr || []).slice().reverse();
+            openDlg('📔 Jurnal berdua', [
+                el('p', { class: 'small-note', text: `Momen-momen kalian di Farmora · ${state.hugs || 0} pelukan sejauh ini 🤗` }),
+                el('div', { class: 'shoplist' }, list.length ? list.map(([d, t]) => el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: '📅' }), el('span', { class: 'nm' }, el('b', { text: t }), el('small', { text: `Hari ${d} · ${seasonOf(d).icon} ${seasonOf(d).label}` })))) : [el('p', { class: 'small-note', text: 'Belum ada catatan. Panen pertama, ikan langka, pelukan, dan membantu warga akan tercatat di sini.' })]),
+            ]);
+        }
+        $('journalBtn').addEventListener('click', () => { if (started) { toggleHelp(false); openJournal(); } });
         $('helpX').addEventListener('click', () => toggleHelp(false));
         $('helpScreen').addEventListener('click', e => { if (e.target.id === 'helpScreen') toggleHelp(false); });
         // ---------- Title screen: character creator, save slot, online ----------
@@ -10195,7 +10324,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { perf, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { perf, reqFill, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
