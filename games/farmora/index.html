@@ -1276,7 +1276,7 @@
         const INST = {};
         const LOWICO = new THREE.IcosahedronGeometry(1, 0), LOWCONE = new THREE.ConeGeometry(1, 1, 7), LOWCYL = new THREE.CylinderGeometry(1, 1, 1, 7), LOWBOX = new THREE.BoxGeometry(1, 1, 1);
         // batches are cut into 30×30 squares so the ones off screen are skipped; small things cast no shadow
-        const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy|reed/;
+        const NO_SHADOW = /stem|fl\d|bush|mush|kopiberry|coco|citywin|carwheel|paddy|reed|tuft/;
         // a thing made of several parts (a tree's trunk and leaves) sits on the ground under its middle, so
         // the parts stay together on a slope or at the edge of the flat farm instead of each finding its own ground
         let instBase = null;
@@ -1309,6 +1309,17 @@
             return m;
         }
         const SWAY = {}; const swayM = c => SWAY[c] ||= sway(new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }));
+        // a tuft of five blades; it bends from the root in the wind
+        const TUFT_GEO = (() => { const parts = []; for (let i = 0; i < 5; i++) { const b = new THREE.ConeGeometry(0.035, 0.38 + (i % 3) * 0.08, 3, 1, true); b.translate(0, 0.19, 0); b.rotateZ((i - 2) * 0.22); b.rotateY(i * 1.3); b.translate(Math.cos(i * 2.1) * 0.06, 0, Math.sin(i * 2.1) * 0.06); parts.push(b.toNonIndexed()); } const pos = []; for (const p of parts) pos.push(...p.attributes.position.array); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g; })();
+        const TUFT_MAT = new THREE.MeshStandardMaterial({ color: 0x6aa844, roughness: 0.9 });
+        TUFT_MAT.onBeforeCompile = sh => {
+            sh.uniforms.uTime = waveTime;
+            sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                vec4 tp = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+                float bend = max(position.y, 0.0);
+                transformed.x += sin(uTime * 1.7 + tp.x * 0.4 + tp.z * 0.3) * 0.12 * bend;
+                transformed.z += cos(uTime * 1.3 + tp.z * 0.45) * 0.07 * bend;`);
+        };
         const DM = {}; const dm = (c, o) => DM[c + (o ? JSON.stringify(o) : '')] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...(o || {}) });
         // decoration kinds (r = region key, so far-away batches are culled)
         const dTree = anchored((r, x, z, s = 1, c = 0x4f9a3f) => { inst(r + 'trunk', LOWCYL, dm(0x6e4723), x, 0.75 * s, z, 0.16 * s, 2.1 * s, 0.16 * s); inst(r + 'leaf' + c, LOWICO, swayM(c), x, 2.3 * s, z, 1.2 * s, 1.0 * s, 1.2 * s, x * 3); inst(r + 'leaf' + c, LOWICO, swayM(c), x + 0.4 * s, 2.9 * s, z - 0.2 * s, 0.8 * s, 0.7 * s, 0.8 * s, z); });
@@ -1318,7 +1329,7 @@
         const dBanana = anchored((r, x, z) => { inst(r + 'btrunk', LOWCYL, dm(0x8a9a4a), x, 0.9, z, 0.16, 1.8, 0.16); for (let i = 0; i < 5; i++) { const a = i * 1.25 + x; inst(r + 'bananaleaf', LOWBOX, swayM(0x5fae3a), x + Math.cos(a) * 0.7, 1.9, z + Math.sin(a) * 0.7, 1.4, 0.04, 0.42, -a, 0, -0.35); } });
         const dRock = (r, x, z, s = 1, c = 0x9a9a92) => inst(r + 'rock' + c, LOWICO, dm(c), x, 0.25 * s, z, 0.7 * s, 0.45 * s, 0.6 * s, x + z);
         const dBush = (r, x, z, s = 1, c = 0x5f9a3f) => inst(r + 'bush' + c, LOWICO, dm(c), x, 0.35 * s, z, 0.7 * s, 0.5 * s, 0.7 * s, x);
-        const dFlower = anchored((r, x, z, c) => { inst(r + 'stem', LOWCYL, dm(0x4f8a3a), x, 0.2, z, 0.02, 0.4, 0.02); inst(r + 'fl' + c, LOWICO, dm(c), x, 0.42, z, 0.09); });
+        const dFlower = anchored((r, x, z, c) => { inst(r + 'stem', LOWCYL, swayM(0x4f8a3a), x, 0.2, z, 0.02, 0.4, 0.02); inst(r + 'fl' + c, LOWICO, swayM(c), x, 0.42, z, 0.09); });
         const dMount = (x, z, rad, h, c = 0x7a8a6a, snow) => { const m = mesh(new THREE.ConeGeometry(rad, h, 9), dm(c), scene); m.position.set(x, h / 2 - 0.3, z); m.castShadow = false; if (snow) { const s = mesh(new THREE.ConeGeometry(rad * 0.3, h * 0.3, 9), dm(0xffffff), scene); s.position.set(x, h * 0.85 - 0.3, z); s.castShadow = false; } };
         const dHouseBlock = anchored((x, z, w, d, h, c, roofC) => { inst('city' + c, LOWBOX, dm(c), x, h / 2, z, w, h, d); inst('cityroof' + roofC, LOWBOX, dm(roofC), x, h + 0.15, z, w + 0.2, 0.3, d + 0.2); for (let y = 1.4; y < h - 0.6; y += 1.6) for (let i = -w / 2 + 0.8; i < w / 2 - 0.4; i += 1.4) inst('citywin', LOWBOX, dm(0x9fd8ff, { roughness: 0.2 }), x + i, y, z + d / 2 + 0.02, 0.7, 0.8, 0.05); addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2); });
         const dCar = anchored((x, z, rot, c) => { inst('car' + c, LOWBOX, dm(c), x, 0.45, z, 1.6, 0.6, 3.2, rot); inst('cartop' + c, LOWBOX, dm(c), x, 0.95, z, 1.4, 0.5, 1.7, rot); inst('carwheel', LOWCYL, dm(0x222222), x, 0.25, z, 0.3, 1.7, 0.3, rot, 0, Math.PI / 2); addCircleCollider(x, z, 1.4); });
@@ -2068,6 +2079,8 @@
                 scatter('pantai', 220, (x, z, u) => { if (x > 84) { if (u < 0.3) { dPalm('pantai', x, z, 1 + u); solid(x, z, 0.2); } return; } if (u < 0.45) { dPalm('pantai', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.7) { dTree('pantai', x, z, 1 + u * 0.4, 0x4f9a3f); solid(x, z, 0.3); } else dBush('pantai', x, z, 0.8, 0x6f9a4a); }, 2.4);
                 textPlate(scene, '🚏 Halte · angkot', 37, 2.3, 6.4, 1.6);
             }
+            // 🌿 tufts of grass all over the countryside, bending in the wind (none in town)
+            if (id !== 'kota' && REGI[id]) scatter(id, LITE ? 700 : 1500, (x, z, u) => { const sc = 0.7 + u * 0.6; inst(id + 'tuft', TUFT_GEO, TUFT_MAT, x, 0, z, sc, sc * (0.8 + u * 0.5), sc, u * 6.3); }, 1.0);
             if (id === 'pulau') {
                 // 🏝️ the island: sand all round, palms, a lighthouse and its own little jetty
                 { for (let i = 0; i < 6; i++) box(1.0, 0.12, 2.0, 0x8a5a3a, 116 + i * 0.9, 0.35, 78, scene).rotation.y = Math.PI / 2; const lh = new THREE.Group(); lh.position.set(143, 0, 90); scene.add(lh); cap(0.8, 7, 0xffffff, 0, 3.5, 0, lh); for (let i = 0; i < 3; i++) box(1.7, 0.5, 1.7, 0xd9443a, 0, 1.5 + i * 2, 0, lh); ball(0.5, 0.5, 0.5, new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffd36b, emissiveIntensity: 1 }), 0, 7.4, 0, lh); addCircleCollider(143, 90, 1.0); }
@@ -2081,9 +2094,52 @@
             box(0.07, 2.2, 0.07, 0x6e4723, 0, 1.6, 0.3, g); box(0.04, 1.6, 1.4, 0xf2f2ee, 0, 1.8, 0.95, g);
             for (const sx of [-1, 1]) { box(1.4, 0.05, 0.05, 0x6e4723, sx * 0.7, 0.55, 0.9, g); box(1.4, 0.05, 0.05, 0x6e4723, sx * 0.7, 0.55, -0.9, g); box(0.1, 0.1, 3.0, 0x6e4723, sx * 1.4, 0.4, 0, g); }
         }
+        // 🧱 patterns painted from where a surface is in the world (no pictures to load): clay roof tiles, brick, planks
+        const PAT = {};
+        function patternMat(color, kind) {
+            const key = color + kind; if (PAT[key]) return PAT[key];
+            const m = new THREE.MeshStandardMaterial({ color, roughness: kind === 'tile' ? 0.7 : 0.88 });
+            m.onBeforeCompile = sh => {
+                sh.vertexShader = 'varying vec3 vPw;\nvarying vec3 vNw;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+                    vPw = (modelMatrix * vec4(position, 1.0)).xyz; vNw = normalize(mat3(modelMatrix) * normal);`);
+                sh.fragmentShader = 'varying vec3 vPw;\nvarying vec3 vNw;\nfloat hsh(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+                    float u = abs(vNw.x) > abs(vNw.z) ? vPw.z : vPw.x, v = vPw.y;
+                    ${kind === 'tile' ? `
+                    if (vNw.y > 0.15) {
+                        float row = floor(v / 0.2), cv = fract(v / 0.2), cu = fract((u + mod(row, 2.0) * 0.15) / 0.3);
+                        float k = 0.78 + 0.22 * smoothstep(0.0, 0.85, cv);          // each row of tiles shades down to its lip
+                        k *= 1.0 - 0.18 * smoothstep(0.42, 0.5, abs(cu - 0.5));      // and a groove between tiles
+                        diffuseColor.rgb *= k * (0.94 + 0.12 * hsh(vec2(row, floor((u + mod(row, 2.0) * 0.15) / 0.3))));
+                    }` : kind === 'brick' ? `
+                    if (abs(vNw.y) < 0.6) {
+                        float row = floor(v / 0.2), cv = fract(v / 0.2), cu = fract((u + mod(row, 2.0) * 0.21) / 0.42);
+                        float mortar = max(1.0 - smoothstep(0.0, 0.07, cv), 1.0 - smoothstep(0.0, 0.035, min(cu, 1.0 - cu)));
+                        diffuseColor.rgb *= mix(0.92 + 0.14 * hsh(vec2(row, floor((u + mod(row, 2.0) * 0.21) / 0.42))), 1.18, mortar);
+                    }` : `
+                    if (abs(vNw.y) < 0.6) {
+                        float row = floor(v / 0.24), cv = fract(v / 0.24);
+                        diffuseColor.rgb *= (0.93 + 0.1 * hsh(vec2(row, 3.0))) * (1.0 - 0.22 * (1.0 - smoothstep(0.0, 0.08, cv))) * (1.0 + 0.04 * sin(u * 23.0 + row * 7.0));
+                    }`}`);
+            };
+            m.customProgramCacheKey = () => 'pat' + kind;
+            return PAT[key] = m;
+        }
+        // after a building is put up: its walls, roof and windows get their look
+        function dressBuilding(b, g) {
+            const st = b.style, wallKind = ['city', 'school', 'cityhouse', 'rs', 'bank'].includes(st) ? null : ['stilt', 'hall', 'cave'].includes(st) || /kriya|kopi|madu|herbal|galangan|inap/.test(b.id) ? 'wood' : 'brick';
+            g.traverse(o => {
+                if (!o.isMesh || Array.isArray(o.material)) return;
+                if (o.material === mat(0x9fd8ff)) o.material = windowMat;
+                else if (o.material === mat(b.roof) && (o.geometry.type === 'ExtrudeGeometry' || o.geometry.type === 'CylinderGeometry')) o.material = patternMat(b.roof, 'tile');
+                else if (wallKind && o.material === mat(b.wall)) o.material = patternMat(b.wall, wallKind);
+            });
+        }
         // the outside of one building
         const CAVE_HZ = -1.2; // the mine's hill stands this far back, so its timbered mouth sticks out of it
         function buildVBuilding(b) {
+            const n0 = FADERS.length; buildVBuilding0(b); const f = FADERS[n0]; if (f) dressBuilding(b, f.g);
+        }
+        function buildVBuilding0(b) {
             const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.rot; scene.add(g); FADERS.push({ g });
             const { w, d } = b, st = b.style, tall = st === 'city' || st === 'school' ? 5.6 : st === 'balai' ? 3.2 : st === 'church' ? 3.6 : b.house ? 2.7 : 3.0;
             const y0 = st === 'stilt' ? 0.8 : 0, fz = d / 2 + 0.02;
