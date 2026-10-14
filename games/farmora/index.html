@@ -355,6 +355,9 @@
         .clothgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 50vh; overflow: auto; }
         .btn.cloth { display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: left; padding: 5px 8px; }
         .btn.cloth.on { background: #ffe08a; box-shadow: 0 0 0 3px var(--green) inset; }
+        .ojekart { display: flex; justify-content: center; margin: 2px 0; }
+        .fadeart { display: flex; justify-content: center; margin-bottom: 8px; animation: ojekRide 1.2s ease-in-out infinite alternate; }
+        @keyframes ojekRide { from { transform: translateX(-14px) rotate(-1deg); } to { transform: translateX(14px) rotate(1deg); } }
         .mirrorbox { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 2px 0 4px; }
         .mirrorbox canvas { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #e6b8c8; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
         .mirrorbox small { font-size: 11px; font-weight: 600; }
@@ -1836,6 +1839,7 @@
             for (const b of VB) b.y = Math.max(0, H0(b.x, b.z));
             planBridges();
             planRoadbed();
+            setTimeout(() => ojekStand(5.2, 20.6, Math.PI), 0); // (once everything it uses is ready)
             buildTerrain();
             buildPaths();
             buildRiver();
@@ -2043,7 +2047,7 @@
                 // the playground
                 { const g = new THREE.Group(); g.position.set(-1, 0, 61.5); scene.add(g); box(7.5, 0.04, 5, 0xe8d6a8, 0, 0.02, 0, g).castShadow = false; for (const sx of [-1.4, 1.4]) box(0.1, 2.0, 0.1, 0xd9443a, sx - 2, 1.0, 1.4, g); box(3.0, 0.1, 0.1, 0xd9443a, -2, 2.0, 1.4, g); for (const sx of [-0.6, 0.6]) { box(0.02, 1.4, 0.02, 0x666666, sx - 2, 1.25, 1.4, g); box(0.5, 0.06, 0.25, 0x3f8fd6, sx - 2, 0.55, 1.4, g); } const sl = box(0.7, 0.08, 2.6, 0xf2c94c, 2.2, 0.75, 0.8, g); sl.rotation.x = 0.55; box(0.7, 1.5, 0.7, 0x3f8fd6, 2.2, 0.75, -0.6, g); addBoxCollider(-1 + 1.8, -1 + 2.6, 60.4, 61.4); }
                 scatter('sawah', 260, (x, z, u) => { if (u < 0.35) { dBanana('sawah', x, z); solid(x, z, 0.25); } else if (u < 0.55) { dPalm('sawah', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.8) { dTree('sawah', x, z, 0.9 + u * 0.5); solid(x, z, 0.3); } else dFlower('sawah', x, z, [0xf27ba5, 0xf2c94c, 0xffffff][Math.floor(u * 30) % 3]); }, 2.4);
-                textPlate(scene, '🚏 Halte · angkot', 4.2, 2.3, 38.4, 1.6);
+                ojekStand(4.2, 38.0, 0);
             }
             if (id === 'kota') {
                 // 🏙️ the town: high blocks around, a park with a fountain, parked cars, lamps and planters
@@ -2053,14 +2057,14 @@
                 for (const [x, z] of [[0.6, -38], [7.4, -38], [0.6, -56], [7.4, -56], [0.6, -76], [7.4, -76], [-12, -42.2], [18, -42.2], [-12, -62.2], [18, -62.2], [-12, -82.2], [18, -82.2]]) { cap(0.06, 3.4, 0x2b2b2b, x, 1.7, z, scene); ball(0.22, 0.16, 0.22, 0xfff1c9, x, 3.45, z, scene); addCircleCollider(x, z, 0.12); }
                 { const x = -38, z = -54; flat(12, 12, 0x86c062, x, z, 0.05); mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.5, 24), mat(C.stone), scene).position.set(x, 0.25, z); const fw = new THREE.Mesh(new THREE.CircleGeometry(1.2, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4fb8ec, roughness: 0.1 })); fw.position.set(x, 0.52, z); scene.add(fw); addCircleCollider(x, z, 1.5); for (const [dx, dz] of [[-4.5, 0], [4.5, 0], [0, 4.5]]) { box(1.4, 0.1, 0.45, C.wood, x + dx, 0.45, z + dz, scene); } for (const [dx, dz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) { dTree('kota', x + dx, z + dz, 1.0, 0x3f8a3a); solid(x + dx, z + dz, 0.3); } textPlate(scene, 'Taman Kota', x, 1.0, z + 6.2, 1.6); }
                 { const b = VBI.sekolah; flat(9, 7, 0xb8865a, b.x + 9, b.z + 0.5, 0.05); for (const sx of [-4, 4]) { box(0.1, 2.4, 0.1, 0xffffff, b.x + 9 + sx, 1.2, b.z + 0.5, scene); box(0.1, 1.0, 1.6, 0xffffff, b.x + 9 + sx, 2.4, b.z + 0.5, scene); } cap(0.04, 4.0, 0xdddddd, b.x - 4.4, 2.0, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xd9221f, b.x - 3.93, 3.65, b.z + 4.2, scene); box(0.9, 0.3, 0.02, 0xffffff, b.x - 3.93, 3.35, b.z + 4.2, scene); addCircleCollider(b.x - 4.4, b.z + 4.2, 0.12); }
-                textPlate(scene, '🚏 Halte Kota', 9.2, 2.3, -33, 1.6); box(2.6, 0.1, 1.0, 0x3f5f8a, 9.2, 2.0, -33.4, scene); for (const sx of [-1.1, 1.1]) box(0.08, 2.0, 0.08, 0x6e737c, 9.2 + sx, 1.0, -33.4, scene);
+                ojekStand(9.2, -33.6, Math.PI);
             }
             if (id === 'hutan') {
                 // 🌳 the forest: a dense wood of tall trees and bamboo, a stream with a little bridge, logs and mushrooms
                 scatter('hutan', 900, (x, z, u) => { if (u < 0.12) { dBamboo('hutan', x, z); solid(x, z, 0.5); } else if (u < 0.55) { dTree('hutan', x, z, 1.2 + u, [0x3f7a35, 0x4f8a3a, 0x2f6b30][Math.floor(u * 100) % 3]); solid(x, z, 0.35); } else if (u < 0.75) { dPine('hutan', x, z, 1.2 + u * 0.8); solid(x, z, 0.3); } else if (u < 0.88) dBush('hutan', x, z, 1 + u, 0x3f7a35); else if (u < 0.94) { inst('hutanlog', LOWCYL, dm(0x6e4723), x, 0.25, z, 0.25, 2.2, 0.25, u * 6, 0, Math.PI / 2); } else { inst('hutanmush', LOWCONE, dm(0xd9443a), x, 0.3, z, 0.18, 0.15, 0.18); inst('hutanstem', LOWCYL, dm(0xf2f2ee), x, 0.12, z, 0.05, 0.24, 0.05); } }, 2.0);
                 for (const [x, z] of [[-40.4, -14.4], [-44.6, -14.6], [-38.2, -11.8]]) { for (let i = 0; i < 3; i++) inst('hutanplank', LOWCYL, dm(0xb07a45), x, 0.25 + i * 0.4, z, 0.22, 2.4, 0.22, 0, 0, Math.PI / 2); solid(x, z, 1.2); }
                 for (let i = 0; i < 6; i++) { const x = -68.5 + (i % 3) * 1.6, z = -13 + Math.floor(i / 3) * 1.8; box(0.7, 0.8, 0.6, 0xf2e2b0, x, 0.4, z, scene); box(0.8, 0.1, 0.7, 0xb07a45, x, 0.85, z, scene); solid(x, z, 0.45); }
-                textPlate(scene, '🚏 Halte · angkot', -36, 2.3, -6.4, 1.6);
+                ojekStand(-36, -6.6, -Math.PI / 2);
             }
             if (id === 'gunung') {
                 // 🏔️ the mountains: big peaks with snow, terraced fields, the mine in the rock, coffee rows, a pasture with cows, the lake with a jetty
@@ -2068,7 +2072,7 @@
                 { const P = { minX: -117, maxX: -103, minZ: -50, maxZ: -40 }; fenceRect(P, { side: 'n', a: -111, b: -108 }); for (const [x, z, c] of [[-113, -45, 0xffffff], [-108, -47, 0x8a5a3a], [-106, -43, 0xf2f2ee]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = x; scene.add(g); ball(0.45, 0.4, 0.75, c, 0, 0.7, 0, g); ball(0.25, 0.22, 0.28, c, 0, 0.85, 0.7, g); for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.12, 0.5, 0.12, 0x3a3a3a, sx * 0.25, 0.25, sz * 0.45, g); addCircleCollider(x, z, 0.8); } }
                 { for (let i = 0; i < 4; i++) box(1.4, 0.12, 1.0, 0x8a5a3a, -111, 0.25, 30.6 + i * 1.0, scene); for (let i = 0; i < 6; i++) { const a = i * 1.1, r = lakeR(a) + 2.2; dRock('gunung', LAKE.x + Math.cos(a) * r, LAKE.z + Math.sin(a) * r, 1.2); } }
                 scatter('gunung', 420, (x, z, u) => { if (u < 0.45) { dPine('gunung', x, z, 1.1 + u); solid(x, z, 0.3); } else if (u < 0.7) { dRock('gunung', x, z, 1 + u * 2, [0x9a9a92, 0x8a8478][Math.floor(u * 10) % 2]); solid(x, z, 0.5 + u); } else if (u < 0.85) dBush('gunung', x, z, 1, 0x6f9a4a); else dFlower('gunung', x, z, [0xb06fd8, 0xffffff, 0xf2c94c][Math.floor(u * 40) % 3]); }, 2.4);
-                textPlate(scene, '🚏 Halte · angkot', -96, 2.3, -2.6, 1.6);
+                ojekStand(-96, -2.4, -Math.PI / 2);
             }
             if (id === 'pantai') {
                 // 🏖️ the coast: sand, the sea, the pier, boats on the beach, nets, palms and parasols
@@ -2078,7 +2082,7 @@
                 for (const [x, z] of [[72, -18], [76, -18]]) { for (const sx of [-1.5, 1.5]) box(0.1, 1.8, 0.1, 0x6e4723, x + sx, 0.9, z, scene); const net = box(3, 1.4, 0.03, new THREE.MeshStandardMaterial({ color: 0x8aa8a0, transparent: true, opacity: 0.6 }), x, 1.1, z, scene); net.castShadow = false; addBoxCollider(x - 1.6, x + 1.6, z - 0.2, z + 0.2); }
                 for (const [x, z, c] of [[90, 30, 0xd9443a], [93, 36, 0x3f8fd6], [89, 42, 0xf2c94c]]) { cap(0.05, 2.4, 0xffffff, x, 1.2, z, scene); const u = mesh(new THREE.ConeGeometry(1.4, 0.5, 10), mat(c), scene); u.position.set(x, 2.45, z); }
                 scatter('pantai', 220, (x, z, u) => { if (x > 84) { if (u < 0.3) { dPalm('pantai', x, z, 1 + u); solid(x, z, 0.2); } return; } if (u < 0.45) { dPalm('pantai', x, z, 0.9 + u); solid(x, z, 0.2); } else if (u < 0.7) { dTree('pantai', x, z, 1 + u * 0.4, 0x4f9a3f); solid(x, z, 0.3); } else dBush('pantai', x, z, 0.8, 0x6f9a4a); }, 2.4);
-                textPlate(scene, '🚏 Halte · angkot', 37, 2.3, 6.4, 1.6);
+                ojekStand(37, -2.6, -Math.PI / 2);
             }
             // 🌿 tufts of grass all over the countryside, bending in the wind (none in town)
             if (id !== 'kota' && REGI[id]) scatter(id, LITE ? 700 : 1500, (x, z, u) => { const sc = 0.7 + u * 0.6; inst(id + 'tuft', TUFT_GEO, TUFT_MAT, x, 0, z, sc, sc * (0.8 + u * 0.5), sc, u * 6.3); }, 1.0);
@@ -2087,6 +2091,36 @@
                 { for (let i = 0; i < 6; i++) box(1.0, 0.12, 2.0, 0x8a5a3a, 116 + i * 0.9, 0.35, 78, scene).rotation.y = Math.PI / 2; const lh = new THREE.Group(); lh.position.set(143, 0, 90); scene.add(lh); cap(0.8, 7, 0xffffff, 0, 3.5, 0, lh); for (let i = 0; i < 3; i++) box(1.7, 0.5, 1.7, 0xd9443a, 0, 1.5 + i * 2, 0, lh); ball(0.5, 0.5, 0.5, new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffd36b, emissiveIntensity: 1 }), 0, 7.4, 0, lh); addCircleCollider(143, 90, 1.0); }
                 scatter('pulau', 60, (x, z, u) => { if (Math.hypot((x - 131) / 16, (z - 78) / 20) > 0.92) return; dPalm('pulau', x, z, 0.9 + u); solid(x, z, 0.2); }, 2.4);
             }
+        }
+        // 🛵 a pangkalan ojek: a little roofed shelter with a bench and a sign, two motorbikes parked in front and a
+        // driver in a green jacket and helmet waiting for a fare (it stands where the old bus stops were)
+        function motorbike(g, x, z, rot, c) {
+            const m = new THREE.Group(); m.position.set(x, 0, z); m.rotation.y = rot; g.add(m);
+            for (const wz of [-0.55, 0.55]) { const w = mesh(CYL, mat(0x1e1e1e), m); w.scale.set(0.28, 0.1, 0.28); w.rotation.z = Math.PI / 2; w.position.set(0, 0.28, wz); const hub = mesh(CYL, mat(0xb8bcc2), m); hub.scale.set(0.1, 0.12, 0.1); hub.rotation.z = Math.PI / 2; hub.position.set(0, 0.28, wz); }
+            box(0.3, 0.32, 1.0, c, 0, 0.5, -0.05, m);                       // body
+            box(0.32, 0.12, 0.6, 0x222222, 0, 0.72, -0.2, m);               // seat
+            box(0.26, 0.5, 0.18, c, 0, 0.72, 0.5, m).rotation.x = -0.35;    // front shield
+            cap(0.025, 0.55, 0x2b2b2b, 0, 1.02, 0.56, m, 'x');               // handlebar
+            ball(0.07, 0.07, 0.05, 0xfff3b0, 0, 0.92, 0.66, m);              // headlight
+            box(0.36, 0.05, 0.3, 0x2b2b2b, 0, 0.62, -0.75, m);              // rack
+            return m;
+        }
+        function ojekStand(x, z, h) {
+            const g = new THREE.Group(); g.position.set(x, groundY(x, z), z); g.rotation.y = h; scene.add(g);
+            for (const [sx, sz] of [[-1.1, -0.6], [1.1, -0.6], [-1.1, 0.6], [1.1, 0.6]]) box(0.1, 2.1, 0.1, 0x6e4723, sx, 1.05, sz, g);
+            box(2.7, 0.12, 1.6, 0x2e8b57, 0, 2.15, 0, g);
+            box(2.0, 0.1, 0.45, 0x8a5a33, 0, 0.48, -0.35, g); for (const sx of [-0.85, 0.85]) box(0.08, 0.45, 0.4, 0x6e4723, sx, 0.24, -0.35, g);
+            textPlate(g, '🛵 Pangkalan Ojek', 0, 2.55, 0.6, 1.9);
+            motorbike(g, -0.75, 1.6, 0.25, 0x2e8b57); motorbike(g, 0.75, 1.65, -0.2, 0xd9443a);
+            // the driver, waiting on the bench
+            const d = makeFarmer({ g: 'm', n: 'ojek', o: { t: 'jaket-hitam', b: 'panjang-hitam', f: null, s: 'sandal', h: null, hs: 'cepak' }, skin: 0xb57a4e });
+            d.group.position.set(0.3, 0, -0.35); d.group.rotation.y = 0; g.add(d.group); for (let i = 0; i < 3; i++) animateFarmer(d, false, 0.1); sitPose(d, 1);
+            const helm = mesh(SPH_HI, glossy(0x2e8b57), d.head); helm.scale.set(0.125, 0.1, 0.13); helm.position.set(0, 0.05, -0.01);
+            box(0.42, 0.34, 0.24, 0x2e8b57, 0, 1.15, 0.02, d.body);           // a green vest over the jacket
+            const ca = Math.cos(h), sa = Math.sin(h), at = (lx, lz) => [x + lx * ca + lz * sa, z - lx * sa + lz * ca];
+            for (const [lx, lz] of [[-1.1, -0.6], [1.1, -0.6], [-1.1, 0.6], [1.1, 0.6]]) addCircleCollider(...at(lx, lz), 0.12);
+            addCircleCollider(...at(-0.75, 1.6), 0.45); addCircleCollider(...at(0.75, 1.65), 0.45); addCircleCollider(...at(0, -0.35), 0.5);
+            return g;
         }
         // a fishing boat with outriggers (a jukung), long along z
         function jukung(g, c) {
@@ -5943,12 +5977,13 @@
 
         // Moving between the farm and the floors of the house
         let travelling = false;
-        function travel(to, heading, text) {
+        function travel(to, heading, text, art) {
             if (travelling) return;
             travelling = true;
             standUp();
             whoosh();
             $('fadeText').textContent = text || '';
+            if (art) $('fadeText').insertAdjacentHTML('afterbegin', `<div class="fadeart">${art}</div>`);
             $('fade').classList.add('show', 'quick');
             setTimeout(() => {
                 if (inHome(to)) buildHome();
@@ -6161,7 +6196,7 @@
         // --- small dialogs (shop, kitchen, seeds, musholla, wardrobe) ---
         function el(tag, props = {}, ...kids) {
             const e = document.createElement(tag);
-            for (const [k, v] of Object.entries(props)) { if (k === 'onclick') e.onclick = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+            for (const [k, v] of Object.entries(props)) { if (k === 'onclick') e.onclick = v; else if (k === 'text') e.textContent = v; else if (k === 'html') e.innerHTML = v; else e.setAttribute(k, v); }
             for (const k of kids.flat()) if (k != null && k !== false) e.append(k);
             return e;
         }
@@ -6696,7 +6731,7 @@
             { id: 'rina', name: 'Mbak Rina', role: 'Kasir Supermarket', g: 'f', faith: 'i', home: 'k2', slot: 0, job: 'super', hours: [[9, 20], [9, 20], [9, 20]], skin: 0xe0ac84, o: { t: 'kaosp-merah', b: 'panjang-hitam', f: null, s: 'sneakers-putih', h: 'hijab-hitam' }, love: ['esbuah', 'stroberi'], like: ['salad', 'melon'], hate: ['tape'],
                 lines: ['Supermarket buka sampai malam. Bahan masak dan alat dapur lengkap.', 'Harganya pas, tidak perlu menunggu kurir.', 'Suami saya, Pak Udin, kerja di terminal.'], close: ['Kamu pelanggan setia, terima kasih ya!'] },
             { id: 'udin', name: 'Pak Udin', role: 'Petugas Terminal Bus', g: 'm', faith: 'i', home: 'k2', slot: 1, job: 'terminal', hours: [[5.5, 20], [5.5, 20], [6, 20]], skin: 0xb57a4e, o: { t: 'kemejap-birumuda', b: 'panjang-abu', f: null, s: 'boots', h: 'topi-biru' }, love: ['kopi', 'soto'], like: ['pisgor', 'teh'], hate: ['lavender'],
-                lines: ['Mau ke mana? Bus dan angkot ke semua desa berangkat dari sini.', 'Di tiap desa ada halte angkot, tinggal naik.', 'Ongkosnya murah, 10 G saja.'], close: ['Buat kamu, saya pilihkan kursi paling depan!'] },
+                lines: ['Mau ke mana? Bus ke kota lain berangkat dari sini.', 'Di tiap desa ada pangkalan ojek, tinggal naik.', 'Ongkosnya murah, 10 G saja.'], close: ['Buat kamu, saya pilihkan kursi paling depan!'] },
             { id: 'dewi', name: 'Kak Dewi', role: 'Penata Rambut Salon Cantik', g: 'f', faith: 'p', home: 'k3', slot: 0, job: 'salon', hours: [[9, 19], [9, 19], [11, 16]], skin: 0xe9b993, o: { f: 'dress-biru', s: 'heels', h: null }, love: ['anggrek', 'jusalpukat'], like: ['mawar', 'lavender'], hate: ['ikanbakar'],
                 lines: ['Mau ganti warna rambut? Saya punya banyak pilihan!', 'Hari Minggu pagi saya ibadah di Gereja Imanuel, di desa hutan.', 'Rambut sehat itu dari makanan bergizi, lho.'], close: ['Kamu selalu tampil menarik. Aku senang menatanya!'] },
             { id: 'slamet', name: 'Pak Slamet', role: 'Petugas Kantor Pos', g: 'm', faith: 'i', home: 'k4', slot: 0, job: 'pos', hours: [[8, 15], [8, 12], null], skin: 0xc68a5e, hair: 0x8a8a8a, o: { t: 'kemejap-kotakmerah', b: 'panjang-krem', f: null, s: 'pantofel', h: 'peci' }, love: ['getuk', 'kopi'], like: ['salak', 'duku'], hate: ['sambal'],
@@ -7080,7 +7115,22 @@
             wkopi: r => ['kopisusu', 'esteh', 'wedangjahe', 'pisgor', 'singkonggoreng', 'bakwan', 'martabak', 'getuk', 'kolak', 'tempegoreng', 'jamu'].includes(r.key),
             seafood: r => /lele|ikan|udang|patin|gurame|pepes|tongkol|cumi|kerang|esteh|jus/.test(r.key),
         };
-        // 🚌 the bus and the angkot: every region has a stop
+        // 🛵 ojek: every region has a pangkalan ojek (and the farm one by the south gate)
+        const OJEK_SVG = `<svg viewBox="0 0 220 120" width="220" height="120" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="110" cy="108" rx="92" ry="7" fill="rgba(0,0,0,0.18)"/>
+            <circle cx="52" cy="88" r="20" fill="#222"/><circle cx="52" cy="88" r="8" fill="#bbb"/>
+            <circle cx="168" cy="88" r="20" fill="#222"/><circle cx="168" cy="88" r="8" fill="#bbb"/>
+            <path d="M40 78 Q60 56 100 60 L140 60 Q150 46 160 46 L172 50 L162 80 L70 82 Z" fill="#2e8b57"/>
+            <rect x="74" y="52" width="46" height="10" rx="5" fill="#333"/>
+            <path d="M158 48 L170 22" stroke="#333" stroke-width="5" stroke-linecap="round"/><path d="M162 22 L180 20" stroke="#333" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="176" cy="54" r="5" fill="#fff3b0"/>
+            <path d="M98 54 L104 30 Q108 22 118 24 L132 28 L150 26" stroke="#2b2b2b" stroke-width="9" stroke-linecap="round" fill="none"/>
+            <path d="M100 56 L118 60 L124 80" stroke="#2b3a55" stroke-width="9" stroke-linecap="round" fill="none"/>
+            <rect x="96" y="14" width="22" height="26" rx="6" fill="#2e8b57"/>
+            <circle cx="110" cy="12" r="11" fill="#2e8b57"/><rect x="103" y="10" width="15" height="6" rx="3" fill="#9fd8ff"/>
+            <path d="M84 50 L74 26 Q72 18 80 16" stroke="#e94f64" stroke-width="8" stroke-linecap="round" fill="none"/>
+            <circle cx="80" cy="12" r="9" fill="#d9a077"/><path d="M71 10 Q80 0 89 10" fill="#2a1a12"/>
+        </svg>`;
         const STOPS = [
             { id: 'farm', name: '🏡 Farm', at: new THREE.Vector3(2.5, 0, 20.5), h: Math.PI },
             { id: 'sawah', name: '🌾 Lembah Persawahan', at: new THREE.Vector3(4.2, 0, 39.6), h: 0 },
@@ -7091,8 +7141,8 @@
         ];
         const FARE = 10;
         function openHalte(here) {
-            openDlg('🚏 Naik angkot', [el('p', { class: 'small-note', text: `Ongkos ${FARE} G sekali jalan · 💰 ${state.gold.toLocaleString('id-ID')} G` })],
-                [...STOPS.filter(s => s.id !== here).map(s => ({ t: s.name, f: () => { if (state.gold < FARE) { toast('Uangnya tidak cukup untuk ongkos 🚌'); return; } sendAct('ongkos', FARE); if (REGI[s.id]) ensureRegion(s.id); travel(s.at.clone(), s.h, `🚌 ${s.name}`); } })), { t: 'Nanti saja' }]);
+            openDlg('🛵 Naik ojek', [el('div', { class: 'ojekart', html: OJEK_SVG }), el('p', { class: 'small-note', text: `Abang ojek siap mengantar ke desa mana saja. Ongkos ${FARE} G sekali jalan · 💰 ${state.gold.toLocaleString('id-ID')} G` })],
+                [...STOPS.filter(s => s.id !== here).map(s => ({ t: s.name, f: () => { if (state.gold < FARE) { toast('Uangnya tidak cukup untuk ongkos 🛵'); return; } sendAct('ongkos', FARE); if (REGI[s.id]) ensureRegion(s.id); travel(s.at.clone(), s.h, `🛵 Naik ojek ke ${s.name}`, OJEK_SVG); } })), { t: 'Nanti saja' }]);
         }
         // ⛴️ the boat between the harbour and the island
         const ISLAND_DOCK = new THREE.Vector3(122.5, 0, 78), HARBOUR_DOCK = new THREE.Vector3(96, 0, 1.0), BOAT_FARE = 25;
@@ -7246,8 +7296,8 @@
                 }
             }
             // stops, the harbour jetty and the island jetty, snorkelling
-            for (const s of STOPS) if (s.id !== 'farm') add('halte:' + s.id, s.at, 1.6, { label: () => `Naik angkot 🚏 (${FARE} G)`, act: () => openHalte(s.id) });
-            add('halte:farm', STOPS[0].at, 1.4, { label: () => `Naik angkot ke desa 🚏 (${FARE} G)`, act: () => openHalte('farm') });
+            for (const s of STOPS) if (s.id !== 'farm') add('halte:' + s.id, s.at, 1.6, { label: () => `Naik ojek 🛵 (${FARE} G)`, act: () => openHalte(s.id) });
+            add('halte:farm', STOPS[0].at, 1.4, { label: () => `Naik ojek ke desa 🛵 (${FARE} G)`, act: () => openHalte('farm') });
             add('boatgo', HARBOUR_DOCK, 1.6, { label: () => atWork(KEEPER.pelabuhan) ? `Naik kapal ke Pulau Kencana ⛴️ (${BOAT_FARE} G)` : 'Kapal belum berangkat · Pak Daeng belum datang', act: () => { if (atWork(KEEPER.pelabuhan)) openBoat(true); else toast('Kapal berlayar pukul 06:00–18:00 bersama Pak Daeng.'); } });
             add('boatback', ISLAND_DOCK, 1.8, { label: () => `Pulang naik kapal ⛴️ (${BOAT_FARE} G)`, act: () => openBoat(false) });
             add('snorkel', new THREE.Vector3(VOUT.snorkel.stand[0] - 0.6, 0, VOUT.snorkel.stand[1] + 1.2), 1.8, { label: () => atWork(NPCI.kadek) ? `Snorkeling 🤿 bersama Kadek (sisa ${dailyLeft('snorkel', USER, SNORKEL_MAX)})` : 'Kadek sedang tidak memandu', act: () => { if (!atWork(NPCI.kadek)) { toast('Snorkeling ditemani Kadek pukul 08:00–16:00.'); return; } splash(player.pos); sendAct('snorkel'); } });
@@ -7461,7 +7511,7 @@
                 label(b.icon, X, Y + 0.3, r * 1.25, '#000', null);
                 if (big) plate(b.name.replace('Gereja Katolik', 'Gereja').replace('Gereja Protestan', 'Gereja').replace('Tempat Pelelangan Ikan', 'Pelelangan Ikan'), X, Y + r + 5, 5.2, 'rgba(255,253,245,0.95)', '#8a5a2b', '#3a2a12');
             }
-            for (const s2 of STOPS) label('🚏', mx(s2.at.x), mz(s2.at.z), big ? 7 : 5.5, '#000', null);
+            for (const s2 of STOPS) label('🛵', mx(s2.at.x), mz(s2.at.z), big ? 7 : 5.5, '#000', null);
             // the region banners
             for (const r of REGIONS) { const bs = VB.filter(b => b.r === r.id), cx = bs.reduce((t, b) => t + b.x, 0) / bs.length, cz = Math.min(...bs.map(b => b.z)) - 7; plate(r.name.replace(/^\S+\s/, '').toUpperCase(), mx(cx), mz(cz) - (big ? 6 : 0), big ? 8 : 5.6, '#f6e3b4', '#8a5a2b', '#4a2f14'); }
             plate('FARM', mx(0), mz(-26.5) + (big ? 0 : 1), big ? 8 : 5.6, '#f6e3b4', '#8a5a2b', '#4a2f14');
