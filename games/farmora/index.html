@@ -2536,6 +2536,7 @@
             fpantai: { name: 'pantai festival', node: 'p14', c: [87, 29], r: 4.5, crowd: 1, st: [87, 35, Math.PI] },
             fdanau: { name: 'tepi danau', node: 'g8', c: [-118.5, 27], r: 3.2, crowd: 1, st: [-118.5, 21, 0] },
             fkota: { name: 'pantai utara kota', node: 'k3', c: [-1, -108], r: 4, crowd: 1, st: [-7.5, -109, Math.PI / 2] },
+            fkopi: { name: 'kebun kopi', node: 'g12', c: [-95, -40.5], r: 3.2, crowd: 1, st: [-95.5, -47.2, 0] },
         });
         const isFlower = k => !!(GDEF[k] && GDEF[k].type === 'hias');
         const isHarvest = k => !!PRODUCTS[k] && !!((GDEF[k] && GDEF[k].type === 'veg') || FDEF[k] || ['gabah', 'beras', 'jagung'].includes(k));
@@ -2545,9 +2546,14 @@
             { k: 'layang', s: 'kemarau', d: 15, icon: '🪁', name: 'Festival Layang-layang', p: 'fpantai', r: 'pantai', h: [9, 17], kind: 'kite', fl: [0x2f8fb0, 0xffd34d, 0xff7043, 0x7cb342], note: 'Terbangkan layangan dan adu ketangkasan menarik benang' },
             { k: 'panen', s: 'gugur', d: 20, icon: '🌾', name: 'Pesta Panen', p: 'fsawah', r: 'sawah', h: [8, 17], kind: 'show', what: 'hasil panen (sayur, buah, atau biji-bijian)', ok: isHarvest, fl: [0xe6a23c, 0x8bc34a, 0xd9443a], note: 'Syukuran panen desa: bawa hasil panen terbaikmu untuk dinilai' },
             { k: 'mancing', s: 'penghujan', d: 14, icon: '🎣', name: 'Lomba Mancing', p: 'fdanau', r: 'gunung', h: [6, 12], kind: 'fish', fl: [0x1e88e5, 0xffffff, 0xffd34d], note: 'Daftar di tenda panitia, tangkap ikan sebanyak-banyaknya (di danau atau di mana saja), lalu kembali untuk dinilai' },
+            { k: 'ternak', s: 'semi', d: 22, icon: '🐄', name: 'Kontes Ternak', p: 'fsawah', r: 'sawah', h: [8, 16], kind: 'ternak', fl: [0x8bc34a, 0xffffff, 0x1e88e5], note: 'Bawa satu hewan ternak farm: dinilai dari keakraban, sudah dielus dan sudah makan, dan kandang yang bersih' },
+            { k: 'jukung', s: 'panas', d: 8, icon: '🛶', name: 'Pacu Jukung', p: 'fpantai', r: 'pantai', h: [8, 16], kind: 'jukung', fl: [0xd9261c, 0x1e88e5, 0xffb300, 0xffffff], note: 'Lomba mendayung jukung di laut depan pantai. Kalau kalian berdua ikut, ada bonus tim 100 G' },
+            { k: 'karapan', s: 'kemarau', d: 24, icon: '🐂', name: 'Karapan Sapi', p: 'fsawah', r: 'sawah', h: [8, 16], kind: 'karapan', fl: [0xd9261c, 0xffd34d, 0x111111], note: 'Balapan sapi khas Madura. Sapi farm yang akrab berlari lebih kencang' },
+            { k: 'kopi', s: 'gugur', d: 27, icon: '☕', name: 'Festival Kopi Gunung', p: 'fkopi', r: 'gunung', h: [8, 16], kind: 'kopi', fl: [0x6e4723, 0xe6a23c, 0x4caf6a], note: 'Lomba meracik kopi di kebun kopi: sangrai sampai sedang, lalu seduh pas di garis' },
+            { k: 'masak', s: 'penghujan', d: 6, icon: '🍲', name: 'Lomba Masak Nusantara', p: 'fpanggung', r: 'kota', h: [9, 16], kind: 'masak', fl: [0xd9261c, 0xffd34d, 0x4caf6a], note: 'Sajikan satu masakan untuk juri. Juri berganti setiap tahun, jadi cari tahu seleranya' },
             { k: 'lampion', s: 'dingin', d: 24, icon: '🏮', name: 'Festival Lampion', p: 'fkota', r: 'kota', h: [17, 22], kind: 'lamp', fl: [0xd9261c, 0xffb300], note: 'Terbangkan lampion harapan di pantai utara kota, paling indah kalau berdua' },
         ];
-        const onFestGround = (x, z) => ['fsawah', 'fpantai', 'fdanau', 'fkota', 'fklenteng', 'fpanggung'].some(k => { const P = VOUT[k]; return Math.hypot(x - P.c[0], z - P.c[1]) < P.r + 3.5 || (P.st && Math.hypot(x - P.st[0], z - P.st[1]) < 3.5); }) || [[-6, 90], [0.8, 79], [-6, 86.4]].some(([px, pz]) => Math.hypot(x - px, z - pz) < 3.5);
+        const onFestGround = (x, z) => ['fsawah', 'fpantai', 'fdanau', 'fkota', 'fklenteng', 'fpanggung', 'fkopi'].some(k => { const P = VOUT[k]; return Math.hypot(x - P.c[0], z - P.c[1]) < P.r + 3.5 || (P.st && Math.hypot(x - P.st[0], z - P.st[1]) < 3.5); }) || [[-6, 90], [0.8, 79], [-6, 86.4]].some(([px, pz]) => Math.hypot(x - px, z - pz) < 3.5);
         const FEST_PRIZE = [700, 350, 150], FEST_THANKS = 50, KITE_PRICE = 30, LAMP_PRICE = 25;
         const FEST_SKIP = new Set(['fikri', 'hamid', 'antonius', 'samuel']); // the imams and the priests keep to their services
         const festOn = day => FESTS.find(F => seasonOf(day).key === F.s && (day - 1) % DAYS_PER_SEASON + 1 === F.d) || null;
@@ -2563,11 +2569,11 @@
             let s = (state.day * 7919 + F.k.length * 131) % 2147483647 || 1;
             const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
             const pool = NPCS.filter(n => !n.kid && homeRegion(n) === F.r), out = [];
-            const range = { tap: [26, 50], kite: [150, 430], fish: [2, 7] }[F.kind];
-            const prices = F.kind === 'show' ? Object.keys(PRODUCTS).filter(F.ok).map(k => PRODUCTS[k].price).sort((a, b) => b - a) : [];
+            const range = { tap: [26, 50], kite: [150, 430], fish: [2, 7], karapan: [60, 140], jukung: [50, 105], kopi: [180, 440], ternak: [40, 88] }[F.kind];
+            const prices = F.kind === 'show' ? Object.keys(PRODUCTS).filter(F.ok).map(k => PRODUCTS[k].price).sort((a, b) => b - a) : F.kind === 'masak' ? RECIPES.map(r => r.price).sort((a, b) => b - a) : [];
             for (let i = 0; i < 5 && pool.length; i++) {
                 const n = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
-                const v = F.kind === 'show' ? Math.round(prices[Math.floor(rnd() * rnd() * prices.length)] * (0.85 + rnd() * 0.3)) : Math.round(range[0] + rnd() * (range[1] - range[0]));
+                const v = prices.length ? Math.round(prices[Math.floor(rnd() * rnd() * prices.length)] * (0.85 + rnd() * 0.3)) : Math.round(range[0] + rnd() * (range[1] - range[0]));
                 out.push({ n: n.name, v });
             }
             return out.sort((a, b) => b.v - a.v);
@@ -2600,7 +2606,7 @@
             const N = 8, R = P.r + 1.7, poles = [];
             for (let i = 0; i < N; i++) {
                 const a = i / N * Math.PI * 2 + 0.2, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R;
-                if (Math.hypot(x - P.st[0], z - P.st[1]) < 2.6 || !walkable({ x, z }) || colliders.some(c => !c.off && c.t === 'c' && Math.hypot(c.x - x, c.z - z) < c.r + 0.3)) { poles.push(null); continue; }
+                if (Math.hypot(x - P.st[0], z - P.st[1]) < 2.6 || !walkable({ x, z }) || inRiver(x, z, 0.8) || colliders.some(c => !c.off && c.t === 'c' && Math.hypot(c.x - x, c.z - z) < c.r + 0.3)) { poles.push(null); continue; }
                 const y = groundY(x, z); poles.push([x, y, z]);
                 const p = mesh(CYL, mat(0x8a5a33), g); p.scale.set(0.05, 2.8, 0.05); p.position.set(x, y + 1.4, z);
             }
@@ -2630,7 +2636,63 @@
             for (let i = 0; i < 6; i++) box(0.46, 0.08, 1.9, i % 2 ? 0xffffff : 0xd9261c, -1.15 + i * 0.46, 2.25, 0, t);
             box(2.2, 0.08, 0.7, 0xf4e3c1, 0, 0.8, 0.55, t); for (const px of [-0.95, 0.95]) box(0.07, 0.8, 0.6, 0x8a5a33, px, 0.4, 0.55, t);
             textPlate(t, `${F.icon} ${F.name}`, 0, 2.62, 0.96, 2.4);
+            const V = {};
             const props = {
+                karapan: () => {
+                    // the race lane south of the ground, and two pairs of bulls with their jockeys running it
+                    const lz = 86.6, y0 = groundY(-6, lz);
+                    for (const s of [-1, 1]) box(16, 0.03, 0.08, 0xffffff, -6, y0 + 0.02, lz + s * 1.0, g).castShadow = false;
+                    for (const x of [-14.2, 2.2]) for (const s of [-1, 1]) { box(0.08, 1.6, 0.08, 0xd9261c, x, y0 + 0.8, lz + s * 1.2, g); }
+                    const pairs = [];
+                    for (let p = 0; p < 2; p++) {
+                        const P2 = new THREE.Group(); g.add(P2);
+                        for (const s of [-1, 1]) { const c = BUILDERS.cow(p ? 'jersey' : 'holstein', 'm'); c.group.scale.setScalar(0.75); c.group.position.set(s * 0.45, 0, 0); c.group.rotation.y = Math.PI / 2; P2.add(c.group); }
+                        box(0.12, 0.12, 1.3, 0x6e4723, 0.9, 0.95, 0, P2); box(1.4, 0.08, 0.5, 0x8a5a33, -1.3, 0.25, 0, P2);
+                        const j = cap(0.14, 0.45, p ? 0x1e88e5 : 0xd9261c, -1.3, 0.75, 0, P2); ball(0.13, 0.13, 0.13, 0xc68a5e, -1.3, 1.25, 0, P2);
+                        pairs.push(P2);
+                    }
+                    V.upd = () => { pairs.forEach((P2, i) => { const u = ((elapsed * (0.11 + i * 0.015) + i * 0.4) % 1.3) / 1.1, x = -14 + Math.min(1, u) * 16, z = lz + (i ? 0.5 : -0.5); P2.visible = u < 1; P2.position.set(x, groundY(x, z) + Math.abs(Math.sin(elapsed * 9 + i)) * 0.06, z); }); };
+                },
+                jukung: () => {
+                    // three jukung racing back and forth on the sea in front of the beach, buoys at both ends
+                    const boats = [];
+                    for (let i = 0; i < 3; i++) {
+                        const B = new THREE.Group(); g.add(B); jukung(B, [0xd9261c, 0x1e88e5, 0xffb300][i]);
+                        for (const z of [-0.9, 0.3, 1.3]) { cap(0.12, 0.35, 0xf2f2ee, 0, 0.9, z, B); ball(0.11, 0.11, 0.11, 0xb57a4e, 0, 1.3, z, B); const pd = box(0.05, 0.05, 1.0, 0x8a5a33, 0.45, 0.8, z, B); pd.rotation.x = 0.6; }
+                        boats.push(B);
+                    }
+                    for (const z of [14, 44]) for (const x of [104, 108, 112]) { const b = ball(0.25, 0.25, 0.25, 0xff7043, x, SEA_Y + 0.1, z, g); b.castShadow = false; }
+                    V.upd = () => { boats.forEach((B, i) => { const u = (Math.sin(elapsed * (0.16 + i * 0.02) + i) + 1) / 2, z = 15 + u * 28, x = 104 + i * 4; B.position.set(x, SEA_Y - 0.25 + Math.sin(elapsed * 2 + i) * 0.05, z); B.rotation.y = Math.cos(elapsed * (0.16 + i * 0.02) + i) > 0 ? 0 : Math.PI; }); };
+                },
+                kopi: () => {
+                    // the roasting pan over a stove, sacks of beans and cups on the table
+                    const wajan = mesh(new THREE.CylinderGeometry(0.4, 0.25, 0.15, 14), mat(0x333333), t); wajan.position.set(-0.6, 1.0, 0.45);
+                    for (let i = 0; i < 6; i++) ball(0.05, 0.04, 0.05, 0x5a3416, -0.75 + (i % 3) * 0.12, 1.08, 0.38 + Math.floor(i / 3) * 0.12, t);
+                    for (let i = 0; i < 4; i++) { const c = mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.12, 10), mat(0xffffff), t); c.position.set(0.25 + i * 0.22, 0.88, 0.5); }
+                    for (const x of [-1.6, 1.6]) { const sx = P.st[0] + x, sz = P.st[1] - 0.6, sg = new THREE.Group(); sg.position.y = groundY(sx, sz); g.add(sg); sack(sg, sx, sz, 0x9a6b42); }
+                },
+                ternak: () => {
+                    // a show pen in the middle of the ground with two villagers' animals and a ribbon
+                    const [cx, cz] = P.c, y = groundY(cx, cz);
+                    for (const [x, z, w, d] of [[0, -1.2, 2.4, 0.06], [0, 1.2, 2.4, 0.06], [-1.2, 0, 0.06, 2.4], [1.2, 0, 0.06, 2.4]]) { box(w, 0.08, d, 0xc8955a, cx + x, y + 0.55, cz + z, g); box(w, 0.08, d, 0xc8955a, cx + x, y + 0.3, cz + z, g); }
+                    for (const [x, z] of [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]]) box(0.1, 0.7, 0.1, 0x8a5a33, cx + x, y + 0.35, cz + z, g);
+                    const c = BUILDERS.cow('jersey', 'f'); c.group.scale.setScalar(0.6); c.group.position.set(cx - 0.4, y, cz); c.group.rotation.y = 0.6; g.add(c.group);
+                    const gt = BUILDERS.goat('white', 'f'); gt.group.scale.setScalar(0.7); gt.group.position.set(cx + 0.5, y, cz + 0.3); gt.group.rotation.y = -0.8; g.add(gt.group);
+                    box(0.3, 0.3, 0.02, 0x1e88e5, cx, y + 0.75, cz - 1.24, g); ball(0.12, 0.12, 0.03, 0xffd34d, cx, y + 0.95, cz - 1.25, g);
+                    cols.push({ t: 'b', minX: cx - 1.25, maxX: cx + 1.25, minZ: cz - 1.25, maxZ: cz + 1.25 });
+                },
+                masak: () => {
+                    // three cooking stations with stoves, pots and a little steam
+                    const steam = [];
+                    for (let i = 0; i < 3; i++) {
+                        const x = P.c[0] - 2.2 + i * 2.2, z = P.c[1] - 4.0, y = groundY(x, z);
+                        table(g, x, z, 1.4, 0.7, 0.85, 0xb07a45); box(0.5, 0.12, 0.4, 0x444444, x - 0.3, y + 0.92, z, g);
+                        const pot = mesh(new THREE.CylinderGeometry(0.2, 0.18, 0.25, 12), mat(0x9aa7b3), g); pot.position.set(x - 0.3, y + 1.1, z);
+                        const s = ball(0.12, 0.12, 0.12, 0xffffff, x - 0.3, y + 1.4, z, g); s.material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }); steam.push(s);
+                        cols.push({ t: 'c', x, z, r: 0.7 });
+                    }
+                    V.upd = () => steam.forEach((s, i) => { const u = (elapsed * 0.6 + i * 0.33) % 1; s.position.y = groundY(s.position.x, s.position.z) + 1.3 + u * 0.8; s.material.opacity = 0.5 * (1 - u); s.scale.setScalar(0.12 + u * 0.18); });
+                },
                 show: () => { for (let i = 0; i < 5; i++) { box(0.2, 0.18, 0.2, 0xb5643c, -0.8 + i * 0.4, 0.93, 0.55, t); ball(0.12, 0.1, 0.12, F.fl[i % F.fl.length], -0.8 + i * 0.4, 1.12, 0.55, t); } },
                 tap: () => {
                     // the cracker line (krupuk on strings) and a greasy pole with prizes at the top (panjat pinang)
@@ -2650,7 +2712,7 @@
             const ca = Math.cos(sh), sa = Math.sin(sh);
             cols.push({ t: 'c', x: sx + 0.55 * sa, z: sz + 0.55 * ca, r: 1.25 });
             colliders.push(...cols);
-            return festVis[F.k] = { g, cols };
+            return festVis[F.k] = { g, cols, upd: V.upd };
         }
         // a diamond kite with a tail
         function kiteMesh(color) {
@@ -2672,7 +2734,7 @@
             if (!started) return;
             const F = festToday();
             if (F && !festVis[F.k]) buildFest(F);
-            for (const [k, v] of Object.entries(festVis)) { const on = !!F && F.k === k; v.g.visible = on; for (const c of v.cols) c.off = !on; }
+            for (const [k, v] of Object.entries(festVis)) { const on = !!F && F.k === k; v.g.visible = on; for (const c of v.cols) c.off = !on; if (on && v.upd) v.upd(); }
             if (festNoteDay !== state.day) {
                 festNoteDay = state.day;
                 const T = festOn(state.day + 1);
@@ -2717,7 +2779,7 @@
         // 🎊 holidays and weekly evenings: the rest of the village calendar besides the six festivals
         Object.assign(VOUT, {
             fklenteng: { name: 'halaman kelenteng', node: 'p10', c: [53, -14], r: 2.5, crowd: 1 },
-            fpanggung: { name: 'panggung kota', node: 'k1', c: [-23, -38.5], r: 2.8, crowd: 1 },
+            fpanggung: { name: 'panggung kota', node: 'k1', c: [-23, -38.5], r: 2.8, crowd: 1, st: [-23, -32.4, Math.PI] },
             ftakbir: { name: 'pawai obor', node: 's16', pace: [[-11, 80], [-1, 82.5]] },
         });
         const isSD = (d, s, n) => seasonOf(d).key === s && (d - 1) % DAYS_PER_SEASON + 1 === n;
@@ -2778,7 +2840,7 @@
             const [cx, cz] = P.c, poles = [];
             for (let i = 0; i < 8; i++) {
                 const a = i / 8 * Math.PI * 2 + 0.2, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R;
-                if (!walkable({ x, z }) || colliders.some(c => !c.off && c.t === 'c' && Math.hypot(c.x - x, c.z - z) < c.r + 0.3)) { poles.push(null); continue; }
+                if (!walkable({ x, z }) || inRiver(x, z, 0.8) || colliders.some(c => !c.off && c.t === 'c' && Math.hypot(c.x - x, c.z - z) < c.r + 0.3)) { poles.push(null); continue; }
                 const y = groundY(x, z); poles.push([x, y, z]); const p = mesh(CYL, mat(0x8a5a33), g); p.scale.set(0.05, 2.8, 0.05); p.position.set(x, y + 1.4, z);
             }
             // the bulbs of one colour are drawn all at once (one instanced mesh per colour)
@@ -7887,6 +7949,19 @@
                     : el('p', { class: 'small-note', text: `Belum ada ${F.what} di tasmu. Kamu tetap boleh menonton dan meramaikan!` }));
             } else if (F.kind === 'tap') btns.push({ t: '🍘 Mulai lomba makan kerupuk', big: true, keep: true, f: () => tapGame(F) });
             else if (F.kind === 'kite') btns.push({ t: `🪁 Beli layangan (${KITE_PRICE} G) & ikut lomba`, big: true, keep: true, f: () => { if (state.gold < KITE_PRICE) { toast('Uangnya tidak cukup untuk layangan 🪁'); return; } kiteGame(F); } });
+            else if (F.kind === 'karapan') btns.push({ t: '🐂 Ikut balapan', big: true, keep: true, f: () => karapanGame(F) });
+            else if (F.kind === 'jukung') btns.push({ t: '🛶 Ikut mendayung', big: true, keep: true, f: () => jukungGame(F) });
+            else if (F.kind === 'kopi') btns.push({ t: '☕ Ikut meracik kopi', big: true, keep: true, f: () => kopiGame(F) });
+            else if (F.kind === 'ternak') {
+                const list = ANIMAL_DEFS.filter(d => LIVESTOCK.includes(d.kind));
+                body.push(el('p', { text: 'Pilih satu hewan farm untuk dinilai juri (sekali per orang). Elus dan beri makan dulu, dan bersihkan kandangnya!' }),
+                    el('div', { class: 'shoplist' }, list.map(d => { const a = state.animals[d.name] || {}, hh = Math.floor((a.friend || 0) / 100); return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: { cow: '🐄', goat: '🐐', sheep: '🐑', chicken: '🐔', duck: '🦆' }[d.kind] }), el('span', { class: 'nm' }, el('b', { text: d.name }), el('small', { text: `${'❤️'.repeat(hh)}${'🤍'.repeat(HEART_MAX - hh)} · ${a.petted ? 'sudah dielus' : 'belum dielus'}` })), el('button', { class: 'btn', onclick: () => { sendAct('fest', 'ternak|' + d.name); setTimeout(() => { if (dlgOpen()) openFest(F); }, 450); } }, 'Ikutkan')); })));
+            } else if (F.kind === 'masak') {
+                const J = masakJudge(), ks = [...new Set(bagOf(USER).filter(x => x && RECIPES.some(r => (r.out || r.key) === x[0])).map(x => x[0]))];
+                body.push(el('p', { text: `👩‍🍳 Juri tahun ini: ${J.name}. Kabarnya ${J.g === 'f' ? 'ia' : 'ia'} suka ${J.love.map(k => ITEMS[k] ? ITEMS[k].label : k).join(' dan ')}, dan tidak suka ${J.hate.map(k => ITEMS[k] ? ITEMS[k].label : k).join(', ') || '-'}.` }),
+                    ks.length ? el('div', { class: 'shoplist' }, ks.map(k => el('div', { class: 'shopitem' }, el('span', { class: 'ic' }, iconEl(k)), el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `harga ${PRODUCTS[k].price} G` })), el('button', { class: 'btn', onclick: () => { sendAct('fest', 'masak|' + k); setTimeout(() => { if (dlgOpen()) openFest(F); }, 450); } }, 'Sajikan'))))
+                        : el('p', { class: 'small-note', text: 'Belum ada masakan di tasmu. Masak dulu di dapur rumah, lalu bawa ke sini.' }));
+            }
             else if (F.kind === 'fish') {
                 if (!me || !me.j) btns.push({ t: '🎣 Daftar lomba (gratis)', big: true, keep: true, f: () => { sendAct('fest', 'join'); again(); } });
                 else { body.push(el('p', { text: `🎣 Ikan yang kamu tangkap sejak mendaftar: ${me.n || 0}` })); btns.push({ t: '🏁 Selesai, nilai hasilku', big: true, keep: true, f: () => { sendAct('fest', 'claim'); again(); } }); }
@@ -7934,6 +8009,64 @@
                 zw = Math.max(0.12, zw - 0.04); place();
             });
             openDlg(`${F.icon} Adu layangan`, [info, bar, el('div', { class: 'row', style: 'justify-content:center' }, pull)], [{ t: 'Batal' }]);
+        }
+        // ---- the contests of the five new festivals, each a little game in a window ----
+        const LIVESTOCK = ['cow', 'goat', 'sheep', 'chicken', 'duck'];
+        const cowPower = () => { const c = ANIMAL_DEFS.filter(d => d.kind === 'cow').map(d => (state.animals[d.name] || {}).friend || 0); return 0.7 + 0.6 * Math.min(1, Math.max(0, ...c) / (HEART_MAX * 100)); };
+        const masakJudge = () => { const A = NPCS.filter(n => !n.kid && n.love && n.love.length); return A[(yearOf(state.day) * 7 + 3) % A.length]; };
+        const festBack = F => setTimeout(() => { if (dlgOpen()) openFest(F); }, 1300);
+        // 🐂 karapan: tap left, right, left, right… to drive the pair; the same side twice makes them stumble
+        function karapanGame(F) {
+            const mul = cowPower(), bar = el('div', { style: 'position:relative;height:26px;border-radius:13px;background:#e9e1cf;overflow:hidden;margin:8px 0' }), fill = el('div', { style: 'position:absolute;left:0;top:0;bottom:0;width:0;background:#e6a23c' }), cow = el('div', { style: 'position:absolute;top:-4px;left:0;font-size:24px' }, '🐂');
+            bar.append(fill, cow);
+            const info = el('p', { text: `Ketuk ◀ dan ▶ bergantian secepatnya selama 10 detik. Sapi farm yang akrab lebih kencang (kekuatan ×${mul.toFixed(2)}).` });
+            let last = null, v = 0, d = 0, t0 = 0, done = false, prev = 0;
+            const tick = now => { if (done || $('dlg').classList.contains('hidden')) return; const dt = prev ? (now - prev) / 1000 : 0; prev = now; if (t0) { v *= Math.pow(0.35, dt); d += v * dt; const p = Math.min(1, d / 160); fill.style.width = p * 100 + '%'; cow.style.left = `calc(${p * 100}% - 20px)`; info.textContent = `${Math.round(d)} m · sisa ${Math.max(0, 10 - (now - t0) / 1000).toFixed(1)} detik`; if (now - t0 > 10000) finish(); } requestAnimationFrame(tick); };
+            const finish = () => { done = true; info.textContent = `Finis! ${Math.round(d)} meter 🐂`; sendAct('fest', 'karapan|' + Math.round(d)); festBack(F); };
+            const press = side => e => { e.preventDefault(); if (done) return; if (!t0) { t0 = performance.now(); prev = t0; } if (side === last) { v *= 0.5; info.textContent = 'Sapinya tersandung! Ganti sisi 😅'; } else v = Math.min(9 + 7 * mul, v + 3.1 * mul); last = side; };
+            const L = el('button', { class: 'btn big', style: 'font-size:30px;touch-action:manipulation;min-width:110px' }, '◀'), R = el('button', { class: 'btn big', style: 'font-size:30px;touch-action:manipulation;min-width:110px' }, '▶');
+            L.addEventListener('pointerdown', press('L')); R.addEventListener('pointerdown', press('R'));
+            requestAnimationFrame(tick);
+            openDlg(`${F.icon} Karapan Sapi`, [info, bar, el('div', { class: 'row', style: 'justify-content:center;gap:14px' }, L, R)], [{ t: 'Batal' }]);
+        }
+        // 🛶 pacu jukung: paddle left and right in a steady rhythm; steady beats fast
+        function jukungGame(F) {
+            const bar = el('div', { style: 'position:relative;height:26px;border-radius:13px;background:#cfe8f2;overflow:hidden;margin:8px 0' }), fill = el('div', { style: 'position:absolute;left:0;top:0;bottom:0;width:0;background:#2f8fb0' }), boat = el('div', { style: 'position:absolute;top:-4px;left:0;font-size:24px' }, '🛶');
+            bar.append(fill, boat);
+            const info = el('p', { text: 'Dayung kiri dan kanan bergantian dengan irama tetap (sekitar dua kali sedetik) selama 12 detik. Irama yang rapi lebih kencang daripada asal cepat.' });
+            let last = null, lastT = 0, v = 0, d = 0, t0 = 0, done = false, prev = 0;
+            const tick = now => { if (done || $('dlg').classList.contains('hidden')) return; const dt = prev ? (now - prev) / 1000 : 0; prev = now; if (t0) { v *= Math.pow(0.45, dt); d += v * dt; const p = Math.min(1, d / 150); fill.style.width = p * 100 + '%'; boat.style.left = `calc(${p * 100}% - 20px)`; info.textContent = `${Math.round(d)} m · sisa ${Math.max(0, 12 - (now - t0) / 1000).toFixed(1)} detik`; if (now - t0 > 12000) finish(); } requestAnimationFrame(tick); };
+            const finish = () => { done = true; info.textContent = `Finis! ${Math.round(d)} meter 🛶`; sendAct('fest', 'jukung|' + Math.round(d)); festBack(F); };
+            const press = side => e => { e.preventDefault(); if (done) return; const now = performance.now(); if (!t0) { t0 = now; prev = now; }
+                if (side === last) v *= 0.6; else { const gap = lastT ? (now - lastT) / 1000 : 0.45; v = Math.min(16, v + 4.0 * Math.max(0.15, 1 - Math.abs(gap - 0.45) / 0.45)); }
+                last = side; lastT = now; };
+            const L = el('button', { class: 'btn big', style: 'font-size:22px;touch-action:manipulation;min-width:110px' }, '🚣 Kiri'), R = el('button', { class: 'btn big', style: 'font-size:22px;touch-action:manipulation;min-width:110px' }, 'Kanan 🚣');
+            L.addEventListener('pointerdown', press('L')); R.addEventListener('pointerdown', press('R'));
+            requestAnimationFrame(tick);
+            openDlg(`${F.icon} Pacu Jukung`, [info, bar, el('div', { class: 'row', style: 'justify-content:center;gap:14px' }, L, R)], [{ t: 'Batal' }]);
+        }
+        // ☕ the coffee contest: stop the roast at a medium brown, then pour the cup to the line
+        function kopiGame(F) {
+            const bean = have(USER, 'kopisangrai') ? 'kopisangrai' : have(USER, 'kopi') ? 'kopi' : '';
+            const grad = el('div', { style: 'position:relative;height:30px;border-radius:15px;background:linear-gradient(90deg,#d9c39a,#a46a33,#5a3416,#1f120a);margin:8px 0' }), zone = el('div', { style: 'position:absolute;top:-3px;bottom:-3px;left:44%;width:14%;border:3px solid #fff;border-radius:8px' }), nd = el('div', { style: 'position:absolute;top:-4px;bottom:-4px;width:6px;background:#d9261c;border-radius:3px' });
+            grad.append(zone, nd);
+            const cup = el('div', { style: 'position:relative;width:90px;height:110px;margin:8px auto;border:4px solid #8b5a2b;border-top:none;border-radius:0 0 22px 22px;overflow:hidden;background:#fff8ec' }), coffee = el('div', { style: 'position:absolute;left:0;right:0;bottom:0;height:0;background:#4a2a12' }), line = el('div', { style: 'position:absolute;left:0;right:0;bottom:84%;height:3px;background:#d9261c' });
+            cup.append(coffee, line); cup.style.display = 'none';
+            const info = el('p', { text: `1️⃣ Sangrai: tekan "Angkat" saat warna biji kopi di kotak putih (sedang).${bean ? ` Biji ${ITEMS[bean].label} dari tasmu ikut dipakai (+30 nilai).` : ' Bawa kopi dari kebunmu untuk nilai tambahan.'}` });
+            const btn = el('button', { class: 'btn big', style: 'touch-action:manipulation' }, '🔥 Angkat!');
+            let stage = 0, u = 0, dir = 1, prev = 0, roast = 0, fillv = 0, pouring = false, done = false;
+            const tick = now => { if (done || $('dlg').classList.contains('hidden')) return; const dt = prev ? (now - prev) / 1000 : 0; prev = now;
+                if (stage === 0) { u += dir * dt * 0.7; if (u > 1) { u = 1; dir = -1; } if (u < 0) { u = 0; dir = 1; } nd.style.left = `calc(${u * 100}% - 3px)`; }
+                else if (pouring) { fillv = Math.min(1, fillv + dt * 0.45); coffee.style.height = fillv * 100 + '%'; if (fillv >= 1) stop(); }
+                requestAnimationFrame(tick); };
+            const stop = () => { if (done) return; done = true; const brew = Math.round(Math.max(0, 200 - Math.abs(fillv - 0.84) * 900)); const sc = roast + brew + (bean ? 30 : 0);
+                info.textContent = `Sangrai ${roast} + seduh ${brew}${bean ? ' + biji sendiri 30' : ''} = ${sc}`; sendAct('fest', `kopi|${sc},${bean}`); festBack(F); };
+            btn.addEventListener('pointerdown', e => { e.preventDefault(); if (done) return;
+                if (stage === 0) { roast = Math.round(Math.max(0, 250 - Math.abs(u - 0.51) * 1100)); stage = 1; grad.style.display = 'none'; cup.style.display = ''; info.textContent = `Sangrai: ${roast}/250. 2️⃣ Seduh: tahan tombol untuk menuang, lepas tepat di garis merah.`; btn.textContent = '☕ Tahan untuk menuang'; }
+                else pouring = true; });
+            for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, () => { if (stage === 1 && pouring) stop(); });
+            requestAnimationFrame(tick);
+            openDlg(`${F.icon} Lomba racik kopi`, [info, grad, cup, el('div', { class: 'row', style: 'justify-content:center' }, btn)], [{ t: 'Batal' }]);
         }
         // 🏚️ the village granary: keep grain safe, share comes back every new season
         const LUMBUNG_KEYS = ['gabah', 'beras', 'jagung', 'kedelai', 'kacang', 'singkong', 'ubi'];
@@ -9477,6 +9610,26 @@
                     if (!F.ok(arg) || !takeBag(who, arg)) return;
                     me.it = arg; festAward(F, who, me, Math.round(PRODUCTS[arg].price * (0.9 + Math.random() * 0.2)), `${PRODUCTS[arg].icon} ${PRODUCTS[arg].label}`);
                 } else if (op === 'tap' && F.kind === 'tap') { const n = clamp(parseInt(arg, 10) || 0, 0, 90); festAward(F, who, me, n, `${n} gigitan kerupuk`); }
+                else if (op === 'karapan' && F.kind === 'karapan') { const n = clamp(parseInt(arg, 10) || 0, 0, 170); festAward(F, who, me, n, `${n} meter`); }
+                else if (op === 'jukung' && F.kind === 'jukung') {
+                    const n = clamp(parseInt(arg, 10) || 0, 0, 160); festAward(F, who, me, n, `${n} meter`);
+                    const o = festMine(otherOf(who)); if (o && o.r && !state.fest.team) { state.fest.team = 1; state.gold += 100; emitEvent('🛶 Bonus tim: kalian berdua ikut mendayung! +100 G', 'hearts', null, who); jot(`🛶 ${NA} & ${NW} ikut Pacu Jukung bersama`); }
+                }
+                else if (op === 'kopi' && F.kind === 'kopi') {
+                    const [sc, bean] = arg.split(','), b = ['kopi', 'kopisangrai'].includes(bean) && takeBag(who, bean);
+                    const n = clamp((parseInt(sc, 10) || 0) - (bean && !b ? 30 : 0), 0, 480); festAward(F, who, me, n, 'secangkir kopi');
+                }
+                else if (op === 'ternak' && F.kind === 'ternak') {
+                    const d = ANIMAL_DEFS.find(x => x.name === arg && LIVESTOCK.includes(x.kind)), a = d && state.animals[d.name];
+                    if (!a) return;
+                    const n = Math.round(Math.min(1, (a.friend || 0) / (HEART_MAX * 100)) * 70 + (a.petted ? 10 : 0) + (a.fed !== false ? 10 : 0) + (state.poop.some(p => p.k === d.kind) ? 0 : 10));
+                    festAward(F, who, me, n, `${d.name} si ${({ cow: 'sapi', goat: 'kambing', sheep: 'domba', chicken: 'ayam', duck: 'bebek' })[d.kind]}`);
+                }
+                else if (op === 'masak' && F.kind === 'masak') {
+                    if (!RECIPES.some(r => (r.out || r.key) === arg) || !takeBag(who, arg)) return;
+                    const J = masakJudge(), m = J.love.includes(arg) ? 1.5 : J.like.includes(arg) ? 1.2 : J.hate.includes(arg) ? 0.5 : 1;
+                    festAward(F, who, me, Math.round(PRODUCTS[arg].price * m * (0.9 + Math.random() * 0.2)), `${PRODUCTS[arg].icon} ${PRODUCTS[arg].label}${m > 1 ? `, kesukaan juri ${J.name}` : ''}`);
+                }
                 else if (op === 'kite' && F.kind === 'kite') {
                     if (state.gold < KITE_PRICE) { emitEvent('Uangnya tidak cukup untuk layangan 🪁', 'none', null, who); return; }
                     state.gold -= KITE_PRICE; me.kite = 1; festAward(F, who, me, clamp(parseInt(arg, 10) || 0, 0, 500), 'layangan');
@@ -11492,7 +11645,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

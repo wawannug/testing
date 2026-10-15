@@ -36,12 +36,12 @@ Centang `[x]` kalau sudah selesai.
 - [x] **Panggung Dangdut** (Minggu sore, taman kota): permainan irama sederhana.
 - [x] **Malam Tahun Baru** (hari terakhir musim Dingin, pantai utara kota): hitung mundur dan kembang api.
 
-## 🎉 Tahap 8: Festival budaya baru
-- [ ] 🐂 **Karapan Sapi** (Kemarau, lapangan sawah): balapan menunggang sapi farm, sapi yang akrab lebih cepat.
-- [ ] 🛶 **Pacu Jukung** (Panas, pantai): lomba perahu berdua, dayung harus kompak.
-- [ ] ☕ **Festival Kopi Gunung** (Gugur, kebun kopi): meracik kopi (pilih biji, sangrai, seduh).
-- [ ] 🐄 **Kontes Ternak** (Semi, lapangan sawah): nilai dari keakraban, kandang bersih, dan makan teratur.
-- [ ] 🍲 **Lomba Masak Nusantara** (Penghujan, taman kota): juri berganti tiap tahun.
+## 🎉 Tahap 8: Festival budaya baru ✅ (V80)
+- [x] 🐂 **Karapan Sapi** (Kemarau hari ke-24, lapangan sawah): balapan menunggang sapi farm, sapi yang akrab lebih cepat.
+- [x] 🛶 **Pacu Jukung** (Panas hari ke-8, pantai): lomba perahu berdua, dayung harus kompak.
+- [x] ☕ **Festival Kopi Gunung** (Gugur hari ke-27, kebun kopi): meracik kopi (pilih biji, sangrai, seduh).
+- [x] 🐄 **Kontes Ternak** (Semi hari ke-22, lapangan sawah): nilai dari keakraban, kandang bersih, dan makan teratur.
+- [x] 🍲 **Lomba Masak Nusantara** (Penghujan hari ke-6, panggung kota): juri berganti tiap tahun.
 
 Kalender gabungan setelah tahap 7 dan 8:
 
