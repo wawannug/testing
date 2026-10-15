@@ -269,7 +269,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
   Ganti motor = tukar tambah, motor lama dihargai separuh harganya.
 - **Naik:** dekati motor lalu tekan tombol aksi (E/Spasi). Gas pakai joystick atau WASD. Tekan tombol lagi untuk **turun**, motor diparkir di tempat itu.
-- **Bonceng:** saat pasanganmu duduk di motor, dekati dia lalu pilih **🛵 Bonceng**. Kamu duduk di belakang dan ikut ke mana pun dia pergi. Tekan tombol untuk turun; kalau pengemudi turun, yang dibonceng ikut turun.
+- **Bonceng:** saat pasanganmu duduk di motor, dekati dia lalu pilih **🛵 Bonceng**. Kamu duduk di belakang dan ikut ke mana pun dia pergi. Tekan tombol untuk turun; kalau pengemudi turun, yang dibonceng ikut turun. Rok dan sarung ikut menutupi kaki saat duduk di motor.
 - Motor bebek dan matic sedikit melambat di luar jalan (rumput, tanah); motor trail tetap kencang. Di sawah motor berjalan pelan. Masuk rumah, naik perahu, naik ojek, atau tidur membuatmu turun dari motor dulu.
 
 ## Menyimpan progres

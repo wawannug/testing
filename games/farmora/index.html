@@ -5174,6 +5174,7 @@
         const HALF = new THREE.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
         // headscarf: a hood open at the face
         const HIJAB = new THREE.SphereGeometry(1, 28, 18, Math.PI / 2 + 0.95, Math.PI * 2 - 1.9, 0, 2.25);
+        const DRAPE_GEO = new THREE.CylinderGeometry(0.1, 0.13, 0.36, 16, 1, true);   // a long skirt falling over the shins, when seated astride
         const SKIRT = { skirt: new THREE.CylinderGeometry(0.17, 0.28, 0.44, 28, 1, true), longskirt: new THREE.CylinderGeometry(0.17, 0.245, 0.8, 28, 1, true) };
         const DRAPE = new THREE.CylinderGeometry(0.1, 0.25, 0.3, 28, 1, true);
         const MUKENA_CAPE = new THREE.CylinderGeometry(0.15, 0.27, 0.6, 28, 1, true);
@@ -5200,7 +5201,7 @@
             let shoes = o.s === 'none' ? null : CLOTH[o.s], head = o.h && CLOTH[o.h];
             if (look.bath) { topItem = { kind: 'kaos', sleeve: 'none', c: skin }; botItem = { legs: 'brief', c: skin }; shoes = null; head = null; }
             const rig = new THREE.Group(); g.add(rig);
-            f.skirt = null; f.longSkirt = botItem.legs === 'longskirt';
+            f.skirt = null; f.longSkirt = botItem.legs === 'longskirt'; f.drapes = [];
             const scale = (girl ? 1.02 : 1.08) * (look.kid ? 0.72 : 1);
             rig.scale.setScalar(scale);
             blob(g, 0.6, 0.6);
@@ -5223,6 +5224,7 @@
                 ball(0.06, 0.06, 0.06, skin, 0, 0, 0, kn).material = longP ? botMat : skinMat;
                 if (longP) { mesh(capGeo(0.077, 0.32), botMat, p).position.y = -0.21; mesh(capGeo(0.064, 0.34), botMat, kn).position.y = -0.17; }
                 else if (botItem.legs === 'short') mesh(capGeo(0.08, 0.12), botMat, p).position.y = -0.12;
+                if (botItem.legs === 'longskirt') { const d = mesh(DRAPE_GEO, botMat, kn); d.position.y = -0.18; d.visible = false; f.drapes.push(d); }
                 shoe(kn, shoes, skin, -0.44);
                 return p;
             });
@@ -5241,6 +5243,7 @@
                 const sk = mesh(SKIRT[botItem.legs], botMat, f.skirt);
                 sk.position.y = -(botItem.legs === 'skirt' ? 0.22 : 0.4);
                 sk.scale.z = botItem.legs === 'skirt' ? 0.8 : 0.9;
+                sk.userData.y0 = sk.position.y;
             }
             details(body, topItem, botItem, { hipY, shY, girl, skin });
             // arms (pivot at the shoulder)
@@ -5549,7 +5552,8 @@
             // undo whatever a prayer pose bent
             f.body.rotation.x = 0; f.body.position.z = 0; f.head.rotation.set(0, 0, 0);
             for (let i = 0; i < 2; i++) { f.arms[i].rotation.z = i ? -0.06 : 0.06; f.arms[i].rotation.y = 0; }
-            if (f.skirt) f.skirt.rotation.x = 0;
+            if (f.skirt) { f.skirt.rotation.x = 0; const sk = f.skirt.children[0]; if (sk && sk.userData.y0 != null) { sk.scale.y = 1; sk.position.y = sk.userData.y0; } }
+            if (f.drapes) for (const d of f.drapes) d.visible = false;
             mukena(f, false);
             if (f.swingT != null && elapsed - f.swingT < SWING_TIME && f.heldKey) {
                 const t = (elapsed - f.swingT) / SWING_TIME;
@@ -11429,6 +11433,13 @@
             f.legs.forEach(l => { l.rotation.x = -1.3; }); f.knees.forEach(n => { n.rotation.x = 1.45; });
             f.arms.forEach(a => { a.rotation.x = role === 'd' ? -1.15 : -0.75; }); f.elbows.forEach(e => { e.rotation.x = role === 'd' ? -0.35 : -1.05; });
             f.body.rotation.y = 0; f.body.position.y = 0;
+            // a skirt goes forward with the thighs, so it covers the legs instead of hanging straight down through them
+            if (f.skirt) {
+                f.skirt.rotation.x = -1.3;
+                // a long one covers the thighs to the knees and falls on over the shins
+                const sk = f.skirt.children[0];
+                if (f.longSkirt && sk) { sk.scale.y = 0.56; sk.position.y = -0.22; for (const d of f.drapes || []) d.visible = true; }
+            }
         }
         const motorSpeed = () => { const M = state.motor && MOTORS[state.motor.k]; if (!M) return 7.5; const off = state.motor.k !== 'trail' && !inFarm(player.pos) && roadTop(player.pos.x, player.pos.z) == null; return M.sp * (off ? 0.75 : 1); };
         function startRide(role) {
