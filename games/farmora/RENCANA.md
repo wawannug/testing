@@ -19,11 +19,11 @@ Centang `[x]` kalau sudah selesai.
 - [ ] Cek ulang main berdua di dua HP setelah update berikutnya: sambungan, lag, dan sinkron save.
 - [ ] Laporkan bug atau hal yang terasa aneh, diperbaiki dulu sebelum fitur baru.
 
-## 🏛️ Tahap 6: Tujuan jangka panjang
-- [ ] **Pemugaran Balai Desa**: kumpulkan paket barang (misalnya "5 sayur musim semi", "3 ikan langka"). Tiap paket membuka hadiah untuk desa: jembatan, kebun desa, toko baru.
-- [ ] **Museum dan buku koleksi**: ikan, tanaman, mineral, dan barang langka, dengan hadiah setiap 10 koleksi.
-- [ ] **Ruang fosil** di museum: hewan punah dengan kartu fakta. Isinya Harimau Bali, Harimau Jawa, Stegodon kerdil Flores, Bangau raksasa Flores, Trulek Jawa, Gigantopithecus, Harimau Tasmania, Lumba-lumba baiji, dan Badak Sumatra sebagai pembanding: "masih bisa diselamatkan".
-- [ ] **Ulang tahun warga** di kalender, dengan hadiah di hari itu bernilai keakraban berlipat.
+## 🏛️ Tahap 6: Tujuan jangka panjang ✅ (V78)
+- [x] **Pemugaran Balai Desa**: kumpulkan paket barang (misalnya "5 sayur musim semi", "3 ikan langka"). Tiap paket membuka hadiah untuk desa: jembatan, kebun desa, toko baru.
+- [x] **Museum dan buku koleksi**: ikan, tanaman, mineral, dan barang langka, dengan hadiah setiap 10 koleksi.
+- [x] **Ruang fosil** di museum: hewan punah dengan kartu fakta. Isinya Harimau Bali, Harimau Jawa, Stegodon kerdil Flores, Bangau raksasa Flores, Trulek Jawa, Gigantopithecus, Harimau Tasmania, Lumba-lumba baiji, dan Badak Sumatra sebagai pembanding: "masih bisa diselamatkan".
+- [x] **Ulang tahun warga** di kalender, dengan hadiah di hari itu bernilai keakraban berlipat.
 
 ## 🎊 Tahap 7: Hari raya dan acara mingguan
 - [ ] **Lebaran**: malam takbiran dengan obor, esoknya silaturahmi ke rumah warga (ketupat, kue, keakraban naik).

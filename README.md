@@ -115,6 +115,19 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
     - 🌾 **Pesta Panen** (Gugur hari ke-20, 08:00–17:00, lapangan Desa Lembah Sari): bawa satu hasil panen (sayur, buah, atau biji-bijian).
     - 🎣 **Lomba Mancing** (Penghujan hari ke-14, 06:00–12:00, tepi danau Desa Pegunungan): daftar gratis, tangkap ikan sebanyak-banyaknya, lalu kembali ke tenda untuk dinilai.
     - 🏮 **Festival Lampion** (Dingin hari ke-24, 17:00–22:00, pantai utara kota): terbangkan lampion harapan (25 G, paling banyak 3). Setelah gelap langit penuh lampion warga; kalau kalian berdua menerbangkan lampion, keduanya mendapat +20 ⚡ dan momen itu masuk jurnal.
+- **🏛️ Museum Nusantara** (kota, di selatan Rumah Sakit dan Supermarket, dekat gerbang utara farm; buka 08:00–18:00).
+    - Serahkan **fosil**, **artefak**, dan **mineral** di meja museum. Semuanya dipajang: kerangka hewan punah berdiri sedikit demi sedikit di atas panggung (🐘 Stegodon kerdil Flores, 🦩 Bangau raksasa Flores, 🐅 Harimau Jawa, dan 🦍 gigi serta rahang Gigantopithecus di lemari kaca). Ada juga papan artefak dan mineral, lukisan Harimau Bali, sketsa Trulek Jawa, dan pameran tamu (Harimau Tasmania, lumba-lumba baiji, Badak Sumatra).
+    - Tiap hewan punya kartu info 📜. Kerangka lengkap memberi +600 G, dan seluruh koleksi museum lengkap memberi +3.000 G.
+    - **Fosil dan artefak** ditemukan saat memecah batu di Tambang Rakyat dan batu liar (fosil Harimau Jawa di hutan; Stegodon dan bangau di gunung dan tambang; Gigantopithecus di tambang dan pantai), memecah batu di farm, dan (jarang) saat mencangkul. Yang belum dimiliki museum lebih sering muncul.
+- **📖 Buku koleksi** (tombol di layar Bantuan **?** atau di meja museum): mencatat setiap barang yang pernah masuk tas dalam 8 kelompok (ikan, sayur, tanaman hias, buah, hasil ternak, alam dan tambang, masakan dan kerajinan, fosil dan artefak). Setiap 10 temuan ada hadiah uang di meja museum. Hadiah ke-20 berisi lukisan Harimau Bali, ke-40 sketsa Trulek Jawa, dan ke-60 mutiara.
+- **🛠️ Pemugaran Balai Desa** (papan di dinding kanan dalam Balai Desa): kumpulkan paket barang di 5 ruang. Barang bisa diserahkan sedikit demi sedikit oleh kalian berdua. Tiap paket lengkap memberi uang, dan tiap ruang yang selesai memberi manfaat untuk desa:
+    - 🌾 **Ruang Tani**: Pasar Tani membayar 15% lebih mahal, dan ada taman bunga di depan Balai Desa.
+    - 🐄 **Ruang Ternak**: hewan ternak lebih cepat akrab.
+    - 🎣 **Ruang Nelayan**: Pasar Ikan dan pelelangan membayar 15% lebih mahal.
+    - 🔨 **Ruang Tukang**: memecah batu dan menebang pohon lebih hemat energi, dan lampu jalan menyala di Desa Lembah Sari.
+    - 🍲 **Ruang Dapur**: masakan memulihkan energi 25% lebih banyak.
+    - Kalau semua ruang selesai: gapura "Desa Lembah Sari" berdiri di depan Balai Desa, ditambah hadiah 2.000 G.
+- **🎂 Ulang tahun warga**: setiap warga punya tanggal lahir sendiri, terlihat di jendela obrolan dan di Papan Pengumuman (daftar ulang tahun musim ini beserta makanan kesukaannya). Pagi harinya muncul pengumuman, dan rumahnya ditandai 🎂 di peta. Hadiah di hari ulang tahun bernilai keakraban **3× lipat**.
 - **📔 Jurnal berdua** (tombol di layar Bantuan **?**): mencatat otomatis panen pertama tiap tanaman, ikan pertama dan ikan langka, pelukan ke-1, 10, 25, 50, 100, dan seterusnya, bantuan untuk warga, bangunan baru, dan awal tiap musim.
 - **🏗️ Bangun di farm** (Meja kerja): **🏚️ Gudang** (20 kayu, 15 batu, 500 G) di belakang rumah untuk menyimpan barang sebanyak apa pun, dan **🛖 Pendopo taman** (15 kayu, 6 batu, 300 G) untuk bersantai, +15 ⚡ sekali sehari masing-masing.
 - **Pohon dan batu liar** tumbuh sendiri di pedesaan (Lembah Persawahan, Hutan, Pegunungan, Pantai): tunas jadi pohon dalam 3 malam. Tebang dengan 🪓 kapak untuk kayu (pohon besar ×3, tunggul +1), pecah batu liar dengan ⛏️ beliung untuk batu (kadang tembaga atau besi). Tiap malam muncul tunas dan batu baru.
