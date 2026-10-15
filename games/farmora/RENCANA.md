@@ -15,7 +15,8 @@ Centang `[x]` kalau sudah selesai.
 ---
 
 ## 🔧 Tahap 0: Persiapan (oleh kalian berdua)
-- [ ] Uji main berdua di **dua HP sungguhan**: sambungan, lag, dan sinkron save.
+- [x] Uji main berdua di **dua HP sungguhan** (sudah pernah).
+- [ ] Cek ulang main berdua di dua HP setelah update berikutnya: sambungan, lag, dan sinkron save.
 - [ ] Laporkan bug atau hal yang terasa aneh, diperbaiki dulu sebelum fitur baru.
 
 ## 🏛️ Tahap 6: Tujuan jangka panjang
@@ -54,6 +55,12 @@ Kalender gabungan setelah tahap 7 dan 8:
 | Dingin | Festival Lampion, Natal, Malam Tahun Baru |
 
 ## 🌾 Tahap 9: Kedalaman bertani
+- [ ] **✋🤚 Dua tangan**: di kanan bawah ada dua tombol, tangan kanan (besar, alat atau senjata utama) dan tangan kiri (kecil, alat kedua).
+  - Mengisi tangan: ketuk barang di toolbar untuk tangan kanan, tahan untuk tangan kiri. Di komputer: E/Spasi tangan kanan, Q tangan kiri.
+  - Contoh pasangan: golok + beliung, beliung + obor, cangkul + benih, benih + penyiram, sabit + kapak.
+  - Barang dua tangan (tombak, pancing, karung besar) memakai kedua tangan.
+  - Barang pasif (obor, lampu, jimat) bekerja selama dipegang. Tangan kiri sedikit lebih lambat.
+  - Opsi **tombol pintar**: tombol besar otomatis memakai barang yang cocok dengan yang ada di depan.
 - [ ] Kualitas panen ⭐ (biasa, perak, emas), dipengaruhi pupuk dan perawatan.
 - [ ] Mesin olahan: susu jadi keju, buah jadi selai, kedelai jadi tempe, dan lain-lain.
 - [ ] Penyiram otomatis dan rumah kaca (bisa menanam di musim apa saja).
@@ -75,8 +82,50 @@ Kalender gabungan setelah tahap 7 dan 8:
 - [ ] **Pojok suaka** di farm (paling banyak ~4 hewan) dan **buku pengamatan satwa**.
 - Hewan dilindungi tidak dikurung: mereka jadi sahabat yang berkunjung.
 
-## ⛏️ Tahap 11: Tambang bertingkat dan cerita warga
-- [ ] Tambang berlantai: makin dalam, bijih makin langka, ada fosil untuk museum dan riset purba.
+## ⛏️ Tahap 11: Tambang bertingkat, monster, dan cerita warga
+Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot) jadi mulut tambang dengan tangga turun ke 40 lantai.
+- [ ] **4 zona**:
+
+  | Zona | Lantai | Yang ditemukan |
+  |---|---|---|
+  | 🟤 Lorong Tanah | 1–10 | Batu, tanah liat, tembaga, batu bara |
+  | ⚪ Gua Kapur | 11–20 | Besi, perak, kristal kuarsa, fosil kecil |
+  | 🔵 Sungai Bawah Tanah | 21–30 | Emas, fosil ikan purba, artefak kuno |
+  | 🔴 Perut Gunung | 31–40 | Akik bacan, kecubung, kalimaya, intan Martapura, fosil besar |
+
+  Lantai rahasia 41+ jadi pintu ke Lembah Purba (tahap 12) atau Gua Pesugihan (tahap 14).
+- [ ] **Cara main**:
+  - Lantai berupa gua kecil, bentuknya acak tiap hari atau tetap (belum diputuskan).
+  - Tangga tersembunyi di bawah batu, dan kerekan lori tiap 5 lantai.
+  - Makin dalam makin gelap: perlu lampu helm atau karbit yang bahan bakarnya diisi.
+  - Kalau pingsan, dibawa Pak Gatot ke atas: cukup hari berakhir, atau sebagian barang hilang (belum diputuskan).
+- [ ] **Bahaya**: runtuhan batu (ada tanda retakan), kelelawar, gas tambang, air naik saat hujan.
+- [ ] **Berdua**: batu besar ditarik berdua, satu pegang lampu satu menambang, saling menolong kalau pingsan.
+- [ ] **Hasilnya**: alat naik tingkat di Pandai Besi, perhiasan permata (cincin akik) sebagai hadiah pasangan, koleksi museum, fosil untuk riset purba, batu belah (geode).
+- [ ] **Tugas Pak Gatot**: hadiah lampu lebih terang, masker, dan izin masuk di luar jam jaga.
+- [ ] **Monster** (hanya di tambang, mungkin juga Alas Wingit saat malam). Mode **Damai** (diusir atau dihindari, bos berupa teka-teki) atau **Petualang** (bertarung ringan).
+
+  | Zona | Monster biasa | Bos |
+  |---|---|---|
+  | Lorong Tanah | Lendir lumpur, tikus tambang, lipan gua | Raja Tikus (lantai 10) |
+  | Gua Kapur | Kelelawar penghisap, kalajengking kristal, ular sanca gua | Kalajengking Kristal Raksasa (20) |
+  | Sungai Bawah Tanah | Kepiting batu (menyamar jadi bijih), belut listrik, katak racun | Lele Siluman (30) |
+  | Perut Gunung | Arca hidup, banaspati, kadal lava | Buto Ijo (40) |
+  | Lantai rahasia | — | Naga Basuki: diuji, bukan dikalahkan, hadiahnya pusaka |
+
+- [ ] **Senjata**:
+  - Tongkat kayu, golok (memotong akar), celurit (kena beberapa monster), badik (cepat, kritis), tombak (jangkauan panjang), mandau, keris pusaka (bercahaya, monster kecil takut)
+  - Jarak jauh: ketapel (peluru kerikil), sumpit (membuat monster tertidur)
+- [ ] **Barang bantu**:
+  - Serangan dan pengusir: obor, petasan, garam kasar, bom asap
+  - Pemulih: ramuan Mbah Dukun, bekal makanan
+- [ ] **Pelindung**: helm proyek, rompi kulit atau besi, sepatu bot tambang, jimat.
+- [ ] **Cara bertarung di HP**:
+  - Ketuk untuk menyerang, tahan untuk jurus, dengan bidikan otomatis
+  - Tombol hindar (berguling)
+  - Nyawa ❤️ terpisah dari energi ⚡
+  - Jurus silat dari guru di desa: sapuan, tangkisan
+- [ ] **Barang dari monster**: lendir jadi pupuk super, cangkang jadi perhiasan, sisik Lele Siluman jadi umpan legendaris, tanduk Buto Ijo jadi senjata terkuat.
 - [ ] Cerita khusus warga di keakraban ❤️ 3, 6, dan 9.
 
 ## 🦖 Tahap 12: Farmora Purba
