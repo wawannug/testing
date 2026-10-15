@@ -54,16 +54,17 @@ Kalender gabungan setelah tahap 7 dan 8:
 | Penghujan | Lomba Mancing, Lomba Masak, Ogoh-ogoh dan Nyepi |
 | Dingin | Festival Lampion, Natal, Malam Tahun Baru |
 
-## 🌾 Tahap 9: Kedalaman bertani
-- [ ] **✋🤚 Dua tangan**: di kanan bawah ada dua tombol, tangan kanan (besar, alat atau senjata utama) dan tangan kiri (kecil, alat kedua).
+## 🌾 Tahap 9: Kedalaman bertani ✅
+- [x] **✋🤚 Dua tangan**: di kanan bawah ada dua tombol, tangan kanan (besar, alat atau senjata utama) dan tangan kiri (kecil, alat kedua).
   - Mengisi tangan: ketuk barang di toolbar untuk tangan kanan, tahan untuk tangan kiri. Di komputer: E/Spasi tangan kanan, Q tangan kiri.
   - Contoh pasangan: golok + beliung, beliung + obor, cangkul + benih, benih + penyiram, sabit + kapak.
-  - Barang dua tangan (tombak, pancing, karung besar) memakai kedua tangan.
-  - Barang pasif (obor, lampu, jimat) bekerja selama dipegang. Tangan kiri sedikit lebih lambat.
+  - Barang dua tangan (pancing sekarang, tombak dan karung besar nanti) memakai kedua tangan.
+  - Barang pasif (obor, lampu, jimat) bekerja selama dipegang (barangnya datang di tahap 11). Tangan kiri sedikit lebih lambat.
   - Opsi **tombol pintar**: tombol besar otomatis memakai barang yang cocok dengan yang ada di depan.
-- [ ] Kualitas panen ⭐ (biasa, perak, emas), dipengaruhi pupuk dan perawatan.
-- [ ] Mesin olahan: susu jadi keju, buah jadi selai, kedelai jadi tempe, dan lain-lain.
-- [ ] Penyiram otomatis dan rumah kaca (bisa menanam di musim apa saja).
+- [x] Kualitas panen ⭐ (biasa, perak, emas), dipengaruhi pupuk dan perawatan.
+- [x] Mesin olahan: susu jadi keju, buah jadi selai, kedelai jadi tempe, dan lain-lain.
+- [x] Penyiram otomatis dan rumah kaca (bisa menanam di musim apa saja).
+- [x] **🪚 Jasa tukang kayu** (Pak Markus): pindah kandang, pohon, dan bangunan memakai patok 📍, dikerjakan malam hari.
 
 ## 🦡 Tahap 10: Satwa langka yang masih hidup
 - [ ] Sistem **jinak dengan makanan**: meteran percaya 🤍, waktu muncul dan cara mendekat tiap hewan berbeda, lebih cepat percaya kalau datang berdua.

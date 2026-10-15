@@ -372,7 +372,14 @@
         .pintar { font-size: 20px; font-weight: 700; color: #a86a00; }
 
         /* Touch controls */
-        #joy, #actBtn { display: none; }
+        #joy, #actBtn, #actBtn2 { display: none; }
+        #actBtn2 { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        #actBtn2.empty { opacity: .55; }
+        #actBtn2 img.ico { width: 56%; height: 56%; }
+        .slot.hot { position: relative; }
+        .qb { font-size: .5em; vertical-align: super; margin-left: -.15em; }
+        .slot.hot.left { box-shadow: 0 0 0 2px #1e88e5 inset; }
+        .slot.hot.left::before { content: '🤚'; position: absolute; top: -8px; left: -6px; font-size: 13px; }
         #eatBtn { position: fixed; right: 22px; bottom: 128px; z-index: 6; font-size: 17px; padding: 10px 14px; border-radius: 999px; }
         #eatBtn[hidden] { display: none; }
         img.ico { width: 1.3em; height: 1.3em; object-fit: contain; vertical-align: middle; pointer-events: none; -webkit-user-drag: none; }
@@ -413,6 +420,7 @@
                 border: 3px solid var(--wood);
             }
 
+            #actBtn2 { display: block; position: fixed; right: 116px; bottom: 34px; width: 60px; height: 60px; border-radius: 50%; font-size: 22px; padding: 0; z-index: 6; }
             #actBtn {
                 display: block;
                 position: fixed;
@@ -462,6 +470,7 @@
             #joy { width: 104px; height: 104px; left: 14px; bottom: 12px; }
             #joyKnob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
             #actBtn { width: 68px; height: 68px; right: 16px; bottom: 14px; font-size: 26px; }
+            #actBtn2 { width: 50px; height: 50px; right: 92px; bottom: 18px; font-size: 18px; }
             #inventory { top: auto; bottom: 8px; left: 50%; right: auto; transform: translateX(-50%); flex-direction: row; max-height: none; max-width: calc(100vw - 280px); overflow-x: auto; overflow-y: hidden; }
             .slot { width: 38px; height: 38px; font-size: 18px; }
             #itemName { left: 50%; right: auto; top: auto; bottom: 58px; transform: translateX(-50%); }
@@ -559,6 +568,7 @@
 
     <div id="joy"><div id="joyKnob"></div></div>
     <button id="actBtn" class="btn">✋</button>
+    <button id="actBtn2" class="btn" title="Tangan kiri (Q)">🤚</button>
     <button id="eatBtn" class="btn" hidden>🍽️ Makan</button>
     <div id="sleepNote" class="panel" hidden></div>
 
@@ -596,6 +606,7 @@
                 <tr class="desktop-only"><td>Shift</td><td>Lari</td></tr>
                 <tr class="desktop-only"><td>E / Spasi</td><td>Interaksi</td></tr>
                 <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
+                <tr class="desktop-only"><td>Q</td><td>Pakai tangan kiri (tahan slot toolbar / Shift+angka untuk mengisinya)</td></tr>
                 <tr class="desktop-only"><td>H</td><td>Buka/tutup bantuan</td></tr>
                 <tr><td>🥚 Telur</td><td>50 G</td></tr>
                 <tr><td>🥛 Susu Sapi</td><td>125 G</td></tr>
@@ -609,7 +620,7 @@
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <p style="font-size:13px;margin:6px 0 2px"><b>✨ Kualitas grafis</b> (HP terasa panas atau patah-patah? Pilih Rendah: gambar 30 kali sedetik, tanpa bayangan, lebih hemat baterai)</p>
             <div class="row" id="gfxRow"></div>
-            <div class="row"><button class="btn" id="journalBtn">📔 Jurnal berdua</button><button class="btn" id="bookBtn">📖 Buku koleksi</button><button class="btn" id="autoBtn"></button></div>
+            <div class="row"><button class="btn" id="journalBtn">📔 Jurnal berdua</button><button class="btn" id="bookBtn">📖 Buku koleksi</button><button class="btn" id="smartBtn"></button><button class="btn" id="autoBtn"></button></div>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -830,15 +841,25 @@
         }
         const BOUNDS = { minX: -23.5, maxX: 23.5, minZ: -22.5, maxZ: 22.5 };
 
+        // 🪚 where the carpenter has moved things on the farm (pens, the orchard's trees, the buildings), as offsets in
+        // metres from where they first stood. They are applied while the farm is built, so after a move the game reloads.
+        const LAYOUT_KEY = 'farmora.layout.v1';
+        const LAYOUT = (() => { try { const o = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}'); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; } catch (e) { return {}; } })();
+        const LO = k => { const v = LAYOUT[k]; return Array.isArray(v) && v.length === 2 && v.every(Number.isFinite) ? v : [0, 0]; };
+        const shiftR = (r, k) => { const [dx, dz] = LO(k); return { minX: r.minX + dx, maxX: r.maxX + dx, minZ: r.minZ + dz, maxZ: r.maxZ + dz }; };
+        const SX = (k, x) => x + LO(k)[0], SZ = (k, z) => z + LO(k)[1];
+        // the ground each pen takes up with its barn and sign, where it first stood
+        const FOOT0 = { chicken: [-20.2, -13.1, -2.4, 8.7], duck: [-20.2, -13.1, 8.9, 16.6], cow: [4.8, 13.4, -12.7, 0.9], goat: [14.3, 22.7, -11.7, 0.9], sheep: [14.3, 22.7, 3.2, 15.7] };
+        const footOf = (k, d = LO(k)) => { const f = FOOT0[k]; return { minX: f[0] + d[0], maxX: f[1] + d[0], minZ: f[2] + d[1], maxZ: f[3] + d[1] }; };
         // ---------- World layout ----------
         // One pen per species. Animals wander inside the pen, inset from the fence.
-        const PEN_CHICKEN = { minX: -20, maxX: -14, minZ: 1, maxZ: 8.5 };
-        const PEN_COW = { minX: 5, maxX: 13, minZ: -8, maxZ: 0 };
-        const PEN_GOAT = { minX: 14.5, maxX: 22.5, minZ: -8, maxZ: 0 };
-        const PEN_SHEEP = { minX: 14.5, maxX: 22.5, minZ: 4, maxZ: 12 };
+        const PEN_CHICKEN = shiftR({ minX: -20, maxX: -14, minZ: 1, maxZ: 8.5 }, 'chicken');
+        const PEN_COW = shiftR({ minX: 5, maxX: 13, minZ: -8, maxZ: 0 }, 'cow');
+        const PEN_GOAT = shiftR({ minX: 14.5, maxX: 22.5, minZ: -8, maxZ: 0 }, 'goat');
+        const PEN_SHEEP = shiftR({ minX: 14.5, maxX: 22.5, minZ: 4, maxZ: 12 }, 'sheep');
         // ducks get their own fenced run right below the chicken run, with a shallow pond inside
-        const PEN_DUCK = { minX: -20, maxX: -14, minZ: 9.6, maxZ: 14.4 };
-        const DUCK_POND = { x: -17.4, z: 12, r: 1.35 };
+        const PEN_DUCK = shiftR({ minX: -20, maxX: -14, minZ: 9.6, maxZ: 14.4 }, 'duck');
+        const DUCK_POND = { x: SX('duck', -17.4), z: SZ('duck', 12), r: 1.35 };
         const PENS = [PEN_CHICKEN, PEN_COW, PEN_GOAT, PEN_SHEEP, PEN_DUCK];
         const inset = (r, m) => ({ minX: r.minX + m, maxX: r.maxX - m, minZ: r.minZ + m, maxZ: r.maxZ - m });
         const AREA_CHICKEN = inset(PEN_CHICKEN, 0.7);
@@ -852,11 +873,11 @@
         // Every pen has a shelter to walk into. Inside they all share one simple barn model, each far away on
         // the map like the floors of the house; animals go in at night and when the weather is not clear.
         const BARNS = {
-            chicken: { x: 380, icon: '🐔', label: 'Kandang ayam', out: new THREE.Vector3(-17, 0, 1.9), face: 0 },
-            cow: { x: 440, icon: '🐄', label: 'Kandang sapi', out: new THREE.Vector3(9, 0, -7.2), face: 0 },
-            goat: { x: 500, icon: '🐐', label: 'Kandang kambing', out: new THREE.Vector3(18.5, 0, -7.1), face: 0 },
-            sheep: { x: 560, icon: '🐑', label: 'Kandang domba', out: new THREE.Vector3(18.5, 0, 11.1), face: Math.PI },
-            duck: { x: 620, icon: '🦆', label: 'Kandang bebek', out: new THREE.Vector3(-17, 0, 13.7), face: Math.PI },
+            chicken: { x: 380, icon: '🐔', label: 'Kandang ayam', out: new THREE.Vector3(SX('chicken', -17), 0, SZ('chicken', 1.9)), face: 0 },
+            cow: { x: 440, icon: '🐄', label: 'Kandang sapi', out: new THREE.Vector3(SX('cow', 9), 0, SZ('cow', -7.2)), face: 0 },
+            goat: { x: 500, icon: '🐐', label: 'Kandang kambing', out: new THREE.Vector3(SX('goat', 18.5), 0, SZ('goat', -7.1)), face: 0 },
+            sheep: { x: 560, icon: '🐑', label: 'Kandang domba', out: new THREE.Vector3(SX('sheep', 18.5), 0, SZ('sheep', 11.1)), face: Math.PI },
+            duck: { x: 620, icon: '🦆', label: 'Kandang bebek', out: new THREE.Vector3(SX('duck', -17), 0, SZ('duck', 13.7)), face: Math.PI },
         };
         for (const b of Object.values(BARNS)) { b.area = { minX: b.x - 3.6, maxX: b.x + 3.6, minZ: -2.6, maxZ: 2.0 }; b.in = new THREE.Vector3(b.x, 0, 2.4); }
         const LAYERS = new Set(['chicken', 'duck']);
@@ -1002,18 +1023,18 @@
 
         // Cow barn, north of the cow pen
         {
-            const g = building({ x: 9, z: -10.5, w: 6, d: 4, h: 3, wall: 0xb8382f, roof: 0x5a4a42, roofH: 2 });
+            const g = building({ x: SX('cow', 9), z: SZ('cow', -10.5), w: 6, d: 4, h: 3, wall: 0xb8382f, roof: 0x5a4a42, roofH: 2 });
             barnDoor(g, 2.05, 2.2);
             box(0.8, 0.8, 0.1, windowMat, 0, 3.7, 2.25, g);
             for (const [hx, hy, hz] of [[3.7, 0.4, 0.8], [3.7, 0.4, -0.4], [3.7, 1.2, 0.2]]) box(0.9, 0.8, 1.1, C.straw, hx, hy, hz, g);
-            addBoxCollider(12.2, 13.2, -11.6, -9.2);
+            addBoxCollider(SX('cow', 12.2), SX('cow', 13.2), SZ('cow', -11.6), SZ('cow', -9.2));
         }
         // Goat shed and sheep shed
-        shed({ x: 18.5, z: -10, wall: 0xd8b98a, roof: 0x6d4c3d });
-        shed({ x: 18.5, z: 14, wall: 0xe9e4d6, roof: 0x4f6d8f, doorSide: -1 });
+        shed({ x: SX('goat', 18.5), z: SZ('goat', -10), wall: 0xd8b98a, roof: 0x6d4c3d });
+        shed({ x: SX('sheep', 18.5), z: SZ('sheep', 14), wall: 0xe9e4d6, roof: 0x4f6d8f, doorSide: -1 });
         // Chicken coop
         {
-            const g = building({ x: -17, z: -0.7, w: 4.5, d: 3, h: 2.2, wall: 0xe6c27a, roof: 0x3f7f5a, roofH: 1.4 });
+            const g = building({ x: SX('chicken', -17), z: SZ('chicken', -0.7), w: 4.5, d: 3, h: 2.2, wall: 0xe6c27a, roof: 0x3f7f5a, roofH: 1.4 });
             box(0.8, 1, 0.1, 0x7a4b25, 0, 0.5, 1.56, g);
             box(0.7, 0.08, 0.9, C.darkWood, 0, 0.2, 1.95, g).rotation.x = 0.3;
             box(0.7, 0.6, 0.1, windowMat, -1.3, 1.4, 1.55, g);
@@ -1022,7 +1043,7 @@
 
         // Duck house at the back (south) of the duck run, door facing into the run
         {
-            const g = building({ x: -17, z: 15.6, w: 2.6, d: 1.7, h: 1.3, wall: 0xf2e6c8, roof: 0x3f7fb5, roofH: 0.9 });
+            const g = building({ x: SX('duck', -17), z: SZ('duck', 15.6), w: 2.6, d: 1.7, h: 1.3, wall: 0xf2e6c8, roof: 0x3f7fb5, roofH: 0.9 });
             box(0.7, 0.8, 0.1, 0x7a4b25, 0, 0.4, -0.9, g);
             box(0.7, 0.08, 0.6, C.darkWood, 0, 0.12, -1.25, g).rotation.x = -0.3;
         }
@@ -1059,11 +1080,12 @@
             }
         }
         // the second opening is the barn door: the barn stands right behind that fence
-        fenceRect(PEN_CHICKEN, { side: 'e', a: 1.2, b: 3.6 }, { side: 'n', a: -18.4, b: -15.6, door: 1 });
-        fenceRect(PEN_COW, { side: 's', a: 7, b: 9.8 }, { side: 'n', a: 7.6, b: 10.4, door: 1 });
-        fenceRect(PEN_GOAT, { side: 's', a: 16.5, b: 19.3 }, { side: 'n', a: 17.1, b: 19.9, door: 1 });
-        fenceRect(PEN_SHEEP, { side: 'n', a: 16.5, b: 19.3 }, { side: 's', a: 17.1, b: 19.9, door: 1 });
-        fenceRect(PEN_DUCK, { side: 'e', a: 10.4, b: 12.8 }, { side: 's', a: -18.4, b: -15.6, door: 1 });
+        const gate = (k, side, a, b, door) => { const d = LO(k)[side === 'n' || side === 's' ? 0 : 1]; return { side, a: a + d, b: b + d, door }; };
+        fenceRect(PEN_CHICKEN, gate('chicken', 'e', 1.2, 3.6), gate('chicken', 'n', -18.4, -15.6, 1));
+        fenceRect(PEN_COW, gate('cow', 's', 7, 9.8), gate('cow', 'n', 7.6, 10.4, 1));
+        fenceRect(PEN_GOAT, gate('goat', 's', 16.5, 19.3), gate('goat', 'n', 17.1, 19.9, 1));
+        fenceRect(PEN_SHEEP, gate('sheep', 'n', 16.5, 19.3), gate('sheep', 's', 17.1, 19.9, 1));
+        fenceRect(PEN_DUCK, gate('duck', 'e', 10.4, 12.8), gate('duck', 's', -18.4, -15.6, 1));
         // the farm boundary fence; the opening in the south leads to the village
         const FARM_GATE = new THREE.Vector3(0, 0, 22.4);
         fenceRect({ minX: -24.2, maxX: 24.2, minZ: -23.2, maxZ: 23.2 }, { side: 's', a: -1.8, b: 1.8, door: 1 }, { side: 'n', a: 2.2, b: 5.8, door: 1 }, { side: 'w', a: -4.0, b: -0.4, door: 1 }, { side: 'e', a: 0.2, b: 3.8, door: 1 });
@@ -2281,11 +2303,11 @@
             if (b.id === 'pelabuhan') { cap(0.06, 4, 0xffffff, w / 2 + 0.5, 2, 0, g); box(0.8, 0.5, 0.02, 0xd9221f, w / 2 + 0.92, 3.7, 0, g); box(0.8, 0.5, 0.02, 0xffffff, w / 2 + 0.92, 3.2, 0, g); }
             addBoxCollider(b.x - w / 2, b.x + w / 2, b.z - d / 2, b.z + d / 2);
         }
-        sign(-13.4, 0.4, 'Ayam');
-        sign(5.6, 0.6, 'Sapi');
-        sign(15.1, 0.6, 'Kambing');
-        sign(15.1, 3.4, 'Domba');
-        sign(-13.4, 9.9, 'Bebek');
+        sign(SX('chicken', -13.4), SZ('chicken', 0.4), 'Ayam');
+        sign(SX('cow', 5.6), SZ('cow', 0.6), 'Sapi');
+        sign(SX('goat', 15.1), SZ('goat', 0.6), 'Kambing');
+        sign(SX('sheep', 15.1), SZ('sheep', 3.4), 'Domba');
+        sign(SX('duck', -13.4), SZ('duck', 9.9), 'Bebek');
 
         // Feeding troughs along the back fence of each pen
         const OUT_TROUGH = {};
@@ -2295,11 +2317,12 @@
             addBoxCollider(x - w / 2, x + w / 2, z - d / 2, z + d / 2);
         }
         // (kind, centre, size, feed colour, where an animal stands to eat)
-        trough('cow', 11.8, -7.55, 1.8, 0.45, C.straw, 11.8, -6.8);
-        trough('goat', 21.2, -7.55, 1.6, 0.45, C.straw, 21.2, -6.9);
-        trough('sheep', 21.2, 11.55, 1.6, 0.45, 0x9cc95a, 21.2, 10.9);
-        trough('chicken', -19.55, 6.3, 0.45, 1.4, 0xe8d27a, -19.0, 6.3);
-        trough('duck', -14.75, 13.85, 0.9, 0.45, 0xe8d27a, -14.75, 13.3);
+        const tr2 = (k, x, z, w, d, c, ex, ez) => trough(k, SX(k, x), SZ(k, z), w, d, c, SX(k, ex), SZ(k, ez));
+        tr2('cow', 11.8, -7.55, 1.8, 0.45, C.straw, 11.8, -6.8);
+        tr2('goat', 21.2, -7.55, 1.6, 0.45, C.straw, 21.2, -6.9);
+        tr2('sheep', 21.2, 11.55, 1.6, 0.45, 0x9cc95a, 21.2, 10.9);
+        tr2('chicken', -19.55, 6.3, 0.45, 1.4, 0xe8d27a, -19.0, 6.3);
+        tr2('duck', -14.75, 13.85, 0.9, 0.45, 0xe8d27a, -14.75, 13.3);
 
         // Shipping bin
         const BIN = new THREE.Vector3(-6.5, 0, -10.2);
@@ -2499,8 +2522,10 @@
         // 🏗️ what can be built on the farm with wood and stone
         const BUILDS = {
             gudang: { label: 'Gudang', icon: '🏚️', need: { kayu: 20, batu: 15 }, gold: 500, x: -17, z: -19.8, w: 6, d: 4.4, note: 'Lumbung pribadi: simpan barang sebanyak apa pun, dipakai berdua' },
+            rumahkaca: { label: 'Rumah kaca', icon: '🪟', need: { kayu: 25, besi: 4, batu: 10 }, gold: 1500, x: 7.5, z: 6.4, w: 7.2, d: 4.8, note: 'Tanah di dalamnya tersiram otomatis tiap pagi, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin' },
             pendopo: { label: 'Pendopo taman', icon: '🛖', need: { kayu: 15, batu: 6 }, gold: 300, x: -7, z: 0, w: 4.4, d: 4.4, note: 'Tempat bersantai berdua: +15 ⚡ sekali sehari masing-masing' },
         };
+        for (const [k, B] of Object.entries(BUILDS)) { B.x0 = B.x; B.z0 = B.z; B.x += LO('build:' + k)[0]; B.z += LO('build:' + k)[1]; }
         function buildWhy(B) {
             const inR = (x, z, m = 0.6) => Math.abs(x - B.x) < B.w / 2 + m && Math.abs(z - B.z) < B.d / 2 + m;
             if (Object.keys(state.tiles).some(k => { const [x, z] = k.split(',').map(Number); return inR(x, z); }) || state.ptrees.some(t => inR(t.x, t.z, 1.5)) || state.fpots.some(p => inR(p.x, p.z)) || state.deco.some(d => inR(d.x, d.z)))
@@ -2519,6 +2544,16 @@
                     box(1.6, 2.0, 0.1, 0x5a3a1e, 0, 1.0, B.d / 2 + 0.03, g); for (const sx of [-0.4, 0.4]) box(0.06, 1.8, 0.04, 0x3a2412, sx, 1.0, B.d / 2 + 0.09, g);
                     textPlate(g, '🏚️ Gudang', 0, 2.35, B.d / 2 + 0.06, 1.8);
                     addBoxCollider(B.x - B.w / 2, B.x + B.w / 2, B.z - B.d / 2, B.z + B.d / 2);
+                } else if (key === 'rumahkaca') {
+                    // a glass house: a timber frame, glass walls with a door in the south, a glass gable roof
+                    const glass = new THREE.MeshStandardMaterial({ color: 0xdff2ff, transparent: true, opacity: 0.22, roughness: 0.1, depthWrite: false }), hw = B.w / 2, hd = B.d / 2, H2 = 2.2;
+                    for (const sx of [-hw, -hw / 3, hw / 3, hw]) for (const sz of [-hd, hd]) box(0.1, H2, 0.1, 0xf2f2ee, sx, H2 / 2, sz, g);
+                    for (const sz of [-hd, 0, hd]) for (const sx of [-hw, hw]) box(0.1, H2, 0.1, 0xf2f2ee, sx, H2 / 2, sz, g);
+                    const wall = (x0, x1, z0, z1) => { const w = Math.max(0.06, x1 - x0), d = Math.max(0.06, z1 - z0); const m = mesh(BOX, glass, g); m.scale.set(w, H2, d); m.position.set((x0 + x1) / 2, H2 / 2, (z0 + z1) / 2); m.castShadow = false; addBoxCollider(B.x + x0 - 0.04, B.x + x1 + 0.04, B.z + z0 - 0.04, B.z + z1 + 0.04); };
+                    wall(-hw, hw, -hd, -hd); wall(-hw, -hw, -hd, hd); wall(hw, hw, -hd, hd); wall(-hw, -0.75, hd, hd); wall(0.75, hw, hd, hd);
+                    for (const s2 of [-1, 1]) { const r = mesh(BOX, glass, g); r.scale.set(B.w + 0.2, 0.05, hd * 1.16); r.rotation.x = s2 * 0.5; r.position.set(0, H2 + 0.55, s2 * hd * 0.5); r.castShadow = false; }
+                    box(B.w + 0.2, 0.1, 0.1, 0xf2f2ee, 0, H2 + 1.08, 0, g);
+                    textPlate(g, '🪟 Rumah kaca', 0, H2 + 0.2, hd + 0.08, 1.6);
                 } else {
                     box(B.w, 0.12, B.d, 0xb07a45, 0, 0.06, 0, g);
                     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { box(0.18, 2.4, 0.18, 0x6e4723, sx * (B.w / 2 - 0.25), 1.2, sz * (B.d / 2 - 0.25), g); addCircleCollider(B.x + sx * (B.w / 2 - 0.25), B.z + sz * (B.d / 2 - 0.25), 0.18); }
@@ -2526,8 +2561,20 @@
                     for (const sz of [-1, 1]) box(2.2, 0.1, 0.5, 0x8a5a33, 0, 0.5, sz * 1.2, g);
                     for (const sz of [-1, 1]) for (const sx of [-0.9, 0.9]) box(0.08, 0.45, 0.08, 0x6e4723, sx, 0.25, sz * 1.2, g);
                 }
-                buildVis[key] = g;
+                buildVis[key] = g; groundMemo.clear();
             }
+        }
+        // 🪟 inside the glass house (and its walls are not ground to hoe)
+        const inGH = (x, z) => { const B = BUILDS.rumahkaca; return !!(state.build && state.build.rumahkaca) && x > B.x - B.w / 2 + 0.3 && x < B.x + B.w / 2 - 0.3 && z > B.z - B.d / 2 + 0.3 && z < B.z + B.d / 2 - 0.3; };
+        // 💦 every morning the sprinklers and the glass house water what grows round them
+        function autoWater() {
+            const spots = (state.deco || []).filter(d => DECO[d.k] && DECO[d.k].reach).map(d => [d.x, d.z, DECO[d.k].reach]);
+            const wet = (x, z) => inGH(x, z) || spots.some(([sx, sz, r]) => Math.abs(x - sx) <= r && Math.abs(z - sz) <= r);
+            let n = 0;
+            for (const [k, t] of Object.entries(state.tiles)) if (t.s) { const [x, z] = k.split(',').map(Number); if (wet(x, z)) { if (!t.w) n++; t.w = true; t.dry = 0; } }
+            for (const p of state.fpots || []) if (p.s && wet(Math.round(p.x), Math.round(p.z))) { p.w = true; p.dry = 0; }
+            for (const t of state.ptrees) if (wet(t.x, t.z)) { t.w = true; t.dry = 0; }
+            return n;
         }
         // 🎉 festivals: one in every season, on a fixed day, out in one of the villages. The people of that village
         // gather on its festival ground for the festival's hours, and the committee's tent has something to join.
@@ -2538,8 +2585,8 @@
             fkota: { name: 'pantai utara kota', node: 'k3', c: [-1, -108], r: 4, crowd: 1, st: [-7.5, -109, Math.PI / 2] },
             fkopi: { name: 'kebun kopi', node: 'g12', c: [-95, -40.5], r: 3.2, crowd: 1, st: [-95.5, -47.2, 0] },
         });
-        const isFlower = k => !!(GDEF[k] && GDEF[k].type === 'hias');
-        const isHarvest = k => !!PRODUCTS[k] && !!((GDEF[k] && GDEF[k].type === 'veg') || FDEF[k] || ['gabah', 'beras', 'jagung'].includes(k));
+        const isFlower = k => !!(GDEF[baseOf(k)] && GDEF[baseOf(k)].type === 'hias');
+        const isHarvest = k => !!PRODUCTS[k] && !!((GDEF[baseOf(k)] && GDEF[baseOf(k)].type === 'veg') || FDEF[baseOf(k)] || ['gabah', 'beras', 'jagung'].includes(k));
         const FESTS = [
             { k: 'bunga', s: 'semi', d: 12, icon: '🌸', name: 'Festival Bunga', p: 'fsawah', r: 'sawah', h: [8, 17], kind: 'show', what: 'bunga (tanaman hias)', ok: isFlower, fl: [0xff7eb6, 0xffd34d, 0xffffff, 0xd8263a], note: 'Bawa bunga terindahmu untuk dinilai juri' },
             { k: 'merdeka', s: 'panas', d: 17, icon: '🇮🇩', name: 'Lomba 17-an', p: 'fsawah', r: 'sawah', h: [7, 15], kind: 'tap', fl: [0xd9261c, 0xffffff], note: 'Lomba makan kerupuk: siapa yang paling cepat menghabiskan kerupuknya?' },
@@ -3159,6 +3206,8 @@
             { key: 'stroberi', label: 'Stroberi', icon: '🍓', price: 25, cycle: 1, yield: [3, 6], kind: 'berry', at: [-4, 16.4] },
             { key: 'nanas', label: 'Nanas', icon: '🍍', price: 180, cycle: 5, yield: [1, 2], kind: 'pineapple', at: [0, 16.4] },
         ];
+        // the carpenter may have moved a tree of the orchard (f.at0 is where it first stood)
+        for (const f of FRUIT_DEFS) { f.at0 = [...f.at]; const d = LO('pohon:' + f.key); f.at = [f.at[0] + d[0], f.at[1] + d[1]]; }
         // fruit that only grows from saplings you plant yourself
         const SAPLING_FRUITS = [
             { key: 'nangka', label: 'Nangka', icon: '🍈', price: 260, cycle: 6, yield: [1, 2], kind: 'tree', at: [0, 0], tree: { r: 1.4, y: 2.6, trunk: 1.2, leaf: 0x2f6b30, shape: 'oval' }, fruit: 'nangka' },
@@ -3573,6 +3622,12 @@
                 const hat = mesh(CONE, mat(0xd9b45a), g); hat.scale.set(0.3, 0.18, 0.3); hat.position.y = 1.62;
                 g.rotation.y = d.r ? Math.PI / 2 : 0;
             }
+            else if (d.k === 'mesinkeju') { box(0.8, 0.45, 0.6, 0x8a5a33, 0, 0.23, 0, g); const c = mesh(CYL, mat(0xf2d16b), g); c.scale.set(0.24, 0.3, 0.24); c.position.set(0, 0.6, 0); box(0.06, 0.5, 0.06, 0x555555, 0, 0.95, 0, g); const w = mesh(new THREE.TorusGeometry(0.16, 0.03, 6, 14), mat(0x555555), g); w.position.y = 1.2; w.rotation.x = Math.PI / 2; }
+            else if (d.k === 'panciselai') { box(0.7, 0.5, 0.6, 0x9a9a92, 0, 0.25, 0, g); const pt = mesh(new THREE.CylinderGeometry(0.26, 0.22, 0.3, 12), mat(0xb5543a), g); pt.position.y = 0.65; const j = mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 12), mat(0x9a2d4a), g); j.position.y = 0.78; }
+            else if (d.k === 'tongfermentasi') { const b = mesh(new THREE.CylinderGeometry(0.33, 0.3, 0.8, 12), mat(0x8a5a33), g); b.position.y = 0.4; for (const y of [0.15, 0.65]) { const r = mesh(new THREE.TorusGeometry(0.33, 0.025, 4, 16), mat(0x444444), g); r.rotation.x = Math.PI / 2; r.position.y = y; } box(0.5, 0.05, 0.5, 0x6e4723, 0, 0.82, 0, g); }
+            else if (d.k === 'alattenun') { for (const x of [-0.4, 0.4]) box(0.07, 1.1, 0.07, C.darkWood, x, 0.55, 0, g); box(0.9, 0.07, 0.07, C.darkWood, 0, 1.08, 0, g); box(0.9, 0.07, 0.4, C.wood, 0, 0.5, 0.1, g); box(0.7, 0.5, 0.02, 0xc0392b, 0, 0.8, 0, g); g.rotation.y = d.r ? Math.PI / 2 : 0; }
+            else if (d.k === 'pemerasminyak') { const s1 = mesh(new THREE.CylinderGeometry(0.38, 0.4, 0.35, 14), mat(0x8f8a80), g); s1.position.y = 0.18; const s2 = mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 12), mat(0x7b776f), g); s2.position.y = 0.5; const lv = box(1.0, 0.06, 0.06, C.darkWood, 0.3, 0.68, 0, g); lv.rotation.z = -0.15; }
+            else if (d.k === 'sprinkler' || d.k === 'sprinklerbesi') { const c = d.k === 'sprinkler' ? 0xc87533 : 0x8a9099; cap(0.04, 0.3, c, 0, 0.18, 0, g); ball(0.08, 0.05, 0.08, c, 0, 0.38, 0, g); const sp = mesh(CONE, new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.35, depthWrite: false }), g); sp.scale.set(0.5 + DECO[d.k].reach * 0.5, 0.4, 0.5 + DECO[d.k].reach * 0.5); sp.position.y = 0.45; sp.rotation.x = Math.PI; sp.visible = false; g.userData.spray = sp; }
             // what blocks you
             const def = DECO[d.k];
             if (def.type === 'line') { const [w, t] = along(1.0, 0.3); cols.push({ t: 'b', minX: d.x - w / 2, maxX: d.x + w / 2, minZ: d.z - t / 2, maxZ: d.z + t / 2, deco: 1, dx: d.x, dz: d.z }); }
@@ -3598,7 +3653,34 @@
                 decoVis.delete(key);
             }
             LAMP_MAT.emissiveIntensity = isNightTime() ? 1.4 : 0.2;
+            const spraying = state.minutes >= 300 && state.minutes < 420;
+            for (const v of decoVis.values()) {
+                if (v.g.userData.spray) { v.g.userData.spray.visible = spraying; if (spraying) v.g.userData.spray.rotation.y = elapsed * 3; }
+                if (!MACHINES[v.d.k]) continue;
+                const st = state.mach && state.mach[v.d.x + ',' + v.d.z], want = st ? (state.day >= st.d ? PRODUCTS[st.out].icon : '⏳') : '';
+                if (v.ind !== want) { if (v.indS) v.g.remove(v.indS); v.indS = want ? canvasSprite(c => { c.font = '96px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(want, 64, 70); }, 0.55) : null; if (v.indS) { v.indS.position.y = 1.55; v.g.add(v.indS); } v.ind = want; }
+                if (v.indS) v.indS.position.y = 1.5 + Math.sin(elapsed * 2.5) * 0.06;
+            }
         }
+        // what a machine accepts from what you hold: [input, how many, output, how many]
+        function machInput(mk, item) {
+            const M = MACHINES[mk], b = baseOf(item || '');
+            if (!M || !item) return null;
+            if (M.take === 'fruit') return FDEF[b] && PRODUCTS['selai_' + b] ? [b, 1, 'selai_' + b, 1] : null;
+            return M.take.find(t => t[0] === b) || null;
+        }
+        const machTakes = mk => { const M = MACHINES[mk]; return M.take === 'fruit' ? 'buah apa saja' : M.take.map(t => `${t[1]} ${PRODUCTS[t[0]].icon} ${PRODUCTS[t[0]].label.toLowerCase()}`).join(' atau '); };
+        const MACH_IT = {
+            id: 'mach', pos: new THREE.Vector3(), reach: 99, at: null,
+            label() {
+                const d = MACH_IT.at, M = d && MACHINES[d.k]; if (!M) return '';
+                const st = state.mach && state.mach[d.x + ',' + d.z];
+                if (st) return state.day >= st.d ? `Ambil ${st.n} ${PRODUCTS[st.out].icon} ${PRODUCTS[st.out].label} dari ${M.label}` : `${M.icon} ${M.label} · ⏳ ${PRODUCTS[st.out].label} siap Hari ${st.d}`;
+                const R = machInput(d.k, heldItem());
+                return R ? `Masukkan ${R[1]} ${PRODUCTS[R[0]].icon} ${PRODUCTS[R[0]].label} ke ${M.label} (di tas ${have(USER, R[0])})` : `${M.icon} ${M.label} · pegang ${machTakes(d.k)}`;
+            },
+            choose(cb) { const d = MACH_IT.at; if (d) cb(`${d.x}|${d.z}|${heldItem() || ''}`); },
+        };
         // 🪴 pots out on the farm: anywhere on dry land outside the pens; vegetables and flowers only
         const FPOT_MAX = 40;
         function potWhy(x, z, skip) {
@@ -3683,7 +3765,7 @@
                 const f = FDEF[t.k];
                 if (!f) continue;
                 // grown trees rest in winter; saplings keep growing as long as they are watered
-                if (winter && t.g >= TREE_GROW(f)) { t.w = false; continue; }
+                if (winter && t.g >= TREE_GROW(f) && !inGH(t.x, t.z)) { t.w = false; continue; }
                 if (t.w) {
                     t.dry = 0;
                     if (t.g < TREE_GROW(f)) { if (++t.g >= TREE_GROW(f)) t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); }
@@ -4356,6 +4438,33 @@
         const POT_SLOTS = 48;
         // Everything a bag or a box can hold, and the tools in your hands
         PRODUCTS.gabah = { label: 'Gabah', icon: '🌾', price: 14 }; // harvested rice, milled into beras at the Penggilingan Padi
+        // 🏭 machines, set on the farm like furniture: put raw goods in, take out something worth more a day or two later
+        const MACHINES = {
+            mesinkeju: { label: 'Pembuat keju', icon: '🧀', craft: { kayu: 6, besi: 1 }, days: 1, take: [['milk', 1, 'keju', 1], ['goatMilk', 1, 'kejukambing', 1]] },
+            panciselai: { label: 'Panci selai', icon: '🍯', craft: { batu: 4, tembaga: 2, kayu: 2 }, days: 1, take: 'fruit' },
+            tongfermentasi: { label: 'Tong fermentasi', icon: '🛢️', craft: { kayu: 5, tembaga: 1 }, days: 2, take: [['kedelai', 3, 'tauco', 2]] },
+            alattenun: { label: 'Alat tenun', icon: '🧵', craft: { kayu: 8, tembaga: 1 }, days: 2, take: [['wool', 2, 'kaintenun', 1]] },
+            pemerasminyak: { label: 'Pemeras minyak kelapa', icon: '🥥', craft: { batu: 6, kayu: 3, besi: 1 }, days: 1, take: [['kelapa', 3, 'minyakkelapa', 1]] },
+        };
+        {
+            const P = (k, label, icon, price) => { PRODUCTS[k] = { label, icon, price: Math.round(price) }; };
+            P('keju', 'Keju', '🧀', PRODUCTS.milk.price * 2.2); P('kejukambing', 'Keju kambing', '🧀', PRODUCTS.goatMilk.price * 2.2);
+            if (PRODUCTS.kedelai) P('tauco', 'Tauco', '🫙', PRODUCTS.kedelai.price * 3 * 1.5 / 2);
+            P('kaintenun', 'Kain tenun', '🧶', PRODUCTS.wool.price * 2 * 1.6);
+            if (PRODUCTS.kelapa) P('minyakkelapa', 'Minyak kelapa', '🫗', PRODUCTS.kelapa.price * 3 * 1.6);
+            for (const f of ALL_FRUITS) P('selai_' + f.key, `Selai ${f.label.toLowerCase()}`, '🍯', f.price * 2 + 40);
+            for (const M of Object.values(MACHINES)) if (Array.isArray(M.take)) M.take = M.take.filter(t => PRODUCTS[t[0]] && PRODUCTS[t[2]]);
+        }
+        // ⭐ harvest quality: vegetables, flowers and fruit come plain, silver (⭐) or gold (🌟); the better ones sell for more.
+        // Recipes, requests and bundles take any quality (the plainest first).
+        const QBASE = new Set([...GARDEN.filter(g => !g.out && !['jagung', 'kedelai', 'kacang', 'singkong', 'ubi', 'padi'].includes(g.key)).map(g => g.key), ...ALL_FRUITS.map(f => f.key)].filter(k => PRODUCTS[k]));
+        const QUAL = {};
+        for (const k of QBASE) for (const [lv, tag, mul] of [[1, '⭐', 1.25], [2, '🌟', 1.5]]) { const v = `${k}_q${lv}`; PRODUCTS[v] = { label: `${PRODUCTS[k].label} ${tag}`, icon: PRODUCTS[k].icon, price: Math.round(PRODUCTS[k].price * mul) }; QUAL[v] = [k, lv]; }
+        const baseOf = k => (QUAL[k] ? QUAL[k][0] : k);
+        const qualOf = k => (QUAL[k] ? QUAL[k][1] : 0);
+        const kindsOf = k => QBASE.has(k) ? [k, k + '_q1', k + '_q2'] : [k];
+        const storeHave = (st, k) => kindsOf(k).reduce((s, kk) => s + ((st && st[kk]) || 0), 0);
+        function storeTake(st, k, n) { for (const kk of kindsOf(k)) { const m = Math.min(n, st[kk] || 0); if (m) { st[kk] -= m; if (!st[kk]) delete st[kk]; n -= m; } } }
         const ITEMS = { ...PRODUCTS, ...SUPPLIES };
         // ---- 📖 the collection book: everything you have ever had in your bag, in eight groups ----
         const COL_CATS = (() => {
@@ -4375,6 +4484,7 @@
         const colCount = () => COL_KEYS.reduce((n, k) => n + (state.col && state.col[k] ? 1 : 0), 0);
         // a first find goes in the book (the host keeps the book; the other player gets it with the farm)
         function noteFound(k) {
+            k = baseOf(k);
             if (!COL_SET.has(k) || !state.col || state.col[k] || net.mode === 'guest') return;
             state.col[k] = state.day;
             const n = colCount(), it = PRODUCTS[k];
@@ -4686,7 +4796,12 @@
             lampu: { label: 'Lampu taman', icon: '🏮', type: 'solid', r: 0.18 },
             orang: { label: 'Orang-orangan sawah', icon: '🧑‍🌾', type: 'solid', r: 0.25 },
         };
+        for (const [k, M] of Object.entries(MACHINES)) DECO[k] = { label: M.label, icon: M.icon, type: 'solid', r: 0.42, mach: 1 };
+        // 💦 sprinklers water the ground round them every morning (copper: 3×3, iron: 5×5)
+        DECO.sprinkler = { label: 'Penyiram otomatis', icon: '💦', type: 'solid', r: 0.18, reach: 1 };
+        DECO.sprinklerbesi = { label: 'Penyiram otomatis besi', icon: '💦', type: 'solid', r: 0.2, reach: 2 };
         const DECO_KEYS = Object.keys(DECO);
+        ITEMS.patok = { label: 'Patok tukang kayu', icon: '📍' };
         for (const [k, d] of Object.entries(DECO)) ITEMS['x_' + k] = { label: d.label, icon: d.icon, deco: k };
         const CRAFTS = [
             { out: 'x_pagar', n: 1, need: { kayu: 2 }, note: 'Pagar 1 kotak, arahnya mengikuti hadapanmu' },
@@ -4698,6 +4813,9 @@
             { out: 'x_lampu', n: 1, need: { kayu: 1, batu: 1, tembaga: 1 }, note: 'Menyala saat malam' },
             { out: 'x_orang', n: 1, need: { kayu: 3, rumput: 2 }, note: 'Penjaga kebun' },
             { out: 'pot', n: 1, need: { tanahliat: 2 }, note: 'Pot dari tanah liat' },
+            { out: 'x_sprinkler', n: 1, need: { tembaga: 2, batu: 1 }, note: 'Menyiram 3×3 kotak di sekitarnya setiap pagi' },
+            { out: 'x_sprinklerbesi', n: 1, need: { besi: 2, tembaga: 1 }, note: 'Menyiram 5×5 kotak di sekitarnya setiap pagi' },
+            ...Object.entries(MACHINES).map(([k, M]) => ({ out: 'x_' + k, n: 1, need: M.craft, note: `Mesin: ${M.take === 'fruit' ? 'buah apa saja → selai' : M.take.map(t => `${t[1]} ${PRODUCTS[t[0]].label.toLowerCase()} → ${t[3]} ${PRODUCTS[t[2]].label.toLowerCase()}`).join(', ')} · ${M.days} hari` })),
             { out: 'pupuk', n: 1, need: { rumput: 3 }, note: 'Kompos dari rumput' },
         ];
         for (const k of FEED_KINDS) ITEMS['pk_' + k] = { label: `Pakan ${FEED_NAME[k]}`, icon: '🌾' };
@@ -4714,13 +4832,18 @@
         for (const [k, v] of Object.entries(TOOL_SVG)) TOOL_IMG[k] = 'data:image/svg+xml,' + encodeURIComponent(v);
         const escHTML = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
         // an item's picture as HTML, or as an element
-        const iconHTML = k => TOOL_IMG[k] ? `<img class="ico" src="${TOOL_IMG[k]}" alt="">` : escHTML(ITEMS[k] ? ITEMS[k].icon : '');
-        const iconEl = k => { if (TOOL_IMG[k]) { const i = document.createElement('img'); i.className = 'ico'; i.src = TOOL_IMG[k]; i.alt = ''; return i; } const sp = document.createElement('span'); sp.textContent = ITEMS[k] ? ITEMS[k].icon : ''; return sp; };
+        const iconHTML = k => TOOL_IMG[k] ? `<img class="ico" src="${TOOL_IMG[k]}" alt="">` : escHTML(ITEMS[k] ? ITEMS[k].icon : '') + (QUAL[k] ? `<span class="qb">${QUAL[k][1] === 2 ? '🌟' : '⭐'}</span>` : '');
+        const iconEl = k => { if (TOOL_IMG[k]) { const i = document.createElement('img'); i.className = 'ico'; i.src = TOOL_IMG[k]; i.alt = ''; return i; } const sp = document.createElement('span'); sp.textContent = ITEMS[k] ? ITEMS[k].icon : ''; if (QUAL[k]) { const q = document.createElement('span'); q.className = 'qb'; q.textContent = QUAL[k][1] === 2 ? '🌟' : '⭐'; sp.append(q); } return sp; };
         const ITEM_KEYS = Object.keys(ITEMS);
         const isTool = k => k.startsWith('t_');
         // the toolbar is the top row of the bag; the selected slot decides what is in your hands
         let selSlot = 1, tool = 'penyiram';
         function heldItem() { const x = bagOf(USER)[selSlot]; return x ? x[0] : null; }
+        // ✋🤚 two hands: the left hand holds a second toolbar slot (-1: empty); a few things need both hands
+        let selSlot2 = -1;
+        const TWO_HANDED = new Set(['t_pancing']);
+        const leftItem = () => { if (selSlot2 < 0 || selSlot2 === selSlot) return null; const x = bagOf(USER)[selSlot2]; return x ? x[0] : null; };
+        const leftTool = () => { const k = leftItem(); return k && isTool(k) ? k.slice(2) : null; };
         const toolHint = k => `pilih ${TOOLS[k].icon} ${TOOLS[k].label}`;
         // hens and ducks lay their eggs in the nests inside their barn
         const EGG_MAX = 6;
@@ -5301,6 +5424,13 @@
             g.traverse(o => { if (o.isMesh) { o.userData.cs0 = true; o.castShadow = GFX[gfx].people; } });
             return g;
         }
+        function setHeld2(f, k) {
+            k = HELD.includes(k) ? k : null;
+            if (f.heldKey2 === k && (f.held2 || !k)) return;
+            if (f.held2) { f.held2.parent && f.held2.parent.remove(f.held2); f.held2 = null; }
+            f.heldKey2 = k;
+            if (k && f.elbows) { f.held2 = toolModel(k); f.elbows[0].add(f.held2); }
+        }
         function setHeld(f, k) {
             k = HELD.includes(k) ? k : null;
             if (f.heldKey === k && (f.held || !k)) return;
@@ -5495,7 +5625,7 @@
             // plants start part-way through their cycle; the quickest ones already carry fruit
             const trees = {};
             for (const f of FRUIT_DEFS) trees[f.key] = { w: false, p: Math.floor(Math.random() * f.cycle), r: f.cycle <= 2 ? f.yield[0] : 0, dry: 0 };
-            const st = { col: {}, mus: {}, colR: 0, bund: {}, bundR: {}, colInit: 1, day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), wild: null, wildN: 0, req: null, jr: [], build: {}, hugs: 0, firsts: {}, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
+            const st = { layout: {}, carp: null, mach: {}, col: {}, mus: {}, colR: 0, bund: {}, bundR: {}, colInit: 1, day: 1, minutes: WAKE_MIN, weather: 'cerah', gold: 0, bags, store: { fridge: {}, chest: {}, bin: {}, tools: freshTools(), kit: { ...STARTER_KIT } }, eggs: [], animals, trees, pots, npc: {}, lumbung: {}, bank: 0, up: {}, daily: {}, boat: 0, tiles: {}, ptrees: [], fpots: [], feed: fullFeed(), trough: fullTroughs(), poop: [], deco: [], rocks: ROCK_POS.map(() => 0), logs: WOOD_POS.map(() => ({ s: 0, hp: 3, d: 0 })), weeds: WEED_POS.map((_, i) => i % 3 === 0 ? 1 : 0), wild: null, wildN: 0, req: null, jr: [], build: {}, hugs: 0, firsts: {}, orders: [], pkg: {}, pkgCloth: [], wardrobe: { [NA]: [], [NW]: [] }, ib: {}, wb: { [NA]: WATER_MAX, [NW]: WATER_MAX }, en: { [NA]: ENERGY_MAX, [NW]: ENERGY_MAX }, looks: {}, savedAt: 0 };
             layEggs(st);
             return st;
         }
@@ -5575,7 +5705,7 @@
         }
         const bagOf = u => { if (!Array.isArray(state.bags[u])) state.bags[u] = toSlots(state.bags[u]); return state.bags[u]; };
         const bagCount = u => bagOf(u).filter(Boolean).length;
-        const have = (u, k) => bagOf(u).reduce((s, x) => s + (x && x[0] === k ? x[1] : 0), 0);
+        const have = (u, k) => bagOf(u).reduce((s, x) => s + (x && (x[0] === k || (QUAL[x[0]] && QUAL[x[0]][0] === k)) ? x[1] : 0), 0);
         const bagRoom = (u, k) => bagOf(u).reduce((s, x) => s + (!x ? STACK : x[0] === k ? STACK - x[1] : 0), 0);
         function addBag(u, k, n) {
             const b = bagOf(u);
@@ -5588,8 +5718,29 @@
         function takeBag(u, k, n = 1) {
             if (have(u, k) < n) return false;
             const b = bagOf(u);
-            for (let i = b.length - 1; i >= 0 && n; i--) { const x = b[i]; if (x && x[0] === k) { const m = Math.min(n, x[1]); x[1] -= m; n -= m; if (!x[1]) b[i] = null; } }
+            for (const kk of kindsOf(k)) for (let i = b.length - 1; i >= 0 && n; i--) { const x = b[i]; if (x && x[0] === kk) { const m = Math.min(n, x[1]); x[1] -= m; n -= m; if (!x[1]) b[i] = null; } }
             return true;
+        }
+        // what quality a harvest comes in: fertilizer and watering every day help
+        function qualRoll(k, fert, dry) {
+            if (!QBASE.has(k)) return k;
+            const r = Math.random(), g = 0.04 + (fert ? 0.10 : 0) + (dry ? 0 : 0.03), sv = 0.18 + (fert ? 0.17 : 0) + (dry ? 0 : 0.05);
+            return r < g ? k + '_q2' : r < g + sv ? k + '_q1' : k;
+        }
+        const qualNote = got => { const q = Object.entries(got).filter(([v]) => qualOf(v)).map(([v, c]) => `${c} ${qualOf(v) === 2 ? '🌟 emas' : '⭐ perak'}`); return q.length ? ` (${q.join(', ')})` : ''; };
+        // the whole harvest, or nothing if it does not all fit: returns a note on its quality, or null
+        function harvestTo(who, k, n, fert, dry) {
+            const got = {}; for (let i = 0; i < n; i++) { const v = qualRoll(k, fert, dry); got[v] = (got[v] || 0) + 1; }
+            const sim = bagOf(who).map(x => x && [...x]);
+            for (let [v, c] of Object.entries(got)) { for (const x of sim) if (c && x && x[0] === v) { const m = Math.min(c, STACK - x[1]); x[1] += m; c -= m; } for (let i = 0; i < sim.length && c; i++) if (!sim[i]) { const m = Math.min(c, STACK); sim[i] = [v, m]; c -= m; } if (c) return null; }
+            for (const [v, c] of Object.entries(got)) addBag(who, v, c);
+            return qualNote(got);
+        }
+        // as much of a tree's fruit as fits: returns how many, and a note on quality
+        function harvestSome(who, k, n, fert, dry) {
+            const got = {}; let total = 0;
+            for (let i = 0; i < n; i++) { const v = qualRoll(k, fert, dry); if (!addBag(who, v, 1)) { if (v === k || !addBag(who, k, 1)) break; got[k] = (got[k] || 0) + 1; } else got[v] = (got[v] || 0) + 1; total++; }
+            return [total, qualNote(got)];
         }
         const bagItems = u => { const o = {}; for (const x of bagOf(u)) if (x && !isTool(x[0])) o[x[0]] = (o[x[0]] || 0) + x[1]; return o; };
         const encBag = b => { const a = []; (b || []).forEach((x, i) => { if (x) a.push(i, ITEM_KEYS.indexOf(x[0]), x[1]); }); return a; };
@@ -5789,6 +5940,8 @@
             // the round action button shows what is in your hands
             const ab = held && ITEMS[held] ? iconHTML(held) : '✋';
             if (ab !== updateHud.ab) { $('actBtn').innerHTML = ab; updateHud.ab = ab; }
+            const lk = leftItem(), ab2 = lk && ITEMS[lk] ? iconHTML(lk) : '🤚';
+            if (ab2 !== updateHud.ab2) { $('actBtn2').innerHTML = ab2; $('actBtn2').classList.toggle('empty', !lk); updateHud.ab2 = ab2; }
             $('eatBtn').hidden = !dish;
             if (dish) $('eatBtn').textContent = `${dish.icon} Makan · +${foodEnergy(dish.key)} ⚡`;
             const en = Math.round(energyOf(USER));
@@ -5809,7 +5962,7 @@
             for (let i = 0; i < HOTBAR; i++) {
                 const x = bag[i], it = x && ITEMS[x[0]];
                 const sub = !it ? '' : x[0] === 't_penyiram' ? `Air ${myWater()}/${WATER_MAX}` : it.label;
-                cells.push(`<div class="slot hot${i === selSlot ? ' on' : ''}${it ? '' : ' empty'}" data-hot="${i}" title="${it ? it.label : 'Kosong'} (${(i + 1) % 10})">${it ? iconHTML(x[0]) : ''}<small>${sub}</small>${it && x[1] > 1 ? `<b>${x[1]}</b>` : ''}</div>`);
+                cells.push(`<div class="slot hot${i === selSlot ? ' on' : ''}${i === selSlot2 && i !== selSlot && it ? ' left' : ''}${it ? '' : ' empty'}" data-hot="${i}" title="${it ? it.label : 'Kosong'} (${(i + 1) % 10})">${it ? iconHTML(x[0]) : ''}<small>${sub}</small>${it && x[1] > 1 ? `<b>${x[1]}</b>` : ''}</div>`);
             }
             hud.inv.innerHTML = cells.join('') + `<div class="slot bagbtn" data-bag="1" title="Buka tas">🎒<small>${bagCount(USER)}/${BAG_MAX}</small></div>`;
             // keep the prompt just above the toolbar, however tall it gets
@@ -5818,13 +5971,27 @@
             if (liveDlg && dlgOpen() && dk !== updateHud.dk) liveDlg();
             updateHud.dk = dk;
         }
+        // a long press on a toolbar slot puts it in the left hand (again to empty the left hand)
+        let holdSlot = null;
+        $('inventory').addEventListener('pointerdown', e => { const h = e.target.closest('[data-hot]'); if (!h) return; clearTimeout(holdSlot && holdSlot.t); holdSlot = { i: +h.dataset.hot, t: setTimeout(() => { holdSlot.done = 1; selectLeft(holdSlot.i); }, 450) }; });
+        for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) $('inventory').addEventListener(ev, () => { if (holdSlot && !holdSlot.done) clearTimeout(holdSlot.t); });
+        $('inventory').addEventListener('contextmenu', e => { if (e.target.closest('[data-hot]')) e.preventDefault(); });
         $('inventory').addEventListener('click', e => {
             const h = e.target.closest('[data-hot]');
+            if (h && holdSlot && holdSlot.done && holdSlot.i === +h.dataset.hot) { holdSlot = null; return; }
             if (h) selectSlot(+h.dataset.hot);
             else if (e.target.closest('[data-bag]')) openBag();
         });
         function syncTool() { const x = bagOf(USER)[selSlot]; tool = x && isTool(x[0]) ? x[0].slice(2) : 'tangan'; }
+        function selectLeft(i) {
+            const x = bagOf(USER)[i];
+            if (i === selSlot2 || !x) { selSlot2 = -1; flashName('🤚 Tangan kiri kosong'); }
+            else if (TWO_HANDED.has(x[0])) { flashName(`${ITEMS[x[0]].icon} ${ITEMS[x[0]].label} perlu dua tangan`); return; }
+            else { if (i === selSlot) { const k = bagOf(USER).findIndex((y, j) => j < HOTBAR && j !== i && !y); selSlot = k >= 0 ? k : selSlot; syncTool(); } selSlot2 = i; flashName(`🤚 Tangan kiri: ${ITEMS[x[0]].icon} ${ITEMS[x[0]].label}`); }
+            lastPrompt = null; lastHud = ''; updateHud();
+        }
         function selectSlot(i) {
+            if (i === selSlot2) selSlot2 = -1;
             selSlot = i; syncTool(); lastPrompt = null; lastHud = ''; updateHud();
             const x = bagOf(USER)[i];
             flashName(x ? `${ITEMS[x[0]].icon} ${ITEMS[x[0]].label}${x[1] > 1 ? ' ×' + x[1] : ''}` : 'Slot kosong · tangan kosong');
@@ -7887,6 +8054,7 @@
             if (atWork(n) && n.job === 'giling') btns.push({ t: '🏭 Giling gabah', big: true, f: openGiling });
             if (atWork(n) && n.job === 'lumbung') btns.push({ t: '🏚️ Buka lumbung', big: true, f: openLumbung });
             if (atWork(n) && n.id === 'kadek') btns.push({ t: '🤿 Snorkeling', big: true, f: () => sendAct('snorkel') });
+            if (atWork(n) && n.id === 'markus') btns.push({ t: '🪚 Jasa tukang kayu', big: true, f: openCarpenter });
             btns.push({ t: 'Dah 👋' });
             openDlg(`${n.kid ? '🧒' : n.g === 'f' ? '👩' : '👨'} ${n.name}`, [
                 el('p', { class: 'small-note', text: `${n.role} · ${npcWhere(n)} · 🎂 ${isBday(n.id) ? 'hari ini!' : bdayText(n.id)}` }),
@@ -8068,6 +8236,115 @@
             requestAnimationFrame(tick);
             openDlg(`${F.icon} Lomba racik kopi`, [info, grad, cup, el('div', { class: 'row', style: 'justify-content:center' }, btn)], [{ t: 'Batal' }]);
         }
+        // ---- 🪚 the carpenter (Pak Markus at the sawmill): moves a pen, a tree or a building on the farm overnight ----
+        // You order and pay, get a 📍 stake, and push it into the ground where the thing should go. That night it is moved.
+        const CARP_COST = { pen: [1500, 20], pohon: [400, 5], ptree: [250, 0], build: [800, 10] };
+        const PEN_NAME = { chicken: 'Kandang ayam', duck: 'Kandang bebek', cow: 'Kandang sapi', goat: 'Kandang kambing', sheep: 'Kandang domba' };
+        const canonLayout = o => JSON.stringify(Object.keys(o || {}).sort().filter(k => Array.isArray(o[k]) && (o[k][0] || o[k][1])).map(k => [k, o[k]]));
+        const layoutStale = () => canonLayout(state.layout) !== canonLayout(LAYOUT);
+        const rectHit = (a, b) => a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
+        const rectAt = (cx, cz, hw, hd) => ({ minX: cx - hw, maxX: cx + hw, minZ: cz - hd, maxZ: cz + hd });
+        // what a job moves: its name, where it is now (own), and the ground it takes up around a new centre
+        function carpThing(c) {
+            if (!c) return null;
+            if (c.t === 'pen') { const F = FOOT0[c.id]; if (!F) return null; const hw = (F[1] - F[0]) / 2, hd = (F[3] - F[2]) / 2; return { name: PEN_NAME[c.id], icon: BARNS[c.id].icon, hw, hd, own: footOf(c.id), snap: 0.5 }; }
+            if (c.t === 'pohon') { const f = FRUIT_DEFS.find(f => f.key === c.id); if (!f) return null; const r = BIG_TREE(f) ? 1.6 : 0.8; return { name: `Pohon ${f.label.toLowerCase()} kebun`, icon: f.icon, hw: r, hd: r, own: rectAt(f.at[0], f.at[1], r, r), snap: 0.5, tree: 1 }; }
+            if (c.t === 'ptree') { const t = state.ptrees[c.id], f = t && FDEF[t.k]; if (!f) return null; const r = BIG_TREE(f) ? 1.5 : 0.5; return { name: `${f.label} tanamanmu`, icon: f.icon, hw: r, hd: r, own: rectAt(t.x, t.z, r, r), snap: 1, tree: 1 }; }
+            if (c.t === 'build') { const B = BUILDS[c.id]; if (!B || !state.build[c.id]) return null; return { name: B.label, icon: B.icon, hw: B.w / 2 + 0.3, hd: B.d / 2 + 0.3, own: rectAt(B.x, B.z, B.w / 2 + 0.4, B.d / 2 + 0.4), snap: 0.5 }; }
+            return null;
+        }
+        // why the thing cannot go with its centre at x, z ('' when it can)
+        function carpWhy(c, x, z) {
+            const T = carpThing(c); if (!T) return 'Pesanan tidak dikenal';
+            const R = rectAt(x, z, T.hw, T.hd), mine = cl => rectHit(cl.t === 'b' ? cl : rectAt(cl.x, cl.z, cl.r, cl.r), T.own) && (cl.t !== 'b' || (cl.minX >= T.own.minX - 0.3 && cl.maxX <= T.own.maxX + 0.3 && cl.minZ >= T.own.minZ - 0.3 && cl.maxZ <= T.own.maxZ + 0.3));
+            const near = (px, pz, m) => px > R.minX - m && px < R.maxX + m && pz > R.minZ - m && pz < R.maxZ + m;
+            if (R.minX < BOUNDS.minX + 0.8 || R.maxX > BOUNDS.maxX - 0.8 || R.minZ < BOUNDS.minZ + 0.8 || R.maxZ > BOUNDS.maxZ - 0.8) return 'Terlalu di pinggir farm';
+            for (const k of Object.keys(FOOT0)) if (!(c.t === 'pen' && c.id === k) && rectHit(R, footOf(k))) return `Menabrak ${PEN_NAME[k].toLowerCase()}`;
+            for (const [k, B] of Object.entries(BUILDS)) if (state.build[k] && !(c.t === 'build' && c.id === k) && rectHit(R, rectAt(B.x, B.z, B.w / 2 + 0.3, B.d / 2 + 0.3))) return `Menabrak ${B.label.toLowerCase()}`;
+            if ([FARM_GATE, HOUSE_DOOR, ...Object.entries(BARNS).filter(([k]) => !(c.t === 'pen' && c.id === k)).map(([, b]) => b.out)].some(p => near(p.x, p.z, 1.2))) return 'Menghalangi pintu atau gerbang';
+            if (Math.hypot(Math.max(R.minX - POND.x, 0, POND.x - R.maxX), Math.max(R.minZ - POND.z, 0, POND.z - R.maxZ)) < POND.r + 0.5) return 'Terlalu dekat kolam';
+            if (!(c.t === 'pen' && c.id === 'duck') && near(DUCK_POND.x, DUCK_POND.z, DUCK_POND.r)) return 'Menabrak kolam bebek';
+            if (rectHit(R, FIELD)) return 'Menabrak kebun buah kecil';
+            if (Object.keys(state.tiles).some(k => { const [tx, tz] = k.split(',').map(Number); return near(tx, tz, 0.5); })) return 'Ada tanah garapan atau tanaman di sana';
+            if ((state.fpots || []).some(p => near(p.x, p.z, 0.4)) || (state.deco || []).some(d => near(d.x, d.z, 0.5))) return 'Ada pot atau barang yang dipasang di sana';
+            if (WEED_POS.some((w, i) => state.weeds[i] && near(w.x, w.z, 0.3))) return 'Ada rumput liar, potong dulu 🌾';
+            if (state.ptrees.some((t, i) => !(c.t === 'ptree' && c.id === i) && near(t.x, t.z, T.tree ? 1.2 : 0.8))) return 'Ada pohon tanamanmu di sana';
+            if (PLANTS.some(p => !(c.t === 'pohon' && p.def.key === c.id) && near(p.group.position.x, p.group.position.z, T.tree ? 1.6 : 0.9))) return 'Terlalu dekat pohon kebun';
+            if (colliders.some(cl => !cl.off && !mine(cl) && (cl.t === 'b' ? rectHit(R, cl) : near(cl.x, cl.z, cl.r)))) return 'Ada bangunan, batu, atau benda lain di sana';
+            return '';
+        }
+        // where the stake goes: in front of you, far enough that the new place is ahead of you
+        function patokSpot(c) {
+            const T = carpThing(c); if (!T) return null;
+            const h = player.heading, dist = Math.max(T.hw, T.hd) * (T.tree ? 1 : 0.9) + 1.0, snap = v => Math.round(v / T.snap) * T.snap;
+            return [snap(player.pos.x + Math.sin(h) * dist), snap(player.pos.z + Math.cos(h) * dist)];
+        }
+        const PATOK_IT = {
+            id: 'carp', pos: new THREE.Vector3(), reach: 99,
+            label() { const c = state.carp, T = carpThing(c), p = patokSpot(c); if (!T || !p) return ''; const why = carpWhy(c, p[0], p[1]); return why ? `🚫 ${why}` : `📍 Tancapkan patok: ${T.icon} ${T.name} pindah ke sini`; },
+            choose(cb) { const c = state.carp, p = patokSpot(c); if (!p) return; const why = carpWhy(c, p[0], p[1]); if (why) { toast(why); return; } cb(`mark|${p[0]}|${p[1]}`); },
+        };
+        // while you hold the stake, the outline of the new place shows on the ground (green: it fits, red: it does not)
+        const ghost = (() => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(32 * 3), 3)); const l = new THREE.LineLoop(g, new THREE.LineBasicMaterial({ color: 0x7cff6a })); l.visible = false; scene.add(l); return l; })();
+        function updateGhost() {
+            const on = started && focus === PATOK_IT && state.carp;
+            ghost.visible = !!on;
+            if (!on) return;
+            const c = state.carp, T = carpThing(c), p = patokSpot(c); if (!T || !p) { ghost.visible = false; return; }
+            const a = ghost.geometry.attributes.position, [cx, cz] = p;
+            for (let i = 0; i < 32; i++) {
+                let x, z;
+                if (T.tree) { const ang = i / 32 * Math.PI * 2; x = cx + Math.cos(ang) * T.hw; z = cz + Math.sin(ang) * T.hw; }
+                else { const u = i / 32 * 4, side = Math.floor(u), f = u - side; [x, z] = [[cx - T.hw + f * 2 * T.hw, cz - T.hd], [cx + T.hw, cz - T.hd + f * 2 * T.hd], [cx + T.hw - f * 2 * T.hw, cz + T.hd], [cx - T.hw, cz + T.hd - f * 2 * T.hd]][side]; }
+                a.setXYZ(i, x, groundY(x, z) + 0.1, z);
+            }
+            a.needsUpdate = true; ghost.geometry.computeBoundingSphere();
+            ghost.material.color.setHex(carpWhy(c, cx, cz) ? 0xff5a4a : 0x7cff6a);
+        }
+        // the carpenter does the job in the night
+        function carpNight() {
+            const c = state.carp;
+            if (!c || !c.at) return;
+            const T = carpThing(c), [x, z] = c.at;
+            state.layout ||= {};
+            const r1 = v => Math.round(v * 10) / 10;
+            if (c.t === 'pen') {
+                const F = FOOT0[c.id], nd = [r1(x - (F[0] + F[1]) / 2), r1(z - (F[2] + F[3]) / 2)], od = state.layout[c.id] || [0, 0];
+                for (const p of state.poop) if (p.k === c.id) { p.x += nd[0] - od[0]; p.z += nd[1] - od[1]; }
+                state.layout[c.id] = nd;
+            } else if (c.t === 'pohon') { const f = FRUIT_DEFS.find(f => f.key === c.id); state.layout['pohon:' + c.id] = [r1(x - f.at0[0]), r1(z - f.at0[1])]; }
+            else if (c.t === 'ptree') { const t = state.ptrees[c.id], s = treeSpan(FDEF[t.k]); t.x = Math.round(x); t.z = Math.round(z); for (let dx = -s; dx <= s; dx++) for (let dz = -s; dz <= s; dz++) delete state.tiles[tileKey(t.x + dx, t.z + dz)]; }
+            else if (c.t === 'build') { const B = BUILDS[c.id]; state.layout['build:' + c.id] = [r1(x - B.x0), r1(z - B.z0)]; }
+            jot(`🪚 Pak Markus memindahkan ${T ? T.icon + ' ' + T.name : 'sesuatu'} di farm`);
+            state.carpDone = T ? `${T.icon} ${T.name}` : 'pesananmu';
+            state.carp = null;
+        }
+        // a moved pen, orchard tree or building is only built in its new place when the game loads: reload, then carry on
+        function reloadForLayout(mode) {
+            try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(state.layout || {})); sessionStorage.setItem('farmora.resume', mode); } catch (e) { return; }
+            if (reloadForLayout.t) return;
+            toast('🪚 Farm ditata ulang oleh tukang kayu. Memuat ulang…');
+            reloadForLayout.t = setTimeout(() => location.reload(), 1600);
+        }
+        function openCarpenter() {
+            const c = state.carp, again = () => setTimeout(() => { if (dlgOpen()) openCarpenter(); }, 450);
+            const body = [el('p', { class: 'small-note', text: 'Pak Markus bisa memindahkan kandang, pohon, atau bangunan di farm. Pesan dan bayar di sini, lalu tancapkan 📍 patok di tempat barunya (pegang patok di toolbar, garis hijau = bisa). Malamnya dipindahkan, dan farm dimuat ulang pagi harinya.' })];
+            if (c) {
+                const T = carpThing(c);
+                body.push(el('h4', { text: '📋 Pesanan sekarang' }), el('p', { text: `${T ? T.icon + ' ' + T.name : '?'} · ${c.at ? '📍 patok sudah tertancap, dikerjakan malam ini' : `belum ada patok: ${c.by} memegang 📍 patok, tancapkan di farm`}` }));
+                openDlg('🪚 Jasa tukang kayu', body, [{ t: 'Batalkan pesanan (uang kembali)', f: () => { sendAct('carp', 'cancel'); } }, { t: 'Tutup' }]);
+                return;
+            }
+            const row = (ic, title, t, id) => { const [g, w] = CARP_COST[t]; const ok = state.gold >= g && have(USER, 'kayu') >= w;
+                const b = el('button', { class: 'btn', onclick: () => { sendAct('carp', `order|${t}|${id}`); again(); } }, 'Pesan'); if (!ok) b.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: ic }), el('span', { class: 'nm' }, el('b', { text: title }), el('small', { text: `💰 ${g} G${w ? ` · 🪵 ${w} kayu (di tas ${have(USER, 'kayu')})` : ''}` })), b); };
+            body.push(el('h4', { text: '🐄 Kandang' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, Object.keys(FOOT0).map(k => row(BARNS[k].icon, PEN_NAME[k], 'pen', k))));
+            const built = Object.keys(BUILDS).filter(k => state.build[k]);
+            if (built.length) body.push(el('h4', { text: '🏚️ Bangunan' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, built.map(k => row(BUILDS[k].icon, BUILDS[k].label, 'build', k))));
+            if (state.ptrees.length) body.push(el('h4', { text: '🌱 Pohon tanamanmu' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, state.ptrees.map((t, i) => FDEF[t.k] ? row(FDEF[t.k].icon, `${FDEF[t.k].label} (${t.x}, ${t.z})`, 'ptree', i) : null)));
+            body.push(el('h4', { text: '🌳 Pohon kebun buah' }), el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, FRUIT_DEFS.map(f => row(f.icon, `Pohon ${f.label.toLowerCase()}`, 'pohon', f.key))));
+            openDlg('🪚 Jasa tukang kayu', body);
+        }
         // 🏚️ the village granary: keep grain safe, share comes back every new season
         const LUMBUNG_KEYS = ['gabah', 'beras', 'jagung', 'kedelai', 'kacang', 'singkong', 'ubi'];
         function openLumbung() {
@@ -8083,7 +8360,7 @@
             liveDlg = openLumbung;
         }
         // what the Pasar Tani buys from you, and for how much
-        const pasarBuys = k => !!(PRODUCTS[k] && (GDEF[k] && GDEF[k].type !== 'hias' || FDEF[k] || k === 'gabah' || k === 'beras'));
+        const pasarBuys = k => { const b = baseOf(k); return !!(PRODUCTS[k] && (GDEF[b] && GDEF[b].type !== 'hias' || FDEF[b] || b === 'gabah' || b === 'beras')); };
         const pasarPrice = k => Math.ceil(PRODUCTS[k].price * SELL_DEF.pasar.mul);
         const perk = rk => !!(state.bundR && state.bundR[rk]); // a finished room of the balai's restoration
         // ---- what you can do in each building ----
@@ -8249,6 +8526,7 @@
                     act: () => { if (atWork(kp)) openTownShop(b.id); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); },
                 });
                 else if (FN[T] && kp) add('vfn:' + b.id, HV(b.f, cx, cz), 1.4, { label: () => atWork(kp) ? (typeof FN[T][0] === 'function' ? FN[T][0]() : FN[T][0]) : busy(kp), act: () => { if (atWork(kp)) FN[T][1](); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
+                if (T === 'saw') add('vcarp', HV(b.f, -2.0, 0.6), 1.3, { label: () => atWork(kp) ? '🪚 Jasa tukang kayu · pindah kandang, pohon, bangunan' : busy(kp), act: () => { if (atWork(kp)) openCarpenter(); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
                 if (T === 'museum') {
                     add('vmusdesk', HV(b.f, 0, 0.35), 1.5, { label: () => '🏛️ Meja museum · serahkan & lihat koleksi', act: openMuseum });
                     for (const [S, x, z] of [[FOSSIL_SETS[0], -3.2, -1.3], [FOSSIL_SETS[3], 3.2, -1.4], [FOSSIL_SETS[1], -3.0, 0.6], [FOSSIL_SETS[2], 3.3, 0.6]])
@@ -8315,7 +8593,7 @@
                 const d = npcData(id), b = bitOf(who);
                 if (d.g & b) { emitEvent(`${n.name} sudah menerima hadiah darimu hari ini 🎁`, 'none', null, who); return; }
                 takeBag(who, k, 1); d.g |= b;
-                const love = n.love.includes(k), like = n.like.includes(k), hate = n.hate.includes(k), souvenir = !!SUVENIR[k], bday = isBday(id);
+                const bk = baseOf(k), love = n.love.includes(bk), like = n.like.includes(bk), hate = n.hate.includes(bk), souvenir = !!SUVENIR[k], bday = isBday(id);
                 addFriend(id, who, hate ? -25 : (love ? 80 : like || souvenir ? 45 : 20) * (bday ? 3 : acaraIs('natal') ? 2 : 1));
                 if (bday && !hate) { emitEvent(`🎂 ${n.name} senang sekali dapat kado ulang tahun! Keakraban ×3`, 'hearts', n.f ? [n.f.pos.x, 1.9, n.f.pos.z] : null, who); if (love || like) jot(`🎂 ${who} memberi kado ulang tahun untuk ${n.name}: ${ITEMS[k].icon} ${ITEMS[k].label}`); }
                 const it = ITEMS[k], say = love ? `Wah, ${it.label}! Ini kesukaanku! 😍` : like || souvenir ? `${it.label}? Terima kasih, aku suka! 😊` : hate ? `Eh… ${it.label}. Terima kasih, ya… 😅` : `Terima kasih atas ${it.label}-nya 🙂`;
@@ -8677,7 +8955,7 @@
             ]);
             liveDlg = openKitchen;
         }
-        const haveAll = k => have(USER, k) + (state.store.fridge[k] || 0);
+        const haveAll = k => have(USER, k) + storeHave(state.store.fridge, k);
         function chooseSeed(cb) {
             const seeds = GARDEN.filter(g => have(USER, 'b_' + g.key) > 0);
             if (!seeds.length) { toast('Tidak ada benih di tasmu. Ambil dari kotak penyimpanan, atau beli lewat laptop 💻'); return; }
@@ -9135,11 +9413,12 @@
                 }
                 const d = GDEF[p.s];
                 if (p.p >= d.days) {
-                    if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                    addBag(who, d.out || d.key, d.yield);
+                    const qn = harvestTo(who, d.out || d.key, d.yield, p.f, p.dry);
+                    if (qn === null) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     state.tiles[k] = { e: state.day };
                     if (firstTime('panen:' + d.key)) jot(`🌱 Panen ${d.icon} ${d.label} yang pertama, oleh ${who}`);
-                    emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!${d.out ? ` · jadi ${PRODUCTS[d.out].icon} ${PRODUCTS[d.out].label}` : ''}`, 'icon:' + d.icon, at, who); return;
+                    if (qn.includes('🌟') && firstTime('emas')) jot(`🌟 Panen berkualitas emas pertama: ${d.icon} ${d.label}, oleh ${who}`);
+                    emitEvent(`Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}${qn}!${d.out ? ` · jadi ${PRODUCTS[d.out].icon} ${PRODUCTS[d.out].label}` : ''}`, 'icon:' + d.icon, at, who); return;
                 }
                 if (!p.w) {
                     if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
@@ -9179,6 +9458,7 @@
                     const i = state.deco.findIndex(d => d.x === px && d.z === pz && layerOf(d.k) === 'solid'), j = i >= 0 ? i : state.deco.findIndex(d => d.x === px && d.z === pz);
                     if (j < 0) return;
                     const d = state.deco[j];
+                    if (state.mach && state.mach[d.x + ',' + d.z]) { emitEvent(`Ambil dulu isi ${DECO[d.k].label}`, 'none', null, who); return; }
                     if (bagRoom(who, 'x_' + d.k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     state.deco.splice(j, 1); addBag(who, 'x_' + d.k, 1);
                     emitEvent(`Mengambil ${DECO[d.k].icon} ${DECO[d.k].label} ke tas`, 'none', null, who);
@@ -9272,10 +9552,10 @@
                 }
                 const d = GDEF[p.s];
                 if (p.p >= d.days) {
-                    if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                    addBag(who, d.out || d.key, d.yield);
+                    const qn = harvestTo(who, d.out || d.key, d.yield, p.f, p.dry);
+                    if (qn === null) { emitEvent(FULL_MSG, 'none', null, who); return; }
                     if (d.type === 'hias') state.fpots.splice(i, 1); else Object.assign(p, { s: null, w: false, p: 0, f: false, dry: 0 });
-                    emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
+                    emitEvent(d.type === 'hias' ? `${d.icon} ${d.label}${qn} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield > 1 ? d.yield + ' ' : ''}${d.icon} ${d.label}${qn}!`, 'icon:' + d.icon, at, who); return;
                 }
                 if (!p.w) {
                     if (arg !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
@@ -9320,9 +9600,9 @@
                 if (i < 0) return;
                 const t = state.ptrees[i], f = FDEF[t.k], at = [ix, 1.6, iz];
                 if (t.r > 0) {
-                    const got = addBag(who, f.key, t.r);
+                    const [got, qn] = harvestSome(who, f.key, t.r, false, t.dry);
                     if (!got) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                    emitEvent(`Panen ${got} ${f.icon} ${f.label}!${got < t.r ? ' Tas penuh, sisanya masih di pohon.' : ''}`, 'icon:' + f.icon, at, who);
+                    emitEvent(`Panen ${got} ${f.icon} ${f.label}${qn}!${got < t.r ? ' Tas penuh, sisanya masih di pohon.' : ''}`, 'icon:' + f.icon, at, who);
                     t.r -= got;
                     if (!t.r) t.p = 0;
                     return;
@@ -9383,13 +9663,13 @@
             },
             cook(who, k) {
                 const r = RECIPES.find(r => r.key === k);
-                const fr = state.store.fridge, avail = i => have(who, i) + (fr[i] || 0);
+                const fr = state.store.fridge, avail = i => have(who, i) + storeHave(fr, i);
                 if (!r || !Object.entries(r.need).every(([i, n]) => avail(i) >= n)) return;
                 if (!(COOK_OF[k] || []).some(t => ownsCook(who, t))) { emitEvent(`Butuh ${COOK_OF[k].map(t => SUPPLIES['k_' + t].label).join(' atau ')} untuk memasak ${r.label}. Beli lewat laptop 💻`, 'none', null, who); return; }
                 for (const [i, n] of Object.entries(r.need)) {
                     const fromBag = Math.min(n, have(who, i));
                     if (fromBag) takeBag(who, i, fromBag);
-                    if (n - fromBag) { fr[i] -= n - fromBag; if (!fr[i]) delete fr[i]; }
+                    if (n - fromBag) storeTake(fr, i, n - fromBag);
                 }
                 const ok = r.out || r.key, cnt = r.n || 1, inBag = addBag(who, ok, cnt);
                 if (inBag < cnt) fr[ok] = (fr[ok] || 0) + cnt - inBag;
@@ -9532,6 +9812,57 @@
                     emitEvent('🎆 Selamat tahun baru! +20 ⚡', 'hearts', [VOUT.fkota.c[0], 2, VOUT.fkota.c[1]], who);
                     if (!both('tb', `🎆 ${NA} & ${NW} merayakan malam tahun baru berdua, menyambut tahun ke-${yearOf(state.day) + 1}`) && !other) jot(`🎆 ${who} menyambut tahun ke-${yearOf(state.day) + 1} di pantai utara kota`);
                 }
+            },
+            // 🪚 the carpenter: order (pay, get a stake), mark the new place with the stake, or cancel
+            carp(who, x) {
+                const [op, a = '', b = ''] = String(x).split('|');
+                if (op === 'order') {
+                    if (state.carp) { emitEvent('Pak Markus masih punya satu pesanan dari kalian', 'none', null, who); return; }
+                    const c = { t: a, id: a === 'ptree' ? parseInt(b, 10) : b }, T = carpThing(c), cost = CARP_COST[a];
+                    if (!T || !cost) return;
+                    if (state.gold < cost[0] || have(who, 'kayu') < cost[1]) { emitEvent('Uang atau kayunya belum cukup 🪚', 'none', null, who); return; }
+                    if (!addBag(who, 'patok', 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    state.gold -= cost[0]; if (cost[1]) takeBag(who, 'kayu', cost[1]);
+                    state.carp = { ...c, by: who, at: null, paid: cost };
+                    emitEvent(`🪚 Pak Markus siap memindahkan ${T.icon} ${T.name}. Pegang 📍 patok dan tancapkan di tempat barunya di farm`, 'sell', null, who);
+                } else if (op === 'mark') {
+                    const c = state.carp, px = +a, pz = +b;
+                    if (!c || !Number.isFinite(px) || !Number.isFinite(pz)) return;
+                    const why = carpWhy(c, px, pz); if (why) { emitEvent(why, 'none', null, who); return; }
+                    if (!takeBag(who, 'patok', 1)) return;
+                    c.at = [px, pz];
+                    emitEvent(`📍 Patok tertancap. Malam ini Pak Markus memindahkan ${carpThing(c).name.toLowerCase()} ke sini`, 'icon:📍', [px, 1, pz], who);
+                } else if (op === 'cancel') {
+                    const c = state.carp; if (!c) return;
+                    state.gold += c.paid[0]; if (c.paid[1]) addBag(who, 'kayu', c.paid[1]);
+                    for (const u of [NA, NW]) while (have(u, 'patok')) takeBag(u, 'patok', 1);
+                    state.carp = null;
+                    emitEvent('🪚 Pesanan dibatalkan, uangnya kembali', 'none', null, who);
+                }
+            },
+            // 🏭 a machine: put raw goods in, or take out what it made
+            mach(who, x) {
+                const [a, b, item = ''] = String(x).split('|'), px = parseInt(a, 10), pz = parseInt(b, 10);
+                const d = state.deco.find(e => e.x === px && e.z === pz && MACHINES[e.k]);
+                if (!d) return;
+                const M = MACHINES[d.k], key = px + ',' + pz; state.mach ||= {};
+                const st = state.mach[key];
+                if (st) {
+                    if (state.day < st.d) { emitEvent(`⏳ ${PRODUCTS[st.out].label} masih diproses, siap Hari ${st.d}`, 'none', null, who); return; }
+                    const got = addBag(who, st.out, st.n);
+                    if (!got) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                    if (got < st.n) { st.n -= got; emitEvent(`Tas penuh, ${st.n} ${PRODUCTS[st.out].label} masih di mesin`, 'none', null, who); return; }
+                    delete state.mach[key];
+                    emitEvent(`${M.icon} Mengambil ${got} ${PRODUCTS[st.out].icon} ${PRODUCTS[st.out].label}!`, 'icon:' + PRODUCTS[st.out].icon, [px, 1.2, pz], who);
+                    if (firstTime('olah:' + st.out)) jot(`🏭 ${who} membuat ${PRODUCTS[st.out].icon} ${PRODUCTS[st.out].label} pertama dengan ${M.label}`);
+                    return;
+                }
+                const R = machInput(d.k, item);
+                if (!R) { emitEvent(`${M.label} butuh ${machTakes(d.k)}`, 'none', null, who); return; }
+                if (have(who, R[0]) < R[1]) { emitEvent(`Butuh ${R[1]} ${PRODUCTS[R[0]].label} untuk ${M.label}`, 'none', null, who); return; }
+                takeBag(who, R[0], R[1]);
+                state.mach[key] = { out: R[2], n: R[3], d: state.day + M.days };
+                emitEvent(`${M.icon} ${R[1]} ${PRODUCTS[R[0]].label} masuk ${M.label} · ${PRODUCTS[R[2]].label} siap ${M.days > 1 ? M.days + ' hari lagi' : 'besok pagi'}`, 'icon:' + M.icon, [px, 1.2, pz], who);
             },
             // 🏛️ give something to the museum
             mus(who, k) {
@@ -9786,10 +10117,10 @@
                     }
                     const d = GDEF[p.s];
                     if (p.p >= d.days) {
-                        if (bagRoom(who, d.out || d.key) < d.yield) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                        addBag(who, d.out || d.key, d.yield);
+                        const qn = harvestTo(who, d.out || d.key, d.yield, p.f, p.dry);
+                        if (qn === null) { emitEvent(FULL_MSG, 'none', null, who); return; }
                         state.pots[i] = d.type === 'hias' ? null : {};
-                        emitEvent(d.type === 'hias' ? `${d.icon} ${d.label} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}!`, 'icon:' + d.icon, at, who); return;
+                        emitEvent(d.type === 'hias' ? `${d.icon} ${d.label}${qn} masuk tas, siap dijual bersama potnya!` : `Panen ${d.yield} ${d.icon} ${d.label}${qn}!`, 'icon:' + d.icon, at, who); return;
                     }
                     if (!p.w) {
                         if (x !== 'penyiram') { emitEvent(`Untuk menyiram, ${toolHint('penyiram')} dulu.`, 'none', null, who); return; }
@@ -9809,10 +10140,11 @@
         }
         // nightly growth in the rooftop pots
         function growPots() {
-            for (const p of [...state.pots, ...Object.values(state.tiles || {}), ...(state.fpots || [])]) {
+            const list = [...state.pots.map(p => [p, null]), ...Object.entries(state.tiles || {}).map(([k, p]) => [p, k.split(',').map(Number)]), ...(state.fpots || []).map(p => [p, [p.x, p.z]])];
+            for (const [p, at] of list) {
                 if (!p || !p.s) continue;
-                const d = GDEF[p.s];
-                if (p.w) { p.dry = 0; if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1)); }
+                const d = GDEF[p.s], boost = at && inGH(at[0], at[1]) ? 1.25 : 1;
+                if (p.w) { p.dry = 0; if (p.p < d.days) p.p = Math.min(d.days, p.p + (p.f ? 1.5 : 1) * boost); }
                 else if (p.p < d.days) p.dry = (p.dry || 0) + 1;
                 p.w = false;
             }
@@ -9875,9 +10207,9 @@
                     act(who, _pos, x) {
                         const t = state.trees[f.key];
                         if (t.r > 0) {
-                            const got = addBag(who, f.key, t.r);
+                            const [got, qn] = harvestSome(who, f.key, t.r, false, t.dry);
                             if (!got) { emitEvent(FULL_MSG, 'none', null, who); return; }
-                            emitEvent(`Panen ${got} ${f.icon} ${f.label}!${got < t.r ? ' Tas penuh, sisanya masih di pohon.' : ''}`, 'icon:' + f.icon, at(), who);
+                            emitEvent(`Panen ${got} ${f.icon} ${f.label}${qn}!${got < t.r ? ' Tas penuh, sisanya masih di pohon.' : ''}`, 'icon:' + f.icon, at(), who);
                             t.r -= got;
                             if (!t.r) t.p = 0;
                             return;
@@ -10068,6 +10400,29 @@
             }, 1800 + Math.random() * 4500);
         }
         // the rod button / E / Space goes down and comes back up
+        // 🧠 the smart button: when what is in front of you wants another tool from your toolbar, take that one
+        let smartBtn = (() => { try { return localStorage.getItem('farmora.smart') === 'on'; } catch (e) { return false; } })();
+        const labelOf = it => { try { return typeof it.label === 'function' ? it.label() : String(it.label || ''); } catch (e) { return ''; } };
+        function smartPick() {
+            if (!focus || !/pilih /.test(labelOf(focus))) return;
+            const keep = selSlot;
+            for (let i = 0; i < HOTBAR; i++) {
+                const x = bagOf(USER)[i];
+                if (i === keep || i === selSlot2 || !x || !isTool(x[0])) continue;
+                selSlot = i; syncTool(); const f2 = findFocus();
+                if (f2 && !/pilih /.test(labelOf(f2))) { focus = f2; selectSlot(i); focus = f2; return; }
+            }
+            selSlot = keep; syncTool(); focus = findFocus();
+        }
+        function useLeft() {
+            if (!started || sleeping || travelling || dlgOpen() || reeling() || fishing) return;
+            const k = leftItem(), r = heldItem();
+            if (!k) { toast('🤚 Tangan kiri kosong. Tahan lama sebuah slot di toolbar untuk memegangnya di tangan kiri'); return; }
+            if (r && TWO_HANDED.has(r)) { toast(`${ITEMS[r].icon} ${ITEMS[r].label} dipegang dua tangan, tangan kiri sedang sibuk`); return; }
+            const keep = selSlot;
+            selSlot = selSlot2; syncTool(); focus = findFocus();
+            try { if (focus) interact(); else if (foodOf(k)) sendAct('eat', k); } finally { if (selSlot === selSlot2) selSlot = keep; syncTool(); focus = findFocus(); lastPrompt = null; }
+        }
         function pressAct() {
             if (reeling()) { fishing.game.hold = true; return; }
             if (!started || sleeping || travelling || dlgOpen() || performance.now() - reelEnd < 500) return;
@@ -10405,6 +10760,7 @@
             const outside = !inHome(player.pos) && !player.sit;
             // carrying a pot: the only thing to do is set it down
             if (outside && carriedBy(USER)) { const [x, z] = potFront(); POTPLACE_IT.pos.set(x, 0, z); return POTPLACE_IT; }
+            if (outside && heldItem() === 'patok' && state.carp && !state.carp.at && inFarm(player.pos)) { PATOK_IT.pos.copy(player.pos); return PATOK_IT; }
             if (outside) state.fpots.forEach((p, i) => { if (p.c) return; const it = fpotIt(i), d = Math.hypot(p.x - player.pos.x, p.z - player.pos.z); it.pos.set(p.x, 0, p.z); if (d < it.reach && d < bestD) { best = it; bestD = d; } });
             if (outside && (heldItem() || '').startsWith('x_') && DECO[(heldItem() || '').slice(2)]) { const [x, z] = decoFront(); DECOPLACE_IT.pos.set(x, 0, z); return DECOPLACE_IT; }
             if (outside && heldItem() === 'pot' && !best) { const [x, z] = potFront(); POTPLACE_IT.pos.set(x, 0, z); return POTPLACE_IT; }
@@ -10414,6 +10770,13 @@
                 if (d < it.reach && d < bestD) { best = it; bestD = d; }
             }
             if (best && best.id === 'fpot' && (heldItem() || '').startsWith('b_')) return best;
+            if (outside) for (const d of state.deco) {
+                if (!MACHINES[d.k]) continue;
+                const dd = Math.hypot(d.x - player.pos.x, d.z - player.pos.z);
+                if (dd > 1.5 || dd >= bestD) continue;
+                if (!(state.mach && state.mach[d.x + ',' + d.z]) && tool === 'tangan' && !machInput(d.k, heldItem())) continue; // an empty hand by an empty machine picks it up instead
+                MACH_IT.at = d; MACH_IT.pos.set(d.x, 0, d.z); best = MACH_IT; bestD = dd;
+            }
             if (outside) for (const p of state.poop) {
                 const d = Math.hypot(p.x - player.pos.x, p.z - player.pos.z);
                 if (d < 0.95 && d < bestD) { POOP_IT.pos.set(p.x, 0, p.z); POOP_IT.at = p; best = POOP_IT; bestD = d; }
@@ -10463,6 +10826,7 @@
             if (!started || sleeping || travelling || dlgOpen() || reeling() || performance.now() - reelEnd < 500) return;
             if (fishing && (fishing.phase === 'wait' || fishing.phase === 'bite')) { fishPull(); lastPrompt = null; return; }
             if (!focus) return;
+            if (smartBtn && selSlot !== selSlot2) smartPick();
             const it = focus;
             if (!it.local) player.targetHeading = Math.atan2(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
             // moving, sitting and menus happen on this device; farm changes go through the host
@@ -10718,7 +11082,7 @@
         function sendMine() {
             if (!net.backend) return;
             sendMine.sq = (sendMine.sq || 0) + 1;
-            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, tl2: leftTool(), role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -10730,7 +11094,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -10829,6 +11193,9 @@
             if (Number.isInteger(w.cr)) state.colR = w.cr;
             if (w.bn && typeof w.bn === 'object') state.bund = w.bn;
             if (w.br && typeof w.br === 'object') state.bundR = w.br;
+            if (w.mc && typeof w.mc === 'object') state.mach = w.mc;
+            if ('cp' in w) state.carp = w.cp && typeof w.cp === 'object' ? w.cp : null;
+            if (w.ly && typeof w.ly === 'object' && canonLayout(w.ly) !== canonLayout(LAYOUT)) { state.layout = w.ly; reloadForLayout('join'); }
             if (w.ev && typeof w.ev === 'object' && Number.isInteger(w.ev.d) && w.ev.e && typeof w.ev.e === 'object') state.ev = w.ev;
             if (w.fe && typeof w.fe === 'object' && Number.isInteger(w.fe.d) && w.fe.e && typeof w.fe.e === 'object') state.fest = w.fe;
             if (Array.isArray(w.jr)) state.jr = w.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string');
@@ -10910,7 +11277,7 @@
                 partnerF.pos.y = inHome(partnerF.pos) ? 0 : groundY(partnerF.pos.x, partnerF.pos.z);
                 partnerF.head.rotation.x = 0;
                 if (m) partnerF.phase += dt * 12;
-                setHeld(partnerF, sit ? null : net.partner && net.partner.tl);
+                setHeld(partnerF, sit ? null : net.partner && net.partner.tl); setHeld2(partnerF, sit ? null : net.partner && net.partner.tl2);
                 animateFarmer(partnerF, !!m, dt);
                 if (sit) sitPose(partnerF, sit, sy, srec);
                 overhead(sit === 3);
@@ -11108,13 +11475,14 @@
                 if (isWet()) for (const t of Object.values(state.tiles)) if (t.s) { t.w = true; t.dry = 0; }
                 if (isWet()) for (const t of state.ptrees) { t.w = true; t.dry = 0; }
                 if (isWet()) for (const p of state.fpots) if (p.s) { p.w = true; p.dry = 0; }
+                autoWater();
                 // overnight: half the broken rocks are back, felled trees regrow, new weeds come up
                 state.rocks = state.rocks.map(v => v && Math.random() < 0.5 ? 0 : v);
                 for (const l of state.logs) {
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight(); reqNight();
+                wildNight(); reqNight(); carpNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
@@ -11135,6 +11503,7 @@
                 if (isWet()) emitEvent('🌧️ Hujan turun, pohon di kebun tersiram dengan sendirinya.', 'none', null, '');
                 if (nSold) chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
                 morningSave();
+                if (layoutStale()) { writeSlot(0, true); reloadForLayout('load'); }
             }, 1700);
         }
 
@@ -11194,7 +11563,8 @@
             if (dlgOpen()) { if (e.code === 'Escape') closeDlg(); return; }
             if (e.code === 'KeyH') { toggleHelp(); return; }
             const ti = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'].indexOf(e.code);
-            if (ti >= 0) { selectSlot(ti); return; }
+            if (ti >= 0) { if (e.shiftKey) selectLeft(ti); else selectSlot(ti); return; }
+            if (e.code === 'KeyQ' && !e.repeat) { useLeft(); return; }
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
             keys.add(e.code);
             if (!e.repeat && ['KeyE', 'Space', 'Enter'].includes(e.code)) pressAct();
@@ -11269,6 +11639,8 @@
             base.addEventListener('touchend', end);
             base.addEventListener('touchcancel', end);
             $('actBtn').addEventListener('pointerdown', e => { e.preventDefault(); pressAct(); });
+            $('actBtn2').addEventListener('pointerdown', e => { e.preventDefault(); useLeft(); });
+            $('actBtn2').addEventListener('contextmenu', e => e.preventDefault());
             for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('actBtn').addEventListener(ev, releaseAct);
             $('actBtn').addEventListener('contextmenu', e => e.preventDefault());
             // no synthetic click after a tap: it would land on the window that just opened and close it
@@ -11311,6 +11683,9 @@
             ]);
         }
         $('journalBtn').addEventListener('click', () => { if (started) { toggleHelp(false); openJournal(); } });
+        const drawSmart = () => { $('smartBtn').textContent = smartBtn ? '🧠 Tombol pintar: nyala' : '🧠 Tombol pintar: mati'; $('smartBtn').classList.toggle('on', smartBtn); };
+        drawSmart();
+        $('smartBtn').addEventListener('click', () => { smartBtn = !smartBtn; try { localStorage.setItem('farmora.smart', smartBtn ? 'on' : 'off'); } catch (e) { } drawSmart(); toast(smartBtn ? '🧠 Tombol pintar menyala: tombol aksi otomatis memakai alat dari toolbar yang cocok' : '🧠 Tombol pintar dimatikan'); });
         $('bookBtn').addEventListener('click', () => { if (started) { toggleHelp(false); openBook(); } });
         $('autoBtn').addEventListener('click', () => { setAutoSave(!autoSave); toast(autoSave ? '💾 Simpan otomatis dinyalakan' : '💾 Simpan otomatis dimatikan. Jangan lupa simpan lewat tombol 💾 ya'); });
         drawAutoBtn();
@@ -11350,9 +11725,22 @@
             renderTitle();
         }
 
+        // after a reload for the carpenter's work, go straight back into the game the way you were playing
+        setTimeout(() => {
+            let r = null; try { r = sessionStorage.getItem('farmora.resume'); sessionStorage.removeItem('farmora.resume'); } catch (e) { }
+            if (!r) return;
+            const t0 = Date.now(), iv = setInterval(() => {
+                if (started || Date.now() - t0 > 40000) { clearInterval(iv); return; }
+                if (r === 'join') { const b = $('joinBtn'); if (b) { clearInterval(iv); b.click(); } }
+                else if (r === 'new') { clearInterval(iv); startGame('new'); }
+                else if (slots[0] && $('slotBtn0')) { clearInterval(iv); startGame('load', 0); }
+            }, 500);
+        }, 1500);
         function startGame(mode, i) {
             if (mode === 'new') replaceState(freshState());
             else if (mode === 'load') { try { replaceState(normalize(JSON.parse(slots[i].json))); } catch (e) { toast('Save ini tidak bisa dibuka 😢'); return; } }
+            // the carpenter moved things on this farm: build the farm again with them in their places
+            if (mode !== 'join' && layoutStale()) { reloadForLayout(mode); return; }
             applyLook();
             if (mode !== 'join') settleAnimals();
             player.pos.set(-10, 0, -8);
@@ -11461,7 +11849,7 @@
             if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
             player.group.rotation.set(0, player.heading, 0);
             player.moving = moving;
-            setHeld(player, player.sit ? null : tool);
+            setHeld(player, player.sit ? null : tool); setHeld2(player, player.sit ? null : leftTool());
             animateFarmer(player, moving, dt);
             if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y, player.sit.rec); }
             else player.pos.y = inHome(player.pos) ? 0 : groundY(player.pos.x, player.pos.z);
@@ -11594,7 +11982,7 @@
 
             syncTool();
             focus = started && !sleeping && !travelling && !dlgOpen() && !reeling() ? findFocus() : null;
-            updateTileMark();
+            updateTileMark(); updateGhost();
             const html = focus ? `<kbd>E</kbd>${focus.label()}` : '';
             if (html !== lastPrompt) {
                 lastPrompt = html;
@@ -11645,7 +12033,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

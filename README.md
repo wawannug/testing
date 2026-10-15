@@ -244,6 +244,20 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Alat** (ada di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
+## ✋🤚 Dua tangan, kualitas panen, mesin olahan, dan tukang kayu (tahap 9)
+- **Dua tangan.** Ketuk barang di toolbar untuk tangan kanan, **tahan** (atau Shift+angka di komputer) untuk tangan kiri. Tombol besar di kanan bawah memakai tangan kanan (E/Spasi), tombol kecil memakai tangan kiri (Q). Contoh: beliung di kanan + kapak di kiri, atau penyiram + benih. Pancing memakai dua tangan.
+- **Tombol pintar** (di layar Bantuan **?**): tombol besar otomatis memakai alat yang cocok dengan yang ada di depanmu (batu → beliung, pohon → kapak, tanah → cangkul, dan seterusnya), asal alatnya ada di toolbar.
+- **Kualitas panen ⭐.** Sayur, bunga, dan buah bisa keluar biasa, ⭐ perak (harga ×1,25), atau 🌟 emas (×1,5). Pupuk dan menyiram setiap hari menaikkan peluangnya. Barang berkualitas tetap bisa dipakai memasak dan untuk permintaan warga, dan yang biasa dipakai duluan.
+- **Mesin olahan** (dibuat di meja kerja 🔨, taruh di mana saja di farm). Masukkan bahan, hasilnya siap besok pagi:
+  - 🧀 Pembuat keju: susu → keju, susu kambing → keju kambing (1 hari)
+  - 🍯 Panci selai: buah apa saja → selai buah itu (1 hari)
+  - 🛢️ Tong fermentasi: 3 kedelai → 2 tauco (2 hari)
+  - 🧵 Alat tenun: 2 wol → 1 kain tenun (2 hari)
+  - 🥥 Pemeras minyak: 3 kelapa → 1 minyak kelapa (1 hari)
+- **Penyiram otomatis 💦** (meja kerja): penyiram tembaga menyiram 3×3 tanah di sekitarnya, penyiram besi 5×5, setiap pagi.
+- **🪟 Rumah kaca** (bangun lewat papan pembangunan, 1.500 G + kayu, besi, batu): tanah di dalamnya tersiram otomatis, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin.
+- **🪚 Jasa tukang kayu (Pak Markus, penggergajian).** Pesan pindah kandang (1.500 G + 20 kayu), pohon kebun buah (400 G + 5 kayu), pohon yang kalian tanam sendiri (250 G), atau bangunan tambahan (800 G + 10 kayu). Kamu dapat 📍 **patok**: pegang patoknya dan berdiri di tempat baru. Garis hijau berarti tempatnya bisa, merah berarti terhalang (alasannya muncul). Pasang patoknya, lalu tukang kayu memindahkannya **malam itu**. Pagi berikutnya farm otomatis dimuat ulang sebentar dengan tata letak baru. Saat main berdua, perangkat pasangan juga ikut dimuat ulang dan bergabung lagi sendiri. Pesanan bisa dibatalkan di Pak Markus (uang kembali).
+
 ## Menyimpan progres
 - **💾 Simpan otomatis** (menyala sejak awal): game tersimpan setiap pagi setelah tidur (juga saat ketiduran pukul 00:00), setiap 5 menit bermain, dan saat game ditutup atau HP pindah ke aplikasi lain. Yang menyimpan otomatis adalah pemain yang menjalankan farm; pasangannya ikut mendapat save itu. Bisa dimatikan lewat tombol **Simpan otomatis** di layar Bantuan **?**; kalau mati, simpan lewat tombol 💾 atau pilih **Tidur dan simpan progres** (ada juga **Tidur tanpa menyimpan**). Tombol 💾 tetap bisa dipakai kapan saja.
 - **🗂️ Cadangan** (tombol di layar awal): save terakhir setiap hari disimpan sebagai cadangan, ☁️ 7 hari terakhir di penyimpanan online kalian berdua (link claude.ai) dan 📱 3 hari terakhir di perangkat ini. Pilih **Pulihkan** untuk kembali ke hari itu (save yang sedang dipakai tetap masuk daftar cadangan). **⬇️ Unduh save ke file** menyimpan save sebagai file `.json` di HP/komputer, dan **⬆️ Buka file save** memulihkan dari file itu. Tombol unduh juga ada di jendela 💾 Simpan.
