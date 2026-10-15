@@ -258,6 +258,20 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **🪟 Rumah kaca** (bangun lewat papan pembangunan, 1.500 G + kayu, besi, batu): tanah di dalamnya tersiram otomatis, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin.
 - **🪚 Jasa tukang kayu (Pak Markus, penggergajian).** Pesan pindah kandang (1.500 G + 20 kayu), pohon kebun buah (400 G + 5 kayu), pohon yang kalian tanam sendiri (250 G), atau bangunan tambahan (800 G + 10 kayu). Kamu dapat 📍 **patok**: pegang patoknya dan berdiri di tempat baru. Garis hijau berarti tempatnya bisa, merah berarti terhalang (alasannya muncul). Pasang patoknya, lalu tukang kayu memindahkannya **malam itu**. Pagi berikutnya farm otomatis dimuat ulang sebentar dengan tata letak baru. Saat main berdua, perangkat pasangan juga ikut dimuat ulang dan bergabung lagi sendiri. Pesanan bisa dibatalkan di Pak Markus (uang kembali).
 
+## 🛵 Motor dan bonceng berdua
+- **Beli di 💻 laptop toko online, tab 🛵 Motor.** Satu motor dipakai berdua dan langsung diantar ke dekat gerbang selatan farm.
+
+  | Motor | Harga | Kecepatan |
+  |---|---|---|
+  | 🛵 Motor bebek | 3.500 G | ±2,1× lari |
+  | 🛵 Motor matic | 6.500 G | ±2,5× lari |
+  | 🏍️ Motor trail | 10.000 G | ±3,1× lari |
+
+  Ganti motor = tukar tambah, motor lama dihargai separuh harganya.
+- **Naik:** dekati motor lalu tekan tombol aksi (E/Spasi). Gas pakai joystick atau WASD. Tekan tombol lagi untuk **turun**, motor diparkir di tempat itu.
+- **Bonceng:** saat pasanganmu duduk di motor, dekati dia lalu pilih **🛵 Bonceng**. Kamu duduk di belakang dan ikut ke mana pun dia pergi. Tekan tombol untuk turun; kalau pengemudi turun, yang dibonceng ikut turun.
+- Motor bebek dan matic sedikit melambat di luar jalan (rumput, tanah); motor trail tetap kencang. Di sawah motor berjalan pelan. Masuk rumah, naik perahu, naik ojek, atau tidur membuatmu turun dari motor dulu.
+
 ## Menyimpan progres
 - **💾 Simpan otomatis** (menyala sejak awal): game tersimpan setiap pagi setelah tidur (juga saat ketiduran pukul 00:00), setiap 5 menit bermain, dan saat game ditutup atau HP pindah ke aplikasi lain. Yang menyimpan otomatis adalah pemain yang menjalankan farm; pasangannya ikut mendapat save itu. Bisa dimatikan lewat tombol **Simpan otomatis** di layar Bantuan **?**; kalau mati, simpan lewat tombol 💾 atau pilih **Tidur dan simpan progres** (ada juga **Tidur tanpa menyimpan**). Tombol 💾 tetap bisa dipakai kapan saja.
 - **🗂️ Cadangan** (tombol di layar awal): save terakhir setiap hari disimpan sebagai cadangan, ☁️ 7 hari terakhir di penyimpanan online kalian berdua (link claude.ai) dan 📱 3 hari terakhir di perangkat ini. Pilih **Pulihkan** untuk kembali ke hari itu (save yang sedang dipakai tetap masuk daftar cadangan). **⬇️ Unduh save ke file** menyimpan save sebagai file `.json` di HP/komputer, dan **⬆️ Buka file save** memulihkan dari file itu. Tombol unduh juga ada di jendela 💾 Simpan.

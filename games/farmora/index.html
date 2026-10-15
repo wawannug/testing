@@ -606,6 +606,7 @@
                 <tr class="desktop-only"><td>Shift</td><td>Lari</td></tr>
                 <tr class="desktop-only"><td>E / Spasi</td><td>Interaksi</td></tr>
                 <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
+                <tr><td>🛵 Motor</td><td>Beli di laptop (tab Motor), dekati lalu tekan tombol untuk naik/turun. Pasangan bisa bonceng</td></tr>
                 <tr class="desktop-only"><td>Q</td><td>Pakai tangan kiri (tahan slot toolbar / Shift+angka untuk mengisinya)</td></tr>
                 <tr class="desktop-only"><td>H</td><td>Buka/tutup bantuan</td></tr>
                 <tr><td>🥚 Telur</td><td>50 G</td></tr>
@@ -656,6 +657,15 @@
         // ---------- Renderer / scene ----------
         // Phones and tablets get a lighter render: lower resolution and less grass.
         const LITE = matchMedia('(pointer: coarse)').matches;
+        // 🛵 the farm's own motorbike (one for the two of you): bought from the online shop, ridden by one, and the other can ride pillion
+        // (sp in metres a second: running is 7.5)
+        const MOTORS = {
+            bebek: { label: 'Motor bebek', icon: '🛵', gold: 3500, sp: 16, c: 0x2f6fd6, note: 'Irit dan bandel, enak di jalan desa' },
+            matic: { label: 'Motor matic', icon: '🛵', gold: 6500, sp: 19, c: 0xd9443a, note: 'Tinggal gas, nyaman untuk boncengan' },
+            trail: { label: 'Motor trail', icon: '🏍️', gold: 10000, sp: 23, c: 0x2e9b57, note: 'Paling kencang, tetap lincah di rumput dan tanah' },
+        };
+        const MOTOR_SPOT = { x: -3.6, z: 20.6, h: Math.PI / 2 };   // where a new one is delivered: by the south gate, inside the fence
+        let ride = null;   // 'd' riding it, 'b' sitting on the back behind your partner
         // ✨ graphics quality: sharpness of the picture and the shadows (phones start on the middle one)
         // (the frame cap is what keeps a phone cool: Rendah and Sedang draw 30 pictures a second, Tinggi 60)
         const GFX_KEY = 'farmora.gfx', GFX = { rendah: { dpr: 1, shadow: 0, fps: 30, people: false }, sedang: { dpr: 1.5, shadow: 1024, fps: 30, people: false }, tinggi: { dpr: 2, shadow: 2048, fps: 60, people: true } };
@@ -7034,6 +7044,7 @@
         let travelling = false;
         function travel(to, heading, text, art) {
             if (travelling) return;
+            if (ride) stopRide(true);
             travelling = true;
             standUp();
             whoosh();
@@ -7276,11 +7287,11 @@
         const pendingCount = () => state.orders.reduce((s, o) => s + o.n, 0);
         let shopTab = 'alat', shopSlot = 'top';
         function openShop() {
-            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['pakan', '🌾 Pakan ternak'], ['bahan', '🧂 Bahan masak'], ['dapur', '🍳 Alat masak'], ['baju', '👕 Pakaian']];
+            const tabs = [['alat', '🪴 Pot & pupuk'], ['veg', '🥬 Benih sayur'], ['hias', '🌸 Bibit hias'], ['pohon', '🌳 Bibit buah'], ['pakan', '🌾 Pakan ternak'], ['bahan', '🧂 Bahan masak'], ['dapur', '🍳 Alat masak'], ['baju', '👕 Pakaian'], ['motor', '🛵 Motor']];
             const items = Object.entries(SUPPLIES).filter(([k, s]) => shopTab === 'baju' ? s.cloth && CLOTH[s.cloth].slot === shopSlot : shopTab === 'pohon' ? !!s.tree : shopTab === 'pakan' ? !!s.feed : shopTab === 'bahan' ? !!s.ing : shopTab === 'dapur' ? !!s.cook : shopTab === 'alat' ? !s.plant && !s.cloth && !s.tree && !s.ing && !s.cook && !s.feed : !!s.plant && GDEF[s.plant].type === shopTab);
             const own = ownedClothes(USER);
             const next = state.orders.length ? Math.min(...state.orders.map(o => o.due)) : 0;
-            const list = el('div', { class: 'shoplist' }, items.map(([k, s]) => {
+            const list = shopTab === 'motor' ? motorShopList() : el('div', { class: 'shoplist' }, items.map(([k, s]) => {
                 const g = s.plant && GDEF[s.plant];
                 if (s.cloth) {
                     const c = CLOTH[s.cloth], got = own.has(c.id), pend = clothPending(USER, c.id);
@@ -7304,7 +7315,7 @@
                     btn);
             }));
             openDlg('💻 Toko Online Farmora', [
-                el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pesanan diantar kurir ke depan rumah sekitar 2 jam (waktu game) setelah dibeli.` }),
+                el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · ${shopTab === 'motor' ? 'Motor langsung diantar ke dekat gerbang selatan farm. Satu motor untuk berdua; ganti motor = tukar tambah, motor lama dihargai separuh harganya.' : 'Pesanan diantar kurir ke depan rumah sekitar 2 jam (waktu game) setelah dibeli.'}` }),
                 state.orders.length ? el('p', { class: 'saveinfo', text: `📦 Dalam perjalanan: ${pendingCount()} barang, tiba sekitar pukul ${fmtTime(next % 1440)}${Math.floor(next / 1440) > state.day ? ' besok' : ''}` }) : null,
                 el('div', { class: 'tabs' }, tabs.map(([k, t]) => el('button', { class: 'btn' + (k === shopTab ? ' on' : ''), onclick: () => { shopTab = k; openShop(); } }, t))),
                 shopTab === 'baju' ? el('div', { class: 'tabs chips' }, Object.entries(SLOT_INFO).map(([k, t]) => el('button', { class: 'btn' + (k === shopSlot ? ' on' : ''), onclick: () => { shopSlot = k; openShop(); } }, t))) : null,
@@ -9869,6 +9880,22 @@
                 }
             },
             // 🪚 the carpenter: order (pay, get a stake), mark the new place with the stake, or cancel
+            motor(who, x) {
+                const [op, a = '', b = '', c = ''] = String(x).split('|');
+                if (op === 'buy') {
+                    const M = MOTORS[a], old = state.motor && MOTORS[state.motor.k];
+                    if (!M || (state.motor && state.motor.k === a)) return;
+                    const cost = M.gold - (old ? Math.round(old.gold / 2) : 0);
+                    if (state.gold < cost) { emitEvent(`Uangnya belum cukup untuk ${M.label} (${cost.toLocaleString('id-ID')} G) 🛵`, 'none', null, who); return; }
+                    state.gold -= cost;
+                    state.motor = old ? { ...state.motor, k: a } : { k: a, ...MOTOR_SPOT };
+                    emitEvent(old ? `${M.icon} Tukar tambah beres! ${M.label} menunggu di tempat motor lama diparkir` : `${M.icon} ${M.label} sudah diantar, parkir di dekat gerbang selatan farm. Dekati lalu tekan tombol untuk naik`, 'sell', null, who);
+                } else if (op === 'park') {
+                    const px = +a, pz = +b, ph = +c;
+                    if (!state.motor || ![px, pz, ph].every(Number.isFinite)) return;
+                    Object.assign(state.motor, { x: px, z: pz, h: ph });
+                }
+            },
             carp(who, x) {
                 const [op, a = '', b = ''] = String(x).split('|');
                 if (op === 'order') {
@@ -10306,9 +10333,22 @@
             list.push({
                 id: 'pp', local: true, reach: 1.6,
                 get pos() { return partnerF ? partnerF.pos : FAR_AWAY; },
-                when: () => !!(partnerF && net.connected && partnerF.live && partnerF.group.visible && !player.sit && !(partnerF.netT && partnerF.netT[4]) && sceneOf(partnerF.pos) === sceneOf(player.pos) && !hugging()),
+                when: () => !!(partnerF && net.connected && partnerF.live && partnerF.group.visible && !player.sit && !(partnerF.netT && partnerF.netT[4]) && sceneOf(partnerF.pos) === sceneOf(player.pos) && !hugging() && !partnerRide()),
                 label: () => `Peluk / beri hadiah ke ${OTHER} 💞`,
                 act: () => openPartnerMenu(),
+            });
+            // 🛵 get on the bike, or on the back of it behind your partner
+            list.push({
+                id: 'motor', local: true, reach: 1.8, get pos() { return MOTOR_POS; },
+                when: () => !!state.motor && !ride && partnerRide() !== 1 && !player.sit && !inHome(player.pos),
+                label: () => `Naik ${MOTORS[state.motor.k].icon} ${MOTORS[state.motor.k].label}`,
+                act: () => startRide('d'),
+            });
+            list.push({
+                id: 'bonceng', local: true, reach: 2.2, get pos() { return partnerRide() === 1 ? partnerF.pos : FAR_AWAY; },
+                when: () => partnerRide() === 1 && !ride && !player.sit && !inHome(player.pos),
+                label: () => `🛵 Bonceng ${OTHER}`,
+                act: () => startRide('b'),
             });
             return list;
         }
@@ -10812,6 +10852,7 @@
 
         function findFocus() {
             let best = null, bestD = Infinity;
+            if (ride) { RIDE_IT.pos.copy(player.pos); return RIDE_IT; }
             const outside = !inHome(player.pos) && !player.sit;
             // carrying a pot: the only thing to do is set it down
             if (outside && carriedBy(USER)) { const [x, z] = potFront(); POTPLACE_IT.pos.set(x, 0, z); return POTPLACE_IT; }
@@ -11137,7 +11178,7 @@
         function sendMine() {
             if (!net.backend) return;
             sendMine.sq = (sendMine.sq || 0) + 1;
-            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, tl2: leftTool(), role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0 };
+            const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, tl2: leftTool(), role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0, mt: ride === 'd' ? 1 : ride === 'b' ? 2 : 0 };
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -11149,7 +11190,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -11250,6 +11291,7 @@
             if (w.br && typeof w.br === 'object') state.bundR = w.br;
             if (w.mc && typeof w.mc === 'object') state.mach = w.mc;
             if ('cp' in w) state.carp = w.cp && typeof w.cp === 'object' ? w.cp : null;
+            if ('mt' in w && ride !== 'd' && elapsed > bike.parkT) state.motor = w.mt && MOTORS[w.mt.k] && [w.mt.x, w.mt.z, w.mt.h].every(Number.isFinite) ? { k: w.mt.k, x: w.mt.x, z: w.mt.z, h: w.mt.h } : null;
             if (w.ly && typeof w.ly === 'object' && canonLayout(w.ly) !== canonLayout(LAYOUT)) { state.layout = w.ly; reloadForLayout('join'); }
             if (w.ev && typeof w.ev === 'object' && Number.isInteger(w.ev.d) && w.ev.e && typeof w.ev.e === 'object') state.ev = w.ev;
             if (w.fe && typeof w.fe === 'object' && Number.isInteger(w.fe.d) && w.fe.e && typeof w.fe.e === 'object') state.fest = w.fe;
@@ -11352,6 +11394,116 @@
         function overhead(lying) {
             if (partnerF.tag) partnerF.tag.position.set(0, lying ? 0.85 : 2.15, lying ? 1.25 : 0);
             if (!lying) zzz.position.set(0.45, 2.55, 0);
+        }
+        // ---------- 🛵 the motorbike ----------
+        const partnerRide = () => net.connected && partnerF.live && net.partner && (net.partner.mt | 0) || 0;   // 1 riding it, 2 on the back
+        function bikeModel(c, trail) {
+            const m = new THREE.Group(), wheels = [];
+            for (const wz of [-0.62, 0.62]) {
+                const p = new THREE.Group(); p.position.set(0, 0.31, wz); m.add(p);
+                const w = mesh(CYL, mat(0x1e1e1e), p); w.scale.set(0.31, 0.13, 0.31); w.rotation.z = Math.PI / 2;
+                const hub = mesh(CYL, mat(0xb8bcc2), p); hub.scale.set(0.13, 0.15, 0.13); hub.rotation.z = Math.PI / 2;
+                for (const a of [0, Math.PI / 2]) box(0.04, 0.5, 0.04, 0xb8bcc2, 0, 0, 0, p).rotation.x = a;   // spokes, so the wheels are seen turning
+                wheels.push(p);
+            }
+            box(0.4, 0.34, 0.78, c, 0, 0.6, -0.36, m);                           // the body under the seat
+            box(0.36, 0.08, 0.52, c, 0, 0.38, 0.12, m);                           // footboard
+            box(0.24, 0.12, 0.7, 0xe8e8e8, 0, 0.56, -0.36, m).scale.x = 1.72;    // a pale stripe along the side
+            box(0.36, 0.09, 0.92, 0x4a3a30, 0, 0.82, -0.3, m);                   // a long seat, room for two
+            box(0.28, 0.56, 0.18, c, 0, 0.8, 0.56, m).rotation.x = -0.35;        // front shield
+            box(0.22, 0.06, 0.42, c, 0, trail ? 0.78 : 0.66, 0.66, m);          // front mudguard
+            cap(0.025, 0.62, 0x2b2b2b, 0, 1.12, 0.6, m, 'x');                     // handlebar
+            ball(0.08, 0.08, 0.06, 0xfff3b0, 0, 1.0, 0.72, m);                    // headlight
+            box(0.07, 0.07, 0.55, 0x9a9a9a, 0.17, 0.36, -0.45, m);               // exhaust
+            box(0.3, 0.05, 0.26, 0x2b2b2b, 0, 0.7, -0.82, m);                    // rack
+            ball(0.06, 0.04, 0.03, 0xd9443a, 0, 0.7, -0.96, m);                   // tail light
+            box(0.62, 0.04, 0.08, 0x2b2b2b, 0, 0.32, 0.0, m); box(0.56, 0.04, 0.07, 0x2b2b2b, 0, 0.36, -0.5, m);   // foot pegs
+            m.userData.wheels = wheels;
+            return m;
+        }
+        const bike = { g: null, k: null, last: new THREE.Vector3(), parkT: 0 };
+        const fwd = h => [Math.sin(h), Math.cos(h)];
+        // a rider's pose: astride the seat, feet on the pegs, hands on the bars (or round the waist when on the back)
+        function ridePose(f, role, gy) {
+            f.pos.y = gy + 0.86 - (f.hip - 0.08);
+            f.legs.forEach(l => { l.rotation.x = -1.3; }); f.knees.forEach(n => { n.rotation.x = 1.45; });
+            f.arms.forEach(a => { a.rotation.x = role === 'd' ? -1.15 : -0.75; }); f.elbows.forEach(e => { e.rotation.x = role === 'd' ? -0.35 : -1.05; });
+            f.body.rotation.y = 0; f.body.position.y = 0;
+        }
+        const motorSpeed = () => { const M = state.motor && MOTORS[state.motor.k]; if (!M) return 7.5; const off = state.motor.k !== 'trail' && !inFarm(player.pos) && roadTop(player.pos.x, player.pos.z) == null; return M.sp * (off ? 0.75 : 1); };
+        function startRide(role) {
+            if (role === 'd' && !state.motor) return;
+            clearGoal(); standUp(); ride = role;
+            if (role === 'd') {
+                const m = state.motor, [fx, fz] = fwd(m.h);
+                player.pos.set(m.x + fx * 0.05, 0, m.z + fz * 0.05); player.heading = player.targetHeading = m.h;
+                toast(`${MOTORS[m.k].icon} Brrm! Gas pakai joystick, tekan tombol untuk turun.${net.connected ? ` ${OTHER} bisa ikut bonceng` : ''}`);
+            } else toast(`🛵 Bonceng ${OTHER}. Pegangan, ya! Tekan tombol untuk turun`);
+            sendMine();
+        }
+        function stopRide(quiet) {
+            if (!ride) return;
+            const was = ride; ride = null;
+            const h = player.heading, [fx, fz] = fwd(h), side = was === 'd' ? -0.85 : 0.85;
+            if (was === 'd' && state.motor) {
+                const x = Math.round((player.pos.x - fx * 0.05) * 100) / 100, z = Math.round((player.pos.z - fz * 0.05) * 100) / 100, hh = Math.round(h * 100) / 100;
+                Object.assign(state.motor, { x, z, h: hh }); bike.parkT = elapsed + 3;
+                sendAct('motor', `park|${x}|${z}|${hh}`);
+            }
+            // step off to the side (the left for the rider, the right for the one on the back)
+            const x0 = player.pos.x, z0 = player.pos.z;
+            player.pos.x += fz * side; player.pos.z -= fx * side;
+            resolveCollisions(player.pos, 0.35);
+            if (!walkable(player.pos)) player.pos.set(x0, 0, z0);
+            player.pos.y = groundY(player.pos.x, player.pos.z);
+            if (!quiet) toast(was === 'd' ? '🛵 Motor diparkir di sini' : '🛵 Turun dari boncengan');
+            sendMine();
+        }
+        const RIDE_IT = { id: 'ride', local: true, reach: 99, pos: new THREE.Vector3(), label: () => ride === 'd' ? '🛵 Turun dan parkir motor di sini' : `🛵 Turun dari boncengan ${OTHER}`, act: () => stopRide() };
+        const MOTOR_POS = new THREE.Vector3();
+        function updateRide(dt) {
+            const pr = partnerRide();
+            if (ride && (sleeping || travelling || inHome(player.pos) || !state.motor)) stopRide(true);
+            if (ride === 'b' && pr !== 1) stopRide();
+            if (ride === 'd' && net.mode !== 'guest' && state.motor) { const [fx, fz] = fwd(player.heading); state.motor.x = player.pos.x - fx * 0.05; state.motor.z = player.pos.z - fz * 0.05; state.motor.h = player.heading; }
+            // on the back: sit right behind your partner wherever they ride
+            if (ride === 'b') {
+                const [fx, fz] = fwd(partnerF.heading);
+                player.pos.x = partnerF.pos.x - fx * 0.52; player.pos.z = partnerF.pos.z - fz * 0.52;
+                player.heading = player.targetHeading = partnerF.heading; player.group.rotation.set(0, player.heading, 0);
+                setHeld(player, null); setHeld2(player, null);
+                ridePose(player, 'b', groundY(partnerF.pos.x, partnerF.pos.z));
+                camTarget.lerp(player.pos, Math.min(1, dt * 8));
+            }
+            // where the bike is: under whoever rides it, or parked
+            let bx, bz, bh, show = !!state.motor;
+            if (ride === 'd') { const [fx, fz] = fwd(player.heading); bx = player.pos.x - fx * 0.05; bz = player.pos.z - fz * 0.05; bh = player.heading; }
+            else if (pr === 1 && partnerF.group.visible && !inHome(partnerF.pos)) { const [fx, fz] = fwd(partnerF.heading); bx = partnerF.pos.x - fx * 0.05; bz = partnerF.pos.z - fz * 0.05; bh = partnerF.heading; }
+            else if (state.motor) { bx = state.motor.x; bz = state.motor.z; bh = state.motor.h; }
+            if (!show) { if (bike.g) bike.g.visible = false; MOTOR_POS.copy(FAR_AWAY); return; }
+            if (!bike.g || bike.k !== state.motor.k) { if (bike.g) scene.remove(bike.g); bike.k = state.motor.k; bike.g = bikeModel(MOTORS[bike.k].c, bike.k === 'trail'); scene.add(bike.g); bike.last.set(bx, 0, bz); }
+            bike.g.visible = true;
+            const gy = groundY(bx, bz), moved = Math.hypot(bx - bike.last.x, bz - bike.last.z);
+            bike.g.position.set(bx, gy, bz); bike.g.rotation.set(0, bh, 0);
+            for (const w of bike.g.userData.wheels) w.rotation.x += moved / 0.31;
+            bike.last.set(bx, 0, bz);
+            MOTOR_POS.set(bx, 0, bz);
+            // the partner on it, as seen here
+            if (pr === 1) { setHeld(partnerF, null); setHeld2(partnerF, null); ridePose(partnerF, 'd', gy); }
+            if (pr === 2 && ride === 'd') {
+                const [fx, fz] = fwd(player.heading);
+                partnerF.pos.x = player.pos.x - fx * 0.52; partnerF.pos.z = player.pos.z - fz * 0.52; partnerF.heading = player.heading; partnerF.group.rotation.set(0, player.heading, 0);
+                setHeld(partnerF, null); setHeld2(partnerF, null); ridePose(partnerF, 'b', gy);
+            }
+        }
+        function motorShopList() {
+            const cur = state.motor && state.motor.k, old = cur && MOTORS[cur];
+            return el('div', { class: 'shoplist' }, Object.entries(MOTORS).map(([k, M]) => {
+                const cost = M.gold - (old ? Math.round(old.gold / 2) : 0), mine = k === cur;
+                const b = el('button', { class: 'btn', onclick: () => { sendAct('motor', 'buy|' + k); setTimeout(() => { if (dlgOpen()) openShop(); }, 500); } }, mine ? 'Punya kalian ✓' : old ? `Tukar ${cost.toLocaleString('id-ID')} G` : `${cost.toLocaleString('id-ID')} G`);
+                if (mine) b.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: M.icon }), el('span', { class: 'nm' }, el('b', { text: M.label }), el('small', { text: `${M.note} · ${(M.sp / 7.5).toFixed(1).replace('.', ',')}× lebih cepat dari lari · muat berdua` })), b);
+            }));
         }
         const remote = { get pos() { return partnerF.pos; } };
 
@@ -11872,15 +12024,26 @@
             if (reeling()) clearGoal();
             const locked = player.lockT != null && elapsed < player.lockT;
             if (locked) clearGoal();
-            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging() && !reeling() && !locked;
+            let moving = started && !sleeping && !travelling && !helpOpen && !dlgOpen() && len > 0.1 && !hugging() && !reeling() && !locked && ride !== 'b';
             if (moving && player.sit) standUp();
             const prevX = player.pos.x, prevZ = player.pos.z;
             if (moving) {
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
                 const tired = energyOf(USER) < 10;
                 const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1); // wading through a paddy is slow
-                player.pos.x += ix / len * sp * dt;
-                player.pos.z += iz / len * sp * dt;
+                if (ride === 'd') {
+                    // on the bike: much faster, in short steps so it never slips through a fence
+                    const v = motorSpeed() * Math.min(1, len) * (inPaddy(player.pos) ? 0.3 : 1), n = Math.max(1, Math.ceil(v * dt / 0.25));
+                    for (let i = 0; i < n; i++) {
+                        const px = player.pos.x, pz = player.pos.z;
+                        player.pos.x += ix / len * v * dt / n; player.pos.z += iz / len * v * dt / n;
+                        resolveCollisions(player.pos, 0.35);
+                        if (!inHome(player.pos) && !walkable(player.pos)) { player.pos.x = px; player.pos.z = pz; break; }
+                    }
+                } else {
+                    player.pos.x += ix / len * sp * dt;
+                    player.pos.z += iz / len * sp * dt;
+                }
                 player.targetHeading = Math.atan2(ix, iz);
                 player.phase += dt * sp * 2.6;
             }
@@ -11904,10 +12067,11 @@
             if (player.targetHeading !== undefined) player.heading = lerpAngle(player.heading, player.targetHeading, Math.min(1, dt * 12));
             player.group.rotation.set(0, player.heading, 0);
             player.moving = moving;
-            setHeld(player, player.sit ? null : tool); setHeld2(player, player.sit ? null : leftTool());
-            animateFarmer(player, moving, dt);
+            setHeld(player, player.sit || ride ? null : tool); setHeld2(player, player.sit || ride ? null : leftTool());
+            animateFarmer(player, moving && !ride, dt);
             if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y, player.sit.rec); }
             else player.pos.y = inHome(player.pos) ? 0 : groundY(player.pos.x, player.pos.z);
+            if (ride === 'd') ridePose(player, 'd', player.pos.y);
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
 
@@ -12012,6 +12176,7 @@
             ambientAnimals(dt);
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
+            updateRide(dt);
             updateNPCs(dt);
             regionStream(dt);
             seaSpot(dt);
@@ -12088,7 +12253,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { roadTop, THREE, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
