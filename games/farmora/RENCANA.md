@@ -11,6 +11,8 @@ Centang `[x]` kalau sudah selesai.
 ## ❓ Keputusan yang masih ditunggu
 1. Alur hewan purba: **fosil → riset → telur** atau **Gua Waktu**?
 2. Urutan tahap sudah pas, atau ada yang mau didahulukan?
+3. Pintu tambang mana saja yang dipakai, dan mana yang dikerjakan dulu?
+4. Lantai tambang acak tiap hari atau tetap? Pingsan: cukup hari berakhir atau sebagian barang hilang? Mode monster bawaan: Damai atau Petualang?
 
 ---
 
@@ -83,8 +85,27 @@ Kalender gabungan setelah tahap 7 dan 8:
 - [x] **Pojok suaka** di farm (paling banyak ~4 hewan) dan **buku pengamatan satwa**.
 - Hewan dilindungi tidak dikurung: mereka jadi sahabat yang berkunjung.
 
-## ⛏️ Tahap 11: Tambang bertingkat, monster, dan cerita warga
-Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot) jadi mulut tambang dengan tangga turun ke 40 lantai.
+## 🦡 Tahap 10b: Perbaikan satwa langka
+- [ ] Ganti 4 hewan yang sebenarnya tidak langka (musang luwak, biawak, kalong, kura-kura darat) dengan Jalak Bali, Anoa, Owa Jawa, dan Kakatua jambul kuning.
+- [ ] Satwa ikonik yang hanya diamati (Harimau Sumatera, Badak Jawa, Orangutan, Komodo, Gajah Sumatera, Elang Jawa, Cendrawasih): sangat jarang muncul di tempat jauh, dicatat di buku satwa, hadiah dari Balai Desa.
+
+## ⛏️ Tahap 11: Tambang, monster, dan cerita warga
+Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot). Di mulut tambang ada **Aula Simpang**: ruang batu berlampu karbit dengan beberapa pintu, masing-masing dengan gaya main sendiri. Hanya satu ruang yang dimuat sekaligus, jadi tetap ringan di HP.
+
+| Pintu | Mirip | Inti permainan | Terbuka |
+|---|---|---|---|
+| 1. Tambang Bertingkat | The Mines (Stardew) | 40 lantai, lift tiap 5 lantai, peti harta di lantai 10/20/30/40 | dari awal |
+| 2. Gua Lawa Angker | Skull Cavern (Stardew) | tanpa dasar, acak tiap hari, hoki harian dari Mbah Dukun, bom, lubang jatuh, rekor terdalam | setelah lantai 40 |
+| 3. Kawah Candradimuka | Volcano Dungeon, Nether | jalur lava dan batu pijakan, Tungku Empu Gandring untuk menempa keris dan memberi kekuatan khusus pada alat, bos Banaspati Raja | setelah lantai 30 |
+| 4. Ruang Ujian Dewa | Hades | 10 ruangan, pilih berkah tokoh legenda (Gatotkaca, Srikandi, Semar, Dewi Sri, Nyi Roro Kidul), pecahan cahaya untuk berkah permanen | setelah bos lantai 20 |
+| 5. Gua Bawah Laut | Coral Island, Subnautica | menyelam dengan oksigen, pulihkan karang, bangkai kapal VOC, gurita raksasa | setelah lantai 20 + baju selam |
+| 6. Pertahanan Bor | Dome Keeper, Deep Rock Galactic | bor urat emas 3 menit, berdua: satu merawat bor, satu menghalau monster, pasang pagar dan perangkap | setelah lantai 10 |
+| 7. Pasar Gaib | toko misterius Stardew, Moonlighter | Jumat malam, pedagang jin tukar-menukar, undian peti, lapak sendiri dengan harga naik turun | setelah lantai 20 |
+| 8. Pintu Aksara Jawa | Qi's Walnut Room | teka-teki di seluruh dunia game, harta Majapahit, tantangan tersulit | rahasia |
+
+Pintu lain yang sudah ada di tahap lain: **Gua Waktu** (masuk ke Lembah Purba, tahap 12) dan **Pintu Wingit** (Gua Pesugihan, tahap 14).
+
+Isi pintu 1 (Tambang Bertingkat):
 - [ ] **4 zona**:
 
   | Zona | Lantai | Yang ditemukan |
@@ -94,7 +115,6 @@ Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot) jadi m
   | 🔵 Sungai Bawah Tanah | 21–30 | Emas, fosil ikan purba, artefak kuno |
   | 🔴 Perut Gunung | 31–40 | Akik bacan, kecubung, kalimaya, intan Martapura, fosil besar |
 
-  Lantai rahasia 41+ jadi pintu ke Lembah Purba (tahap 12) atau Gua Pesugihan (tahap 14).
 - [ ] **Cara main**:
   - Lantai berupa gua kecil, bentuknya acak tiap hari atau tetap (belum diputuskan).
   - Tangga tersembunyi di bawah batu, dan kerekan lori tiap 5 lantai.
