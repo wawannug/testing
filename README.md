@@ -115,6 +115,20 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
     - 🌾 **Pesta Panen** (Gugur hari ke-20, 08:00–17:00, lapangan Desa Lembah Sari): bawa satu hasil panen (sayur, buah, atau biji-bijian).
     - 🎣 **Lomba Mancing** (Penghujan hari ke-14, 06:00–12:00, tepi danau Desa Pegunungan): daftar gratis, tangkap ikan sebanyak-banyaknya, lalu kembali ke tenda untuk dinilai.
     - 🏮 **Festival Lampion** (Dingin hari ke-24, 17:00–22:00, pantai utara kota): terbangkan lampion harapan (25 G, paling banyak 3). Setelah gelap langit penuh lampion warga; kalau kalian berdua menerbangkan lampion, keduanya mendapat +20 ⚡ dan momen itu masuk jurnal.
+- **🎊 Hari raya bersama** (kalender lengkap di Papan Pengumuman Balai Desa; pagi harinya dan sehari sebelumnya ada pengumuman, nama acara tampil di jam, lokasinya ditandai di peta):
+    - 🧧 **Imlek** (Semi hari ke-2, halaman Kelenteng Hok Tek, Desa Pantai): lampion merah, barongsai menari keliling halaman (09:00–12:00 dan 15:00–18:00), angpao 88 G dan kue keranjang di halaman kelenteng. Warga yang akrab (❤️ 2 ke atas) memberi angpao saat diajak ngobrol.
+    - 🌙 **Malam Takbiran** (Kemarau hari ke-1, 19:00–22:00): pawai obor anak-anak dan warga di lapangan festival Lembah Sari.
+    - 🕌 **Lebaran** (Kemarau hari ke-2): salat Id pagi di musala dan masjid, lalu warga di rumah seharian (toko tutup). **Bersilaturahmi** ke rumah-rumah warga lewat pintunya: keakraban penghuninya naik dan dapat 🍙 ketupat opor. Ke 10 rumah dapat +300 G. Warga juga mengucapkan "mohon maaf lahir dan batin" (keakraban ekstra).
+    - 🪷 **Waisak** (Gugur hari ke-8, 18:00–22:00, Vihara Dharma di kota): lilin di halaman vihara dan lampion kecil terbang ke langit. Kamu bisa menerbangkan 2 lampion.
+    - 👹 **Pawai Ogoh-ogoh** (Penghujan hari ke-26, 18:00–22:00, lapangan pantai Desa Pantai): ogoh-ogoh diarak keliling lalu dibakar pukul 21:30. Ikut mengarak membuat warga Desa Pantai lebih akrab.
+    - 🤫 **Nyepi** (Penghujan hari ke-27): Desa Pantai sepi, warganya di rumah dan tokonya tutup. Semua pekerjaan memakai energi setengahnya.
+    - 🎄 **Natal** (Dingin hari ke-25): misa dan ibadah pagi, pohon Natal berlampu di samping Gereja St. Yusuf. Hadiah untuk warga bernilai 2×, dan warga Kristiani berbagi 🍪 kue Natal.
+    - 🎆 **Malam Tahun Baru** (Dingin hari ke-30, pantai utara kota): kembang api mulai 23:00, hitung mundur pukul 23:59, dan catatan jurnal "menyambut tahun ke-N" (berdua kalau kalian merayakan bersama).
+- **Acara mingguan** (tidak ada saat hari raya atau festival; sekitar separuh warga desanya datang):
+    - 🎡 **Pasar Malam** (Sabtu 18:00–22:00, lapangan festival Lembah Sari): lampu warna-warni, bianglala berputar (naik sekali semalam +10 ⚡, catatan jurnal kalau berdua), gulali 15 G, lempar gelang 10 G (3 kena = 🧸 boneka, 2 kena = gulali), dan 📸 foto berdua yang masuk jurnal.
+    - 🎬 **Layar Tancap** (Rabu 19:00–21:30, lapangan yang sama): film bergerak di layar putih, duduk menonton +20 ⚡.
+    - 🎤 **Panggung Dangdut** (Minggu 15:00–18:00, panggung kota di sebelah museum): penyanyi di panggung dengan lampu warna-warni. Ikut berjoget: ketuk mengikuti irama 8 kali, dapat saweran 15 G per ketukan yang pas.
+    - Gulali, ketupat, kue Natal, dan kue keranjang bisa dimakan untuk energi.
 - **🏛️ Museum Nusantara** (kota, di selatan Rumah Sakit dan Supermarket, dekat gerbang utara farm; buka 08:00–18:00).
     - Serahkan **fosil**, **artefak**, dan **mineral** di meja museum. Semuanya dipajang: kerangka hewan punah berdiri sedikit demi sedikit di atas panggung (🐘 Stegodon kerdil Flores, 🦩 Bangau raksasa Flores, 🐅 Harimau Jawa, dan 🦍 gigi serta rahang Gigantopithecus di lemari kaca). Ada juga papan artefak dan mineral, lukisan Harimau Bali, sketsa Trulek Jawa, dan pameran tamu (Harimau Tasmania, lumba-lumba baiji, Badak Sumatra).
     - Tiap hewan punya kartu info 📜. Kerangka lengkap memberi +600 G, dan seluruh koleksi museum lengkap memberi +3.000 G.

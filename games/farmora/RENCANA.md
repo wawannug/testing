@@ -25,16 +25,16 @@ Centang `[x]` kalau sudah selesai.
 - [x] **Ruang fosil** di museum: hewan punah dengan kartu fakta. Isinya Harimau Bali, Harimau Jawa, Stegodon kerdil Flores, Bangau raksasa Flores, Trulek Jawa, Gigantopithecus, Harimau Tasmania, Lumba-lumba baiji, dan Badak Sumatra sebagai pembanding: "masih bisa diselamatkan".
 - [x] **Ulang tahun warga** di kalender, dengan hadiah di hari itu bernilai keakraban berlipat.
 
-## 🎊 Tahap 7: Hari raya dan acara mingguan
-- [ ] **Lebaran**: malam takbiran dengan obor, esoknya silaturahmi ke rumah warga (ketupat, kue, keakraban naik).
-- [ ] **Natal**: paduan suara di gereja, pohon Natal di alun-alun, tukar kado.
-- [ ] **Imlek dan Cap Go Meh**: barongsai keliling kota, lampion merah, angpao.
-- [ ] **Ogoh-ogoh dan Nyepi**: malamnya pawai, esoknya hari sepi di farm (bonus energi).
-- [ ] **Waisak**: prosesi lilin dan lampion kecil di Vihara.
-- [ ] **Pasar Malam** (Sabtu malam, alun-alun): komidi putar, gulali, lempar gelang, foto berdua.
-- [ ] **Layar Tancap** (Rabu malam, lapangan sawah): menonton berdua, energi pulih.
-- [ ] **Panggung Dangdut** (Minggu sore, taman kota): permainan irama sederhana.
-- [ ] **Malam Tahun Baru** (hari terakhir musim Dingin, pantai utara kota): hitung mundur dan kembang api.
+## 🎊 Tahap 7: Hari raya dan acara mingguan ✅ (V79)
+- [x] **Lebaran**: malam takbiran dengan obor, esoknya silaturahmi ke rumah warga (ketupat, kue, keakraban naik).
+- [x] **Natal**: paduan suara di gereja, pohon Natal di alun-alun, tukar kado.
+- [x] **Imlek dan Cap Go Meh**: barongsai keliling kota, lampion merah, angpao.
+- [x] **Ogoh-ogoh dan Nyepi**: malamnya pawai, esoknya hari sepi di farm (bonus energi).
+- [x] **Waisak**: prosesi lilin dan lampion kecil di Vihara.
+- [x] **Pasar Malam** (Sabtu malam, alun-alun): komidi putar, gulali, lempar gelang, foto berdua.
+- [x] **Layar Tancap** (Rabu malam, lapangan sawah): menonton berdua, energi pulih.
+- [x] **Panggung Dangdut** (Minggu sore, taman kota): permainan irama sederhana.
+- [x] **Malam Tahun Baru** (hari terakhir musim Dingin, pantai utara kota): hitung mundur dan kembang api.
 
 ## 🎉 Tahap 8: Festival budaya baru
 - [ ] 🐂 **Karapan Sapi** (Kemarau, lapangan sawah): balapan menunggang sapi farm, sapi yang akrab lebih cepat.
