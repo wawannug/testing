@@ -606,6 +606,7 @@
                 <tr class="desktop-only"><td>Shift</td><td>Lari</td></tr>
                 <tr class="desktop-only"><td>E / Spasi</td><td>Interaksi</td></tr>
                 <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
+                <tr><td>🦡 Satwa langka</td><td>Beri makanan kesukaannya sampai 🤍 100, lalu ajak ke pojok suaka. Petunjuk di Buku satwa</td></tr>
                 <tr><td>🛵 Motor</td><td>Beli di laptop (tab Motor), dekati lalu tekan tombol untuk naik/turun. Pasangan bisa bonceng</td></tr>
                 <tr class="desktop-only"><td>Q</td><td>Pakai tangan kiri (tahan slot toolbar / Shift+angka untuk mengisinya)</td></tr>
                 <tr class="desktop-only"><td>H</td><td>Buka/tutup bantuan</td></tr>
@@ -621,7 +622,7 @@
             <p style="font-size:13px;margin:0">🏠 Masuk rumah lewat pintu depan. Lantai 1: ruang tamu, ruang keluarga (laptop toko online 💻: alat, benih, bibit buah, bahan & alat masak, dan pakaian), dapur (masak resep Indonesia: pilih alat masak + bahan, atau lihat 📖 buku resep) & ruang makan, kamar mandi, dan mushola. Lantai 2: kamar tidur (tidur di sini, lemari pakaian), 2 kamar anak, dan balkon. Rooftop: taman pot 🪴 yang disiram tiap hari, siap dijual dalam 3–10 hari. Barang dari toko online diantar ke depan rumah 📦.</p>
             <p style="font-size:13px;margin:6px 0 2px"><b>✨ Kualitas grafis</b> (HP terasa panas atau patah-patah? Pilih Rendah: gambar 30 kali sedetik, tanpa bayangan, lebih hemat baterai)</p>
             <div class="row" id="gfxRow"></div>
-            <div class="row"><button class="btn" id="journalBtn">📔 Jurnal berdua</button><button class="btn" id="bookBtn">📖 Buku koleksi</button><button class="btn" id="smartBtn"></button><button class="btn" id="autoBtn"></button></div>
+            <div class="row"><button class="btn" id="journalBtn">📔 Jurnal berdua</button><button class="btn" id="bookBtn">📖 Buku koleksi</button><button class="btn" id="satwaBtn">🦡 Buku satwa</button><button class="btn" id="smartBtn"></button><button class="btn" id="autoBtn"></button></div>
             <div class="row">
                 <button class="btn big" id="closeHelp">Lanjut</button>
             </div>
@@ -665,7 +666,7 @@
             trail: { label: 'Motor trail', icon: '🏍️', gold: 10000, sp: 23, c: 0x2e9b57, note: 'Paling kencang, tetap lincah di rumput dan tanah' },
         };
         const MOTOR_SPOT = { x: -3.6, z: 20.6, h: Math.PI / 2 };   // where a new one is delivered: by the south gate, inside the fence
-        let ride = null;   // 'd' riding it, 'b' sitting on the back behind your partner
+        let ride = null, nestVis = null;   // (nestVis: the maleo's nest in the suaka, once built)   // 'd' riding it, 'b' sitting on the back behind your partner
         // ✨ graphics quality: sharpness of the picture and the shadows (phones start on the middle one)
         // (the frame cap is what keeps a phone cool: Rendah and Sedang draw 30 pictures a second, Tinggi 60)
         const GFX_KEY = 'farmora.gfx', GFX = { rendah: { dpr: 1, shadow: 0, fps: 30, people: false }, sedang: { dpr: 1.5, shadow: 1024, fps: 30, people: false }, tinggi: { dpr: 2, shadow: 2048, fps: 60, people: true } };
@@ -2588,6 +2589,7 @@
         const BUILDS = {
             gudang: { label: 'Gudang', icon: '🏚️', need: { kayu: 20, batu: 15 }, gold: 500, x: -17, z: -19.8, w: 6, d: 4.4, note: 'Lumbung pribadi: simpan barang sebanyak apa pun, dipakai berdua' },
             rumahkaca: { label: 'Rumah kaca', icon: '🪟', need: { kayu: 25, besi: 4, batu: 10 }, gold: 1500, x: 7.5, z: 6.4, w: 7.2, d: 4.8, note: 'Tanah di dalamnya tersiram otomatis tiap pagi, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin' },
+            suaka: { label: 'Pojok suaka', icon: '🦜', need: { kayu: 20, batu: 8 }, gold: 800, x: -3, z: 5.6, w: 5.2, d: 4.2, note: 'Sudut tenang untuk satwa langka yang sudah jadi sahabat (paling banyak 4). Mereka mampir tiap hari dan membantu farm' },
             pendopo: { label: 'Pendopo taman', icon: '🛖', need: { kayu: 15, batu: 6 }, gold: 300, x: -7, z: 0, w: 4.4, d: 4.4, note: 'Tempat bersantai berdua: +15 ⚡ sekali sehari masing-masing' },
         };
         for (const [k, B] of Object.entries(BUILDS)) { B.x0 = B.x; B.z0 = B.z; B.x += LO('build:' + k)[0]; B.z += LO('build:' + k)[1]; }
@@ -2619,6 +2621,25 @@
                     for (const s2 of [-1, 1]) { const r = mesh(BOX, glass, g); r.scale.set(B.w + 0.2, 0.05, hd * 1.16); r.rotation.x = s2 * 0.5; r.position.set(0, H2 + 0.55, s2 * hd * 0.5); r.castShadow = false; }
                     box(B.w + 0.2, 0.1, 0.1, 0xf2f2ee, 0, H2 + 1.08, 0, g);
                     textPlate(g, '🪟 Rumah kaca', 0, H2 + 0.2, hd + 0.08, 1.6);
+                } else if (key === 'suaka') {
+                    // a low bamboo fence with a way in at the front, a pool, a log, a sand nest, a perch and a sign
+                    const hw = B.w / 2, hd = B.d / 2;
+                    for (let x = -hw; x <= hw + 0.01; x += B.w / 8) for (const sz of [-hd, hd]) if (!(sz > 0 && Math.abs(x) < 0.7)) cap(0.04, 0.55, 0xc8b060, x, 0.3, sz, g);
+                    for (let z = -hd + B.d / 6; z < hd - 0.01; z += B.d / 6) for (const sx of [-hw, hw]) cap(0.04, 0.55, 0xc8b060, sx, 0.3, z, g);
+                    for (const sz of [-hd, hd]) for (const [x0, x1] of sz > 0 ? [[-hw, -0.7], [0.7, hw]] : [[-hw, hw]]) { const r = cap(0.025, x1 - x0, 0xb09a50, (x0 + x1) / 2, 0.45, sz, g, 'x'); r.rotation.z = Math.PI / 2; }
+                    for (const sx of [-hw, hw]) cap(0.025, B.d, 0xb09a50, sx, 0.45, 0, g, 'z');
+                    const pool = mesh(new THREE.CircleGeometry(0.75, 20), new THREE.MeshStandardMaterial({ color: 0x5fa8d0, roughness: 0.15 }), g); pool.rotation.x = -Math.PI / 2; pool.position.set(1.3, 0.03, 0.05);
+                    for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; ball(0.13, 0.08, 0.11, 0x9a9a92, 1.3 + Math.cos(a) * 0.82, 0.05, 0.05 + Math.sin(a) * 0.82, g); }
+                    const log = cap(0.16, 1.1, 0x7a5a3a, -1.4, 0.18, -0.2, g, 'x'); log.rotation.z = Math.PI / 2;
+                    ball(0.4, 0.3, 0.35, 0x8a8a82, -1.7, 0.2, 1.2, g); ball(0.45, 0.35, 0.4, 0x4f8a3a, 1.9, 0.3, -1.4, g); ball(0.35, 0.3, 0.32, 0x5a9a42, -2.0, 0.28, -1.4, g);
+                    const sand = mesh(new THREE.CircleGeometry(0.55, 18), mat(0xe8d6a0), g); sand.rotation.x = -Math.PI / 2; sand.position.set(-0.2, 0.025, 0.2);
+                    ball(0.5, 0.08, 0.5, 0xe0cc92, -0.2, 0.02, 0.2, g);
+                    const egg = ball(0.06, 0.08, 0.06, 0xf2e6d0, -0.2, 0.1, 0.2, g);
+                    const chick = new THREE.Group(); chick.position.set(-0.2, 0.06, 0.2); g.add(chick); ball(0.07, 0.06, 0.08, 0x3a3a3a, 0, 0.06, 0, chick); ball(0.04, 0.04, 0.04, 0xd8c09a, 0, 0.13, 0.05, chick);
+                    egg.visible = chick.visible = false; nestVis = { egg, chick };
+                    for (const sx of [-0.25, 0.25]) cap(0.05, 1.3, 0x6e4723, 2.2 + sx, 0.65, hd + 0.3, g);
+                    textPlate(g, '🦜 Pojok Suaka', 2.2, 1.25, hd + 0.33, 1.5);
+                    for (const sx of [-0.25, 0.25]) addCircleCollider(B.x + 2.2 + sx, B.z + hd + 0.3, 0.08);
                 } else {
                     box(B.w, 0.12, B.d, 0xb07a45, 0, 0.06, 0, g);
                     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { box(0.18, 2.4, 0.18, 0x6e4723, sx * (B.w / 2 - 0.25), 1.2, sz * (B.d / 2 - 0.25), g); addCircleCollider(B.x + sx * (B.w / 2 - 0.25), B.z + sz * (B.d / 2 - 0.25), 0.18); }
@@ -4517,6 +4538,7 @@
             if (PRODUCTS.kedelai) P('tauco', 'Tauco', '🫙', PRODUCTS.kedelai.price * 3 * 1.5 / 2);
             P('kaintenun', 'Kain tenun', '🧶', PRODUCTS.wool.price * 2 * 1.6);
             if (PRODUCTS.kelapa) P('minyakkelapa', 'Minyak kelapa', '🫗', PRODUCTS.kelapa.price * 3 * 1.6);
+            P('kopiluwak', 'Kopi luwak', '☕', 950); P('bulumerak', 'Bulu merak', '🪶', 420);
             for (const f of ALL_FRUITS) P('selai_' + f.key, `Selai ${f.label.toLowerCase()}`, '🍯', f.price * 2 + 40);
             for (const M of Object.values(MACHINES)) if (Array.isArray(M.take)) M.take = M.take.filter(t => PRODUCTS[t[0]] && PRODUCTS[t[2]]);
         }
@@ -5644,6 +5666,7 @@
             if (id === 'catch') return state.up && state.up.pancing ? 1 : 2;
             let base = { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, craft: 1, deco: 1, poop: 1, trough: 1, trougho: 1, rock: 4, log: 4, wild: 3, weed: 1 }[p] || 0;
             if (state.bundR && state.bundR.tukang && (p === 'rock' || p === 'log' || p === 'wild')) base -= 1;
+            if (base >= 3 && suakaHas('kukang')) base -= 1;   // a friend kukang: sound sleep, lighter work
             if (base > 1 && acaraIs('nyepi')) base = Math.ceil(base / 2);
             return base > 1 && state.up && Object.keys(state.up).some(t => UP_IDS[t] && UP_IDS[t].includes(p)) ? Math.ceil(base / 2) : base;
         }
@@ -5718,6 +5741,7 @@
             st.logs = Array.isArray(saved.logs) && saved.logs.length === WOOD_POS.length ? saved.logs.map(l => ({ s: [0, 1, 2].includes(l && l.s) ? l.s : 0, hp: Number.isFinite(l && l.hp) ? l.hp : 3, d: +(l && l.d) || 0 })) : base.logs;
             st.weeds = Array.isArray(saved.weeds) && saved.weeds.length === WEED_POS.length ? saved.weeds.map(v => v ? 1 : 0) : base.weeds;
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
+            st.satwa = cleanSatwa(saved.satwa);
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
             st.jr = Array.isArray(saved.jr) ? saved.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string').slice(-JR_MAX).map(e => [e[0] | 0, e[1].slice(0, 160)]) : [];
@@ -9884,6 +9908,7 @@
                 }
             },
             // 🪚 the carpenter: order (pay, get a stake), mark the new place with the stake, or cancel
+            satwa(who, x) { satAct(who, x); },
             motor(who, x) {
                 const [op, a = '', b = '', c = ''] = String(x).split('|');
                 if (op === 'buy') {
@@ -10341,6 +10366,7 @@
                 label: () => `Peluk / beri hadiah ke ${OTHER} 💞`,
                 act: () => openPartnerMenu(),
             });
+            list.push(...satwaInteractables());
             // 🛵 get on the bike, or on the back of it behind your partner
             list.push({
                 id: 'motor', local: true, reach: 1.8, get pos() { return MOTOR_POS; },
@@ -10445,7 +10471,7 @@
             // big pond and lake, the little duck pond, the sea (and the deep sea when you rented a boat today)
             const kind = big === true ? 'big' : big === false ? 'small' : big;
             const pool = FISH.filter(f => kind === 'sea' ? f.where === 'sea' || f.where === 'deep' && boatToday() : kind === 'river' ? ['both', 'small'].includes(f.where) || ['udang', 'baung', 'patin'].includes(f.key) : kind === 'lake' ? ['both', 'big', 'lake'].includes(f.where) : f.where === 'both' || f.where === kind);
-            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1);
+            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1) * (f.d >= 55 && suakaHas('kura') ? 1.8 : 1);
             let r = Math.random() * pool.reduce((t, f) => t + w(f), 0);
             for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
             return pool[0].key;
@@ -10686,6 +10712,340 @@
         buildTown();
         initVillage();
         Object.assign(ACTIONS, VILLAGE_ACTIONS);
+        // ---------- 🦡 rare wild animals that still live here (tahap 10) ----------
+        // Each one turns up in its own region at its own hours. Come near slowly (running scares the shy ones away for the
+        // day), give it a food it likes, and its trust 🤍 grows; twice a day if you both feed it, and faster when you come
+        // together. At 100 it is your friend: invite it to the 🦜 pojok suaka on the farm (4 at most), where it helps.
+        // They are never caged: the suaka is a corner they visit.
+        const SATWA = [
+            { k: 'luwak', name: 'Musang luwak', icon: '🦝', r: 'hutan', t: [[1140, 1410]], food: ['pisang', 'pepaya', 'kopi'], how: 'pelan', p: 75, fx: 'Kadang meninggalkan ☕ biji kopi luwak di kotak penyimpanan tiap pagi' },
+            { k: 'trenggiling', name: 'Trenggiling', icon: '🦔', r: 'hutan', t: [[1200, 1440]], food: ['egg', 'duckEgg'], how: 'diam', p: 70, fx: 'Memakan hama: rumput liar di farm dibersihkan tiap pagi' },
+            { k: 'kukang', name: 'Kukang', icon: '🐒', r: 'gunung', t: [[1110, 1440]], food: ['pisang', 'jambu', 'mangga'], how: 'diam', p: 70, fx: 'Tidur jadi nyenyak: ketiduran pun bangun dengan energi penuh, dan kerja berat sedikit lebih hemat energi' },
+            { k: 'tarsius', name: 'Tarsius', icon: '👀', r: 'pulau', t: [[1080, 1380]], food: ['udang'], how: 'diam', p: 90, home: true, fx: 'Penghuni asli Pulau Kencana: tidak pindah ke suaka, tapi tercatat sebagai sahabat di buku satwa' },
+            { k: 'rangkong', name: 'Burung rangkong', icon: '🐦', r: 'gunung', t: [[360, 630]], food: ['pepaya', 'pisang', 'jambu'], how: 'pelan', p: 85, fx: 'Menyebar biji: tiap 3 hari ada 🌳 bibit pohon buah di kotak penyimpanan' },
+            { k: 'merak', name: 'Merak hijau', icon: '🦚', r: 'sawah', t: [[360, 570], [960, 1110]], food: ['jagung', 'kacang'], how: 'pelan', p: 75, fx: 'Tiap 2 hari meninggalkan 🪶 bulu merak (bahan kerajinan, bisa dijual)' },
+            { k: 'kura', name: 'Kura-kura darat', icon: '🐢', r: 'sawah', t: [[420, 1020]], food: ['wortel', 'tomat', 'semangka'], how: 'bebas', p: 60, fx: 'Pembawa hoki: ikan langka lebih sering menggigit kail' },
+            { k: 'biawak', name: 'Biawak', icon: '🦎', r: 'pantai', t: [[540, 900]], food: ['bandeng', 'mujair', 'nila', 'lele'], how: 'pelan', p: 75, dry: true, fx: 'Tikus tak berani mendekat: tiap pagi ada 🥚 telur tambahan di kotak penyimpanan' },
+            { k: 'babirusa', name: 'Babirusa', icon: '🐗', r: 'hutan', t: [[900, 1140]], food: ['ubi', 'singkong', 'jagung'], how: 'diam', p: 70, fx: 'Pandai mengendus: tiap pagi menemukan umbi atau bijih logam' },
+            { k: 'kalong', name: 'Kalong', icon: '🦇', r: 'sawah', t: [[1080, 1350]], food: ['mangga', 'jambu', 'pepaya'], how: 'diam', p: 75, fx: 'Menyerbuki bunga: pohon buah berbuah lebih cepat' },
+            { k: 'maleo', name: 'Burung maleo', icon: '🐔', r: 'pantai', t: [[360, 660]], food: ['jagung', 'kacang'], how: 'pelan', p: 75, fx: 'Bertelur di pasir sarang suaka: tetaskan, lalu lepaskan anaknya ke alam' },
+        ];
+        for (const s of SATWA) s.food = s.food.filter(f => ITEMS[f]);
+        const SATI = Object.fromEntries(SATWA.map(s => [s.k, s]));
+        const SUAKA_MAX = 4, TRUST_MAX = 100;
+        const satS = () => (state.satwa ||= { tr: {}, fed: {}, seen: {}, fled: {}, su: [], nest: { s: 0, d: 0 }, lepas: 0 });
+        function cleanSatwa(o) {
+            o = o && typeof o === 'object' ? o : {};
+            const num = v => Number.isFinite(+v) ? +v : 0, map = (m, f) => { const r = {}; for (const [k, v] of Object.entries(m && typeof m === 'object' ? m : {})) { const x = f(k, v); if (x !== undefined) r[k] = x; } return r; };
+            return {
+                tr: map(o.tr, (k, v) => SATI[k] ? clamp(num(v), 0, TRUST_MAX) : undefined),
+                fed: map(o.fed, (k, v) => SATI[k.split('|')[0]] ? num(v) | 0 : undefined),
+                seen: map(o.seen, k => SATI[k] ? 1 : undefined),
+                fled: map(o.fled, (k, v) => SATI[k] ? num(v) | 0 : undefined),
+                su: (Array.isArray(o.su) ? o.su : []).filter((k, i, a) => SATI[k] && !SATI[k].home && a.indexOf(k) === i).slice(0, SUAKA_MAX),
+                nest: { s: clamp(num(o.nest && o.nest.s) | 0, 0, 3), d: num(o.nest && o.nest.d) | 0 },
+                lepas: num(o.lepas) | 0,
+                msg: o.msg && Number.isInteger(o.msg.d) && typeof o.msg.t === 'string' ? { d: o.msg.d, t: o.msg.t.slice(0, 300) } : null,
+            };
+        }
+        const isFriend = k => (satS().tr[k] || 0) >= TRUST_MAX;
+        const inSuaka = k => !!(state.build && state.build.suaka) && satS().su.includes(k);
+        const suakaHas = k => inSuaka(k) && isFriend(k);
+        const satHash = (a, b) => { let h = 2166136261; for (const c of a + '|' + b) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0); };
+        // a few quiet spots in each animal's region (the same on both phones); one of them is today's
+        const SAT_SPOTS = {};
+        for (const s of SATWA) {
+            const R = REGI[s.r], rnd = mulberry32(satHash(s.k, 'spot')), L = [];
+            for (let i = 0; i < 400 && L.length < 6; i++) {
+                const x = R.x0 + 6 + rnd() * (R.x1 - R.x0 - 12), z = R.z0 + 6 + rnd() * (R.z1 - R.z0 - 12), cd = coastDist(x, z);
+                if (!walkable({ x, z }) || inRiver(x, z, 2) || nearPath(x, z, 2.2) || nearBuilding(x, z, 2.5) || lakeDist(x, z) < 3 || inPaddy({ x, z })) continue;
+                if (s.r === 'pantai' ? cd < 3 || cd > 14 : cd < 5) continue;
+                if (L.some(([px, pz]) => Math.hypot(px - x, pz - z) < 8)) continue;
+                L.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10]);
+            }
+            SAT_SPOTS[s.k] = L;
+        }
+        const satSpot = k => { const L = SAT_SPOTS[k]; return L && L.length ? L[satHash(k, state.day) % L.length] : null; };
+        const satHour = s => s.t.some(([a, b]) => state.minutes >= a && state.minutes < b);
+        // out in the wild right now? (not once it lives in the suaka, not after it ran off today)
+        function satOut(k) {
+            const s = SATI[k], S = satS();
+            if (!s || suakaHas(k) || S.fled[k] === state.day || !satHour(s) || !satSpot(k)) return false;
+            if (s.dry && isWet()) return false;
+            const p = s.k === 'kura' && isWet() ? 100 : s.p;
+            return isFriend(k) || satHash(k, 'day' + state.day) % 100 < p;
+        }
+        // ---- what they look like: small low-poly animals, some on a perch ----
+        const SAT_SHINE = new THREE.MeshBasicMaterial({ color: 0xfff4a0 });
+        function satModel(k) {
+            const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.b = b;
+            // (the night ones have eye-shine, so you can spot them in the dark)
+            const night = ['luwak', 'trenggiling', 'kukang', 'tarsius', 'kalong'].includes(k);
+            const eye = (x, y, z, r = 0.025, p = b) => { const e = ball(r, r, r, 0x111111, x, y, z, p); if (night) e.material = SAT_SHINE; return e; };
+            const legs = (xs, zs, h, c, r = 0.03) => { for (const x of xs) for (const z of zs) cap(r, h, c, x, h / 2 + r, z, b); };
+            const perch = (h, len) => { cap(0.07, h, 0x6e4723, 0, h / 2, 0, g); const br = cap(0.045, len, 0x6e4723, len / 2 - 0.1, h, 0, g, 'x'); br.rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) ball(0.22, 0.16, 0.22, 0x4f8a3a, 0.1 + i * 0.25, h + 0.25 + (i % 2) * 0.1, (i - 1) * 0.15, g); b.position.set(len * 0.55, h + 0.06, 0); };
+            if (k === 'luwak') {
+                ball(0.3, 0.15, 0.13, 0x4a4440, 0, 0.3, 0, b); ball(0.1, 0.09, 0.12, 0x4a4440, 0, 0.36, 0.34, b); ball(0.06, 0.05, 0.08, 0xd9d2c4, 0, 0.34, 0.43, b);
+                ball(0.11, 0.035, 0.05, 0x1e1a18, 0, 0.39, 0.37, b); eye(0.04, 0.4, 0.44); eye(-0.04, 0.4, 0.44);
+                for (const sx of [-1, 1]) ball(0.03, 0.04, 0.02, 0x2a2624, sx * 0.06, 0.46, 0.32, b);
+                const t = cap(0.045, 0.45, 0x3a3430, 0, 0.32, -0.5, b, 'z'); t.rotation.x = Math.PI / 2 - 0.3;
+                legs([-0.12, 0.12], [-0.16, 0.18], 0.16, 0x2a2624);
+            } else if (k === 'trenggiling') {
+                for (let i = 0; i < 5; i++) ball(0.17 - Math.abs(i - 1.5) * 0.02, 0.14 - Math.abs(i - 1.5) * 0.015, 0.1, i % 2 ? 0x8a6a48 : 0x7a5c3c, 0, 0.22, 0.24 - i * 0.12, b);
+                const hd = mesh(LOWCONE, mat(0x9a7a58), b); hd.scale.set(0.07, 0.2, 0.07); hd.rotation.x = Math.PI / 2; hd.position.set(0, 0.2, 0.42);
+                eye(0.035, 0.24, 0.36, 0.015); eye(-0.035, 0.24, 0.36, 0.015);
+                const t = mesh(LOWCONE, mat(0x7a5c3c), b); t.scale.set(0.09, 0.42, 0.06); t.rotation.x = -Math.PI / 2 - 0.25; t.position.set(0, 0.17, -0.5);
+                legs([-0.1, 0.1], [-0.12, 0.16], 0.08, 0x5a4430);
+            } else if (k === 'kukang' || k === 'tarsius') {
+                perch(1.1, 0.9);
+                const tr = k === 'tarsius', c = tr ? 0xa08060 : 0xb08a62;
+                ball(tr ? 0.09 : 0.14, tr ? 0.11 : 0.15, tr ? 0.09 : 0.13, c, 0, 0.15, 0, b);
+                ball(tr ? 0.09 : 0.11, tr ? 0.08 : 0.1, tr ? 0.08 : 0.1, c, 0, tr ? 0.31 : 0.36, 0.03, b);
+                const er = tr ? 0.045 : 0.035;
+                for (const sx of [-1, 1]) { ball(er + 0.012, er + 0.012, 0.012, tr ? 0xe8d098 : 0x5a3a24, sx * (tr ? 0.04 : 0.045), tr ? 0.33 : 0.38, tr ? 0.1 : 0.12, b); eye(sx * (tr ? 0.04 : 0.045), tr ? 0.33 : 0.38, tr ? 0.11 : 0.13, er * 0.6); }
+                if (!tr) { box(0.02, 0.1, 0.01, 0xf2e6d0, 0, 0.42, 0.12, b); } else { for (const sx of [-1, 1]) ball(0.035, 0.05, 0.015, c, sx * 0.08, 0.41, 0.0, b); const t = cap(0.012, 0.42, 0x8a6a48, 0, -0.1, -0.08, b); t.rotation.x = 0.25; }
+                for (const sx of [-1, 1]) { const a = cap(0.025, 0.16, c, sx * 0.1, 0.12, 0.07, b); a.rotation.x = -1.1; }
+                b.scale.setScalar(tr ? 1.5 : 1.6);
+            } else if (k === 'rangkong') {
+                perch(1.6, 1.0);
+                ball(0.16, 0.14, 0.26, 0x1e1e22, 0, 0.18, 0, b); ball(0.09, 0.09, 0.1, 0x1e1e22, 0, 0.33, 0.2, b);
+                const bill = mesh(LOWCONE, mat(0xf2c230), b); bill.scale.set(0.05, 0.3, 0.06); bill.rotation.x = Math.PI / 2 + 0.35; bill.position.set(0, 0.28, 0.42);
+                ball(0.04, 0.05, 0.12, 0xe0702a, 0, 0.39, 0.3, b);                     // the casque on the bill
+                box(0.2, 0.04, 0.34, 0xf2f2ee, 0, 0.14, -0.38, b);                       // white tail
+                eye(0.05, 0.36, 0.26, 0.02); eye(-0.05, 0.36, 0.26, 0.02);
+                for (const sx of [-1, 1]) ball(0.03, 0.12, 0.2, 0x2a2a30, sx * 0.15, 0.2, -0.02, b);
+                b.scale.setScalar(1.4);
+            } else if (k === 'merak') {
+                ball(0.13, 0.15, 0.22, 0x2a8a5a, 0, 0.5, 0, b); cap(0.04, 0.28, 0x1f7a6a, 0, 0.78, 0.12, b).rotation.x = 0.3; ball(0.06, 0.06, 0.07, 0x1f6a8a, 0, 0.95, 0.18, b);
+                const bk = mesh(LOWCONE, mat(0x8a8a6a), b); bk.scale.set(0.02, 0.07, 0.02); bk.rotation.x = Math.PI / 2; bk.position.set(0, 0.94, 0.27);
+                for (let i = -1; i <= 1; i++) cap(0.008, 0.08, 0x1f6a8a, i * 0.02, 1.06, 0.16, b);
+                eye(0.035, 0.97, 0.22, 0.012); eye(-0.035, 0.97, 0.22, 0.012);
+                const tail = ball(0.32, 0.05, 0.75, 0x2f8a4a, 0, 0.36, -0.72, b); tail.rotation.x = 0.12;
+                for (let i = 0; i < 7; i++) ball(0.04, 0.012, 0.04, 0x1f4aa0, (i % 3 - 1) * 0.15, 0.47 - i * 0.012, -0.4 - i * 0.13, b);
+                legs([-0.05, 0.05], [0.02], 0.3, 0x8a7a6a, 0.015);
+            } else if (k === 'kura') {
+                const sh = ball(0.28, 0.17, 0.34, 0x5a4a2a, 0, 0.14, 0, b); sh.scale.y = 0.18;
+                ball(0.24, 0.04, 0.3, 0x4a3a20, 0, 0.06, 0, b);
+                for (let i = 0; i < 4; i++) ball(0.07, 0.03, 0.07, 0x7a6a3a, (i % 2 - 0.5) * 0.18, 0.26, (i < 2 ? 1 : -1) * 0.1, b);
+                ball(0.07, 0.06, 0.09, 0x8a8a5a, 0, 0.12, 0.37, b); eye(0.035, 0.15, 0.43, 0.012); eye(-0.035, 0.15, 0.43, 0.012);
+                legs([-0.2, 0.2], [-0.2, 0.2], 0.04, 0x8a8a5a, 0.04);
+            } else if (k === 'biawak') {
+                cap(0.1, 0.55, 0x5a5a40, 0, 0.13, 0, b, 'z'); ball(0.08, 0.06, 0.13, 0x5a5a40, 0, 0.14, 0.45, b);
+                const t = mesh(LOWCONE, mat(0x4a4a34), b); t.scale.set(0.07, 0.9, 0.05); t.rotation.x = -Math.PI / 2; t.position.set(0, 0.1, -0.78);
+                for (let i = 0; i < 4; i++) ball(0.06, 0.012, 0.05, 0xc8b860, 0, 0.23, 0.2 - i * 0.14, b);
+                eye(0.05, 0.17, 0.5, 0.012); eye(-0.05, 0.17, 0.5, 0.012);
+                const tg = cap(0.006, 0.08, 0xd9443a, 0, 0.12, 0.6, b, 'z');
+                for (const sx of [-1, 1]) for (const z of [-0.2, 0.22]) { const l = cap(0.025, 0.12, 0x4a4a34, sx * 0.13, 0.06, z, b); l.rotation.z = sx * 1.1; }
+                g.userData.tongue = tg;
+            } else if (k === 'babirusa') {
+                ball(0.34, 0.22, 0.2, 0x8a807a, 0, 0.42, 0, b); ball(0.13, 0.12, 0.15, 0x8a807a, 0, 0.44, 0.38, b); ball(0.06, 0.05, 0.03, 0x9a6a6a, 0, 0.42, 0.53, b);
+                for (const sx of [-1, 1]) { const tu = mesh(LOWCONE, mat(0xf2ead8), b); tu.scale.set(0.015, 0.2, 0.015); tu.position.set(sx * 0.05, 0.6, 0.38); tu.rotation.x = -0.6; const tl = mesh(LOWCONE, mat(0xf2ead8), b); tl.scale.set(0.012, 0.12, 0.012); tl.position.set(sx * 0.08, 0.5, 0.47); tl.rotation.x = -0.3; }
+                eye(0.06, 0.5, 0.48, 0.015); eye(-0.06, 0.5, 0.48, 0.015);
+                for (const sx of [-1, 1]) ball(0.03, 0.05, 0.02, 0x7a706a, sx * 0.08, 0.57, 0.32, b);
+                legs([-0.17, 0.17], [-0.2, 0.22], 0.22, 0x6a605a, 0.04);
+            } else if (k === 'kalong') {
+                // hanging upside down from a branch, wings wrapped round
+                perch(2.2, 1.1);
+                const h = new THREE.Group(); h.position.y = -0.06; b.add(h);
+                ball(0.1, 0.18, 0.09, 0x3a2a22, 0, -0.2, 0, h); ball(0.07, 0.07, 0.07, 0x7a4a2a, 0, -0.42, 0.01, h);
+                const sn = mesh(LOWCONE, mat(0x5a3a22), h); sn.scale.set(0.03, 0.07, 0.03); sn.rotation.x = Math.PI; sn.position.set(0, -0.5, 0.03);
+                for (const sx of [-1, 1]) { ball(0.02, 0.04, 0.012, 0x3a2a22, sx * 0.04, -0.37, 0, h); const w = ball(0.06, 0.2, 0.1, 0x2a1e18, sx * 0.08, -0.22, -0.01, h); w.rotation.z = sx * 0.15; }
+                eye(0.025, -0.43, 0.065, 0.012, h); eye(-0.025, -0.43, 0.065, 0.012, h);
+                b.position.y -= 0.02;
+            } else if (k === 'maleo') {
+                ball(0.15, 0.14, 0.22, 0x1e1e22, 0, 0.36, 0, b); ball(0.12, 0.08, 0.15, 0xe8b0b0, 0, 0.3, 0.06, b);
+                ball(0.07, 0.07, 0.08, 0xd8c09a, 0, 0.56, 0.17, b); ball(0.05, 0.05, 0.05, 0x2a2a2a, 0, 0.64, 0.14, b);   // the dark casque on the head
+                const bk = mesh(LOWCONE, mat(0xd9c46a), b); bk.scale.set(0.025, 0.06, 0.025); bk.rotation.x = Math.PI / 2; bk.position.set(0, 0.55, 0.27);
+                eye(0.04, 0.58, 0.22, 0.012); eye(-0.04, 0.58, 0.22, 0.012);
+                box(0.16, 0.03, 0.2, 0x1e1e22, 0, 0.4, -0.27, b).rotation.x = 0.4;
+                legs([-0.05, 0.05], [0.02], 0.2, 0x6a6a6a, 0.015);
+            }
+            g.traverse(o => { if (o.isMesh) o.castShadow = false; });
+            return g;
+        }
+        const satVis = {}, satLocal = { seen: {}, fleeT: {} };
+        // the 🦜 pojok suaka: four places to rest in, and the maleo's sand nest
+        const SUAKA_SLOTS = [[-1.5, -0.9], [1.4, -0.8], [-1.3, 1.0], [1.5, 0.9]];
+        const suakaAt = i => { const B = BUILDS.suaka, [dx, dz] = SUAKA_SLOTS[i % 4]; return [B.x + dx, B.z + dz]; };
+        const NEST_POS = () => new THREE.Vector3(BUILDS.suaka.x - 0.2, 0, BUILDS.suaka.z + 0.2);
+        function updateSatwa(dt) {
+            if (!started) return;
+            const S = satS(), out = inHome(player.pos);
+            for (const s of SATWA) {
+                const k = s.k, home = suakaHas(k) && state.minutes < 1290, wild = !home && satOut(k);
+                let v = satVis[k];
+                const sp = home ? suakaAt(S.su.indexOf(k)) : wild ? satSpot(k) : null;
+                const near = sp && !out && Math.hypot(sp[0] - player.pos.x, sp[1] - player.pos.z) < 70;
+                if (!near) { if (v) v.g.visible = false; continue; }
+                if (!v) { v = satVis[k] = { g: satModel(k), ph: satHash(k, 'ph') % 628 / 100, pos: new THREE.Vector3(), flee: null }; scene.add(v.g); }
+                v.g.visible = true;
+                const perched = ['kukang', 'tarsius', 'rangkong', 'kalong'].includes(k);
+                let x = sp[0], z = sp[1], h = v.ph;
+                if (v.flee) {
+                    const t = elapsed - v.flee.t; x = v.flee.x + v.flee.dx * t * 6; z = v.flee.z + v.flee.dz * t * 6; h = Math.atan2(v.flee.dx, v.flee.dz);
+                    if (t > 1.6) { v.g.visible = false; continue; }
+                } else if (!perched) {
+                    // pottering about its spot, slowly
+                    const a = elapsed * (k === 'kura' ? 0.06 : 0.16) + v.ph, rr = home ? 0.35 : 1.4;
+                    x += Math.cos(a) * rr; z += Math.sin(a * 0.8) * rr; h = Math.atan2(-Math.sin(a), Math.cos(a * 0.8) * 0.8);
+                    const pd = Math.hypot(player.pos.x - x, player.pos.z - z);
+                    if (pd < 5) h = Math.atan2(player.pos.x - x, player.pos.z - z);
+                }
+                v.pos.set(x, 0, z);
+                v.g.position.set(x, groundY(x, z), z); v.g.rotation.y = perched ? v.ph : h;
+                const b = v.g.userData.b; if (b && !perched) b.position.y = Math.abs(Math.sin(elapsed * 5 + v.ph)) * 0.02;
+                if (k === 'kalong' && b) b.rotation.z = Math.sin(elapsed * 1.3 + v.ph) * 0.08;
+                if (v.g.userData.tongue) v.g.userData.tongue.visible = Math.sin(elapsed * 3 + v.ph) > 0.6;
+                const d = Math.hypot(player.pos.x - x, player.pos.z - z);
+                // first sighting: noted in the book for you both
+                if (wild && d < 12 && !S.seen[k] && !satLocal.seen[k]) { satLocal.seen[k] = 1; sendAct('satwa', 'seen|' + k); }
+                // a shy one bolts if you come running (or roaring up on the bike)
+                if (wild && !v.flee && s.how !== 'bebas' && !isFriend(k) && d < 7 && (elapsed - (player.runT || -9) < 0.35 || ride)) {
+                    const l = d || 1; v.flee = { t: elapsed, x, z, dx: (x - player.pos.x) / l, dz: (z - player.pos.z) / l };
+                    toast(`${s.icon} ${s.name} kaget lalu kabur! Besok dekati pelan-pelan, jangan lari 🤫`);
+                    sendAct('satwa', 'flee|' + k);
+                }
+            }
+            // the maleo's nest in the suaka
+            if (nestVis) nestVis.egg.visible = (S.nest.s === 1 || S.nest.s === 2) && suakaHas('maleo');
+            if (nestVis) nestVis.chick.visible = S.nest.s === 3 && suakaHas('maleo');
+            // the night's news from the suaka, shown once on each phone
+            if (S.msg && S.msg.d === state.day && satLocal.msgDay !== state.day && !sleeping && !dlgOpen()) { satLocal.msgDay = state.day; setTimeout(() => toast(S.msg.t), 2500); }
+        }
+        function satFoodFor(k) { const s = SATI[k]; return s.food.find(f => have(USER, f) > 0) || null; }
+        const foodNames = s => s.food.map(f => `${ITEMS[f].icon} ${ITEMS[f].label}`).join(', ');
+        function satwaInteractables() {
+            const L = [];
+            for (const s of SATWA) {
+                const k = s.k;
+                L.push({
+                    id: 'satwa:' + k, local: true, pri: 0.3, reach: ['kukang', 'tarsius', 'rangkong', 'kalong'].includes(k) ? 2.6 : 2.0,
+                    get pos() { const v = satVis[k]; return v && v.g.visible && !v.flee ? v.pos : FAR_AWAY; },
+                    when: () => { const v = satVis[k]; return !!(v && v.g.visible && !v.flee) && !ride && !player.sit; },
+                    label() {
+                        const S = satS(), tr = Math.round(S.tr[k] || 0);
+                        if (suakaHas(k)) return dailyLeft('satwa:' + k, USER, 1) ? `${s.icon} Elus ${s.name} 💚` : `${s.icon} ${s.name} betah di pojok suaka 💚`;
+                        if (isFriend(k)) return s.home ? `${s.icon} Sapa ${s.name}, sahabatmu 💚` : state.build && state.build.suaka ? (S.su.length < SUAKA_MAX ? `🦜 Ajak ${s.name} tinggal di pojok suaka` : `${s.icon} ${s.name} sahabatmu 💚 · pojok suaka penuh (${SUAKA_MAX})`) : `${s.icon} ${s.name} sahabatmu 💚 · bangun 🦜 pojok suaka di papan pembangunan farm`;
+                        if (S.fed[k + '|' + USER] === state.day) return `${s.icon} ${s.name} sudah makan darimu hari ini · 🤍 ${tr}/${TRUST_MAX}`;
+                        if (s.how === 'diam' && elapsed - (player.moveT || -9) < 2.5) return `🤫 Diam dulu sebentar… ${s.name} masih waspada`;
+                        const f = satFoodFor(k);
+                        return f ? `Beri ${ITEMS[f].icon} ${ITEMS[f].label} ke ${s.name} · 🤍 ${tr}/${TRUST_MAX}` : `${s.icon} ${s.name} · suka ${foodNames(s)}`;
+                    },
+                    act() {
+                        const S = satS();
+                        if (suakaHas(k) || (isFriend(k) && s.home)) { sendAct('satwa', 'pet|' + k); return; }
+                        if (isFriend(k)) { if (state.build && state.build.suaka && S.su.length < SUAKA_MAX) sendAct('satwa', 'suaka|' + k + '|1'); else toast(state.build && state.build.suaka ? 'Pojok suaka sudah penuh. Lepaskan dulu satu sahabat lewat papan pojok suaka' : '🦜 Pojok suaka dibangun lewat papan pembangunan di farm'); return; }
+                        if (S.fed[k + '|' + USER] === state.day) { toast(`Besok lagi, ya. ${s.name} sudah kenyang darimu hari ini`); return; }
+                        if (s.how === 'diam' && elapsed - (player.moveT || -9) < 2.5) { toast(`🤫 ${s.name} masih waspada. Berdiri diam sebentar di dekatnya`); return; }
+                        const f = satFoodFor(k);
+                        if (!f) { toast(`${s.icon} ${s.name} suka ${foodNames(s)}. Bawa salah satunya di tas`); return; }
+                        sendAct('satwa', `feed|${k}|${f}`);
+                    },
+                });
+            }
+            L.push({
+                id: 'suakasign', local: true, reach: 1.8, get pos() { const B = BUILDS.suaka; SIGN_V.set(B.x + 2.2, 0, B.z + BUILDS.suaka.d / 2 + 0.3); return SIGN_V; },
+                when: () => !!(state.build && state.build.suaka), label: () => '🦜 Pojok suaka · lihat penghuni', act: () => openSuaka(),
+            });
+            L.push({
+                id: 'suakanest', local: true, reach: 1.4, get pos() { return state.build && state.build.suaka ? NEST_POS() : FAR_AWAY; },
+                when: () => suakaHas('maleo') && satS().nest.s !== 0,
+                label: () => { const n = satS().nest; return n.s === 1 ? '🥚 Tetaskan telur maleo di pasir hangat' : n.s === 2 ? `🥚 Telur maleo sedang dihangatkan pasir (${Math.max(0, 3 - (state.day - n.d))} hari lagi)` : '🐣 Lepaskan anak maleo ke alam'; },
+                act: () => { const n = satS().nest; if (n.s === 1) sendAct('satwa', 'nest|tetas'); else if (n.s === 3) sendAct('satwa', 'nest|lepas'); else toast('Sabar, pasir hangat sedang menetaskannya 🌡️'); },
+            });
+            return L;
+        }
+        const SIGN_V = new THREE.Vector3();
+        function satAct(who, x) {
+            const [op, k, a] = String(x).split('|'), s = SATI[k], S = satS();
+            if (op === 'nest') {
+                if (!suakaHas('maleo')) return;
+                if (k === 'tetas' && S.nest.s === 1) { S.nest = { s: 2, d: state.day }; emitEvent('🥚 Telur maleo ditimbun di pasir hangat. Menetas dalam 3 hari', 'none', null, who); }
+                else if (k === 'lepas' && S.nest.s === 3) { S.nest = { s: 0, d: state.day }; S.lepas++; state.gold += 300; emitEvent(`🐣 Anak maleo ke-${S.lepas} dilepas ke alam! Balai Desa memberi hadiah 300 G`, 'hearts', [NEST_POS().x, 0.6, NEST_POS().z], who); jot(`Melepas anak maleo ke-${S.lepas} ke alam 🐣`); }
+                return;
+            }
+            if (!s) return;
+            if (op === 'seen') { if (!S.seen[k]) { S.seen[k] = 1; emitEvent(`👀 Pertama kali melihat ${s.icon} ${s.name}! Tercatat di buku satwa`, 'none', null, who); } return; }
+            if (op === 'flee') { if (!isFriend(k)) S.fled[k] = state.day; return; }
+            if (op === 'pet') {
+                if (!dailyLeft('satwa:' + k, who, 1)) return;
+                useDaily('satwa:' + k, who); addEnergy(who, 5);
+                const v = satVis[k]; emitEvent(`${s.icon} ${s.name} senang dielus 💚 +5 ⚡`, 'heart1', v ? [v.pos.x, 0.9, v.pos.z] : null, who);
+                return;
+            }
+            if (op === 'suaka') {
+                if (s.home || !state.build || !state.build.suaka) return;
+                if (a === '1') { if (!isFriend(k) || S.su.includes(k) || S.su.length >= SUAKA_MAX) return; S.su.push(k); emitEvent(`🦜 ${s.icon} ${s.name} mau tinggal di pojok suaka! ${s.fx}`, 'hearts', [BUILDS.suaka.x, 1, BUILDS.suaka.z], who); jot(`${s.name} mulai tinggal di pojok suaka`); }
+                else { S.su = S.su.filter(v => v !== k); emitEvent(`${s.icon} ${s.name} kembali ke alam. Ia tetap sahabat kalian`, 'none', null, who); }
+                return;
+            }
+            if (op === 'feed') {
+                if (!satOut(k) || isFriend(k) || S.fed[k + '|' + who] === state.day || !s.food.includes(a) || !takeBag(who, a)) return;
+                S.fed[k + '|' + who] = state.day;
+                // together: you both near it
+                const sp = satSpot(k), at = sp ? { x: sp[0], z: sp[1] } : null;
+                const both = !!(at && net.connected && partnerF.live && Math.hypot(player.pos.x - at.x, player.pos.z - at.z) < 10 && Math.hypot(partnerF.pos.x - at.x, partnerF.pos.z - at.z) < 10);
+                const gain = Math.round((a === s.food[0] ? 20 : 13) * (both ? 1.5 : 1));
+                S.tr[k] = Math.min(TRUST_MAX, (S.tr[k] || 0) + gain); S.seen[k] = 1;
+                const p = at ? [at.x, 0.9, at.z] : null;
+                if (S.tr[k] >= TRUST_MAX) { emitEvent(`💚 ${s.icon} ${s.name} sekarang sahabat kalian!${s.home ? '' : ' Ajak ke pojok suaka di farm'}`, 'hearts', p, who); jot(`${s.name} jadi sahabat kami 💚`); }
+                else emitEvent(`${s.icon} ${s.name} makan ${ITEMS[a].label} · 🤍 ${Math.round(S.tr[k])}/${TRUST_MAX}${both ? ' (berdua, lebih cepat percaya!)' : ''}`, 'heart1', p, who);
+            }
+        }
+        // overnight, the suaka friends help out (on the farm that runs the day)
+        function satwaNight() {
+            const S = satS(), news = [], chest = state.store.chest, put = (k, n = 1) => { if (ITEMS[k]) chest[k] = (chest[k] || 0) + n; }, d = state.day + 1;
+            S.fled = {};
+            for (const k of Object.keys(S.fed)) if (S.fed[k] < state.day - 1) delete S.fed[k];
+            if (!state.build || !state.build.suaka) { S.msg = null; return; }
+            if (suakaHas('luwak') && Math.random() < 0.5) { put('kopiluwak'); news.push('☕ biji kopi luwak'); }
+            if (suakaHas('trenggiling')) { let n = 0; state.weeds = state.weeds.map(v => { if (v && n < 6) { n++; return 0; } return v; }); if (n) news.push(`🦔 ${n} rumput liar dibersihkan`); }
+            if (suakaHas('rangkong') && d % 3 === 0) { const f = ALL_FRUITS[Math.floor(Math.random() * ALL_FRUITS.length)]; if (ITEMS['p_' + f.key]) { put('p_' + f.key); news.push(`🌳 bibit ${f.label.toLowerCase()}`); } }
+            if (suakaHas('merak') && d % 2 === 0) { put('bulumerak'); news.push('🪶 bulu merak'); }
+            if (suakaHas('biawak')) { put('egg'); news.push('🥚 telur tambahan'); }
+            if (suakaHas('babirusa')) { const f = ['ubi', 'tembaga', 'besi', 'singkong'][Math.floor(Math.random() * 4)]; if (ITEMS[f]) { put(f); news.push(`${ITEMS[f].icon} ${ITEMS[f].label.toLowerCase()} temuan babirusa`); } }
+            if (suakaHas('kalong')) {
+                const ripen = (t, f) => { if (f && t.r === 0 && t.p > 0 && ++t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; } };
+                for (const f of FRUIT_DEFS) ripen(state.trees[f.key], f);
+                for (const t of state.ptrees) if (t.g >= TREE_GROW(FDEF[t.k])) ripen(t, FDEF[t.k]);
+            }
+            if (suakaHas('maleo')) {
+                if (S.nest.s === 0 && d - S.nest.d >= 4) S.nest = { s: 1, d };
+                else if (S.nest.s === 2 && d - S.nest.d >= 3) { S.nest.s = 3; news.push('🐣 anak maleo menetas'); }
+                if (S.nest.s === 1 && S.nest.d === d) news.push('🥚 maleo bertelur di sarang');
+            }
+            S.msg = news.length ? { d, t: `🦜 Kabar pojok suaka: ${news.join(', ')}${news.some(t => !t.includes('rumput') && !t.includes('menetas') && !t.includes('bertelur')) ? ' (di 📦 kotak penyimpanan)' : ''}` } : null;
+        }
+        // 📖 the book of animals you have watched
+        function openSatwaBook() {
+            const S = satS(), WHEN = s => s.t.map(([a, b]) => `${fmtTime(a)}–${fmtTime(b % 1440)}`).join(' & ');
+            const nF = SATWA.filter(s => isFriend(s.k)).length, nS = SATWA.filter(s => S.seen[s.k]).length;
+            const cards = SATWA.map(s => {
+                const seen = !!S.seen[s.k], tr = Math.round(S.tr[s.k] || 0), st = suakaHas(s.k) ? '🦜 tinggal di pojok suaka' : isFriend(s.k) ? '💚 sahabat' : seen ? '🌿 liar' : '';
+                return el('div', { class: 'shopitem' },
+                    el('span', { class: 'ic', text: seen ? s.icon : '❔' }),
+                    el('span', { class: 'nm' }, el('b', { text: seen ? s.name : '???' }),
+                        el('small', { text: seen ? `${REGI[s.r].name} · ${WHEN(s)} · ${s.how === 'pelan' ? 'dekati pelan-pelan' : s.how === 'diam' ? 'diam dulu sebelum memberi makan' : 'tidak penakut'} · suka ${foodNames(s)}` : `Pernah terlihat di ${REGI[s.r].name}, ${s.t[0][0] >= 1080 ? 'malam hari' : s.t[0][0] < 720 ? 'pagi hari' : 'siang hari'}` }),
+                        seen ? el('small', { text: `🤍 ${tr}/${TRUST_MAX} ${st} · ${s.fx}` }) : null));
+            });
+            openDlg('🦡 Buku pengamatan satwa', [
+                el('p', { class: 'small-note', text: `Terlihat ${nS}/${SATWA.length} · sahabat ${nF}/${SATWA.length} · anak maleo dilepas ${S.lepas}. Satwa dilindungi tidak dikurung: mereka jadi sahabat yang mampir. Beri makanan kesukaannya sekali sehari masing-masing; datang berdua membuatnya lebih cepat percaya.` }),
+                el('div', { class: 'shoplist' }, cards),
+            ]);
+        }
+        function openSuaka() {
+            const S = satS(), res = S.su.filter(k => SATI[k]), free = SATWA.filter(s => isFriend(s.k) && !s.home && !S.su.includes(s.k));
+            const row = (s, inS) => {
+                const b = el('button', { class: 'btn', onclick: () => { sendAct('satwa', `suaka|${s.k}|${inS ? 0 : 1}`); setTimeout(() => { if (dlgOpen()) openSuaka(); }, 450); } }, inS ? 'Lepas ke alam' : 'Ajak tinggal');
+                if (!inS && res.length >= SUAKA_MAX) b.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: s.icon }), el('span', { class: 'nm' }, el('b', { text: s.name }), el('small', { text: s.fx })), b);
+            };
+            openDlg('🦜 Pojok suaka', [
+                el('p', { class: 'small-note', text: `Penghuni ${res.length}/${SUAKA_MAX}. Sahabat yang tinggal di sini mampir setiap hari dan membantu farm. Jinakkan satwa liar dulu dengan memberinya makan sampai 🤍 ${TRUST_MAX}.` }),
+                el('div', { class: 'shoplist' }, [...res.map(k => row(SATI[k], true)), ...free.map(s => row(s, false))]),
+                !res.length && !free.length ? el('p', { class: 'small-note', text: 'Belum ada sahabat. Cari satwa langka di desa-desa, buka 🦡 Buku satwa untuk petunjuknya.' }) : null,
+            ].filter(Boolean), [{ t: '🦡 Buku satwa', f: () => openSatwaBook() }, { t: 'Tutup' }]);
+        }
         const INTERACTABLES = interactables();
         INTERACTABLES.push(
             { id: 'gudang', pos: new THREE.Vector3(BUILDS.gudang.x, 0, BUILDS.gudang.z + BUILDS.gudang.d / 2 + 0.6), reach: 1.5, local: true, when: () => !!state.build.gudang, label: () => 'Buka gudang 🏚️', act: () => openStorage('gudang') },
@@ -10866,8 +11226,8 @@
             if (outside && heldItem() === 'pot' && !best) { const [x, z] = potFront(); POTPLACE_IT.pos.set(x, 0, z); return POTPLACE_IT; }
             for (const it of INTERACTABLES) {
                 if (it.when && !it.when()) continue;
-                const d = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z);
-                if (d < it.reach && d < bestD) { best = it; bestD = d; }
+                const d0 = Math.hypot(it.pos.x - player.pos.x, it.pos.z - player.pos.z), d = d0 * (it.pri || 1);   // (a wild animal comes first: it does not wait)
+                if (d0 < it.reach && d < bestD) { best = it; bestD = d; }
             }
             if (best && best.id === 'fpot' && (heldItem() || '').startsWith('b_')) return best;
             if (outside) for (const d of state.deco) {
@@ -11194,7 +11554,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, sw: state.satwa || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -11295,6 +11655,7 @@
             if (w.br && typeof w.br === 'object') state.bundR = w.br;
             if (w.mc && typeof w.mc === 'object') state.mach = w.mc;
             if ('cp' in w) state.carp = w.cp && typeof w.cp === 'object' ? w.cp : null;
+            if (w.sw && typeof w.sw === 'object') state.satwa = cleanSatwa(w.sw);
             if ('mt' in w && ride !== 'd' && elapsed > bike.parkT) state.motor = w.mt && MOTORS[w.mt.k] && [w.mt.x, w.mt.z, w.mt.h].every(Number.isFinite) ? { k: w.mt.k, x: w.mt.x, z: w.mt.z, h: w.mt.h } : null;
             if (w.ly && typeof w.ly === 'object' && canonLayout(w.ly) !== canonLayout(LAYOUT)) { state.layout = w.ly; reloadForLayout('join'); }
             if (w.ev && typeof w.ev === 'object' && Number.isInteger(w.ev.d) && w.ev.e && typeof w.ev.e === 'object') state.ev = w.ev;
@@ -11700,13 +12061,13 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight(); reqNight(); carpNight();
+                wildNight(); reqNight(); carpNight(); satwaNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
                 state.minutes = WAKE_MIN;
                 // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
-                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut ? Math.max(energyOf(u), 140) : ENERGY_MAX;
+                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut && !suakaHas('kukang') ? Math.max(energyOf(u), 140) : ENERGY_MAX;
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
@@ -11905,6 +12266,7 @@
         drawSmart();
         $('smartBtn').addEventListener('click', () => { smartBtn = !smartBtn; try { localStorage.setItem('farmora.smart', smartBtn ? 'on' : 'off'); } catch (e) { } drawSmart(); toast(smartBtn ? '🧠 Tombol pintar menyala: tombol aksi otomatis memakai alat dari toolbar yang cocok' : '🧠 Tombol pintar dimatikan'); });
         $('bookBtn').addEventListener('click', () => { if (started) { toggleHelp(false); openBook(); } });
+        $('satwaBtn').addEventListener('click', () => { if (started) { toggleHelp(false); openSatwaBook(); } });
         $('autoBtn').addEventListener('click', () => { setAutoSave(!autoSave); toast(autoSave ? '💾 Simpan otomatis dinyalakan' : '💾 Simpan otomatis dimatikan. Jangan lupa simpan lewat tombol 💾 ya'); });
         drawAutoBtn();
         $('helpX').addEventListener('click', () => toggleHelp(false));
@@ -12041,6 +12403,7 @@
             if (moving) {
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
                 const tired = energyOf(USER) < 10;
+                player.moveT = elapsed; if (run && !tired) player.runT = elapsed;
                 const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1); // wading through a paddy is slow
                 if (ride === 'd') {
                     // on the bike: much faster, in short steps so it never slips through a fence
@@ -12188,6 +12551,7 @@
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
             updateRide(dt);
+            updateSatwa(dt);
             updateNPCs(dt);
             regionStream(dt);
             seaSpot(dt);
@@ -12264,7 +12628,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

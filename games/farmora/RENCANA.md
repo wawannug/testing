@@ -66,9 +66,9 @@ Kalender gabungan setelah tahap 7 dan 8:
 - [x] Penyiram otomatis dan rumah kaca (bisa menanam di musim apa saja).
 - [x] **🪚 Jasa tukang kayu** (Pak Markus): pindah kandang, pohon, dan bangunan memakai patok 📍, dikerjakan malam hari.
 
-## 🦡 Tahap 10: Satwa langka yang masih hidup
-- [ ] Sistem **jinak dengan makanan**: meteran percaya 🤍, waktu muncul dan cara mendekat tiap hewan berbeda, lebih cepat percaya kalau datang berdua.
-- [ ] Hewan-hewannya:
+## 🦡 Tahap 10: Satwa langka yang masih hidup ✅
+- [x] Sistem **jinak dengan makanan**: meteran percaya 🤍, waktu muncul dan cara mendekat tiap hewan berbeda, lebih cepat percaya kalau datang berdua.
+- [x] Hewan-hewannya:
   - Musang luwak: biji kopi luwak
   - Trenggiling: membersihkan hama
   - Kukang: tidur lebih nyenyak
@@ -80,7 +80,7 @@ Kalender gabungan setelah tahap 7 dan 8:
   - Babirusa: menemukan umbi dan bijih
   - Kalong: pohon berbuah lebih cepat
   - Maleo: telur ditetaskan lalu dilepas ke alam
-- [ ] **Pojok suaka** di farm (paling banyak ~4 hewan) dan **buku pengamatan satwa**.
+- [x] **Pojok suaka** di farm (paling banyak ~4 hewan) dan **buku pengamatan satwa**.
 - Hewan dilindungi tidak dikurung: mereka jadi sahabat yang berkunjung.
 
 ## ⛏️ Tahap 11: Tambang bertingkat, monster, dan cerita warga

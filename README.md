@@ -258,6 +258,38 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **🪟 Rumah kaca** (bangun lewat papan pembangunan, 1.500 G + kayu, besi, batu): tanah di dalamnya tersiram otomatis, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin.
 - **🪚 Jasa tukang kayu (Pak Markus, penggergajian).** Pesan pindah kandang (1.500 G + 20 kayu), pohon kebun buah (400 G + 5 kayu), pohon yang kalian tanam sendiri (250 G), atau bangunan tambahan (800 G + 10 kayu). Kamu dapat 📍 **patok**: pegang patoknya dan berdiri di tempat baru. Garis hijau berarti tempatnya bisa, merah berarti terhalang (alasannya muncul). Pasang patoknya, lalu tukang kayu memindahkannya **malam itu**. Pagi berikutnya farm otomatis dimuat ulang sebentar dengan tata letak baru. Saat main berdua, perangkat pasangan juga ikut dimuat ulang dan bergabung lagi sendiri. Pesanan bisa dibatalkan di Pak Markus (uang kembali).
 
+## 🦡 Satwa langka dan pojok suaka (tahap 10)
+- **11 satwa langka** hidup di desa-desa, masing-masing muncul di wilayah dan jam tertentu (tidak setiap hari).
+
+  | Satwa | Di mana | Kapan | Sukanya | Bantuannya di suaka |
+  |---|---|---|---|---|
+  | 🦝 Musang luwak | Desa Hutan | 19:00–23:30 | pisang, pepaya, kopi | kadang ☕ biji kopi luwak (mahal) |
+  | 🦔 Trenggiling | Desa Hutan | 20:00–24:00 | telur | membersihkan rumput liar di farm |
+  | 🐒 Kukang | Desa Pegunungan | 18:30–24:00 | pisang, jambu, mangga | tidur nyenyak: ketiduran tetap bangun dengan energi penuh, kerja berat lebih hemat energi |
+  | 👀 Tarsius | Pulau Kencana | 18:00–23:00 | udang | tetap di pulau, sahabat di buku satwa |
+  | 🐦 Burung rangkong | Desa Pegunungan | 06:00–10:30 | pepaya, pisang, jambu | tiap 3 hari 🌳 bibit pohon buah |
+  | 🦚 Merak hijau | Lembah Persawahan | 06:00–09:30 & 16:00–18:30 | jagung, kacang | tiap 2 hari 🪶 bulu merak |
+  | 🐢 Kura-kura darat | Lembah Persawahan | 07:00–17:00 (pasti muncul saat hujan) | wortel, tomat, semangka | ikan langka lebih sering menggigit |
+  | 🦎 Biawak | Desa Pantai | 09:00–15:00 (tidak saat hujan) | bandeng, mujair, nila, lele | 🥚 telur tambahan tiap pagi |
+  | 🐗 Babirusa | Desa Hutan | 15:00–19:00 | ubi, singkong, jagung | menemukan umbi atau bijih logam |
+  | 🦇 Kalong | Lembah Persawahan | 18:00–22:30 | mangga, jambu, pepaya | pohon buah berbuah lebih cepat |
+  | 🐔 Burung maleo | Desa Pantai | 06:00–11:00 | jagung, kacang | bertelur di sarang suaka: tetaskan 3 hari, lepaskan anaknya (+300 G dari Balai Desa) |
+
+- **Menjinakkan dengan makanan.** Bawa makanan kesukaannya di tas, dekati, lalu tekan tombol untuk memberi makan. Meteran percaya 🤍 naik:
+  - +20 untuk makanan paling favorit (yang pertama di daftar), +13 untuk yang lain;
+  - ×1,5 kalau kalian berdua sama-sama di dekatnya;
+  - tiap pemain bisa memberi makan sekali sehari per satwa;
+  - di 🤍 100 satwa itu jadi **sahabat**.
+- **Cara mendekat** berbeda-beda:
+  - satwa pemalu kabur seharian kalau kamu berlari atau naik motor di dekatnya, jadi dekati pelan-pelan;
+  - sebagian harus ditunggu dulu: berdiri diam sebentar sebelum diberi makan;
+  - kura-kura tidak penakut.
+- Satwa malam punya mata yang berkilau, jadi lebih mudah ditemukan dalam gelap.
+- **🦜 Pojok suaka** dibangun di papan pembangunan farm (800 G + 20 kayu + 8 batu). Hasil bantuannya ada di 📦 kotak penyimpanan, dan kabarnya muncul tiap pagi.
+  - Sahabat bisa diajak tinggal di sana, paling banyak 4. Satwa dilindungi tidak dikurung; mereka mampir setiap hari, bisa dielus (+5 ⚡ sekali sehari), dan membantu farm.
+  - Papan pojok suaka dipakai untuk mengajak atau melepas sahabat ke alam.
+- **🦡 Buku satwa** (di layar Bantuan **?**): satwa yang pernah terlihat, tempat dan jam munculnya, makanan kesukaan, meteran percaya, dan bantuannya. Yang belum terlihat hanya diberi petunjuk.
+
 ## 🛵 Motor dan bonceng berdua
 - **Beli di 💻 laptop toko online, tab 🛵 Motor.** Satu motor dipakai berdua dan langsung diantar ke dekat gerbang selatan farm.
 
