@@ -271,6 +271,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - Pasanganmu menjawab di kamar anak. Kalau pasangan sedang turu, kamu bisa memastikan kalian sudah sepakat berdua.
   - Setelah si kecil datang, **beri nama** dari jendela anak (dekati si kecil atau kamar anak).
   - Anak pertama laki-laki atau perempuan diundi 50:50 (kejutan); anak kedua selalu kebalikannya, jadi kalian punya sepasang.
+  - **Kembar:** kehamilan pertama punya peluang 15% kembar sepasang (laki-laki dan perempuan). Seminggu sebelum lahir, bidan desa memberi kabar hasil USG. Si kembar langsung mengisi kedua kamar anak.
 - **Tahap tumbuh** (kecepatan bisa diatur di jendela anak: Santai ×2 lebih lama, Normal, Cepat ×½):
 
   | Tahap | Lama (Normal) | Di mana |

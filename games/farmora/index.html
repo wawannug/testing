@@ -11062,7 +11062,8 @@
             { lvl: 2, label: 'Rumah keluarga', icon: '🏡', gold: 10000, need: { kayu: 50, batu: 20 }, days: 2, fx: 'Kamar anak siap dipakai (bisa punya anak, paling banyak 2) dan garasi motor di samping rumah (motor +10% lebih kencang)' },
             { lvl: 3, label: 'Rumah besar', icon: '🏘️', gold: 35000, need: { kayu: 80, besi: 15, batu: 30 }, days: 3, fx: 'Sayap rumah baru, dapur modern (memasak tanpa energi, kadang dapat porsi tambahan) dan kamar mandi mewah dengan bak berendam (+25 ⚡)' },
         ];
-        const KID_MAX = 2;
+        const KID_MAX = 2, TWIN_CHANCE = 0.15;   // a first pregnancy is twins (a boy and a girl) now and then
+        const planKids = F => F.plan ? (F.plan.tw ? 2 : 1) : 0;
         const KID_SPEED = { santai: { label: 'Santai', m: 2 }, normal: { label: 'Normal', m: 1 }, cepat: { label: 'Cepat', m: 0.5 } };
         const KID_STAGES = [['bayi', '👶 Bayi', 14], ['balita', '🧸 Balita', 28], ['anak', '🎒 Anak', 56], ['remaja', '🛹 Remaja', 56], ['dewasa', '🎓 Dewasa', Infinity]];
         const TRAITS = { rajin: { label: 'Rajin', icon: '🌾' }, pintar: { label: 'Pintar', icon: '📚' }, kreatif: { label: 'Kreatif', icon: '🎨' }, ramah: { label: 'Ramah', icon: '🤝' } };
@@ -11084,7 +11085,7 @@
                 skin: num(k.skin) || 0xd9a077, tr: Object.fromEntries(Object.keys(TRAITS).map(t => [t, clamp(num(k.tr && k.tr[t]), 0, 999)])),
                 say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, clamp(num(k.say && k.say[u]), 0, 999)])), job: JOBS[k.job] ? k.job : null, st: KID_STAGES.some(s => s[0] === k.st) ? k.st : 'bayi', word: typeof k.word === 'string' ? k.word.slice(0, 12) : '',
             }));
-            const plan = o.plan && ['hamil', 'adopsi'].includes(o.plan.how) && Number.isFinite(+o.plan.due) ? { how: o.plan.how, due: +o.plan.due, by: String(o.plan.by || '') } : null;
+            const plan = o.plan && ['hamil', 'adopsi'].includes(o.plan.how) && Number.isFinite(+o.plan.due) ? { how: o.plan.how, due: +o.plan.due, by: String(o.plan.by || ''), tw: o.plan.tw ? 1 : 0 } : null;
             const ask = o.ask && ['hamil', 'adopsi'].includes(o.ask.how) && CHARACTERS[o.ask.by] ? { how: o.ask.how, by: o.ask.by, day: num(o.ask.day) | 0 } : null;
             return { reno: { lvl: clamp(num(r.lvl) | 0 || 1, 1, 3), due: num(r.due) | 0, to: num(r.to) | 0 }, kids, plan, ask, sp: KID_SPEED[o.sp] ? o.sp : 'normal' };
         }
@@ -11107,12 +11108,12 @@
                 emitEvent(`🪚 Pak Markus mulai merenovasi rumah jadi ${R.icon} ${R.label}. Selesai dalam ${R.days} hari`, 'sell', null, who);
                 jot(`Rumah mulai direnovasi jadi ${R.label} 🏠`);
             } else if (op === 'ask') {
-                if (houseLvl() < 2 || F.kids.length + (F.plan ? 1 : 0) >= KID_MAX || !['hamil', 'adopsi'].includes(a)) return;
+                if (houseLvl() < 2 || F.kids.length + planKids(F) >= KID_MAX || !['hamil', 'adopsi'].includes(a)) return;
                 F.ask = { how: a, by: who, day: state.day };
                 emitEvent(`💞 ${who} ingin ${a === 'hamil' ? 'punya momongan' : 'mengadopsi anak'}. ${otherOf(who)}, jawab di kamar anak, ya`, 'heart1', null, who);
             } else if (op === 'ok' || op === 'solo') {
                 const q = F.ask; if (!q || (op === 'ok' && q.by === who) || (op === 'solo' && q.by !== who)) return;
-                F.ask = null; F.plan = { how: q.how, due: state.day + (q.how === 'hamil' ? 14 : 3), by: q.by };
+                F.ask = null; F.plan = { how: q.how, due: state.day + (q.how === 'hamil' ? 14 : 3), by: q.by, tw: q.how === 'hamil' && !F.kids.length && Math.random() < TWIN_CHANCE ? 1 : 0 };
                 emitEvent(q.how === 'hamil' ? `🤰 Kabar gembira! ${NA} hamil. Si kecil lahir sekitar 14 hari lagi 💕` : '📝 Berkas adopsi diurus di kota. 3 hari lagi si kecil datang ke rumah 💕', 'hearts', null, who);
                 jot(q.how === 'hamil' ? `🤰 ${NA} hamil, kami akan jadi orang tua!` : '📝 Kami memutuskan mengadopsi anak');
             } else if (op === 'no') {
@@ -11139,12 +11140,18 @@
         function famNight() {
             const F = famS(), d = state.day + 1, news = [];
             if (F.reno.to && d >= F.reno.due) { F.reno.lvl = F.reno.to; F.reno.to = 0; const R = RENO[F.reno.lvl]; news.push(`🏠 Renovasi selesai! Rumah kalian sekarang ${R.icon} ${R.label}`); jot(`Renovasi selesai: ${R.label} 🏠`); }
+            if (F.plan && F.plan.tw && F.plan.how === 'hamil' && d === F.plan.due - 7) { news.push('🩺 Hasil USG bidan desa: kembar! Siapkan dua kamar anak 👶👶'); jot('🩺 Kata bidan, kami akan punya anak kembar!'); }
             if (F.plan && d >= F.plan.due && F.kids.length < KID_MAX) {
-                // the first is a surprise; the second is the other one, so you have a boy and a girl
-                const g = F.kids.length ? (F.kids[0].g === 'm' ? 'f' : 'm') : Math.random() < 0.5 ? 'f' : 'm';
-                F.kids.push({ id: (Math.max(0, ...F.kids.map(k => k.id)) + 1), name: '', g, born: d, how: F.plan.how, skin: [0xd9a077, 0xe0ac7e, 0xc98f5e, 0xe9b993][Math.floor(Math.random() * 4)], tr: { rajin: 0, pintar: 0, kreatif: 0, ramah: 0 }, say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, 0])), job: null, st: 'bayi', word: '' });
-                news.push(F.plan.how === 'hamil' ? `👶 Si kecil lahir! ${g === 'f' ? 'Perempuan' : 'Laki-laki'}, sehat dan lucu. Beri nama di kamar anak` : `👶 Si kecil sudah datang ke rumah! Beri nama di kamar anak`);
-                jot(F.plan.how === 'hamil' ? '👶 Anak kami lahir 💕' : '👶 Anak kami datang ke rumah 💕');
+                const twins = F.plan.tw && F.kids.length === 0, born = [];
+                for (let n = 0; n < (twins ? 2 : 1); n++) {
+                    // the first is a surprise; the second is the other one, so you have a boy and a girl
+                    const g = F.kids.length ? (F.kids[0].g === 'm' ? 'f' : 'm') : Math.random() < 0.5 ? 'f' : 'm';
+                    F.kids.push({ id: (Math.max(0, ...F.kids.map(k => k.id)) + 1), name: '', g, born: d, how: F.plan.how, skin: [0xd9a077, 0xe0ac7e, 0xc98f5e, 0xe9b993][Math.floor(Math.random() * 4)], tr: { rajin: 0, pintar: 0, kreatif: 0, ramah: 0 }, say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, 0])), job: null, st: 'bayi', word: '' });
+                    born.push(g);
+                }
+                const gl = g => g === 'f' ? 'Perempuan' : 'Laki-laki';
+                news.push(twins ? `👶👶 Si kembar lahir! ${gl(born[0])} dan ${gl(born[1]).toLowerCase()}, sehat dan lucu. Beri nama keduanya di kamar anak` : F.plan.how === 'hamil' ? `👶 Si kecil lahir! ${gl(born[0])}, sehat dan lucu. Beri nama di kamar anak` : '👶 Si kecil sudah datang ke rumah! Beri nama di kamar anak');
+                jot(twins ? '👶👶 Anak kembar kami lahir 💕' : F.plan.how === 'hamil' ? '👶 Anak kami lahir 💕' : '👶 Anak kami datang ke rumah 💕');
                 F.plan = null;
             }
             for (const k of F.kids) {
@@ -11301,7 +11308,7 @@
             const F = famS();
             if (houseLvl() < 2) return r === 1 ? '🧸 Kamar anak · renovasi rumah dulu (Pak Markus)' : '🚀 Kamar anak 2 · renovasi rumah dulu (Pak Markus)';
             if (F.ask) return F.ask.by === USER ? `💞 Menunggu jawaban ${otherOf(USER)}…` : `💞 ${F.ask.by} ingin ${F.ask.how === 'hamil' ? 'punya momongan' : 'mengadopsi anak'}. Jawab?`;
-            if (F.plan) return F.plan.how === 'hamil' ? `🤰 Si kecil lahir sekitar ${Math.max(0, F.plan.due - state.day)} hari lagi` : `📝 Si kecil datang ${Math.max(0, F.plan.due - state.day)} hari lagi`;
+            if (F.plan) return F.plan.how === 'hamil' ? `🤰 ${F.plan.tw && state.day >= F.plan.due - 7 ? 'Si kembar' : 'Si kecil'} lahir sekitar ${Math.max(0, F.plan.due - state.day)} hari lagi` : `📝 Si kecil datang ${Math.max(0, F.plan.due - state.day)} hari lagi`;
             if (F.kids.length >= KID_MAX) return `🧸 Kamar ${kidName(F.kids[r - 1] || F.kids[0])}`;
             return '💞 Bicarakan rencana punya anak';
         }
