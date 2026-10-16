@@ -258,6 +258,41 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **🪟 Rumah kaca** (bangun lewat papan pembangunan, 1.500 G + kayu, besi, batu): tanah di dalamnya tersiram otomatis, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin.
 - **🪚 Jasa tukang kayu (Pak Markus, penggergajian).** Pesan pindah kandang (1.500 G + 20 kayu), pohon kebun buah (400 G + 5 kayu), pohon yang kalian tanam sendiri (250 G), atau bangunan tambahan (800 G + 10 kayu). Kamu dapat 📍 **patok**: pegang patoknya dan berdiri di tempat baru. Garis hijau berarti tempatnya bisa, merah berarti terhalang (alasannya muncul). Pasang patoknya, lalu tukang kayu memindahkannya **malam itu**. Pagi berikutnya farm otomatis dimuat ulang sebentar dengan tata letak baru. Saat main berdua, perangkat pasangan juga ikut dimuat ulang dan bergabung lagi sendiri. Pesanan bisa dibatalkan di Pak Markus (uang kembali).
 
+## 🏡 Renovasi rumah dan anak
+- **Renovasi rumah** dipesan ke 🪚 Pak Markus (penggergajian), di bagian atas jendela tukang kayu:
+
+  | Tingkat | Biaya | Lama | Isinya |
+  |---|---|---|---|
+  | 🏡 Rumah keluarga | 10.000 G + 50 kayu + 20 batu | 2 hari | kamar anak siap dipakai, garasi motor di samping rumah (motor +10% lebih kencang, motor baru diantar ke garasi) |
+  | 🏘️ Rumah besar | 35.000 G + 80 kayu + 15 besi + 30 batu | 3 hari | sayap rumah baru di sisi barat, dapur modern (memasak tanpa energi, 30% peluang porsi tambahan), bak berendam di kamar mandi (+25 ⚡) |
+
+- **Punya anak (paling banyak 2)**, setelah Rumah keluarga selesai:
+  - Datangi kamar anak (lantai 2) lalu pilih **Bicarakan rencana punya anak**: 🤰 **hamil** (lahir sekitar 14 hari game kemudian) atau 📝 **adopsi** (datang 3 hari kemudian).
+  - Pasanganmu menjawab di kamar anak. Kalau pasangan sedang turu, kamu bisa memastikan kalian sudah sepakat berdua.
+  - Setelah si kecil datang, **beri nama** dari jendela anak (dekati si kecil atau kamar anak).
+- **Tahap tumbuh** (kecepatan bisa diatur di jendela anak: Santai ×2 lebih lama, Normal, Cepat ×½):
+
+  | Tahap | Lama (Normal) | Di mana |
+  |---|---|---|
+  | 👶 Bayi | 14 hari | di boks kamar anak |
+  | 🧸 Balita | 28 hari | bermain di depan teras; mulai berjalan dan mengucap kata pertama ("Mama" atau "Papa", siapa yang paling sering mengasuh) |
+  | 🎒 Anak | 56 hari | sekolah Senin–Sabtu sampai 12:00, sorenya bermain di halaman |
+  | 🛹 Remaja | 56 hari | sekolah sampai 14:00 |
+  | 🎓 Dewasa | seterusnya | punya pekerjaan |
+
+  Malam hari (20:30–06:30) anak tidur di kamarnya.
+- **Kegiatan bersama:** tiap orang tua bisa 2 kegiatan sehari per anak, misalnya timang, beri susu, nyanyi, ajak main, ajari bicara, bantu PR, berkebun, menggambar, main musik, ngobrol, atau uang jajan. Tiap kegiatan menambah 💕 sayang ke orang tua yang mengasuh dan salah satu sifat (🌾 Rajin, 📚 Pintar, 🎨 Kreatif, 🤝 Ramah).
+- **Cita-cita saat dewasa** mengikuti sifat terkuat:
+
+  | Sifat terkuat | Cita-cita | Bantuannya |
+  |---|---|---|
+  | 🌾 Rajin | 🧑‍🌾 Petani muda | menyiram 12 petak tiap pagi |
+  | 📚 Pintar | 🧑‍⚕️ Dokter | klinik gratis, ketiduran tetap bangun dengan energi penuh |
+  | 🎨 Kreatif | 🧑‍🎨 Seniman | tiap Minggu +400 G dari lukisan |
+  | 🤝 Ramah | 🧑‍💼 Kepala desa | tiap Senin tunjangan +250 G |
+
+- Lahir, kata pertama, hari pertama sekolah, remaja, dan lulus tercatat di 📔 Jurnal berdua.
+
 ## 🦡 Satwa langka dan pojok suaka (tahap 10)
 - **11 satwa langka** hidup di desa-desa, masing-masing muncul di wilayah dan jam tertentu (tidak setiap hari).
 

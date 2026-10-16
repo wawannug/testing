@@ -171,6 +171,9 @@ Hewan purba hidup kembali dan tersebar sesuai habitat. Tidak ada membunuh hewan;
 - [ ] **Festival Purba** (Pulau Kencana: tunggang Triceratops, pameran telur, parade Pteranodon) dan **Malam Legenda Danau** (Plesiosaurus di bawah bulan purnama).
 
 ## 💞 Tahap 13: Hewan ternak dan momen berdua
+- [x] **Renovasi rumah** (Rumah keluarga, Rumah besar) dan **anak** (paling banyak 2, hamil atau adopsi, bayi sampai dewasa, sifat dan cita-cita).
+- [ ] Renovasi berikutnya: mode dekorasi perabot sendiri, gaya rumah (joglo, panggung, modern), ruang bawah tanah, ruang musik, perpustakaan.
+- [ ] Anak: foto keluarga tahunan, liburan keluarga, tedak siten, anak ikut festival.
 - [ ] Hewan ternak bisa beranak, ditambah kelinci dan kuda.
 - [ ] Hari jadi tiap tahun, album foto otomatis dari momen jurnal, renovasi rumah.
 

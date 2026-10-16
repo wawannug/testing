@@ -606,6 +606,7 @@
                 <tr class="desktop-only"><td>Shift</td><td>Lari</td></tr>
                 <tr class="desktop-only"><td>E / Spasi</td><td>Interaksi</td></tr>
                 <tr class="desktop-only"><td>Scroll</td><td>Zoom kamera</td></tr>
+                <tr><td>🏡 Renovasi & anak</td><td>Pesan renovasi ke Pak Markus; setelah Rumah keluarga, bicarakan rencana punya anak di kamar anak (maks 2)</td></tr>
                 <tr><td>🦡 Satwa langka</td><td>Beri makanan kesukaannya sampai 🤍 100, lalu ajak ke pojok suaka. Petunjuk di Buku satwa</td></tr>
                 <tr><td>🛵 Motor</td><td>Beli di laptop (tab Motor), dekati lalu tekan tombol untuk naik/turun. Pasangan bisa bonceng</td></tr>
                 <tr class="desktop-only"><td>Q</td><td>Pakai tangan kiri (tahan slot toolbar / Shift+angka untuk mengisinya)</td></tr>
@@ -5661,7 +5662,7 @@
         const addEnergy = (u, n) => { state.en ||= {}; state.en[u] = clamp(energyOf(u) + n, 0, ENERGY_MAX); };
         // what each kind of farm work costs
         function energyCost(id) {
-            if (id === 'cook') return 3;
+            if (id === 'cook') return houseLvl() >= 3 ? 0 : 3;   // the modern kitchen: cooking is no work
             const p = String(id).split(':')[0];
             if (id === 'catch') return state.up && state.up.pancing ? 1 : 2;
             let base = { pot: 2, tr: 2, an: 2, egg: 1, well: 1, tile: 2, ptree: 2, fpot: 1, craft: 1, deco: 1, poop: 1, trough: 1, trougho: 1, rock: 4, log: 4, wild: 3, weed: 1 }[p] || 0;
@@ -5742,6 +5743,7 @@
             st.weeds = Array.isArray(saved.weeds) && saved.weeds.length === WEED_POS.length ? saved.weeds.map(v => v ? 1 : 0) : base.weeds;
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
             st.satwa = cleanSatwa(saved.satwa);
+            st.fam = cleanFam(saved.fam);
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
             st.jr = Array.isArray(saved.jr) ? saved.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string').slice(-JR_MAX).map(e => [e[0] | 0, e[1].slice(0, 160)]) : [];
@@ -8422,7 +8424,8 @@
         }
         function openCarpenter() {
             const c = state.carp, again = () => setTimeout(() => { if (dlgOpen()) openCarpenter(); }, 450);
-            const body = [el('p', { class: 'small-note', text: 'Pak Markus bisa memindahkan kandang, pohon, atau bangunan di farm. Pesan dan bayar di sini, lalu tancapkan 📍 patok di tempat barunya (pegang patok di toolbar, garis hijau = bisa). Malamnya dipindahkan, dan farm dimuat ulang pagi harinya.' })];
+            const body0 = [el('h4', { text: '🏠 Renovasi rumah' }), ...renoRows()];
+            const body = [...body0, el('p', { class: 'small-note', text: 'Pak Markus bisa memindahkan kandang, pohon, atau bangunan di farm. Pesan dan bayar di sini, lalu tancapkan 📍 patok di tempat barunya (pegang patok di toolbar, garis hijau = bisa). Malamnya dipindahkan, dan farm dimuat ulang pagi harinya.' })];
             if (c) {
                 const T = carpThing(c);
                 body.push(el('h4', { text: '📋 Pesanan sekarang' }), el('p', { text: `${T ? T.icon + ' ' + T.name : '?'} · ${c.at ? '📍 patok sudah tertancap, dikerjakan malam ini' : `belum ada patok: ${c.by} memegang 📍 patok, tancapkan di farm`}` }));
@@ -9572,8 +9575,9 @@
             },
             clinic(who, k) {
                 const c = CLINIC[k];
-                if (!c || state.gold < c.price) return;
-                state.gold -= c.price;
+                const price = hasJob('pintar') ? 0 : c.price;   // a doctor in the family
+                if (!c || state.gold < price) return;
+                state.gold -= price;
                 addEnergy(who, k === 'periksa' ? ENERGY_MAX : 60);
                 emitEvent(`${c.icon} ${c.label} di rumah sakit · energi ${Math.round(energyOf(who))} ⚡`, 'none', null, who);
             },
@@ -9765,7 +9769,7 @@
                     if (fromBag) takeBag(who, i, fromBag);
                     if (n - fromBag) storeTake(fr, i, n - fromBag);
                 }
-                const ok = r.out || r.key, cnt = r.n || 1, inBag = addBag(who, ok, cnt);
+                const ok = r.out || r.key, cnt = (r.n || 1) + (houseLvl() >= 3 && Math.random() < 0.3 ? 1 : 0), inBag = addBag(who, ok, cnt);
                 if (inBag < cnt) fr[ok] = (fr[ok] || 0) + cnt - inBag;
                 emitEvent(`${r.out ? 'Membuat' : 'Memasak'} ${r.icon} ${r.label}${cnt > 1 ? ' ×' + cnt : ''}!${inBag >= cnt ? '' : ' Tas penuh, sisanya disimpan di kulkas.'}`, 'icon:' + r.icon, [F1 + 5.6, 1.4, -6.4], who);
             },
@@ -9799,8 +9803,9 @@
                 emitEvent(`Memberi ${it.icon} ${it.label} untuk ${to} 🎁`, 'gift', null, who);
             },
             mandi(who) {
-                addEnergy(who, 5);
-                emitEvent('Segar sekali habis mandi 🚿✨ +5 ⚡', 'none', null, who);
+                const n = houseLvl() >= 3 ? 25 : 5;
+                addEnergy(who, n);
+                emitEvent(n > 5 ? `Berendam di bak air hangat 🛁✨ +${n} ⚡` : 'Segar sekali habis mandi 🚿✨ +5 ⚡', 'none', null, who);
             },
             ibadah(who) {
                 state.ib[who] = state.day;
@@ -9909,6 +9914,7 @@
             },
             // 🪚 the carpenter: order (pay, get a stake), mark the new place with the stake, or cancel
             satwa(who, x) { satAct(who, x); },
+            fam(who, x) { famAct(who, x); },
             motor(who, x) {
                 const [op, a = '', b = '', c = ''] = String(x).split('|');
                 if (op === 'buy') {
@@ -9917,7 +9923,7 @@
                     const cost = M.gold - (old ? Math.round(old.gold / 2) : 0);
                     if (state.gold < cost) { emitEvent(`Uangnya belum cukup untuk ${M.label} (${cost.toLocaleString('id-ID')} G) 🛵`, 'none', null, who); return; }
                     state.gold -= cost;
-                    state.motor = old ? { ...state.motor, k: a } : { k: a, ...MOTOR_SPOT };
+                    state.motor = old ? { ...state.motor, k: a } : { k: a, ...(houseLvl() >= 2 ? { x: -3.8, z: -14.4, h: 0 } : MOTOR_SPOT) };
                     emitEvent(old ? `${M.icon} Tukar tambah beres! ${M.label} menunggu di tempat motor lama diparkir` : `${M.icon} ${M.label} sudah diantar, parkir di dekat gerbang selatan farm. Dekati lalu tekan tombol untuk naik`, 'sell', null, who);
                 } else if (op === 'park') {
                     const px = +a, pz = +b, ph = +c;
@@ -10158,8 +10164,8 @@
             add('h:up2', HV(F2, -7.9, -3.9), 0.9, { local: true, label: () => 'Naik ke rooftop 🌿', act: () => travel(HV(RF, -7, -3.4), 0, '') });
             add('bed', HV(F2, -1.75, -3.9), 1.7, { local: true, label: () => player.sit === BED[USER] ? 'Tidur / bangun 🛏️' : 'Tempat tidur 🛏️', act: askSleep });
             add('h:wardrobe', HV(F2, -4.4, -2.2), 1.0, { local: true, label: () => 'Buka lemari pakaian 👚', act: openWardrobe });
-            add('h:kid1', HV(F2, 3.75, -5.1), 1.2, info('Lihat kamar anak 1 🧸', '🧸 Kamar anak 1 sudah disiapkan untuk anak kalian nanti. Semoga jadi keluarga sakinah 🤍'));
-            add('h:kid2', HV(F2, 7.25, -4.2), 1.2, info('Lihat kamar anak 2 🚀', '🚀 Kamar anak 2 menunggu penghuni kecilnya suatu hari nanti 🤍'));
+            add('h:kid1', HV(F2, 3.75, -4.4), 1.3, { local: true, label: () => kidRoomLabel(1), act: () => kidRoomAct(1) });
+            add('h:kid2', HV(F2, 7.25, -3.6), 1.3, { local: true, label: () => kidRoomLabel(2), act: () => kidRoomAct(2) });
             add('h:balc0', new THREE.Vector3(SEATS.balc0.x, 0, SEATS.balc0.z), 0.9, seatAct(SEATS.balc0, 'Santai di balkon 🌇'));
             add('h:balc1', new THREE.Vector3(SEATS.balc1.x, 0, SEATS.balc1.z), 0.9, seatAct(SEATS.balc1, 'Santai di balkon 🌇'));
             add('h:balcB', HV(F2, 4.5, 5.4), 1.3, seatsAct(SEATS.balcBench, 'Duduk di bangku balkon'));
@@ -10367,6 +10373,7 @@
                 act: () => openPartnerMenu(),
             });
             list.push(...satwaInteractables());
+            list.push(...famInteractables());
             // 🛵 get on the bike, or on the back of it behind your partner
             list.push({
                 id: 'motor', local: true, reach: 1.8, get pos() { return MOTOR_POS; },
@@ -11046,6 +11053,291 @@
                 !res.length && !free.length ? el('p', { class: 'small-note', text: 'Belum ada sahabat. Cari satwa langka di desa-desa, buka 🦡 Buku satwa untuk petunjuknya.' }) : null,
             ].filter(Boolean), [{ t: '🦡 Buku satwa', f: () => openSatwaBook() }, { t: 'Tutup' }]);
         }
+        // ---------- 🏠 house renovations and 👶 children ----------
+        // Pak Markus renovates the house in two steps. The family house opens the children's rooms (up to two children,
+        // decided by both of you) and a carport; the big house adds a modern kitchen, a bathtub and a side wing.
+        // A child grows from baby to grown-up over the seasons, and what you do with them shapes who they become.
+        const RENO = [
+            null, null,
+            { lvl: 2, label: 'Rumah keluarga', icon: '🏡', gold: 10000, need: { kayu: 50, batu: 20 }, days: 2, fx: 'Kamar anak siap dipakai (bisa punya anak, paling banyak 2) dan garasi motor di samping rumah (motor +10% lebih kencang)' },
+            { lvl: 3, label: 'Rumah besar', icon: '🏘️', gold: 35000, need: { kayu: 80, besi: 15, batu: 30 }, days: 3, fx: 'Sayap rumah baru, dapur modern (memasak tanpa energi, kadang dapat porsi tambahan) dan kamar mandi mewah dengan bak berendam (+25 ⚡)' },
+        ];
+        const KID_MAX = 2;
+        const KID_SPEED = { santai: { label: 'Santai', m: 2 }, normal: { label: 'Normal', m: 1 }, cepat: { label: 'Cepat', m: 0.5 } };
+        const KID_STAGES = [['bayi', '👶 Bayi', 14], ['balita', '🧸 Balita', 28], ['anak', '🎒 Anak', 56], ['remaja', '🛹 Remaja', 56], ['dewasa', '🎓 Dewasa', Infinity]];
+        const TRAITS = { rajin: { label: 'Rajin', icon: '🌾' }, pintar: { label: 'Pintar', icon: '📚' }, kreatif: { label: 'Kreatif', icon: '🎨' }, ramah: { label: 'Ramah', icon: '🤝' } };
+        const JOBS = { rajin: { label: 'Petani muda', icon: '🧑‍🌾', fx: 'tiap pagi menyiram 12 petak tanaman' }, pintar: { label: 'Dokter', icon: '🧑‍⚕️', fx: 'klinik gratis, dan ketiduran tetap bangun dengan energi penuh' }, kreatif: { label: 'Seniman', icon: '🧑‍🎨', fx: 'tiap Minggu menjual lukisan +400 G' }, ramah: { label: 'Kepala desa', icon: '🧑‍💼', fx: 'tiap Senin membawa tunjangan +250 G' } };
+        // what you can do together, per stage: [id, label, trait it grows]
+        const KID_ACTS = {
+            bayi: [['timang', '🤱 Timang dan ninabobokan', 'ramah'], ['susu', '🍼 Beri susu', null], ['lagu', '🎶 Nyanyikan lagu', 'kreatif']],
+            balita: [['main', '🧸 Ajak main', 'ramah'], ['bicara', '🗣️ Ajari bicara dan berhitung', 'pintar'], ['tanah', '🪴 Main tanah di kebun', 'rajin']],
+            anak: [['pr', '📚 Bantu PR', 'pintar'], ['kebun', '🌾 Ajak berkebun', 'rajin'], ['gambar', '🎨 Menggambar bersama', 'kreatif'], ['teman', '🤝 Main dengan teman desa', 'ramah']],
+            remaja: [['ngobrol', '💬 Ngobrol dari hati ke hati', 'ramah'], ['belajar', '📖 Temani belajar', 'pintar'], ['ternak', '🐄 Urus ternak bersama', 'rajin'], ['musik', '🎸 Main musik', 'kreatif'], ['jajan', '💸 Beri uang jajan (50 G)', null]],
+            dewasa: [['ngobrol', '💬 Ngobrol dan makan bersama', null]],
+        };
+        const famS = () => (state.fam ||= { reno: { lvl: 1, due: 0, to: 0 }, kids: [], plan: null, ask: null, sp: 'normal' });
+        function cleanFam(o) {
+            o = o && typeof o === 'object' ? o : {};
+            const r = o.reno || {}, num = v => Number.isFinite(+v) ? +v : 0;
+            const kids = (Array.isArray(o.kids) ? o.kids : []).slice(0, KID_MAX).filter(k => k && typeof k === 'object').map((k, i) => ({
+                id: num(k.id) || i + 1, name: typeof k.name === 'string' ? k.name.slice(0, 16) : '', g: k.g === 'f' ? 'f' : 'm', born: num(k.born) | 0, how: k.how === 'adopsi' ? 'adopsi' : 'hamil',
+                skin: num(k.skin) || 0xd9a077, tr: Object.fromEntries(Object.keys(TRAITS).map(t => [t, clamp(num(k.tr && k.tr[t]), 0, 999)])),
+                say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, clamp(num(k.say && k.say[u]), 0, 999)])), job: JOBS[k.job] ? k.job : null, st: KID_STAGES.some(s => s[0] === k.st) ? k.st : 'bayi', word: typeof k.word === 'string' ? k.word.slice(0, 12) : '',
+            }));
+            const plan = o.plan && ['hamil', 'adopsi'].includes(o.plan.how) && Number.isFinite(+o.plan.due) ? { how: o.plan.how, due: +o.plan.due, by: String(o.plan.by || '') } : null;
+            const ask = o.ask && ['hamil', 'adopsi'].includes(o.ask.how) && CHARACTERS[o.ask.by] ? { how: o.ask.how, by: o.ask.by, day: num(o.ask.day) | 0 } : null;
+            return { reno: { lvl: clamp(num(r.lvl) | 0 || 1, 1, 3), due: num(r.due) | 0, to: num(r.to) | 0 }, kids, plan, ask, sp: KID_SPEED[o.sp] ? o.sp : 'normal' };
+        }
+        const houseLvl = () => famS().reno.lvl;
+        const kidStage = k => { let a = (state.day - k.born) / KID_SPEED[famS().sp].m; for (const s of KID_STAGES) { if (a < s[2]) return s[0]; a -= s[2]; } return 'dewasa'; };
+        const stageLabel = st => KID_STAGES.find(s => s[0] === st)[1];
+        const kidName = k => k.name || (k.g === 'f' ? 'Si cantik' : 'Si ganteng');
+        const parentWord = u => CHARACTERS[u].g === 'f' ? 'Mama' : 'Papa';
+        const topTrait = k => Object.keys(TRAITS).reduce((a, b) => (k.tr[b] || 0) > (k.tr[a] || 0) ? b : a, 'rajin');
+        const hasJob = j => famS().kids.some(k => k.job === j);
+        // ---- the renovation order and the family plan (run on the farm that runs the day) ----
+        function famAct(who, x) {
+            const [op, a, b] = String(x).split('|'), F = famS();
+            if (op === 'reno') {
+                const R = RENO[F.reno.lvl + 1];
+                if (!R || F.reno.to) return;
+                if (state.gold < R.gold || Object.entries(R.need).some(([k, n]) => have(who, k) < n)) { emitEvent(`Uang atau bahannya belum cukup untuk ${R.label} 🏠`, 'none', null, who); return; }
+                state.gold -= R.gold; for (const [k, n] of Object.entries(R.need)) takeBag(who, k, n);
+                F.reno.to = R.lvl; F.reno.due = state.day + R.days;
+                emitEvent(`🪚 Pak Markus mulai merenovasi rumah jadi ${R.icon} ${R.label}. Selesai dalam ${R.days} hari`, 'sell', null, who);
+                jot(`Rumah mulai direnovasi jadi ${R.label} 🏠`);
+            } else if (op === 'ask') {
+                if (houseLvl() < 2 || F.kids.length + (F.plan ? 1 : 0) >= KID_MAX || !['hamil', 'adopsi'].includes(a)) return;
+                F.ask = { how: a, by: who, day: state.day };
+                emitEvent(`💞 ${who} ingin ${a === 'hamil' ? 'punya momongan' : 'mengadopsi anak'}. ${otherOf(who)}, jawab di kamar anak, ya`, 'heart1', null, who);
+            } else if (op === 'ok' || op === 'solo') {
+                const q = F.ask; if (!q || (op === 'ok' && q.by === who) || (op === 'solo' && q.by !== who)) return;
+                F.ask = null; F.plan = { how: q.how, due: state.day + (q.how === 'hamil' ? 14 : 3), by: q.by };
+                emitEvent(q.how === 'hamil' ? `🤰 Kabar gembira! ${NA} hamil. Si kecil lahir sekitar 14 hari lagi 💕` : '📝 Berkas adopsi diurus di kota. 3 hari lagi si kecil datang ke rumah 💕', 'hearts', null, who);
+                jot(q.how === 'hamil' ? `🤰 ${NA} hamil, kami akan jadi orang tua!` : '📝 Kami memutuskan mengadopsi anak');
+            } else if (op === 'no') {
+                if (!F.ask) return; F.ask = null; emitEvent('💭 Rencana punya anak ditunda dulu. Tidak apa-apa, pelan-pelan saja', 'none', null, who);
+            } else if (op === 'name') {
+                const k = F.kids[+a]; const nm = String(b || '').replace(/[<>|]/g, '').trim().slice(0, 16);
+                if (!k || !nm || k.name) return; k.name = nm;
+                emitEvent(`👶 Selamat datang, ${nm}! ${k.g === 'f' ? 'Anak perempuan' : 'Anak laki-laki'} yang lucu 💕`, 'hearts', null, who); jot(`👶 Anak kami diberi nama ${nm}`);
+            } else if (op === 'sp') { if (KID_SPEED[a]) { F.sp = a; for (const k of F.kids) k.st = kidStage(k); } }
+            else if (op === 'do') {
+                const k = F.kids[+a], st = k && kidStage(k), A = st && KID_ACTS[st].find(t => t[0] === b);
+                if (!A) return;
+                if (!dailyLeft('kid' + a, who, 2)) { emitEvent(`${kidName(k)} sudah cukup bermain denganmu hari ini. Besok lagi, ya 💕`, 'none', null, who); return; }
+                if (b === 'jajan') { if (state.gold < 50) return; state.gold -= 50; }
+                if (b === 'susu') { const m = ['milk', 'goatMilk'].find(i => have(who, i) > 0); if (!m) { emitEvent('Butuh 🥛 susu di tas untuk si kecil', 'none', null, who); return; } takeBag(who, m, 1); }
+                useDaily('kid' + a, who);
+                k.say[who] = (k.say[who] || 0) + (b === 'jajan' || b === 'susu' ? 6 : 4);
+                if (A[2]) k.tr[A[2]] = (k.tr[A[2]] || 0) + 1;
+                const fig = kidFigs[+a], at = fig && fig.f.group.visible ? [fig.f.pos.x, 1.0, fig.f.pos.z] : null;
+                emitEvent(`${A[1].split(' ')[0]} ${kidName(k)} senang sekali${A[2] ? ` · ${TRAITS[A[2]].icon} ${TRAITS[A[2]].label} +1` : ''} 💕`, 'heart1', at, who);
+            }
+        }
+        // overnight: renovations finish, babies arrive, children grow up
+        function famNight() {
+            const F = famS(), d = state.day + 1, news = [];
+            if (F.reno.to && d >= F.reno.due) { F.reno.lvl = F.reno.to; F.reno.to = 0; const R = RENO[F.reno.lvl]; news.push(`🏠 Renovasi selesai! Rumah kalian sekarang ${R.icon} ${R.label}`); jot(`Renovasi selesai: ${R.label} 🏠`); }
+            if (F.plan && d >= F.plan.due && F.kids.length < KID_MAX) {
+                const g = Math.random() < 0.5 ? 'f' : 'm';
+                F.kids.push({ id: (Math.max(0, ...F.kids.map(k => k.id)) + 1), name: '', g, born: d, how: F.plan.how, skin: [0xd9a077, 0xe0ac7e, 0xc98f5e, 0xe9b993][Math.floor(Math.random() * 4)], tr: { rajin: 0, pintar: 0, kreatif: 0, ramah: 0 }, say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, 0])), job: null, st: 'bayi', word: '' });
+                news.push(F.plan.how === 'hamil' ? `👶 Si kecil lahir! ${g === 'f' ? 'Perempuan' : 'Laki-laki'}, sehat dan lucu. Beri nama di kamar anak` : `👶 Si kecil sudah datang ke rumah! Beri nama di kamar anak`);
+                jot(F.plan.how === 'hamil' ? '👶 Anak kami lahir 💕' : '👶 Anak kami datang ke rumah 💕');
+                F.plan = null;
+            }
+            for (const k of F.kids) {
+                const was = k.st; state.day = d; const now = kidStage(k); state.day = d - 1;
+                if (now === was) continue;
+                k.st = now; const nm = kidName(k);
+                if (now === 'balita') { const u = Object.keys(k.say).reduce((a, b) => k.say[b] > k.say[a] ? b : a); k.word = parentWord(u); news.push(`🧸 ${nm} mulai berjalan, dan kata pertamanya "${k.word}"!`); jot(`🧸 ${nm} mulai berjalan. Kata pertamanya: "${k.word}"`); }
+                else if (now === 'anak') { news.push(`🎒 Hari pertama ${nm} masuk sekolah!`); jot(`🎒 ${nm} mulai sekolah`); }
+                else if (now === 'remaja') { news.push(`🛹 ${nm} sudah remaja, cepat sekali besarnya`); jot(`🛹 ${nm} jadi remaja`); }
+                else if (now === 'dewasa') { k.job = topTrait(k); const J = JOBS[k.job]; news.push(`🎓 ${nm} lulus dan menjadi ${J.icon} ${J.label}: ${J.fx}`); jot(`🎓 ${nm} lulus dan menjadi ${J.label}`); }
+            }
+            // grown-up children help out
+            if (hasJob('rajin')) { let n = 0; for (const t of Object.values(state.tiles)) if (t.s && !t.w && n < 12) { t.w = true; t.dry = 0; n++; } }
+            const dow = (d - 1) % 7;
+            if (dow === 6 && hasJob('kreatif')) { state.gold += 400; news.push('🖼️ Lukisan anak kalian terjual +400 G'); }
+            if (dow === 0 && hasJob('ramah')) { state.gold += 250; news.push('💼 Tunjangan kepala desa dari anak kalian +250 G'); }
+            F.msg = news.length ? { d, t: news.join(' · ') } : null;
+        }
+        // ---- what the children look like and where they are ----
+        const kidFigs = [];
+        const KID_HOME = [{ f: F2, room: [3.75, -3.4], crib: [3.75, -6.2, 0.74], bed: [2.7, -4.6, 0.45] }, { f: F2, room: [7.25, -2.8], crib: [7.0, -4.9, 0.6], bed: [8.3, -5.8, 0.62] }];
+        function kidOutfit(k, st) {
+            const f = k.g === 'f';
+            if (st === 'balita') return f ? { f: 'dress-merahmuda', s: 'sandal', hs: 'kuncir' } : { t: 'kaosp-kuning', b: 'pendek-krem', s: 'sandal', hs: 'pendek' };
+            if (st === 'anak') return f ? { f: 'dress-kuning', s: 'flat-merahmuda', hs: 'kepang' } : { t: 'kaosp-merah', b: 'pendek-biru', s: 'sandal', hs: 'jambul' };
+            return f ? { t: 'kaosp-putih', b: 'rok-merahmuda', s: 'flat-merahmuda', hs: 'panjang' } : { t: 'kaosp-biru', b: 'panjang-hitam', s: 'boots', hs: 'samping' };
+        }
+        function babyModel(k) {
+            const g = new THREE.Group(), c = k.g === 'f' ? 0xf6c6d8 : 0xbfdcf6;
+            ball(0.13, 0.1, 0.22, c, 0, 0.1, -0.05, g); ball(0.085, 0.085, 0.085, k.skin, 0, 0.13, 0.17, g);
+            ball(0.09, 0.05, 0.08, c, 0, 0.19, 0.16, g);   // a little cap
+            for (const sx of [-1, 1]) { box(0.025, 0.006, 0.006, 0x3a2a22, sx * 0.03, 0.15, 0.25, g); ball(0.018, 0.012, 0.008, 0xf2a0a0, sx * 0.05, 0.12, 0.245, g); }
+            g.pos = g.position; return g;
+        }
+        function kidFig(i) {
+            const k = famS().kids[i], st = kidStage(k);
+            let F = kidFigs[i];
+            if (F && F.st === st && F.g === k.g) return F;
+            if (F) F.f.group.parent && F.f.group.parent.remove(F.f.group);
+            let f;
+            if (st === 'bayi') { const g = babyModel(k); f = { group: g, pos: g.position, baby: true }; }
+            else {
+                f = makeFarmer({ n: 'kid' + i, g: k.g, o: kidOutfit(k, st), skin: k.skin, kid: st === 'balita' || st === 'anak' ? 1 : 0 });
+                f.group.scale.setScalar({ balita: 0.62, anak: 0.86, remaja: 0.92, dewasa: 1 }[st]);
+            }
+            F = kidFigs[i] = { f, st, g: k.g, ph: i * 2.3 + 0.7, tag: null };
+            return F;
+        }
+        // where a child is right now: [x, z, mode] with mode 'crib', 'bed', 'walk', or null (away: school, work)
+        function kidSpot(i, k, st) {
+            const m = state.minutes, H = KID_HOME[i], dow = (state.day - 1) % 7, night = m >= 1230 || m < 390;
+            if (st === 'bayi') return [H.f + H.crib[0], H.crib[1], 'crib'];
+            if (night) return houseLvl() >= 2 ? [H.f + H.bed[0], H.bed[1], 'bed'] : [H.f + H.room[0], H.room[1], 'walk'];
+            if ((st === 'anak' && dow < 6 && m < 720) || (st === 'remaja' && dow < 6 && m < 840)) return null;          // at school
+            if (st === 'dewasa' && k.job !== 'rajin' && m < 1020) return null;                                        // at work
+            if (st === 'dewasa' && k.job === 'rajin') return [-2, 14.5, 'walk'];                                      // in the fields
+            if (st === 'balita') return [HOUSE_DOOR.x + 1.6 + i * 1.2, HOUSE_DOOR.z + 2.4, 'walk'];                // by the porch
+            return [-2.5 + i * 2.5, 2 + i, 'walk'];                                                                     // out in the yard
+        }
+        const KIDTAG = {};
+        function updateKids(dt) {
+            const F = famS();
+            for (let i = 0; i < KID_MAX; i++) {
+                const k = F.kids[i];
+                if (!k) { if (kidFigs[i]) { kidFigs[i].f.group.visible = false; } continue; }
+                const st = kidStage(k), Fg = kidFig(i), f = Fg.f, sp = kidSpot(i, k, st);
+                if (!sp) { f.group.visible = false; continue; }
+                f.group.visible = true;
+                const [hx, hz, mode] = sp, want = sceneOf({ x: hx, z: hz });
+                if (f.group.parent !== want) want.add(f.group);
+                if (mode === 'crib') { const H = KID_HOME[i]; f.pos.set(hx, H.crib[2], hz); f.group.rotation.set(0, Math.PI / 2, 0); }
+                else if (mode === 'bed') { f.pos.set(hx, 0, hz); f.group.rotation.set(0, Math.PI, 0); if (!f.baby) { animateFarmer(f, false, dt); sitPose(f, 3, KID_HOME[i].bed[2]); } }
+                else {
+                    const t = elapsed * 0.35 + Fg.ph, r = st === 'balita' ? 0.9 : 1.8, x = hx + Math.cos(t) * r, z = hz + Math.sin(t * 0.7) * r;
+                    const ox = f.pos.x, oz = f.pos.z;
+                    f.pos.set(x, inHome({ x }) ? 0 : groundY(x, z), z);
+                    const mv = Math.hypot(x - ox, z - oz) > 0.001; f.heading = Math.atan2(x - ox, z - oz) || 0;
+                    const pd = Math.hypot(player.pos.x - x, player.pos.z - z);
+                    if (pd < 3) f.heading = Math.atan2(player.pos.x - x, player.pos.z - z);
+                    f.group.rotation.set(0, f.heading, 0);
+                    if (!f.baby) { f.phase = (f.phase || 0) + dt * 5; animateFarmer(f, mv && pd >= 3, dt); }
+                }
+                // a little name tag
+                const nm = kidName(k);
+                if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm); o.scale.multiplyScalar(f.baby ? 0.5 : 0.75); o.position.y = f.baby ? 0.6 : 2.2; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
+            }
+            if (F.msg && F.msg.d === state.day && famShown !== state.day && !sleeping && !dlgOpen()) { famShown = state.day; setTimeout(() => toast(F.msg.t), 3500); }
+        }
+        let famShown = 0;
+        // ---- 🏡 the renovated house: a carport, then a side wing; inside, a bathtub and a modern kitchen ----
+        const famVis = { out: 0, home: 0 };
+        function updateFamVis() {
+            const L = houseLvl();
+            if (L >= 2 && famVis.out < 2) {
+                const g = new THREE.Group(); g.position.set(-3.8, 0, -14.4); scene.add(g); FADERS.push({ g });
+                for (const [sx, sz] of [[-1.5, -1.9], [1.5, -1.9], [-1.5, 1.9], [1.5, 1.9]]) { box(0.16, 2.3, 0.16, 0x6e4723, sx, 1.15, sz, g); addCircleCollider(-3.8 + sx, -14.4 + sz, 0.12); }
+                box(3.5, 0.12, 4.3, 0x7a4a2a, 0, 2.35, 0, g); box(3.2, 0.04, 4.0, 0xb8b8b0, 0, 0.02, 0, g).castShadow = false;
+                textPlate(g, '🏍️ Garasi', 0, 2.05, 2.0, 1.2);
+                famVis.out = 2;
+            }
+            if (L >= 3 && famVis.out < 3) {
+                const g = new THREE.Group(); g.position.set(-15.9, 0, -14.1); scene.add(g); FADERS.push({ g });
+                const wall = patternMat(0xf4e6cc, 'brick'); const b = mesh(BOX, wall, g); b.scale.set(3.4, 2.8, 4.6); b.position.y = 1.4;
+                const roof = gableRoof(3.9, 5.1, 1.1, 0xb5452e); roof.position.y = 2.8; roof.material = patternMat(0xb5452e, 'tile'); g.add(roof);
+                for (const z of [-1.1, 1.1]) { box(0.06, 0.9, 0.8, 0x9fd8ff, -1.72, 1.6, z, g); box(0.08, 1.0, 0.9, 0xffffff, -1.73, 1.6, z, g).scale.set(1, 1, 1); }
+                box(1.2, 0.9, 0.06, 0x9fd8ff, 0, 1.6, 2.32, g);
+                for (const x of [-1.0, 1.0]) pottedPlantOut(g, x, 2.7);
+                addBoxCollider(-17.6, -14.2, -16.4, -11.8);
+                famVis.out = 3; groundMemo.clear();
+            }
+            if (homeScene && L >= 2 && !famVis.h2) {
+                // the children's rooms: a bassinet in the second room, a low bed for the first child once grown
+                const g = new THREE.Group(); g.position.x = F2; homeScene.add(g);
+                box(0.85, 0.3, 0.55, 0xf6e6c0, 7.0, 0.45, -4.9, g); box(0.75, 0.06, 0.45, 0xffffff, 7.0, 0.58, -4.9, g); for (const sx of [-0.35, 0.35]) box(0.05, 0.3, 0.05, 0xc8a87a, 7.0 + sx, 0.15, -4.9, g);
+                box(0.95, 0.3, 1.8, 0x8fc7e6, 2.7, 0.15, -4.6, g); box(0.9, 0.12, 1.7, 0xfffaf0, 2.7, 0.36, -4.6, g); box(0.6, 0.1, 0.3, 0xffffff, 2.7, 0.46, -5.3, g);
+                famVis.h2 = 1;
+            }
+            if (homeScene && L >= 3 && famVis.home < 3) {
+                // a bathtub next to the shower, and a second stove and an oven in the kitchen
+                const g = new THREE.Group(); g.position.x = F1; homeScene.add(g);
+                box(1.5, 0.55, 0.8, 0xffffff, -6.6, 0.28, -6.3, g); box(1.3, 0.05, 0.6, 0x9fd8ff, -6.6, 0.5, -6.3, g); box(0.08, 0.35, 0.08, 0xc0c0c0, -7.25, 0.7, -6.6, g);
+                box(0.8, 0.9, 0.6, 0x3a3a3a, 7.6, 0.45, -6.5, g); box(0.6, 0.4, 0.04, 0x222222, 7.6, 0.5, -6.19, g); box(0.5, 0.3, 0.02, 0xf2a040, 7.6, 0.5, -6.17, g);
+                famVis.home = 3;
+            }
+        }
+        function pottedPlantOut(g, x, z) { box(0.36, 0.34, 0.36, 0xb5653a, x, 0.17, z, g); ball(0.3, 0.3, 0.3, 0x4f9a3f, x, 0.55, z, g); }
+        // ---- the windows ----
+        function openKid(i) {
+            const F = famS(), k = F.kids[i]; if (!k) return;
+            const st = kidStage(k), nm = kidName(k), age = state.day - k.born;
+            const bar = (v, max = 30) => '▰'.repeat(Math.min(10, Math.round(v / max * 10))) + '▱'.repeat(10 - Math.min(10, Math.round(v / max * 10)));
+            const body = [el('p', { class: 'small-note', text: `${stageLabel(st)} · umur ${age} hari game · ${k.g === 'f' ? 'perempuan' : 'laki-laki'}${k.word ? ` · kata pertama "${k.word}"` : ''}${k.job ? ` · ${JOBS[k.job].icon} ${JOBS[k.job].label}: ${JOBS[k.job].fx}` : ''}` })];
+            if (!k.name) {
+                const inp = el('input', { type: 'text', maxlength: '16', placeholder: 'Nama si kecil', style: 'font-size:16px;padding:8px;border-radius:10px;border:2px solid #c9a86a;width:70%' });
+                body.push(el('p', { text: '👶 Si kecil belum punya nama. Beri nama berdua:' }), inp, el('button', { class: 'btn', onclick: () => { const v = inp.value.trim(); if (!v) { toast('Tulis namanya dulu'); return; } sendAct('fam', `name|${i}|${v}`); setTimeout(() => { if (dlgOpen()) openKid(i); }, 450); } }, '💕 Beri nama'));
+            }
+            body.push(el('p', { class: 'small-note', text: `💕 Sayang ke ${NA}: ${bar(k.say[NA] || 0, 60)} · ke ${NW}: ${bar(k.say[NW] || 0, 60)}` }));
+            if (st !== 'dewasa') body.push(el('p', { class: 'small-note', text: Object.entries(TRAITS).map(([t, T]) => `${T.icon} ${T.label} ${k.tr[t] || 0}`).join(' · ') + ' · sifat terkuat menentukan cita-citanya saat dewasa' }));
+            const left = dailyLeft('kid' + i, USER, 2);
+            body.push(el('div', { class: 'shoplist' }, KID_ACTS[st].map(([id, label, t]) => {
+                const b = el('button', { class: 'btn', onclick: () => { sendAct('fam', `do|${i}|${id}`); setTimeout(() => { if (dlgOpen()) openKid(i); }, 450); } }, 'Lakukan');
+                if (!left) b.disabled = true;
+                return el('div', { class: 'shopitem' }, el('span', { class: 'nm' }, el('b', { text: label }), el('small', { text: t ? `${TRAITS[t].icon} ${TRAITS[t].label} +1 · 💕 sayang` : '💕 sayang' })), b);
+            })));
+            body.push(el('p', { class: 'small-note', text: left ? `Kamu bisa melakukan ${left} kegiatan lagi dengan ${nm} hari ini.` : `Sudah 2 kegiatan bersama ${nm} hari ini. Besok lagi, ya.` }));
+            body.push(el('p', { class: 'small-note', text: '⏳ Kecepatan tumbuh:' }), el('div', { class: 'tabs chips' }, Object.entries(KID_SPEED).map(([s, S]) => el('button', { class: 'btn' + (F.sp === s ? ' on' : ''), onclick: () => { sendAct('fam', 'sp|' + s); setTimeout(() => { if (dlgOpen()) openKid(i); }, 450); } }, S.label))));
+            openDlg(`${k.g === 'f' ? '👧' : '👦'} ${nm}`, body);
+        }
+        function kidRoomLabel(r) {
+            const F = famS();
+            if (houseLvl() < 2) return r === 1 ? '🧸 Kamar anak · renovasi rumah dulu (Pak Markus)' : '🚀 Kamar anak 2 · renovasi rumah dulu (Pak Markus)';
+            if (F.ask) return F.ask.by === USER ? `💞 Menunggu jawaban ${otherOf(USER)}…` : `💞 ${F.ask.by} ingin ${F.ask.how === 'hamil' ? 'punya momongan' : 'mengadopsi anak'}. Jawab?`;
+            if (F.plan) return F.plan.how === 'hamil' ? `🤰 Si kecil lahir sekitar ${Math.max(0, F.plan.due - state.day)} hari lagi` : `📝 Si kecil datang ${Math.max(0, F.plan.due - state.day)} hari lagi`;
+            if (F.kids.length >= KID_MAX) return `🧸 Kamar ${kidName(F.kids[r - 1] || F.kids[0])}`;
+            return '💞 Bicarakan rencana punya anak';
+        }
+        function kidRoomAct(r) {
+            const F = famS();
+            if (houseLvl() < 2) { toast('🪚 Pesan renovasi "Rumah keluarga" ke Pak Markus di penggergajian, nanti kamar anak bisa dipakai'); return; }
+            if (F.ask) {
+                if (F.ask.by === USER) {
+                    if (net.connected) { toast(`Menunggu ${otherOf(USER)} menjawab di kamar anak 💞`); return; }
+                    openDlg('💞 Rencana punya anak', [el('p', { text: `${otherOf(USER)} sedang turu. Kalian sudah sepakat berdua?` })], [{ t: 'Sudah sepakat', f: () => sendAct('fam', 'solo') }, { t: 'Batalkan rencana', f: () => sendAct('fam', 'no') }, { t: 'Tunggu dulu' }]);
+                    return;
+                }
+                openDlg('💞 Rencana punya anak', [el('p', { text: `${F.ask.by} ingin ${F.ask.how === 'hamil' ? 'punya momongan (hamil)' : 'mengadopsi anak'}. Kamu setuju?` })], [{ t: '💕 Setuju', f: () => sendAct('fam', 'ok') }, { t: 'Nanti dulu', f: () => sendAct('fam', 'no') }]);
+                return;
+            }
+            if (F.plan) { toast(kidRoomLabel(r)); return; }
+            if (F.kids.length >= KID_MAX) { const i = Math.min(r - 1, F.kids.length - 1); openKid(i); return; }
+            openDlg('💞 Rencana punya anak', [
+                el('p', { text: `Kalian bisa punya sampai ${KID_MAX} anak. Keputusan diambil berdua: pilih caranya, lalu pasanganmu menjawab di kamar anak.` }),
+                el('p', { class: 'small-note', text: `Anak tumbuh dari bayi, balita, anak, remaja, sampai dewasa (kecepatan bisa diatur). Sekarang: ${F.kids.length}/${KID_MAX} anak.` }),
+            ], [{ t: '🤰 Hamil (sekitar 14 hari)', f: () => sendAct('fam', 'ask|hamil') }, { t: '📝 Adopsi (3 hari)', f: () => sendAct('fam', 'ask|adopsi') }, { t: 'Nanti saja' }]);
+        }
+        function famInteractables() {
+            const L = [];
+            for (let i = 0; i < KID_MAX; i++) L.push({
+                id: 'kid:' + i, local: true, reach: 1.6,
+                get pos() { const F = kidFigs[i], k = famS().kids[i]; return k && F && F.f.group.visible ? F.f.pos : FAR_AWAY; },
+                when: () => { const F = kidFigs[i], k = famS().kids[i]; return !!(k && F && F.f.group.visible && F.f.group.parent === sceneOf(player.pos)) && !ride; },
+                label: () => { const k = famS().kids[i]; return `${k.g === 'f' ? '👧' : '👦'} ${kidName(k)} · ${stageLabel(kidStage(k))}${k.name ? '' : ' · beri nama'}`; },
+                act: () => openKid(i),
+            });
+            return L;
+        }
+        function renoRows() {
+            const F = famS(), R = RENO[F.reno.lvl + 1];
+            if (F.reno.to) return [el('p', { text: `🏠 Renovasi jadi ${RENO[F.reno.to].label} sedang dikerjakan, selesai ${Math.max(0, F.reno.due - state.day)} hari lagi.` })];
+            if (!R) return [el('p', { class: 'small-note', text: `🏘️ Rumah kalian sudah ${RENO[3].label}, renovasi tertinggi saat ini.` })];
+            const ok = state.gold >= R.gold && Object.entries(R.need).every(([k, n]) => have(USER, k) >= n);
+            const b = el('button', { class: 'btn', onclick: () => { sendAct('fam', 'reno'); setTimeout(() => { if (dlgOpen()) openCarpenter(); }, 450); } }, 'Pesan'); if (!ok) b.disabled = true;
+            return [el('div', { class: 'shoplist', style: 'flex-shrink:0;max-height:none;overflow:visible' }, el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: R.icon }), el('span', { class: 'nm' }, el('b', { text: `${R.label} (tingkat ${R.lvl})` }), el('small', { text: `${R.fx} · 💰 ${R.gold.toLocaleString('id-ID')} G · ${Object.entries(R.need).map(([k, n]) => `${ITEMS[k].icon} ${n} (di tas ${have(USER, k)})`).join(' · ')} · ${R.days} hari` })), b))];
+        }
         const INTERACTABLES = interactables();
         INTERACTABLES.push(
             { id: 'gudang', pos: new THREE.Vector3(BUILDS.gudang.x, 0, BUILDS.gudang.z + BUILDS.gudang.d / 2 + 0.6), reach: 1.5, local: true, when: () => !!state.build.gudang, label: () => 'Buka gudang 🏚️', act: () => openStorage('gudang') },
@@ -11554,7 +11846,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, sw: state.satwa || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, sw: state.satwa || null, fm: state.fam || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -11656,6 +11948,7 @@
             if (w.mc && typeof w.mc === 'object') state.mach = w.mc;
             if ('cp' in w) state.carp = w.cp && typeof w.cp === 'object' ? w.cp : null;
             if (w.sw && typeof w.sw === 'object') state.satwa = cleanSatwa(w.sw);
+            if (w.fm && typeof w.fm === 'object') { const m = state.fam && state.fam.msg; state.fam = cleanFam(w.fm); state.fam.msg = w.fm.msg && Number.isInteger(w.fm.msg.d) ? { d: w.fm.msg.d, t: String(w.fm.msg.t).slice(0, 400) } : m || null; }
             if ('mt' in w && ride !== 'd' && elapsed > bike.parkT) state.motor = w.mt && MOTORS[w.mt.k] && [w.mt.x, w.mt.z, w.mt.h].every(Number.isFinite) ? { k: w.mt.k, x: w.mt.x, z: w.mt.z, h: w.mt.h } : null;
             if (w.ly && typeof w.ly === 'object' && canonLayout(w.ly) !== canonLayout(LAYOUT)) { state.layout = w.ly; reloadForLayout('join'); }
             if (w.ev && typeof w.ev === 'object' && Number.isInteger(w.ev.d) && w.ev.e && typeof w.ev.e === 'object') state.ev = w.ev;
@@ -11802,7 +12095,7 @@
                 if (f.longSkirt && sk) { sk.scale.y = 0.56; sk.position.y = -0.22; for (const d of f.drapes || []) d.visible = true; }
             }
         }
-        const motorSpeed = () => { const M = state.motor && MOTORS[state.motor.k]; if (!M) return 7.5; const off = state.motor.k !== 'trail' && !inFarm(player.pos) && roadTop(player.pos.x, player.pos.z) == null; return M.sp * (off ? 0.75 : 1); };
+        const motorSpeed = () => { const M = state.motor && MOTORS[state.motor.k]; if (!M) return 7.5; const off = state.motor.k !== 'trail' && !inFarm(player.pos) && roadTop(player.pos.x, player.pos.z) == null; return M.sp * (off ? 0.75 : 1) * (houseLvl() >= 2 ? 1.1 : 1); };
         function startRide(role) {
             if (role === 'd' && !state.motor) return;
             clearGoal(); standUp(); ride = role;
@@ -12061,13 +12354,13 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight(); reqNight(); carpNight(); satwaNight();
+                wildNight(); reqNight(); carpNight(); satwaNight(); famNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
                 state.minutes = WAKE_MIN;
                 // a night in bed fills you up; falling asleep at midnight wherever you are, a bit less
-                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut && !suakaHas('kukang') ? Math.max(energyOf(u), 140) : ENERGY_MAX;
+                for (const u of Object.keys(CHARACTERS)) state.en[u] = passedOut && !suakaHas('kukang') && !hasJob('pintar') ? Math.max(energyOf(u), 140) : ENERGY_MAX;
                 standUp(); buildHome();
                 player.pos.copy(WAKE[USER]);
                 player.heading = player.targetHeading = 0;
@@ -12552,6 +12845,7 @@
             updateRemote(dt);
             updateRide(dt);
             updateSatwa(dt);
+            updateKids(dt); updateFamVis();
             updateNPCs(dt);
             regionStream(dt);
             seaSpot(dt);
@@ -12628,7 +12922,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
