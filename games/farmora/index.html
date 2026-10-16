@@ -11171,25 +11171,29 @@
             if (st === 'anak') return f ? { f: 'dress-kuning', s: 'flat-merahmuda', hs: 'kepang' } : { t: 'kaosp-merah', b: 'pendek-biru', s: 'sandal', hs: 'jambul' };
             return f ? { t: 'kaosp-putih', b: 'rok-merahmuda', s: 'flat-merahmuda', hs: 'panjang' } : { t: 'kaosp-biru', b: 'panjang-hitam', s: 'boots', hs: 'samping' };
         }
-        function babyModel(k) {
-            const g = new THREE.Group(), c = k.g === 'f' ? 0xf6c6d8 : 0xbfdcf6;
-            ball(0.13, 0.1, 0.22, c, 0, 0.1, -0.05, g); ball(0.085, 0.085, 0.085, k.skin, 0, 0.13, 0.17, g);
-            ball(0.09, 0.05, 0.08, c, 0, 0.19, 0.16, g);   // a little cap
-            for (const sx of [-1, 1]) { box(0.025, 0.006, 0.006, 0x3a2a22, sx * 0.03, 0.15, 0.25, g); ball(0.018, 0.012, 0.008, 0xf2a0a0, sx * 0.05, 0.12, 0.245, g); }
-            g.pos = g.position; return g;
-        }
+        // how big each stage stands, and how big the head is: the younger, the bigger the head, so the face reads clearly
+        const KID_LOOK = { bayi: { s: 0.58, h: 2.0, w: 1.15, tag: 1.0 }, balita: { s: 0.62, h: 1.95, w: 1.14, tag: 2.75 }, anak: { s: 0.8, h: 1.5, w: 1.06, tag: 2.55 }, remaja: { s: 0.93, h: 1.16, w: 1, tag: 2.4 }, dewasa: { s: 1, h: 1, w: 1, tag: 2.3 } };
+        let KID_TILT = 0.5;   // a baby's head on the pillow, the face turned a little toward the room
         function kidFig(i) {
             const k = famS().kids[i], st = kidStage(k);
             let F = kidFigs[i];
             if (F && F.st === st && F.g === k.g) return F;
             if (F) F.f.group.parent && F.f.group.parent.remove(F.f.group);
-            let f;
-            if (st === 'bayi') { const g = babyModel(k); f = { group: g, pos: g.position, baby: true }; }
-            else {
-                f = makeFarmer({ n: 'kid' + i, g: k.g, o: kidOutfit(k, st), skin: k.skin, kid: st === 'balita' || st === 'anak' ? 1 : 0 });
-                f.group.scale.setScalar({ balita: 0.62, anak: 0.86, remaja: 0.92, dewasa: 1 }[st]);
+            if (KIDTAG[i]) KIDTAG[i].t = null;
+            const L = KID_LOOK[st], baby = st === 'bayi';
+            const o = baby ? { f: k.g === 'f' ? 'piyama-merahmuda' : 'piyama-biru', s: 'none', hs: k.g === 'f' ? 'bob' : 'pendek' } : kidOutfit(k, st);
+            const f = makeFarmer({ n: 'kid' + i, g: k.g, o, skin: k.skin, kid: ['bayi', 'balita', 'anak'].includes(st) ? 1 : 0 });
+            f.group.scale.set(L.s * L.w, L.s, L.s * L.w);   // (little ones a touch rounder)
+            // a bigger head, lifted so it still sits on the neck
+            f.head.scale.setScalar(L.h); f.head.position.y += 0.122 * (L.h - 1) * 0.85;
+            if (baby) {
+                f.baby = true;
+                // a soft blanket from the feet to the chest; only the face peeks out
+                const bl = box(0.46, 0.74, 0.34, k.g === 'f' ? 0xf6c6d8 : 0xbfdcf6, 0, 0.42, 0.03, f.group); bl.castShadow = false;
+                box(0.48, 0.08, 0.36, 0xffffff, 0, 0.78, 0.03, f.group).castShadow = false;
+                box(0.5, 0.36, 0.12, 0xffffff, 0, 1.62, -0.2, f.group).castShadow = false;   // a pillow
             }
-            F = kidFigs[i] = { f, st, g: k.g, ph: i * 2.3 + 0.7, tag: null };
+            F = kidFigs[i] = { f, st, g: k.g, ph: i * 2.3 + 0.7 };
             return F;
         }
         // where a child is right now: [x, z, mode] with mode 'crib', 'bed', 'walk', or null (away: school, work)
@@ -11214,8 +11218,8 @@
                 f.group.visible = true;
                 const [hx, hz, mode] = sp, want = sceneOf({ x: hx, z: hz });
                 if (f.group.parent !== want) want.add(f.group);
-                if (mode === 'crib') { const H = KID_HOME[i]; f.pos.set(hx, H.crib[2], hz); f.group.rotation.set(0, Math.PI / 2, 0); }
-                else if (mode === 'bed') { f.pos.set(hx, 0, hz); f.group.rotation.set(0, Math.PI, 0); if (!f.baby) { animateFarmer(f, false, dt); sitPose(f, 3, KID_HOME[i].bed[2]); } }
+                if (mode === 'crib') { const H = KID_HOME[i]; f.pos.set(hx, 0, hz); animateFarmer(f, false, dt); sitPose(f, 3, H.crib[2] + 0.02); f.head.rotation.x = KID_TILT; for (const e of f.eyes || []) e.scale.y = e.scale.x * (state.minutes >= 1230 || state.minutes < 390 || Math.sin(elapsed * 0.4 + i) > 0.6 ? 0.12 : 1); }
+                else if (mode === 'bed') { f.pos.set(hx, 0, hz); animateFarmer(f, false, dt); sitPose(f, 3, KID_HOME[i].bed[2]); for (const e of f.eyes || []) e.scale.y = e.scale.x * 0.12; }
                 else {
                     const t = elapsed * 0.35 + Fg.ph, r = st === 'balita' ? 0.9 : 1.8, x = hx + Math.cos(t) * r, z = hz + Math.sin(t * 0.7) * r;
                     const ox = f.pos.x, oz = f.pos.z;
@@ -11224,11 +11228,11 @@
                     const pd = Math.hypot(player.pos.x - x, player.pos.z - z);
                     if (pd < 3) f.heading = Math.atan2(player.pos.x - x, player.pos.z - z);
                     f.group.rotation.set(0, f.heading, 0);
-                    if (!f.baby) { f.phase = (f.phase || 0) + dt * 5; animateFarmer(f, mv && pd >= 3, dt); }
+                    f.phase = (f.phase || 0) + dt * 5; animateFarmer(f, mv && pd >= 3, dt);
                 }
                 // a little name tag
                 const nm = kidName(k);
-                if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm); o.scale.multiplyScalar(f.baby ? 0.5 : 0.75); o.position.y = f.baby ? 0.6 : 2.2; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
+                if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm), L = KID_LOOK[kidFigs[i].st]; o.scale.multiplyScalar(0.75 / L.s); if (f.baby) o.position.set(0, 0.3, 2.0); else o.position.y = L.tag; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
             }
             if (F.msg && F.msg.d === state.day && famShown !== state.day && !sleeping && !dlgOpen()) { famShown = state.day; setTimeout(() => toast(F.msg.t), 3500); }
         }
@@ -12922,7 +12926,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
