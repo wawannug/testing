@@ -11164,7 +11164,7 @@
         }
         // ---- what the children look like and where they are ----
         const kidFigs = [];
-        const KID_HOME = [{ f: F2, room: [3.75, -3.4], crib: [3.75, -6.2, 0.74], bed: [2.7, -4.6, 0.45] }, { f: F2, room: [7.25, -2.8], crib: [7.0, -4.9, 0.6], bed: [8.3, -5.8, 0.62] }];
+        const KID_HOME = [{ f: F2, room: [3.75, -3.4], crib: [3.75, -6.2, 0.74], bed: [2.7, -3.75, 0.45] }, { f: F2, room: [7.25, -2.8], crib: [7.0, -4.9, 0.6], bed: [8.3, -4.95, 0.62] }];
         function kidOutfit(k, st) {
             const f = k.g === 'f';
             if (st === 'balita') return f ? { f: 'dress-merahmuda', s: 'sandal', hs: 'kuncir' } : { t: 'kaosp-kuning', b: 'pendek-krem', s: 'sandal', hs: 'pendek' };
@@ -11173,7 +11173,7 @@
         }
         // how big each stage stands, and how big the head is: the younger, the bigger the head, so the face reads clearly
         const KID_LOOK = { bayi: { s: 0.58, h: 2.0, w: 1.15, tag: 1.0 }, balita: { s: 0.62, h: 1.95, w: 1.14, tag: 2.75 }, anak: { s: 0.8, h: 1.5, w: 1.06, tag: 2.55 }, remaja: { s: 0.93, h: 1.16, w: 1, tag: 2.4 }, dewasa: { s: 1, h: 1, w: 1, tag: 2.3 } };
-        let KID_TILT = 0.5;   // a baby's head on the pillow, the face turned a little toward the room
+        let KID_TILT = -0.75;   // a baby lies along the crib, head on the pillow, the face turned toward the room
         function kidFig(i) {
             const k = famS().kids[i], st = kidStage(k);
             let F = kidFigs[i];
@@ -11218,7 +11218,7 @@
                 f.group.visible = true;
                 const [hx, hz, mode] = sp, want = sceneOf({ x: hx, z: hz });
                 if (f.group.parent !== want) want.add(f.group);
-                if (mode === 'crib') { const H = KID_HOME[i]; f.pos.set(hx, 0, hz); animateFarmer(f, false, dt); sitPose(f, 3, H.crib[2] + 0.02); f.head.rotation.x = KID_TILT; for (const e of f.eyes || []) e.scale.y = e.scale.x * (state.minutes >= 1230 || state.minutes < 390 || Math.sin(elapsed * 0.4 + i) > 0.6 ? 0.12 : 1); }
+                if (mode === 'crib') { const H = KID_HOME[i]; f.pos.set(hx + 0.44, 0, hz + 0.05); animateFarmer(f, false, dt); sitPose(f, 3, H.crib[2] + 0.14); f.group.rotation.set(-Math.PI / 2, Math.PI / 2, 0, 'YXZ'); f.head.rotation.set(0, KID_TILT, 0); for (const e of f.eyes || []) e.scale.y = e.scale.x * (state.minutes >= 1230 || state.minutes < 390 || Math.sin(elapsed * 0.4 + i) > 0.6 ? 0.12 : 1); }
                 else if (mode === 'bed') { f.pos.set(hx, 0, hz); animateFarmer(f, false, dt); sitPose(f, 3, KID_HOME[i].bed[2]); for (const e of f.eyes || []) e.scale.y = e.scale.x * 0.12; }
                 else {
                     const t = elapsed * 0.35 + Fg.ph, r = st === 'balita' ? 0.9 : 1.8, x = hx + Math.cos(t) * r, z = hz + Math.sin(t * 0.7) * r;
@@ -11232,7 +11232,7 @@
                 }
                 // a little name tag
                 const nm = kidName(k);
-                if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm), L = KID_LOOK[kidFigs[i].st]; o.scale.multiplyScalar(0.75 / L.s); if (f.baby) o.position.set(0, 0.3, 2.0); else o.position.y = L.tag; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
+                if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm), L = KID_LOOK[kidFigs[i].st]; o.scale.multiplyScalar(0.75 / L.s); if (f.baby) o.position.set(0, 0.8, 1.5); else o.position.y = L.tag; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
             }
             if (F.msg && F.msg.d === state.day && famShown !== state.day && !sleeping && !dlgOpen()) { famShown = state.day; setTimeout(() => toast(F.msg.t), 3500); }
         }
@@ -11261,8 +11261,8 @@
             if (homeScene && L >= 2 && !famVis.h2) {
                 // the children's rooms: a bassinet in the second room, a low bed for the first child once grown
                 const g = new THREE.Group(); g.position.x = F2; homeScene.add(g);
-                box(0.85, 0.3, 0.55, 0xf6e6c0, 7.0, 0.45, -4.9, g); box(0.75, 0.06, 0.45, 0xffffff, 7.0, 0.58, -4.9, g); for (const sx of [-0.35, 0.35]) box(0.05, 0.3, 0.05, 0xc8a87a, 7.0 + sx, 0.15, -4.9, g);
-                box(0.95, 0.3, 1.8, 0x8fc7e6, 2.7, 0.15, -4.6, g); box(0.9, 0.12, 1.7, 0xfffaf0, 2.7, 0.36, -4.6, g); box(0.6, 0.1, 0.3, 0xffffff, 2.7, 0.46, -5.3, g);
+                box(1.1, 0.3, 0.55, 0xf6e6c0, 7.0, 0.45, -4.9, g); box(1.0, 0.06, 0.45, 0xffffff, 7.0, 0.58, -4.9, g); for (const sx of [-0.45, 0.45]) box(0.05, 0.3, 0.05, 0xc8a87a, 7.0 + sx, 0.15, -4.9, g);
+                box(0.95, 0.3, 2.1, 0x8fc7e6, 2.7, 0.15, -4.75, g); box(0.9, 0.12, 2.0, 0xfffaf0, 2.7, 0.36, -4.75, g); box(0.6, 0.1, 0.3, 0xffffff, 2.7, 0.46, -5.55, g);
                 famVis.h2 = 1;
             }
             if (homeScene && L >= 3 && famVis.home < 3) {
