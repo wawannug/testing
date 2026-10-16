@@ -11140,7 +11140,8 @@
             const F = famS(), d = state.day + 1, news = [];
             if (F.reno.to && d >= F.reno.due) { F.reno.lvl = F.reno.to; F.reno.to = 0; const R = RENO[F.reno.lvl]; news.push(`🏠 Renovasi selesai! Rumah kalian sekarang ${R.icon} ${R.label}`); jot(`Renovasi selesai: ${R.label} 🏠`); }
             if (F.plan && d >= F.plan.due && F.kids.length < KID_MAX) {
-                const g = Math.random() < 0.5 ? 'f' : 'm';
+                // the first is a surprise; the second is the other one, so you have a boy and a girl
+                const g = F.kids.length ? (F.kids[0].g === 'm' ? 'f' : 'm') : Math.random() < 0.5 ? 'f' : 'm';
                 F.kids.push({ id: (Math.max(0, ...F.kids.map(k => k.id)) + 1), name: '', g, born: d, how: F.plan.how, skin: [0xd9a077, 0xe0ac7e, 0xc98f5e, 0xe9b993][Math.floor(Math.random() * 4)], tr: { rajin: 0, pintar: 0, kreatif: 0, ramah: 0 }, say: Object.fromEntries(Object.keys(CHARACTERS).map(u => [u, 0])), job: null, st: 'bayi', word: '' });
                 news.push(F.plan.how === 'hamil' ? `👶 Si kecil lahir! ${g === 'f' ? 'Perempuan' : 'Laki-laki'}, sehat dan lucu. Beri nama di kamar anak` : `👶 Si kecil sudah datang ke rumah! Beri nama di kamar anak`);
                 jot(F.plan.how === 'hamil' ? '👶 Anak kami lahir 💕' : '👶 Anak kami datang ke rumah 💕');
