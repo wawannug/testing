@@ -242,6 +242,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Kotak pengiriman:** barang di dalamnya terjual saat kalian tidur. Saat hari baru dimulai, kedua pemain melihat **rekap penjualan** semalam: tiap barang, jumlah, harga, total penjualan, dan uang sekarang.
 - **Ganti hari harus tidur berdua.** Kalau satu pemain memilih tidur di kasur, ia tidur 💤 dan muncul tulisan "menunggu … tidur juga". Hari baru dimulai setelah pemain kedua juga tidur. Pasangan yang sedang tidak membuka game dianggap sudah turu, jadi tidak perlu ditunggu. Bergerak membuatmu bangun lagi. **Rebahan saja** tidak mengganti hari, tapi kalau rebahan 1 jam (waktu game) tanpa bergerak, kamu ketiduran otomatis (tetap tersimpan kalau simpan otomatis menyala). Pukul 00:00 kalian berdua tetap tidur otomatis.
 - **Alat** (ada di toolbar): ✋ tangan, 🪣 penyiram (untuk menyiram), 🫙 pemeras susu (sapi dan kambing), ✂️ gunting bulu (domba).
+- **Gerakan alat:** kapak dan beliung diangkat tinggi dengan dua tangan lalu dihantamkan (serpihan kayu atau batu beterbangan), cangkul dihantamkan ke tanah sambil membungkuk (tanah terciprat), sabit disapukan rendah sambil badan berputar (rumput beterbangan), sapu digerakkan ke kiri dan kanan. Senjata tambang nanti juga punya gerakan tebas dan tusuk.
 - **Telur** tidak lagi diambil dari ayamnya: setiap pagi telur muncul di sarang di dalam kandang ayam/bebek.
 
 ## ✋🤚 Dua tangan, kualitas panen, mesin olahan, dan tukang kayu (tahap 9)

@@ -8,11 +8,14 @@ Centang `[x]` kalau sudah selesai.
 - Semua fitur jalan untuk main berdua dan tersimpan otomatis.
 - Uji ulang, simpan ke repo, lalu terbitkan versi baru di link yang sama.
 
-## ❓ Keputusan yang masih ditunggu
-1. Alur hewan purba: **fosil → riset → telur** atau **Gua Waktu**?
-2. Urutan tahap sudah pas, atau ada yang mau didahulukan?
-3. Pintu tambang mana saja yang dipakai, dan mana yang dikerjakan dulu?
-4. Lantai tambang acak tiap hari atau tetap? Pingsan: cukup hari berakhir atau sebagian barang hilang? Mode monster bawaan: Damai atau Petualang?
+## ✅ Keputusan kalian
+1. NPC **tanpa AI**; diganti cerita warga dengan pilihan jawaban (sudah ada).
+2. Pintu tambang dikerjakan **sesuai urutan** (1 sampai 8).
+3. Lantai tambang: batu-batu **baru setiap hari** (isi acak), bentuk ruangan tetap.
+4. Pingsan di tambang: **cukup hari berakhir**, barang tidak hilang.
+5. Mode monster bawaan di tambang: **Petualang** (bisa diganti Damai).
+6. Alur dinosaurus: **dua-duanya** (fosil → riset → telur, dan Gua Waktu).
+7. Urutan pengerjaan: **urut** (10b, 11, 12, 13, 14).
 
 ---
 

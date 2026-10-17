@@ -5473,6 +5473,71 @@
             return f;
         }
         const HUG_TIME = 2.6, JOY_TIME = 2.2, SWING_TIME = 0.5;
+        // ⚒️ how long a use of each tool takes: heavy tools are raised high and brought down hard
+        const SWING_KIND = { kapak: 'chop', beliung: 'chop', cangkul: 'hoe', palu: 'chop', sabit: 'sweep', golok: 'slash', pedang: 'slash', celurit: 'sweep', badik: 'slash', mandau: 'slash', tombak: 'thrust', sapu: 'broom', gunting: 'snip', pemeras: 'milk' };
+        const SWING_DUR = { chop: 0.72, hoe: 0.7, sweep: 0.5, slash: 0.45, thrust: 0.45, broom: 0.9, snip: 0.8, milk: 0.9 };
+        const swingDur = k => SWING_DUR[SWING_KIND[k]] || SWING_TIME;
+        const easeOut = x => 1 - (1 - x) * (1 - x), easeIn = x => x * x;
+        // lean the upper body from the hips (not from the feet)
+        function leanBody(f, a) { const h = f.hipY || 0.9; f.body.rotation.x = a; f.body.position.y += h - h * Math.cos(a); f.body.position.z = -h * Math.sin(a); }
+        // a little burst where the tool lands: earth for the hoe, stone chips for the pick, wood chips for the axe, cut grass for the sickle
+        const PUFFS = [], PUFF_GEO = new THREE.IcosahedronGeometry(1, 0);
+        function toolPuff(f, kind) {
+            const sc = sceneOf(f.pos); if (!sc) return;
+            const fx = Math.sin(f.heading), fz = Math.cos(f.heading), c = { hoe: 0x8a5a33, chop: f.heldKey === 'kapak' ? 0xc89a5a : 0x9a9a92, sweep: 0x6fae3f }[kind] || 0xbbbbbb;
+            const y = kind === 'chop' && f.heldKey === 'kapak' ? 0.8 : 0.12, r = kind === 'sweep' ? 0.55 : 0.75;
+            for (let i = 0; i < 7; i++) {
+                const m = new THREE.Mesh(PUFF_GEO, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.9 }));
+                m.position.set(f.pos.x + fx * r + (Math.random() - 0.5) * 0.25, f.pos.y + y, f.pos.z + fz * r + (Math.random() - 0.5) * 0.25);
+                m.scale.setScalar(0.035 + Math.random() * 0.03); sc.add(m);
+                PUFFS.push({ m, v: new THREE.Vector3((Math.random() - 0.5) * 1.6 + fx * 0.4, 1.2 + Math.random() * 1.4, (Math.random() - 0.5) * 1.6 + fz * 0.4), t: 0 });
+            }
+        }
+        function updatePuffs(dt) {
+            for (let i = PUFFS.length - 1; i >= 0; i--) {
+                const p = PUFFS[i]; p.t += dt; p.v.y -= 6 * dt; p.m.position.addScaledVector(p.v, dt); p.m.material.opacity = Math.max(0, 0.9 - p.t * 1.8); p.m.rotation.x += dt * 6;
+                if (p.t > 0.5) { p.m.parent && p.m.parent.remove(p.m); p.m.material.dispose(); PUFFS.splice(i, 1); }
+            }
+        }
+        // the pose at a moment t (0..1) of using a tool
+        function swingPose(f, kind, t) {
+            const R = 1, L = 0, A = f.arms, E = f.elbows;
+            if (kind === 'chop' || kind === 'hoe') {
+                // both hands on the handle: raise it high over the head, then bring it down hard, leaning in
+                const up = t < 0.45 ? easeOut(t / 0.45) : 1 - easeIn(Math.min(1, (t - 0.45) / 0.17)), rec = t > 0.62 ? (t - 0.62) / 0.38 : 0;
+                const hit = t > 0.45 ? (1 - up) * (1 - rec) : 0;   // 1 at the moment of the blow
+                const ax = -2.9 * up - 0.6 * hit;
+                for (const i of [R, L]) { A[i].rotation.x = ax; A[i].rotation.z = i === R ? -0.18 : 0.22; E[i].rotation.x = -0.35 * up - 0.15; }
+                leanBody(f, -0.16 * up + (kind === 'hoe' ? 0.45 : 0.35) * hit);
+                const kb = 0.4 * hit; for (const i of [0, 1]) { f.knees[i].rotation.x = Math.max(f.knees[i].rotation.x, kb); f.legs[i].rotation.x = Math.min(f.legs[i].rotation.x, -kb * 0.5); }
+                // the head of the tool tips over and down into the ground (or into the trunk for the axe)
+                if (f.held) f.held.rotation.x = tiltOf(f.heldKey) + 0.5 * up + (f.heldKey === 'kapak' ? 0.9 : 1.5) * hit;
+            } else if (kind === 'sweep') {
+                // a low sweep across the front, the body turning with it
+                const s = t < 0.25 ? -t / 0.25 : -1 + 2 * easeOut(Math.min(1, (t - 0.25) / 0.5));
+                A[R].rotation.x = -1.25; A[R].rotation.z = -0.9 * s; E[R].rotation.x = -0.3;
+                f.body.rotation.y = 0.45 * s; leanBody(f, 0.3);
+                for (const i of [0, 1]) { f.legs[i].rotation.x = -0.12; f.knees[i].rotation.x = 0.22; }
+            } else if (kind === 'slash') {
+                // a diagonal cut from up high on the right down to the left
+                const s = t < 0.35 ? easeOut(t / 0.35) : 1 - easeOut(Math.min(1, (t - 0.35) / 0.3));
+                A[R].rotation.x = -2.5 * s - 0.5 * (1 - s); A[R].rotation.z = -0.7 * s + 0.6 * (1 - s) * (t > 0.35 ? 1 : 0); E[R].rotation.x = -0.6 * s;
+                f.body.rotation.y = -0.3 * s + 0.35 * (1 - s) * (t > 0.35 ? 1 : 0); leanBody(f, t > 0.35 ? 0.15 * (1 - s) : -0.05 * s);
+            } else if (kind === 'thrust') {
+                const s = t < 0.3 ? -t / 0.3 : Math.sin(Math.min(1, (t - 0.3) / 0.7) * Math.PI);
+                for (const i of [R, L]) { A[i].rotation.x = -1.5; E[i].rotation.x = -0.9 + 0.8 * Math.max(0, s); }
+                leanBody(f, 0.12 * s);
+            } else if (kind === 'broom') {
+                const s = Math.sin(t * Math.PI * 4);
+                for (const i of [R, L]) { A[i].rotation.x = -0.9; A[i].rotation.z = 0.5 * s; E[i].rotation.x = -0.5; }
+                f.body.rotation.y = 0.25 * s; leanBody(f, 0.18);
+            } else if (kind === 'snip' || kind === 'milk') {
+                // small busy hands, bending down to the animal
+                const s = Math.sin(t * Math.PI * (kind === 'snip' ? 6 : 5));
+                for (const i of [R, L]) { A[i].rotation.x = -1.15 + (i === R ? 0.15 : -0.15) * s; E[i].rotation.x = -0.6 - 0.25 * (i === R ? s : -s); }
+                leanBody(f, 0.35); for (const i of [0, 1]) { f.legs[i].rotation.x = -0.15; f.knees[i].rotation.x = 0.3; }
+            }
+        }
         // the tool in your hand, as a little model in the farmer's hand
         const HELD = ['penyiram', ...CHEST_TOOLS];
         // tools are carried in the right hand, pointing forward and up; the watering can hangs by its handle
@@ -5578,9 +5643,12 @@
             if (f.skirt) { f.skirt.rotation.x = 0; const sk = f.skirt.children[0]; if (sk && sk.userData.y0 != null) { sk.scale.y = 1; sk.position.y = sk.userData.y0; } }
             if (f.drapes) for (const d of f.drapes) d.visible = false;
             mukena(f, false);
-            if (f.swingT != null && elapsed - f.swingT < SWING_TIME && f.heldKey) {
-                const t = (elapsed - f.swingT) / SWING_TIME;
-                if (f.heldKey === 'penyiram') { f.arms[1].rotation.x = -1.1; f.elbows[1].rotation.x = -0.2; if (f.held) f.held.rotation.x = Math.sin(t * Math.PI) * 0.9; }
+            if (f.swingT != null && elapsed - f.swingT < swingDur(f.heldKey) && f.heldKey) {
+                const t = (elapsed - f.swingT) / swingDur(f.heldKey), kind = SWING_KIND[f.heldKey];
+                // the moment the tool lands: a little burst
+                if (kind && f.puffT !== f.swingT && t >= (kind === 'sweep' ? 0.5 : 0.6) && ['chop', 'hoe', 'sweep'].includes(kind)) { f.puffT = f.swingT; toolPuff(f, kind); }
+                if (kind) swingPose(f, kind, t);
+                else if (f.heldKey === 'penyiram') { f.arms[1].rotation.x = -1.1; f.elbows[1].rotation.x = -0.2; if (f.held) f.held.rotation.x = Math.sin(t * Math.PI) * 0.9; }
                 else { f.arms[1].rotation.x = t < 0.35 ? -2.6 * (t / 0.35) : -2.6 + 2.2 * ((t - 0.35) / 0.65); f.elbows[1].rotation.x = -0.25; }
             } else if (f.held) f.held.rotation.x = tiltOf(f.heldKey);
             if (f.joyT != null && elapsed - f.joyT < JOY_TIME) {
@@ -12941,7 +13009,7 @@
             for (const a of animals) a.update(dt, elapsed);
             updateRemote(dt);
             updateRide(dt);
-            updateSatwa(dt);
+            updateSatwa(dt); updatePuffs(dt);
             updateKids(dt); updateFamVis();
             updateNPCs(dt);
             regionStream(dt);
@@ -13019,7 +13087,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
