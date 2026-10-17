@@ -258,6 +258,19 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **🪟 Rumah kaca** (bangun lewat papan pembangunan, 1.500 G + kayu, besi, batu): tanah di dalamnya tersiram otomatis, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin.
 - **🪚 Jasa tukang kayu (Pak Markus, penggergajian).** Pesan pindah kandang (1.500 G + 20 kayu), pohon kebun buah (400 G + 5 kayu), pohon yang kalian tanam sendiri (250 G), atau bangunan tambahan (800 G + 10 kayu). Kamu dapat 📍 **patok**: pegang patoknya dan berdiri di tempat baru. Garis hijau berarti tempatnya bisa, merah berarti terhalang (alasannya muncul). Pasang patoknya, lalu tukang kayu memindahkannya **malam itu**. Pagi berikutnya farm otomatis dimuat ulang sebentar dengan tata letak baru. Saat main berdua, perangkat pasangan juga ikut dimuat ulang dan bergabung lagi sendiri. Pesanan bisa dibatalkan di Pak Markus (uang kembali).
 
+## 💭 Cerita warga (pilihan jawaban)
+- Kira-kira 1 dari 3 warga punya **cerita atau masalah** setiap hari. Saat diajak bicara, ia bilang "Ada yang mau kuceritakan…" dan muncul tombol **💭 Dengarkan ceritanya**.
+- Ada 18 cerita: 12 untuk orang dewasa dan 6 untuk anak-anak. Contohnya:
+  - **Dewasa:** minta pinjaman, mencicipi masakan baru, anak demam, gotong royong memperbaiki atap, gosip tetangga, jemuran mau hujan, curhat capek, kunci hilang, ternak lepas, cerita masa lalu desa.
+  - **Anak-anak:** PR, layangan tersangkut, kurang uang jajan, anak kucing di selokan, cita-cita, takut gelap.
+- **Pilih jawabanmu:**
+  - Jawaban yang baik menaikkan keakraban, ada yang cukup banyak (hampir setengah ❤️).
+  - Jawaban yang ketus menurunkan keakraban (💔).
+  - Beberapa jawaban butuh uang atau barang, misalnya 5 kayu untuk gotong royong.
+- Pinjaman 100 G dikembalikan 5 hari kemudian menjadi 120 G.
+- Cerita tertentu baru muncul kalau sudah cukup akrab.
+- Tiap cerita hanya terjadi sekali per warga, dan cerita hari itu sama untuk kalian berdua. Siapa yang menjawab duluan, dia yang dapat keakrabannya.
+
 ## 🏡 Renovasi rumah dan anak
 - **Renovasi rumah** dipesan ke 🪚 Pak Markus (penggergajian), di bagian atas jendela tukang kayu:
 

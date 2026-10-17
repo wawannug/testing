@@ -5744,6 +5744,7 @@
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
             st.satwa = cleanSatwa(saved.satwa);
             st.fam = cleanFam(saved.fam);
+            st.npcEv = cleanNpcEv(saved.npcEv); st.npcDebt = (Array.isArray(saved.npcDebt) ? saved.npcDebt : []).filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
             st.jr = Array.isArray(saved.jr) ? saved.jr.filter(e => Array.isArray(e) && typeof e[1] === 'string').slice(-JR_MAX).map(e => [e[0] | 0, e[1].slice(0, 160)]) : [];
@@ -8128,6 +8129,83 @@
         }
         const giftable = k => k && !isTool(k) && ITEMS[k] && !k.startsWith('pk_');
         let talkNpc = null;
+        // ---------- 💭 villagers' little stories: a problem or a moment, and how you answer changes the friendship ----------
+        // Now and then (about one day in three) a villager has something on their mind when you talk to them. Pick an
+        // answer: a kind one warms them up, a cold one hurts. Each story happens once per villager.
+        // o: [answer, friendship points (100 = one heart), their reply, cost {g: gold} or {i: item, n}]
+        const NPC_EV = [
+            { id: 'pinjam', h: 2, f: n => !n.kid, q: 'Bulan ini hasil jualanku sepi… Boleh aku pinjam 100 G dulu? Lima hari lagi kukembalikan, janji.', o: [['Pinjamkan, tidak apa-apa', 45, 'Aduh, terima kasih banyak! Kamu memang baik sekali. Lima hari lagi pasti kukembalikan.', { g: 100 }], ['Maaf, aku juga lagi pas-pasan', 5, 'Iya, aku mengerti kok. Jangan dipikirkan, ya.'], ['Kok pinjam ke aku? Usaha dong', -35, 'Oh… maaf sudah merepotkan.']] },
+            { id: 'masak', f: n => !n.kid, q: 'Aku baru belajar resep baru, nih. Mau cicip? Jujur ya rasanya gimana.', o: [['Wah, enak sekali!', 30, 'Benar? Senangnya! Nanti kubuat lagi untukmu.'], ['Agak asin, tapi bumbunya pas', 20, 'Terima kasih sudah jujur. Besok kukurangi garamnya!'], ['Nggak usah, aku kenyang', -15, 'Oh… ya sudah.']] },
+            { id: 'anaksakit', f: n => !n.kid && n.home && NPCS.some(k => k.kid && k.home === n.home), q: 'Anakku demam sejak semalam, aku bingung harus bagaimana…', o: [['Ayo kuantar ke klinik di kota', 45, 'Terima kasih… untung ada kamu. Kata dokter cuma perlu istirahat.'], ['Kompres dulu, semoga cepat sembuh', 20, 'Iya, akan kucoba. Terima kasih sudah peduli.'], ['Wah, itu urusan keluargamu', -40, 'Iya… maaf.']] },
+            { id: 'gotong', f: n => !n.kid, q: 'Atap rumahku bocor. Besok mau diperbaiki ramai-ramai. Ikut bantu, nggak?', o: [['Tentu! Aku bawakan 5 kayu', 50, 'Wah, kayunya sangat membantu! Gotong royong memang indah.', { i: 'kayu', n: 5 }], ['Aku bantu angkat-angkat saja', 30, 'Terima kasih! Tenaga juga sangat berarti.'], ['Maaf, aku sibuk', -10, 'Oh, ya sudah.']] },
+            { id: 'gosip', f: n => !n.kid, q: 'Eh, kamu sudah dengar kabar soal tetangga sebelah belum? Seru, lho…', o: [['Lebih baik kita tidak membicarakan orang', 25, 'Hmm… kamu benar. Maaf ya, aku jadi malu.'], ['Wah, ceritakan!', 5, 'Jadi begini… eh, tapi jangan bilang siapa-siapa, ya!'], ['Kamu suka banget bergosip, ya', -25, 'Ih, kok gitu sih ngomongnya.']] },
+            { id: 'jemuran', f: n => !n.kid, q: 'Aduh, mendung! Jemuranku masih banyak di luar…', o: [['Ayo kubantu angkat!', 35, 'Cepat sekali kamu! Untung belum kehujanan. Terima kasih!'], ['Cepat diangkat, sebentar lagi hujan', 5, 'Iya, iya, aku angkat sekarang.'], ['Biar saja, nanti kering lagi', -15, 'Enak saja ngomongnya…']] },
+            { id: 'capek', h: 2, f: n => !n.kid, q: 'Akhir-akhir ini aku capek sekali. Pekerjaan rasanya tidak ada habisnya…', o: [['Istirahat dulu. Mau kubuatkan teh?', 40, 'Kamu baik sekali… rasanya beban jadi lebih ringan. Terima kasih.'], ['Semangat! Kamu pasti bisa', 20, 'Hehe, terima kasih semangatnya.'], ['Semua orang juga capek', -25, 'Iya… aku tahu.']] },
+            { id: 'hadiah', f: n => !n.kid, q: 'Sebentar lagi hari jadi pernikahanku. Bagusnya kasih hadiah apa, ya?', o: [['Masakan buatan sendiri, pasti berkesan', 30, 'Ide bagus! Nanti kumasakkan makanan kesukaannya.'], ['Bunga dari kebun', 25, 'Romantis juga ya. Terima kasih idenya!'], ['Kasih uang saja, praktis', -10, 'Hmm… kurang romantis, deh.']] },
+            { id: 'kunci', f: n => !n.kid, q: 'Kunci rumahku hilang! Dari tadi kucari tidak ketemu…', o: [['Ayo kubantu cari', 30, 'Nah, itu dia di bawah kursi! Terima kasih sudah repot-repot.'], ['Coba cek saku bajumu', 20, 'Eh… benar di saku! Hahaha, aku pikun.'], ['Aku tidak lihat', 0, 'Ya sudah, kucari lagi.']] },
+            { id: 'lomba', f: n => !n.kid, q: 'Aku mau ikut lomba di festival nanti. Doakan menang, ya!', o: [['Pasti menang! Aku dukung penuh', 30, 'Hehe, jadi makin semangat. Nanti nonton, ya!'], ['Boleh aku ikut latihan bareng?', 20, 'Boleh banget! Lebih seru berdua.'], ['Jangan terlalu berharap', -20, 'Kamu bikin aku jadi ragu…']] },
+            { id: 'ternak', f: n => !n.kid, q: 'Kambingku lepas dan masuk ke ladang tetangga!', o: [['Ayo kita giring bersama', 40, 'Hah… akhirnya masuk kandang lagi. Kamu jago menggiring!'], ['Panggil pemilik ladang dulu', 10, 'Iya, biar tidak salah paham.'], ['Biarkan, nanti pulang sendiri', -25, 'Kalau tanamannya habis dimakan, aku yang kena marah…']] },
+            { id: 'cerita', f: n => !n.kid, q: 'Dulu desa ini masih hutan semua, lho. Mau dengar ceritanya?', o: [['Mau! Ceritakan dong', 30, 'Dulu kakekku membuka ladang di sini dengan kerbau… (bercerita panjang dengan mata berbinar)'], ['Lain kali saja, ya', 0, 'Baiklah, lain kali.'], ['Wah, pasti membosankan', -30, 'Hmph. Anak muda zaman sekarang…']] },
+            { id: 'pr', f: n => n.kid, q: 'Kak, PR matematikaku susah banget… bantuin dong?', o: [['Sini kakak ajari pelan-pelan', 40, 'Ooh, begitu caranya! Kakak pintar banget!'], ['Coba kerjakan sendiri dulu', 10, 'Hmm… iya deh, aku coba.'], ['Nyontek teman saja', -25, 'Kata Bu Guru nggak boleh nyontek, Kak…']] },
+            { id: 'layangan', f: n => n.kid, q: 'Kak! Layanganku nyangkut di pohon…', o: [['Tunggu, kakak ambilkan', 40, 'Yeay! Kakak hebat, makasih!'], ['Lain kali hati-hati, ya', 10, 'Iya, Kak…'], ['Beli lagi saja', -10, 'Tapi itu layangan buatan bapakku…']] },
+            { id: 'jajan', f: n => n.kid, q: 'Kak, aku pengin beli es krim, tapi uangku kurang 10 G…', o: [['Ini, kakak tambahi', 35, 'Asyik! Makasih, Kak! Nanti aku bagi sedikit, deh.', { g: 10 }], ['Menabung dulu, ya', 15, 'Iya deh, aku masukin celengan.'], ['Nggak ah', -15, 'Huh, pelit…']] },
+            { id: 'kucing', f: n => n.kid, q: 'Kak, ada anak kucing di selokan, kasihan… dia mengeong terus.', o: [['Ayo kita tolong bersama', 45, 'Dia selamat! Lihat, dia menjilat tanganku. Hihi!'], ['Bilang ke orang tuamu, ya', 10, 'Oke, aku panggil ibu.'], ['Biarkan saja', -35, 'Kakak jahat…']] },
+            { id: 'cita', f: n => n.kid, q: 'Kak, aku pengin jadi dokter! Bisa nggak, ya?', o: [['Pasti bisa kalau rajin belajar!', 35, 'Aku janji rajin belajar! Nanti aku obati Kakak kalau sakit.'], ['Jadi petani seperti kakak juga seru', 15, 'Hmm… petani juga keren, sih.'], ['Wah, susah itu', -25, 'Kok gitu, Kak…']] },
+            { id: 'gelap', f: n => n.kid, q: 'Kak… aku takut gelap. Nanti malam lampu kamarku mati.', o: [['Tidak ada yang perlu ditakutkan. Berdoa dulu sebelum tidur, ya', 30, 'Iya, Kak. Aku jadi berani!'], ['Pakai senter di samping bantal', 20, 'Ide bagus! Aku pinjam senter ayah.'], ['Hiii, nanti ada hantu!', -30, 'Huaaa! Kakak nakal!']] },
+        ];
+        const NPCEV = Object.fromEntries(NPC_EV.map(e => [e.id, e]));
+        const npcEvS = () => (state.npcEv ||= {});
+        function cleanNpcEv(o) {
+            const r = {};
+            for (const [id, v] of Object.entries(o && typeof o === 'object' ? o : {})) if (NPCI[id] && v && typeof v === 'object') r[id] = { day: v.day | 0, done: (Array.isArray(v.done) ? v.done : []).filter(e => NPCEV[e]).slice(0, 40) };
+            return r;
+        }
+        // today's story for a villager, if any (the same on both phones; once answered, it is done)
+        function npcEvToday(n) {
+            const S = npcEvS()[n.id] || { day: 0, done: [] };
+            if (S.day === state.day) return null;
+            if (satHash(n.id, 'ev' + state.day) % 100 >= 35) return null;
+            const L = NPC_EV.filter(e => e.f(n) && !S.done.includes(e.id) && heartsOf(n.id) >= (e.h || 0));
+            return L.length ? L[satHash(n.id, 'evp' + state.day) % L.length] : null;
+        }
+        const evCostText = c => c ? (c.g ? ` (−${c.g} G)` : ` (−${c.n} ${ITEMS[c.i].icon} ${ITEMS[c.i].label})`) : '';
+        const evCanPay = c => !c || (c.g ? state.gold >= c.g : have(USER, c.i) >= c.n);
+        function openNpcEvent(n, e) {
+            const fill = s => s.replace(/\{p\}/g, USER);
+            const pick = i => {
+                const [, d, reply, c] = e.o[i];
+                if (!evCanPay(c)) { toast('Barangnya atau uangnya belum cukup'); return; }
+                sendAct('npcev', `${n.id}|${e.id}|${i}`);
+                openDlg(`${n.kid ? '🧒' : n.g === 'f' ? '👩' : '👨'} ${n.name}`, [el('p', { class: 'npcline', text: `“${fill(reply)}”` }), el('p', { class: 'npchearts', text: d > 0 ? `❤️ Keakraban naik${d >= 40 ? ' banyak' : ''}` : d < 0 ? '💔 Keakraban turun' : '🤍 Biasa saja' })]);
+            };
+            openDlg(`💭 ${n.name}`, [
+                el('p', { class: 'npcline', text: `“${fill(e.q)}”` }),
+                el('div', { style: 'display:flex;flex-direction:column;gap:8px;margin:8px 0' }, e.o.map(([t, , , c], i) => { const b = el('button', { class: 'btn', style: 'width:100%;text-align:left;white-space:normal', onclick: () => pick(i) }, t + evCostText(c)); if (!evCanPay(c)) b.disabled = true; return b; })),
+                el('p', { class: 'small-note', text: 'Jawaban yang baik membuatnya makin akrab, yang ketus bisa membuatnya kecewa.' }),
+            ], [{ t: 'Nanti saja' }]);
+        }
+        function npcEvAct(who, x) {
+            const [id, eid, oi] = String(x).split('|'), n = NPCI[id], e = NPCEV[eid], o = e && e.o[+oi];
+            if (!n || !o) return;
+            const S = npcEvS()[id] ||= { day: 0, done: [] };
+            if (S.day === state.day || S.done.includes(eid)) return;
+            const c = o[3];
+            if (c && c.g) { if (state.gold < c.g) return; state.gold -= c.g; }
+            if (c && c.i) { if (have(who, c.i) < c.n) return; takeBag(who, c.i, c.n); }
+            S.day = state.day; S.done.push(eid);
+            addFriend(id, who, o[1]);
+            if (eid === 'pinjam' && +oi === 0) (state.npcDebt ||= []).push({ id, due: state.day + 5, g: 120 });
+            const at = n.f ? [n.f.pos.x, 2.1, n.f.pos.z] : null;
+            emitEvent(o[1] > 0 ? `💭 ${n.name} senang dengan jawaban ${who} ❤️` : o[1] < 0 ? `💭 ${n.name} kecewa dengan jawaban ${who} 💔` : `💭 ${n.name} mengangguk`, o[1] > 0 ? 'heart1' : 'none', o[1] > 0 ? at : null, who);
+            if (o[1] >= 40) jot(`💭 ${who} menolong ${n.name}`);
+        }
+        // borrowed money comes back, with a little thank-you on top
+        function npcDebtNight() {
+            const L = state.npcDebt || [], d = state.day + 1, back = L.filter(x => x.due <= d);
+            if (!back.length) return;
+            state.npcDebt = L.filter(x => x.due > d);
+            for (const x of back) { state.gold += x.g; const n = NPCI[x.id]; jot(`💰 ${n ? n.name : 'Warga'} mengembalikan pinjaman ${x.g} G (sudah dilebihkan sebagai terima kasih)`); }
+        }
         function openNpcDlg(n) {
             const s = n.st, d = npcData(n.id), b = bitOf(USER);
             n.talkT = elapsed; if (n.f) n.f.talkT = elapsed; player.talkT = elapsed;
@@ -8138,7 +8216,8 @@
             player.targetHeading = Math.atan2(n.f.pos.x - player.pos.x, n.f.pos.z - player.pos.z);
             const line = isBday(n.id) ? `Hari ini aku ulang tahun lho! 🎂 ${n.kid ? 'Ada kado buatku?' : 'Terima kasih sudah mampir.'}` : npcLine(n);
             if (!(d.t & b)) sendAct('npctalk', n.id);
-            const h = heartsOf(n.id), held = heldItem(), btns = [];
+            const h = heartsOf(n.id), held = heldItem(), btns = [], ev = npcEvToday(n);
+            if (ev) btns.push({ t: '💭 Dengarkan ceritanya', big: true, f: () => openNpcEvent(n, ev) });
             if (giftable(held) && !(d.g & b)) btns.push({ t: `🎁 Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, f: () => {
                 sendAct('npcgift', `${n.id}|${held}`);
                 // a short moment together: you hand it over, they are pleased (or politely not)
@@ -8155,7 +8234,7 @@
             openDlg(`${n.kid ? '🧒' : n.g === 'f' ? '👩' : '👨'} ${n.name}`, [
                 el('p', { class: 'small-note', text: `${n.role} · ${npcWhere(n)} · 🎂 ${isBday(n.id) ? 'hari ini!' : bdayText(n.id)}` }),
                 el('p', { class: 'npchearts', text: '❤️'.repeat(h) + '🤍'.repeat(10 - h) }),
-                el('p', { class: 'npcline', text: `“${line}”` }),
+                el('p', { class: 'npcline', text: `“${ev ? (n.kid ? 'Kak, aku boleh cerita sesuatu, nggak?' : 'Eh, kebetulan ketemu. Ada yang mau kuceritakan…') : line}”` }),
                 el('p', { class: 'small-note', text: d.g & b ? 'Sudah diberi hadiah hari ini 🎁' : giftable(held) ? 'Barang yang kamu pegang bisa diberikan sebagai hadiah.' : 'Pegang barang di toolbar untuk memberi hadiah 🎁 (sekali sehari).' }),
             ], btns);
         }
@@ -8684,6 +8763,7 @@
                 if (acaraIs('imlek') && !n.kid && heartsOf(id, who) >= 2) { const g = 20 + (id.length * 13) % 69; state.gold += g; emitEvent(`🧧 ${n.name} memberi angpao ${g} G. Gong Xi Fa Cai!`, 'sell', at, who); }
                 if (acaraIs('natal') && (n.faith === 'k' || n.faith === 'p') && addBag(who, 'kuenatal', 1)) emitEvent(`🎄 ${n.name}: “Selamat Natal! Ini kue Natal untukmu 🍪”`, 'heart1', at, who);
             },
+            npcev(who, x) { npcEvAct(who, x); },
             npcgift(who, x) {
                 const [id, k] = String(x).split('|'), n = NPCI[id];
                 if (!n || !giftable(k) || !have(who, k)) return;
@@ -11861,7 +11941,7 @@
                 o.w = { day: state.day, min: Math.round(state.minutes), we: state.weather, gold: state.gold, an, tr,
                     bg: { [NA]: encBag(bagOf(NA)), [NW]: encBag(bagOf(NW)) },
                     st: [encItems(state.store.fridge), encItems(state.store.chest), encItems(state.store.bin), encItems(state.store.tools), encItems(state.store.kit), encItems(state.store.gudang || {})],
-                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, sw: state.satwa || null, fm: state.fam || null, cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
+                    ti: encTiles(), dc: encDeco(), fd: FEED_KINDS.map(k => state.feed[k]), tg: FEED_KINDS.map(k => state.trough[k]), pp: state.poop.map(p => [FEED_KINDS.indexOf(p.k), Math.round(p.x * 10), Math.round(p.z * 10)]), fp: state.fpots.map(p => [Math.round(p.x * 10), Math.round(p.z * 10), p.s ? GKEYS.indexOf(p.s) : -1, Math.round(p.p * 2), (p.w ? 1 : 0) | (p.f ? 2 : 0) | Math.min(3, p.dry || 0) << 2, p.c === NA ? 1 : p.c === NW ? 2 : 0]), pt: state.ptrees.map(t => [FKEYS.indexOf(t.k), t.x, t.z, t.g, t.w ? 1 : 0, t.p, t.r, t.dry]), rk: state.rocks, rq: state.req, fe: state.fest, ev: state.ev, mc: state.mach, ly: state.layout || {}, cp: state.carp || null, mt: state.motor || null, sw: state.satwa || null, fm: state.fam || null, ne: state.npcEv || {}, nd: state.npcDebt || [], cl: COL_KEYS.map((k, i) => state.col && state.col[k] ? i : -1).filter(i => i >= 0), mu: MUS_KEYS.map((k, i) => state.mus && state.mus[k] ? [i, state.mus[k] === NA ? 1 : 2] : null).filter(Boolean), cr: state.colR || 0, bn: state.bund, br: state.bundR, jr: state.jr.slice(-40), bd: state.build, hg: state.hugs, wl: (state.wild || []).map(w => [w.i, w.k === 'r' ? 1 : 0, WILD_REG.indexOf(w.r), Math.round(w.x * 10), Math.round(w.z * 10), w.g, w.s, w.h || 0]), lg: state.logs.map(l => [l.s, l.hp]), wq: state.weeds,
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
@@ -11963,6 +12043,8 @@
             if (w.mc && typeof w.mc === 'object') state.mach = w.mc;
             if ('cp' in w) state.carp = w.cp && typeof w.cp === 'object' ? w.cp : null;
             if (w.sw && typeof w.sw === 'object') state.satwa = cleanSatwa(w.sw);
+            if (w.ne && typeof w.ne === 'object') state.npcEv = cleanNpcEv(w.ne);
+            if (Array.isArray(w.nd)) state.npcDebt = w.nd.filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             if (w.fm && typeof w.fm === 'object') { const m = state.fam && state.fam.msg; state.fam = cleanFam(w.fm); state.fam.msg = w.fm.msg && Number.isInteger(w.fm.msg.d) ? { d: w.fm.msg.d, t: String(w.fm.msg.t).slice(0, 400) } : m || null; }
             if ('mt' in w && ride !== 'd' && elapsed > bike.parkT) state.motor = w.mt && MOTORS[w.mt.k] && [w.mt.x, w.mt.z, w.mt.h].every(Number.isFinite) ? { k: w.mt.k, x: w.mt.x, z: w.mt.z, h: w.mt.h } : null;
             if (w.ly && typeof w.ly === 'object' && canonLayout(w.ly) !== canonLayout(LAYOUT)) { state.layout = w.ly; reloadForLayout('join'); }
@@ -12369,7 +12451,7 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight(); reqNight(); carpNight(); satwaNight(); famNight();
+                wildNight(); reqNight(); carpNight(); satwaNight(); famNight(); npcDebtNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
@@ -12937,7 +13019,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
