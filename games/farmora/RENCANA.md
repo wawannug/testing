@@ -108,6 +108,9 @@ Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot). Di mu
 
 Pintu lain yang sudah ada di tahap lain: **Gua Waktu** (masuk ke Lembah Purba, tahap 12) dan **Pintu Wingit** (Gua Pesugihan, tahap 14).
 
+**Bagian 1 sudah jadi ✅:** Aula Simpang dengan 8 pintu (pintu 1 terbuka), Tambang Bertingkat lantai 1–20 (zona Lorong Tanah dan Gua Kapur), bentuk lantai tetap dengan batu baru tiap hari, tangga di bawah batu, lift tiap 5 lantai, peti harta lantai 10 dan 20, 6 monster biasa, golok dari Pak Gatot, nyawa ❤️ terpisah dari energi, mode Petualang (bawaan) dan Damai, pingsan = hari berakhir.
+**Berikutnya:** lantai 21–40 (zona Sungai Bawah Tanah dan Perut Gunung), bos tiap 10 lantai, senjata dan pelindung lain, barang bantu, tugas Pak Gatot, lalu pintu 2–8 sesuai urutan.
+
 Isi pintu 1 (Tambang Bertingkat):
 - [ ] **4 zona**:
 
@@ -119,10 +122,10 @@ Isi pintu 1 (Tambang Bertingkat):
   | 🔴 Perut Gunung | 31–40 | Akik bacan, kecubung, kalimaya, intan Martapura, fosil besar |
 
 - [ ] **Cara main**:
-  - Lantai berupa gua kecil, bentuknya acak tiap hari atau tetap (belum diputuskan).
+  - Lantai berupa gua kecil dengan bentuk tetap, batunya baru tiap hari (sudah diputuskan).
   - Tangga tersembunyi di bawah batu, dan kerekan lori tiap 5 lantai.
   - Makin dalam makin gelap: perlu lampu helm atau karbit yang bahan bakarnya diisi.
-  - Kalau pingsan, dibawa Pak Gatot ke atas: cukup hari berakhir, atau sebagian barang hilang (belum diputuskan).
+  - Kalau pingsan, dibawa Pak Gatot pulang: hari berakhir, tidak ada barang hilang (sudah diputuskan).
 - [ ] **Bahaya**: runtuhan batu (ada tanda retakan), kelelawar, gas tambang, air naik saat hujan.
 - [ ] **Berdua**: batu besar ditarik berdua, satu pegang lampu satu menambang, saling menolong kalau pingsan.
 - [ ] **Hasilnya**: alat naik tingkat di Pandai Besi, perhiasan permata (cincin akik) sebagai hadiah pasangan, koleksi museum, fosil untuk riset purba, batu belah (geode).

@@ -425,6 +425,27 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Bonceng:** saat pasanganmu duduk di motor, dekati dia lalu pilih **🛵 Bonceng**. Kamu duduk di belakang dan ikut ke mana pun dia pergi. Tekan tombol untuk turun; kalau pengemudi turun, yang dibonceng ikut turun. Rok dan sarung ikut menutupi kaki saat duduk di motor.
 - Motor bebek dan matic sedikit melambat di luar jalan (rumput, tanah); motor trail tetap kencang. Di sawah motor berjalan pelan. Masuk rumah, naik perahu, naik ojek, atau tidur membuatmu turun dari motor dulu.
 
+## ⛏️ Aula Simpang dan Tambang Bertingkat (tahap 11, bagian 1)
+- **Pintu masuk:** di dalam ⛏️ Tambang Rakyat (Desa Pegunungan) ada lubang 🕳️ di dinding timur. Turun ke **🚪 Aula Simpang**, ruang batu berlampu karbit dengan **8 pintu** yang terbuka berurutan. Sekarang baru pintu 1 (**Tambang Bertingkat**) yang terbuka; pintu lain bergembok 🔒 dan menunjukkan syaratnya.
+- **🎁 Titipan Pak Gatot:** sekali per pemain, peti di aula berisi **🗡️ golok** dan helm berlampu.
+- **Lantai 1–20** (lantai 21–40 menyusul):
+
+  | Zona | Lantai | Isi batu | Monster |
+  |---|---|---|---|
+  | 🟤 Lorong Tanah | 1–10 | batu, tanah liat, tembaga, batu bara (besi mulai lantai 6) | lendir lumpur, tikus tambang, lipan gua |
+  | ⚪ Gua Kapur | 11–20 | batu, besi, perak, kristal kuarsa, batu bara, tembaga (emas mulai lantai 16), kadang fosil kecil | kelelawar penghisap, kalajengking kristal, ular sanca gua |
+
+  - Bentuk tiap lantai **tetap**, tapi **batunya baru setiap hari** (sama di HP kalian berdua).
+  - Pecahkan batu dengan ⛏️ beliung (batu biasa 1 pukulan, batu berbijih 2–3 pukulan, 1 ⚡ per batu). **Tangga ke bawah tersembunyi di bawah salah satu batu.**
+  - **🛗 Lift** di lantai 5, 10, 15, dan 20: setelah pernah sampai ke sana, lift di aula bisa langsung membawa kalian ke lantai itu.
+  - **🎁 Peti harta** di lantai 10 dan 20 (sekali saja untuk farm kalian).
+- **Monster dan ❤️ nyawa:**
+  - Mode bawaan **⚔️ Petualang**: monster berkeliaran dan menyerang. Dekati lalu tekan tombol aksi untuk menyerang; 🗡️ golok paling kuat (3), beliung, kapak, cangkul, sabit (2), tangan kosong (1). Monster kalah kadang meninggalkan barang (lendir, batu bara, bisa lipan, sayap kelelawar, kristal kuarsa, sisik ular).
+  - Mode **🕊️ Damai** (papan di aula, pilihan masing-masing pemain): monster tidak muncul.
+  - **❤️ nyawa terpisah dari ⚡ energi.** Nyawa pulih pelan di luar lantai tambang (lebih cepat di aula), dan makan masakan menambah nyawa sebanyak energinya. Hari baru = nyawa penuh.
+  - **Pingsan** (nyawa 0): Pak Gatot membawamu pulang ke tempat tidur dan hari berakhir. Tidak ada barang yang hilang.
+- **Berdua:** batu yang dipecah dan monster yang dikalahkan salah satu pemain ikut hilang di layar pasangannya; lantai terdalam dan lift dipakai bersama.
+
 ## Menyimpan progres
 - **💾 Simpan otomatis** (menyala sejak awal): game tersimpan setiap pagi setelah tidur (juga saat ketiduran pukul 00:00), setiap 5 menit bermain, dan saat game ditutup atau HP pindah ke aplikasi lain. Yang menyimpan otomatis adalah pemain yang menjalankan farm; pasangannya ikut mendapat save itu. Bisa dimatikan lewat tombol **Simpan otomatis** di layar Bantuan **?**; kalau mati, simpan lewat tombol 💾 atau pilih **Tidur dan simpan progres** (ada juga **Tidur tanpa menyimpan**). Tombol 💾 tetap bisa dipakai kapan saja.
 - **🗂️ Cadangan** (tombol di layar awal): save terakhir setiap hari disimpan sebagai cadangan, ☁️ 7 hari terakhir di penyimpanan online kalian berdua (link claude.ai) dan 📱 3 hari terakhir di perangkat ini. Pilih **Pulihkan** untuk kembali ke hari itu (save yang sedang dipakai tetap masuk daftar cadangan). **⬇️ Unduh save ke file** menyimpan save sebagai file `.json` di HP/komputer, dan **⬆️ Buka file save** memulihkan dari file itu. Tombol unduh juga ada di jendela 💾 Simpan.
