@@ -61,6 +61,11 @@
         #clock .ebar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #f5b52e, #7cc45a); transition: width .4s; }
         #clock .energy.low .ebar i { background: #e85d4a; }
         #clock .hp .ebar i { background: linear-gradient(90deg, #d93a4a, #ff8fa3); }
+        #mineBtns { position: fixed; right: 18px; bottom: 150px; display: flex; flex-direction: column; gap: 8px; z-index: 6; }
+        #mineBtns .btn { width: 52px; height: 52px; border-radius: 50%; padding: 0; font-size: 22px; touch-action: none; }
+        #bossBar { position: fixed; top: 64px; right: 12px; width: 200px; z-index: 6; background: rgba(30, 14, 10, .85); color: #ffe7c2; border: 2px solid #c0392b; border-radius: 12px; padding: 5px 12px; text-align: center; font-size: 13px; }
+        #bossBar .ebar { display: block; height: 9px; margin-top: 4px; border-radius: 6px; background: #3a1a12; overflow: hidden; }
+        #bossBar .ebar i { display: block; height: 100%; background: linear-gradient(90deg, #d93a2a, #ff9a3a); transition: width .2s; }
         #hurtFlash { position: fixed; inset: 0; pointer-events: none; z-index: 5; box-shadow: inset 0 0 90px 30px rgba(220, 30, 40, .55); opacity: 0; transition: opacity .35s; }
         #hurtFlash.on { opacity: 1; transition: none; }
 
@@ -574,6 +579,7 @@
     <button id="actBtn" class="btn">✋</button>
     <button id="actBtn2" class="btn" title="Tangan kiri (Q)">🤚</button>
     <button id="eatBtn" class="btn" hidden>🍽️ Makan</button>
+    <div id="mineBtns" style="display:none"><button id="rollBtn" class="btn" title="Hindar / berguling (R)">🤸</button><button id="sweepBtn" class="btn" title="Jurus sapuan (F)">🌀</button></div>
     <div id="sleepNote" class="panel" hidden></div>
 
     <div id="netBadge" class="panel" title="Ketuk untuk melihat status pasanganmu"></div>
@@ -706,6 +712,7 @@
         // ---------- Materials & primitive helpers ----------
         const matCache = {}, geoCache = {};
         const mat = c => matCache[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.82, metalness: 0 });
+        const glowMatT = (c, k = 0.6) => matCache['glow' + c + k] ||= new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: k, roughness: 0.4 });
         const glossy = c => matCache['g' + c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.18, metalness: 0 });
         const BOX = new THREE.BoxGeometry(1, 1, 1);
         const ICO = new THREE.IcosahedronGeometry(1, 1);   // a lumpy sphere (rocks, bushes, leaves) in the low-poly style
@@ -1296,7 +1303,7 @@
         }
         const TOWN = VB.filter(b => b.shop);
         // ⛏️ the Aula Simpang and the floors of the Tambang Bertingkat lie far east of the village rooms: floor n at MINE_F0 + 60 n
-        const MINE_F0 = 9200, MINE_N = 20, MINE_HALF = { x: 11.4, z: 8.4 };
+        const MINE_F0 = 9200, MINE_N = 40, MINE_HALF = { x: 11.4, z: 8.4 };
         const isMineF = f => f >= MINE_F0 - 30;
         const MF = n => MINE_F0 + n * 60;
         const isVRoom = f => f >= 680 && !isMineF(f);
@@ -4263,6 +4270,26 @@
             racunlipan: { label: 'Bisa lipan', icon: '🧪', price: 55 },
             sayapkelelawar: { label: 'Sayap kelelawar', icon: '🦇', price: 60 },
             sisikular: { label: 'Sisik ular sanca', icon: '🐍', price: 95 },
+            akik: { label: 'Batu akik bacan', icon: '🟢', price: 420 },
+            kecubung: { label: 'Batu kecubung', icon: '🟣', price: 380 },
+            kalimaya: { label: 'Opal kalimaya', icon: '🌈', price: 650 },
+            intan: { label: 'Intan Martapura', icon: '💠', price: 1600 },
+            capitbatu: { label: 'Capit kepiting batu', icon: '🦀', price: 85 },
+            sengatbelut: { label: 'Sengat belut listrik', icon: '⚡', price: 90 },
+            racunkatak: { label: 'Lendir katak racun', icon: '🐸', price: 75 },
+            pecahanarca: { label: 'Pecahan arca', icon: '🗿', price: 130 },
+            apibanaspati: { label: 'Api banaspati', icon: '🔥', price: 150 },
+            sisiklava: { label: 'Sisik kadal lava', icon: '🦎', price: 120 },
+            mahkotatikus: { label: 'Mahkota Raja Tikus', icon: '👑', price: 900 },
+            kristalraksasa: { label: 'Kristal kalajengking raksasa', icon: '🔮', price: 1500 },
+            sisiklele: { label: 'Sisik Lele Siluman', icon: '🐟', price: 2200 },
+            tandukbuto: { label: 'Tanduk Buto Ijo', icon: '🦴', price: 4000 },
+            // ⛏️ things to use in the mine (Pak Gatot's shop)
+            ramuan: { label: 'Ramuan penyembuh', icon: '🧉', price: 90 },
+            obor: { label: 'Obor', icon: '🔥', price: 25 },
+            petasan: { label: 'Petasan', icon: '🧨', price: 45 },
+            garam: { label: 'Garam kasar', icon: '🧂', price: 15 },
+            bomasap: { label: 'Bom asap', icon: '💨', price: 60 },
             kayu: { label: 'Kayu', icon: '🪵', price: 25 },
             tanahliat: { label: 'Tanah liat', icon: '🟤', price: 15 },
             rumput: { label: 'Rumput', icon: '🌿', price: 8 },
@@ -4579,9 +4606,10 @@
                 { k: 'hias', label: 'Tanaman hias', icon: '🌸', keys: GARDEN.filter(g => g.type === 'hias').map(g => g.key) },
                 { k: 'buah', label: 'Buah', icon: '🍎', keys: ALL_FRUITS.map(f => f.key) },
                 { k: 'ternak', label: 'Hasil ternak', icon: '🥚', keys: ['egg', 'duckEgg', 'milk', 'goatMilk', 'wool', 'madu'] },
-                { k: 'alam', label: 'Alam & tambang', icon: '🪨', keys: ['kayu', 'batu', 'tanahliat', 'rumput', 'tembaga', 'besi', 'emas', 'batubara', 'perak', 'kuarsa', 'lendir', 'racunlipan', 'sayapkelelawar', 'sisikular', 'kerang', 'bintanglaut', 'mutiara'] },
+                { k: 'alam', label: 'Alam & tambang', icon: '🪨', keys: ['kayu', 'batu', 'tanahliat', 'rumput', 'tembaga', 'besi', 'emas', 'batubara', 'perak', 'kuarsa', 'kerang', 'bintanglaut', 'mutiara'] },
                 { k: 'masak', label: 'Masakan & kerajinan', icon: '🍲', keys: [...RECIPES.map(r => r.out || r.key), 'kopisangrai', 'anyaman', 'ukiran'] },
                 { k: 'purba', label: 'Fosil & artefak', icon: '🦴', keys: [...FOSSIL_SETS.flatMap(s => s.parts), ...Object.keys(ARTEFACTS)] },
+                { k: 'tambang', label: 'Permata & hasil monster', icon: '💎', keys: ['akik', 'kecubung', 'kalimaya', 'intan', 'lendir', 'racunlipan', 'sayapkelelawar', 'sisikular', 'capitbatu', 'sengatbelut', 'racunkatak', 'pecahanarca', 'apibanaspati', 'sisiklava', 'mahkotatikus', 'kristalraksasa', 'sisiklele', 'tandukbuto'] },
             ].map(c => ({ ...c, keys: c.keys.filter(k => PRODUCTS[k] && !seen.has(k) && seen.add(k)) }));
         })();
         const COL_KEYS = COL_CATS.flatMap(c => c.keys), COL_SET = new Set(COL_KEYS), COL_STEP = 10;
@@ -4886,6 +4914,13 @@
             sapu: { icon: '🧹', label: 'Sapu' },
             // ⛏️ a weapon for the mine: a gift from Pak Gatot
             golok: { icon: '🗡️', label: 'Golok' },
+            tongkat: { icon: '🦯', label: 'Tongkat kayu' },
+            celurit: { icon: '🌙', label: 'Celurit' },
+            badik: { icon: '🔪', label: 'Badik' },
+            tombak: { icon: '🔱', label: 'Tombak' },
+            mandau: { icon: '⚔️', label: 'Mandau' },
+            keris: { icon: '✨', label: 'Keris pusaka' },
+            ketapel: { icon: '🪃', label: 'Ketapel' },
         };
         // the four tools every bag always keeps; the rest come from the tool chest
         const BASE_TOOLS = ['tangan', 'penyiram', 'pemeras', 'gunting'];
@@ -5492,7 +5527,7 @@
         }
         const HUG_TIME = 2.6, JOY_TIME = 2.2, SWING_TIME = 0.5;
         // ⚒️ how long a use of each tool takes: heavy tools are raised high and brought down hard
-        const SWING_KIND = { kapak: 'chop', beliung: 'chop', cangkul: 'hoe', palu: 'chop', sabit: 'sweep', golok: 'slash', pedang: 'slash', celurit: 'sweep', badik: 'slash', mandau: 'slash', tombak: 'thrust', sapu: 'broom', gunting: 'snip', pemeras: 'milk' };
+        const SWING_KIND = { tongkat: 'slash', keris: 'thrust', ketapel: 'thrust', kapak: 'chop', beliung: 'chop', cangkul: 'hoe', palu: 'chop', sabit: 'sweep', golok: 'slash', pedang: 'slash', celurit: 'sweep', badik: 'slash', mandau: 'slash', tombak: 'thrust', sapu: 'broom', gunting: 'snip', pemeras: 'milk' };
         const SWING_DUR = { chop: 0.72, hoe: 0.7, sweep: 0.5, slash: 0.45, thrust: 0.45, broom: 0.9, snip: 0.8, milk: 0.9 };
         const swingDur = k => SWING_DUR[SWING_KIND[k]] || SWING_TIME;
         const easeOut = x => 1 - (1 - x) * (1 - x), easeIn = x => x * x;
@@ -5557,7 +5592,8 @@
             }
         }
         // the tool in your hand, as a little model in the farmer's hand
-        const HELD = ['penyiram', ...CHEST_TOOLS, 'golok'];
+        const ARMS = ['golok', 'tongkat', 'celurit', 'badik', 'tombak', 'mandau', 'keris', 'ketapel'];
+        const HELD = ['penyiram', ...CHEST_TOOLS, ...ARMS];
         // tools are carried in the right hand, pointing forward and up; the watering can hangs by its handle
         const tiltOf = k => k === 'penyiram' ? 0 : k === 'sapu' ? 0.45 : 1.15;
         function toolModel(k) {
@@ -5594,6 +5630,29 @@
                 box(0.05, 0.03, 0.05, 0x3a2a1a, 0, 0.1, 0, g);
                 const bl = box(0.075, 0.42, 0.012, steel, 0, 0.32, 0.012, g); bl.rotation.z = -0.04;
                 box(0.03, 0.4, 0.014, 0xe8eef2, 0.03, 0.32, 0.012, g);
+            } else if (k === 'tongkat') {
+                cap(0.022, 0.9, 0x8a5a2a, 0, 0.3, 0, g);
+            } else if (k === 'celurit') {
+                cap(0.022, 0.14, 0x5a3a1e, 0, 0, 0, g);
+                const bl = mesh(new THREE.TorusGeometry(0.16, 0.016, 6, 18, Math.PI * 1.15), mat(steel), g); bl.position.set(0, 0.24, 0.1); bl.rotation.set(0, Math.PI / 2, 0.3);
+            } else if (k === 'badik') {
+                cap(0.02, 0.1, 0x5a3a1e, 0, 0, 0, g); box(0.05, 0.025, 0.04, 0xd4af37, 0, 0.08, 0, g);
+                const bl = box(0.04, 0.22, 0.01, steel, 0, 0.2, 0, g); bl.rotation.z = 0.12;
+            } else if (k === 'tombak') {
+                cap(0.016, 1.2, wood, 0, 0.3, 0, g);
+                const tip = mesh(CONE, mat(steel), g); tip.scale.set(0.04, 0.2, 0.02); tip.position.set(0, 1.0, 0);
+                box(0.06, 0.03, 0.06, 0xd9443a, 0, 0.88, 0, g);
+            } else if (k === 'mandau') {
+                cap(0.024, 0.14, 0xe8dcc0, 0, 0, 0, g); box(0.07, 0.03, 0.06, 0x2a2a2a, 0, 0.1, 0, g);
+                const bl = box(0.07, 0.5, 0.012, 0xd8e0e6, 0, 0.36, 0.01, g); bl.rotation.z = -0.1;
+                for (let i = 0; i < 3; i++) ball(0.012, 0.012, 0.012, 0xd9443a, 0, 0.04 - i * 0.03, 0.03, g);
+            } else if (k === 'keris') {
+                cap(0.022, 0.1, 0x6e4723, 0, 0, 0, g); box(0.12, 0.04, 0.05, 0xd4af37, 0, 0.08, 0, g);
+                for (let i = 0; i < 5; i++) { const b = box(0.035, 0.08, 0.012, glowMatT(0xffe39a, 0.6), Math.sin(i * 1.6) * 0.02, 0.14 + i * 0.07, 0.01, g); b.rotation.z = Math.sin(i * 1.6) * 0.4; }
+            } else if (k === 'ketapel') {
+                cap(0.018, 0.14, wood, 0, 0, 0, g);
+                for (const s of [-1, 1]) { const a = cap(0.014, 0.12, wood, s * 0.05, 0.14, 0, g); a.rotation.z = -s * 0.5; }
+                box(0.12, 0.012, 0.02, 0x8a5a3a, 0, 0.2, 0, g);
             } else if (k === 'sabit') {
                 cap(0.02, 0.16, wood, 0, 0, 0, g);
                 const bl = mesh(new THREE.TorusGeometry(0.11, 0.014, 6, 18, Math.PI * 1.25), mat(steel), g); bl.position.set(0, 0.2, 0.06); bl.rotation.set(0, 0.35, 0.4);
@@ -5836,7 +5895,7 @@
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
             st.satwa = cleanSatwa(saved.satwa);
             st.fam = cleanFam(saved.fam);
-            st.mine = cleanMine(saved.mine);
+            st.mine = cleanMine(saved.mine); st.gear = cleanGear(saved.gear);
             st.npcEv = cleanNpcEv(saved.npcEv); st.npcDebt = (Array.isArray(saved.npcDebt) ? saved.npcDebt : []).filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
@@ -8788,7 +8847,7 @@
                 giling: ['Giling gabah jadi beras 🏭', openGiling], lumbung: ['Titip atau ambil di lumbung 🏚️', openLumbung], bank: ['Menabung di bank 🏦', openBank], salon: ['Ganti gaya & warna rambut 💇', openSalon],
                 pos: ['Kirim kartu pos 💌', openPos], terminal: ['Naik bus ke desa lain 🚌', () => openHalte('kota')], herbal: ['Racik jamu 🌿', () => openMake('herbal')], kopi: ['Sangrai kopi ☕', () => openMake('kopi')],
                 kriya: ['Buat kerajinan 🧺', () => openMake('kriya')], pandai: ['Tempa alat ⚒️', openPandai], pelabuhan: ['Naik kapal ke Pulau Kencana ⛴️', () => openBoat(true)],
-                galangan: [() => boatToday() ? 'Perahu sudah disewa hari ini 🛶' : `Sewa perahu hari ini · 150 G 🛶`, () => { if (boatToday()) { toast('Perahu sudah siap. Memancinglah di laut, ikan laut dalam bisa didapat hari ini 🎣'); return; } if (state.gold < 150) { toast('Uangnya tidak cukup 🛶'); return; } sendAct('perahu'); }],
+                tambang: ['Toko perlengkapan tambang 🧰', () => openGatot()], galangan: [() => boatToday() ? 'Perahu sudah disewa hari ini 🛶' : `Sewa perahu hari ini · 150 G 🛶`, () => { if (boatToday()) { toast('Perahu sudah siap. Memancinglah di laut, ikan laut dalam bisa didapat hari ini 🎣'); return; } if (state.gold < 150) { toast('Uangnya tidak cukup 🛶'); return; } sendAct('perahu'); }],
                 inap: ['Istirahat di penginapan · 100 G 🛏️', () => { if (state.gold < 100) { toast('Uangnya tidak cukup 🛏️'); return; } sendAct('inap'); }],
             };
             for (const b of VB) {
@@ -8801,6 +8860,7 @@
                     act: () => { if (atWork(kp)) openTownShop(b.id); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); },
                 });
                 else if (FN[T] && kp) add('vfn:' + b.id, HV(b.f, cx, cz), 1.4, { label: () => atWork(kp) ? (typeof FN[T][0] === 'function' ? FN[T][0]() : FN[T][0]) : busy(kp), act: () => { if (atWork(kp)) FN[T][1](); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
+                if (T === 'pandai') add('varms', HV(b.f, 2.8, -0.6), 1.3, { label: () => atWork(kp) ? '⚔️ Senjata & pelindung tambang' : busy(kp), act: () => { if (atWork(kp)) openSmithArms(); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
                 if (T === 'saw') add('vcarp', HV(b.f, -2.0, 0.6), 1.3, { label: () => atWork(kp) ? '🪚 Jasa tukang kayu · pindah kandang, pohon, bangunan' : busy(kp), act: () => { if (atWork(kp)) openCarpenter(); else toast(`${busy(kp)}. Tunggu sebentar, ya.`); } });
                 if (T === 'museum') {
                     add('vmusdesk', HV(b.f, 0, 0.35), 1.5, { label: () => '🏛️ Meja museum · serahkan & lihat koleksi', act: openMuseum });
@@ -11633,9 +11693,12 @@
         const MINE_ZONES = [
             { name: '🟤 Lorong Tanah', floor: 0x4e3f30, floor2: 0x58483a, wall: 0x6a5642, rock: 0x857563, ores: [['batu', 55], ['tanahliat', 10], ['tembaga', 22], ['batubara', 13]], deep: [['besi', 6]], mons: ['lendir', 'tikus', 'lipan'] },
             { name: '⚪ Gua Kapur', floor: 0x5d5f62, floor2: 0x686a6c, wall: 0x9a978e, rock: 0xb0aca2, ores: [['batu', 44], ['besi', 20], ['perak', 12], ['kuarsa', 10], ['batubara', 8], ['tembaga', 6]], deep: [['emas', 4]], mons: ['kelelawar', 'kalajengking', 'ular'] },
+            { name: '🔵 Sungai Bawah Tanah', floor: 0x2c3842, floor2: 0x33414c, wall: 0x46566a, rock: 0x6a7a8a, ores: [['batu', 40], ['besi', 14], ['emas', 12], ['perak', 12], ['kuarsa', 10], ['batubara', 6]], deep: [['akik', 5]], mons: ['kepiting', 'belut', 'katak'], fx: 'water', dark: 1 },
+            { name: '🔴 Perut Gunung', floor: 0x3a2622, floor2: 0x48291f, wall: 0x5a3a30, rock: 0x7a5a4e, ores: [['batu', 36], ['emas', 16], ['besi', 10], ['akik', 8], ['kecubung', 8], ['kalimaya', 6], ['batubara', 8]], deep: [['intan', 3]], mons: ['arca', 'banaspati', 'kadal'], fx: 'lava', dark: 2 },
         ];
         const zoneOf = n => MINE_ZONES[clamp(Math.floor((n - 1) / 10), 0, MINE_ZONES.length - 1)];
-        const ORE_COL = { tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c };
+        const ORE_COL = { tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c, akik: 0x2fae6a, kecubung: 0x9a4ad8, kalimaya: 0x7fe0ff, intan: 0xeaffff };
+        const GEM = new Set(['kuarsa', 'perak', 'emas', 'akik', 'kecubung', 'kalimaya', 'intan']);
         const MONS = {
             lendir: { name: 'Lendir lumpur', icon: '🟤', hp: 3, dmg: 6, sp: 1.5, drop: 'lendir' },
             tikus: { name: 'Tikus tambang', icon: '🐀', hp: 4, dmg: 7, sp: 2.7, drop: 'batubara' },
@@ -11643,13 +11706,33 @@
             kelelawar: { name: 'Kelelawar penghisap', icon: '🦇', hp: 5, dmg: 8, sp: 3.1, fly: 1, drop: 'sayapkelelawar' },
             kalajengking: { name: 'Kalajengking kristal', icon: '🦂', hp: 8, dmg: 12, sp: 1.9, drop: 'kuarsa' },
             ular: { name: 'Ular sanca gua', icon: '🐍', hp: 10, dmg: 14, sp: 2.3, drop: 'sisikular' },
+            kepiting: { name: 'Kepiting batu', icon: '🦀', hp: 9, dmg: 12, sp: 2.0, hide: 1, drop: 'capitbatu' },
+            belut: { name: 'Belut listrik', icon: '⚡', hp: 8, dmg: 15, sp: 3.3, drop: 'sengatbelut' },
+            katak: { name: 'Katak racun', icon: '🐸', hp: 7, dmg: 11, sp: 2.4, hop: 1, drop: 'racunkatak' },
+            arca: { name: 'Arca hidup', icon: '🗿', hp: 16, dmg: 20, sp: 1.3, drop: 'pecahanarca' },
+            banaspati: { name: 'Banaspati', icon: '🔥', hp: 10, dmg: 18, sp: 2.8, fly: 1, fire: 1, drop: 'apibanaspati' },
+            kadal: { name: 'Kadal lava', icon: '🦎', hp: 12, dmg: 16, sp: 2.6, drop: 'sisiklava' },
+            // the minions a boss calls (never synced, never drop anything)
+            anaktikus: { name: 'Anak tikus', icon: '🐀', hp: 2, dmg: 5, sp: 2.9, model: 'tikus', minion: 1 },
         };
-        // how hard each tool hits a monster (an empty hand: 1)
-        const WEAPON = { golok: 3, beliung: 2, kapak: 2, cangkul: 2, sabit: 2 };
+        // a boss on every 10th floor; in Damai mode it is a riddle at a stone instead
+        const BOSS = {
+            10: { k: 'rajatikus', name: 'Raja Tikus', icon: '🐀', model: 'tikus', sc: 2.4, hp: 40, dmg: 12, sp: 2.2, act: 'summon', drop: 'mahkotatikus', gold: 800 },
+            20: { k: 'kalaraksasa', name: 'Kalajengking Kristal Raksasa', icon: '🦂', model: 'kalajengking', sc: 2.6, hp: 70, dmg: 18, sp: 1.7, act: 'charge', drop: 'kristalraksasa', gold: 1500 },
+            30: { k: 'lele', name: 'Lele Siluman', icon: '🐟', model: 'lele', sc: 1, hp: 100, dmg: 22, sp: 2.2, act: 'dive', drop: 'sisiklele', gold: 2500 },
+            40: { k: 'buto', name: 'Buto Ijo', icon: '👹', model: 'buto', sc: 1, hp: 150, dmg: 28, sp: 1.6, act: 'slam', drop: 'tandukbuto', gold: 5000 },
+        };
+        // how hard each tool hits a monster (an empty hand: 1); r = reach, sweep hits all in reach, crit = a chance of double
+        const WEAPON = {
+            tongkat: { d: 2, r: 2.1 }, golok: { d: 3 }, celurit: { d: 3, sweep: 1 }, badik: { d: 3, crit: 0.3 }, tombak: { d: 4, r: 2.7 },
+            mandau: { d: 6, r: 2.1 }, keris: { d: 8, r: 2.0, fear: 1 }, ketapel: { d: 2, shot: 7 },
+            beliung: { d: 2 }, kapak: { d: 2 }, cangkul: { d: 2 }, sabit: { d: 2, sweep: 1 },
+        };
+        const wpn = k => WEAPON[k] || { d: 1 }, wReach = k => wpn(k).shot || wpn(k).r || 1.9;
         // the eight doors of the hall, opened in order
         const AULA_DOORS = [
-            { icon: '⛏️', name: 'Tambang Bertingkat', note: '40 lantai, lift tiap 5 lantai. Lantai 1–20 sudah dibuka.' },
-            { icon: '🦇', name: 'Gua Lawa Angker', note: 'Terbuka setelah Tambang Bertingkat sampai lantai 40.' },
+            { icon: '⛏️', name: 'Tambang Bertingkat', note: '40 lantai, lift tiap 5 lantai, bos tiap 10 lantai.' },
+            { icon: '🦇', name: 'Gua Lawa Angker', note: 'Terbuka setelah Buto Ijo di lantai 40 Tambang Bertingkat dikalahkan.' },
             { icon: '🌋', name: 'Kawah Candradimuka', note: 'Terbuka setelah Gua Lawa Angker.' },
             { icon: '⚡', name: 'Ruang Ujian Dewa', note: 'Terbuka setelah Kawah Candradimuka.' },
             { icon: '🐠', name: 'Gua Bawah Laut', note: 'Terbuka setelah Ruang Ujian Dewa, dengan baju selam.' },
@@ -11663,47 +11746,56 @@
         const mrng = s => () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
         const pickW = (r, list) => { let x = r() * list.reduce((a, b) => a + b[1], 0); for (const [k, w] of list) if ((x -= w) < 0) return k; return list[0][0]; };
         const MSHAPE = {};
+        const isBossF = n => n % 10 === 0 && !!BOSS[n];
         function mineShape(n) {
             if (MSHAPE[n]) return MSHAPE[n];
-            const r = mrng(n * 7919 + 13), pillars = [], chest = n % 10 === 0;
+            const r = mrng(n * 7919 + 13), pillars = [], pools = [], chest = n % 10 === 0, Z = zoneOf(n);
+            const clear = (x, z, pad) => Math.hypot(x, z - 6.8) < 2.8 + pad || chest && (Math.hypot(x, z + 6.6) < 1.6 + pad || Math.hypot(x, z + 3) < 3 + pad);
             const want = 3 + Math.floor(r() * 4);
             for (let i = 0; i < 80 && pillars.length < want; i++) {
                 const x = -9 + r() * 18, z = -6.6 + r() * 11, rad = 0.7 + r() * 0.6;
-                if (Math.hypot(x, z - 6.8) < 3.4 || chest && Math.hypot(x, z + 6.6) < 2.6) continue;   // the landing and the chest stay clear
+                if (clear(x, z, 0.6)) continue;   // the landing, the boss and the chest stay clear
                 if (pillars.some(p => Math.hypot(p.x - x, p.z - z) < p.r + rad + 1.8)) continue;
                 pillars.push({ x: +x.toFixed(2), z: +z.toFixed(2), r: +rad.toFixed(2) });
+            }
+            // 🌊 pools in the underground river, 🌋 lava in the mountain's belly
+            if (Z.fx) for (let i = 0; i < 40 && pools.length < 4; i++) {
+                const x = -9 + r() * 18, z = -6.8 + r() * 10, rad = 0.9 + r() * 0.8;
+                if (clear(x, z, rad) || pillars.some(p => Math.hypot(p.x - x, p.z - z) < p.r + rad + 1) || pools.some(p => Math.hypot(p.x - x, p.z - z) < p.r + rad + 1.2)) continue;
+                pools.push({ x: +x.toFixed(2), z: +z.toFixed(2), r: +rad.toFixed(2) });
             }
             // where a rock may lie
             const slots = [];
             for (let x = -10.4; x <= 10.4; x += 1.3) for (let z = -7.6; z <= 5.6; z += 1.2) {
                 const jx = x + (r() - 0.5) * 0.5, jz = z + (r() - 0.5) * 0.5;
-                if (Math.hypot(jx, jz - 6.8) < 2.8 || chest && Math.hypot(jx, jz + 6.6) < 1.6) continue;
-                if (pillars.some(p => Math.hypot(p.x - jx, p.z - jz) < p.r + 0.8)) continue;
+                if (clear(jx, jz, 0)) continue;
+                if (pillars.some(p => Math.hypot(p.x - jx, p.z - jz) < p.r + 0.8) || pools.some(p => Math.hypot(p.x - jx, p.z - jz) < p.r + 0.6)) continue;
                 slots.push([+jx.toFixed(2), +jz.toFixed(2)]);
             }
-            return MSHAPE[n] = { pillars, slots };
+            return MSHAPE[n] = { pillars, pools, slots };
         }
         // today's rocks on floor n (the same on both screens)
-        const MROCKS = {};
+        const MROCKS = {}, ROCK_MAX = 34;
         function mineRocks(n, day = state.day) {
             const key = n + ':' + day;
             if (MROCKS[key]) return MROCKS[key];
             for (const k of Object.keys(MROCKS)) if (!k.endsWith(':' + day)) delete MROCKS[k];
             const { slots } = mineShape(n), r = mrng(n * 104729 + day * 7331 + 1), Z = zoneOf(n);
             const pool = slots.map((s, i) => [r(), i]).sort((a, b) => a[0] - b[0]);
-            const cnt = Math.min(pool.length, 16 + Math.floor(r() * 8) + Math.floor(n / 3));
+            const cnt = Math.min(pool.length, ROCK_MAX, isBossF(n) ? 10 : 16 + Math.floor(r() * 8) + Math.floor(n / 4));
             const ores = (n - 1) % 10 >= 5 ? [...Z.ores, ...Z.deep] : Z.ores;
             const rocks = pool.slice(0, cnt).map(([, i]) => ({ x: slots[i][0], z: slots[i][1], k: pickW(r, ores), s: 0.8 + r() * 0.35, ry: r() * 6 }));
-            // the ladder hides under a rock away from the landing
+            // the ladder hides under a rock away from the landing (on a boss floor it comes when the boss is beaten)
             let ld = Math.floor(r() * rocks.length);
             for (let t = 0; t < rocks.length && rocks[ld].z > 3; t++) ld = (ld + 1) % rocks.length;
-            rocks.ladder = ld;
+            rocks.ladder = isBossF(n) ? -1 : ld;
             return MROCKS[key] = rocks;
         }
         // today's monsters on floor n
         function mineMons(n, day = state.day) {
+            if (isBossF(n)) return [];
             const r = mrng(n * 3571 + day * 9973 + 7), Z = zoneOf(n), { slots } = mineShape(n);
-            const cnt = Math.min(6, 2 + Math.floor(((n - 1) % 10) / 3) + Math.floor((n - 1) / 10) + Math.floor(r() * 2));
+            const cnt = Math.min(7, 2 + Math.floor(((n - 1) % 10) / 3) + Math.floor((n - 1) / 10) + Math.floor(r() * 2));
             const out = [];
             for (let t = 0; t < 40 && out.length < cnt; t++) {
                 const s = slots[Math.floor(r() * slots.length)], k = Z.mons[Math.floor(r() * Z.mons.length)];
@@ -11718,12 +11810,15 @@
             const per = v => { const r = {}; for (const [k, a] of Object.entries(v && typeof v === 'object' ? v : {})) if (+k >= 1 && +k <= MINE_N) r[+k] = ints(a); return r; };
             const m = {}, g = {};
             for (const u of [NA, NW]) { if (o.m && o.m[u] === 'd') m[u] = 'd'; if (o.g && o.g[u]) g[u] = 1; }
-            return { d: o.d | 0, b: per(o.b), k: per(o.k), deep: clamp(o.deep | 0, 0, MINE_N), m, g, ch: ints(o.ch).filter(n => n >= 1 && n <= MINE_N) };
+            const fl = a => ints(a).filter(n => n >= 1 && n <= MINE_N);
+            const dn = {}; for (let i = 1; i < 8; i++) if (o.dn && o.dn[i]) dn[i] = 1;
+            return { d: o.d | 0, b: per(o.b), k: per(o.k), deep: clamp(o.deep | 0, 0, MINE_N), m, g, ch: fl(o.ch), bs: fl(o.bs), dn };
         }
         // the host's copy, emptied of broken rocks and beaten monsters each new day
         function mineS() {
             const M = state.mine ||= cleanMine();
             if (M.d !== state.day) { M.d = state.day; M.b = {}; M.k = {}; }
+            M.bs ||= [];
             return M;
         }
         const mineToday = () => state.mine && state.mine.d === state.day ? state.mine : null;
@@ -11732,6 +11827,41 @@
         // what this screen already broke or beat, before the host has answered
         const mLocal = new Set();
         const mineGone = (kind, n, i) => mLocal.has(`${kind}${state.day}:${n}:${i}`) || !!(mineToday() && (mineToday()[kind][n] || []).includes(i));
+        const bossBeaten = n => mLocal.has('boss' + n) || !!(state.mine && (state.mine.bs || []).includes(n));
+
+        // 🛡️ what each of you wears in the mine, from the smith
+        const GEAR = {
+            helm: { slot: 'helm', name: 'Helm proyek', icon: '⛑️', def: 0.1, gold: 500, need: { besi: 2 }, note: 'Luka berkurang 10%, lampu kepala lebih terang' },
+            rompik: { slot: 'rompi', name: 'Rompi kulit', icon: '🦺', def: 0.15, gold: 800, need: { wool: 2, lendir: 4 }, note: 'Luka berkurang 15%' },
+            rompib: { slot: 'rompi', name: 'Rompi besi', icon: '🛡️', def: 0.3, gold: 2500, need: { besi: 10, batubara: 5 }, note: 'Luka berkurang 30% (menggantikan rompi kulit)' },
+            bot: { slot: 'bot', name: 'Sepatu bot tambang', icon: '🥾', def: 0.05, run: 1.15, gold: 600, need: { tembaga: 6 }, note: 'Luka berkurang 5%, lari 15% lebih cepat di tambang' },
+            jimat: { slot: 'jimat', name: 'Jimat batu akik', icon: '🧿', hp: 30, gold: 1500, need: { akik: 1, perak: 2 }, note: 'Nyawa maksimal +30' },
+        };
+        // ⚔️ weapons the smith makes
+        const ARM_SHOP = {
+            tongkat: { gold: 120, need: { kayu: 5 }, note: 'Kuat 2, jangkauan agak panjang' },
+            celurit: { gold: 600, need: { besi: 4 }, note: 'Kuat 3, mengenai semua monster di dekatmu' },
+            ketapel: { gold: 450, need: { kayu: 3, lendir: 2 }, note: 'Kuat 2, menembak kerikil dari jauh (7 m)' },
+            badik: { gold: 900, need: { besi: 4, perak: 2 }, note: 'Kuat 3, cepat, 30% kena kritis (2×)' },
+            tombak: { gold: 1200, need: { besi: 6, kayu: 6 }, note: 'Kuat 4, jangkauan paling panjang' },
+            mandau: { gold: 3000, need: { tandukbuto: 1, emas: 6 }, note: 'Kuat 6, senjata dari tanduk Buto Ijo' },
+        };
+        // 🧰 Pak Gatot's shop
+        const GATOT_SHOP = { ramuan: 120, obor: 40, petasan: 70, garam: 25, bomasap: 90 };
+        const MUSE = {
+            ramuan: { note: '+50 ❤️ nyawa' }, petasan: { note: 'meledak: melukai semua monster di dekatmu' },
+            garam: { note: 'monster di dekatmu kabur sebentar' }, bomasap: { note: 'monster kehilangan jejakmu 8 detik' },
+            obor: { note: 'pegang saja: monster kecil tidak berani mendekat' },
+        };
+        const gearOf = u => (state.gear && state.gear[u]) || {};
+        const gearDef = u => Math.min(0.6, Object.values(gearOf(u)).reduce((a, k) => a + ((GEAR[k] && GEAR[k].def) || 0), 0));
+        const hpMax = (u = USER) => 100 + (gearOf(u).jimat ? GEAR.jimat.hp : 0);
+        function cleanGear(o) {
+            const r = {};
+            for (const u of [NA, NW]) { const g = o && o[u], q = {}; if (g && typeof g === 'object') for (const [sl, k] of Object.entries(g)) if (GEAR[k] && GEAR[k].slot === sl) q[sl] = k; r[u] = q; }
+            return r;
+        }
+        const payNeed = (who, need, gold) => { if (state.gold < gold || Object.entries(need).some(([k, c]) => have(who, k) < c)) return false; state.gold -= gold; for (const [k, c] of Object.entries(need)) takeBag(who, k, c); return true; };
         const MINE_ACTIONS = {
             mrock(who, x) {
                 const [ns, is, t] = String(x).split('|'), n = +ns, i = +is;
@@ -11744,7 +11874,7 @@
                 const k = rk.k, cnt = Math.random() < (k === 'batu' ? 0.25 : n > 10 ? 0.3 : 0.15) ? 2 : 1;
                 if (bagRoom(who, k) < cnt) { emitEvent(FULL_MSG, 'none', null, who); return; }
                 B.push(i); addBag(who, k, cnt);
-                if (n > 10 && Math.random() < 0.12) digFind(who, 'tambang');   // the limestone keeps small fossils
+                if (n > 10 && Math.random() < (n > 20 ? 0.25 : 0.12)) digFind(who, 'tambang');   // the deeper rock keeps fossils and old things
                 const lad = i === R.ladder;
                 emitEvent(`${lad ? '🪜 Ada tangga ke bawah! · ' : '⛏️ '}+${cnt} ${ITEMS[k].icon} ${ITEMS[k].label}`, 'mine:' + (lad ? '🪜' : ITEMS[k].icon), [MF(n) + rk.x, 1.3, rk.z], who);
             },
@@ -11757,6 +11887,14 @@
                 const D = MONS[list[i].k], got = Math.random() < 0.75 && addBag(who, D.drop, 1);
                 emitEvent(`⚔️ ${D.icon} ${D.name} kalah!${got ? ` +1 ${ITEMS[D.drop].icon} ${ITEMS[D.drop].label}` : ''}`, 'mine:' + (got ? ITEMS[D.drop].icon : '✨'), [MF(n) + list[i].x, 1.2, list[i].z], who);
             },
+            mboss(who, x) {
+                const [ns, how] = String(x).split('|'), n = +ns, B = BOSS[n], M = mineS();
+                if (!B || M.bs.includes(n) || M.deep < n) return;
+                M.bs.push(n); state.gold += B.gold;
+                const got = addBag(who, B.drop, 1);
+                emitEvent(`${how === 'p' ? '🧩 Teka-teki terpecahkan' : '🏆 Menang'}: ${B.icon} ${B.name}! +${B.gold} G${got ? ` · ${ITEMS[B.drop].icon} ${ITEMS[B.drop].label}` : ''} · tangga ke bawah terbuka`, 'gift', [MF(n), 1.5, -3], who);
+                jot(`🏆 ${who} ${how === 'p' ? 'memecahkan teka-teki' : 'mengalahkan'} ${B.name} di lantai ${n} Tambang Bertingkat`);
+            },
             mdeep(who, x) { const n = x | 0, M = mineS(); if (n > M.deep && n <= MINE_N) { M.deep = n; if (n % 5 === 0) emitEvent(`🛗 Lift lantai ${n} sekarang bisa dipakai dari Aula Simpang`, 'none', null, who); } },
             mmode(who, x) { const M = mineS(); if (x === 'd') M.m[who] = 'd'; else delete M.m[who]; },
             mgift(who) {
@@ -11768,34 +11906,90 @@
             },
             mchest(who, x) {
                 const n = x | 0, M = mineS();
-                if (n % 10 || n < 10 || n > MINE_N || M.ch.includes(n) || M.deep < n) return;
-                const loot = n === 10 ? [['besi', 5], ['perak', 2], ['batubara', 5]] : [['emas', 2], ['kuarsa', 4], ['perak', 4]], gold = n === 10 ? 500 : 1500;
+                if (n % 10 || n < 10 || n > MINE_N || M.ch.includes(n) || M.deep < n || BOSS[n] && !M.bs.includes(n)) return;
+                const LOOT = { 10: [500, [['besi', 5], ['perak', 2], ['batubara', 5]]], 20: [1500, [['emas', 2], ['kuarsa', 4], ['perak', 4]]], 30: [3000, [['emas', 5], ['akik', 2], ['kalimaya', 1]]], 40: [6000, [['intan', 1], ['kecubung', 3], ['kalimaya', 2], ['emas', 8]]] };
+                const [gold, loot] = LOOT[n];
                 if (loot.some(([k, c]) => bagRoom(who, k) < c)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                 M.ch.push(n); state.gold += gold;
                 for (const [k, c] of loot) addBag(who, k, c);
                 emitEvent(`🎁 Peti harta lantai ${n}: +${gold} G, ${loot.map(([k, c]) => `${c} ${ITEMS[k].icon}`).join(' ')}`, 'gift', [MF(n), 1.2, -6.6], who);
                 if (firstTime('peti' + n)) jot(`🎁 ${who} membuka peti harta lantai ${n} Tambang Bertingkat`);
             },
+            armbuy(who, k) {
+                const c = ARM_SHOP[k];
+                if (!c || !atWork(KEEPER.pandai)) return;
+                if (have(who, 't_' + k)) { emitEvent(`${TOOLS[k].icon} ${TOOLS[k].label} sudah ada di tasmu`, 'none', null, who); return; }
+                if (bagRoom(who, 't_' + k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                if (!payNeed(who, c.need, c.gold)) { emitEvent('Bahan atau uangnya belum cukup', 'none', null, who); return; }
+                addBag(who, 't_' + k, 1);
+                emitEvent(`⚒️ Mas Agus menempa ${TOOLS[k].icon} ${TOOLS[k].label} untukmu!`, 'icon:⚒️', null, who);
+            },
+            gearbuy(who, k) {
+                const c = GEAR[k];
+                if (!c || !atWork(KEEPER.pandai)) return;
+                state.gear ||= cleanGear();
+                const g = state.gear[who] ||= {};
+                if (g[c.slot] === k || k === 'rompik' && g.rompi === 'rompib') { emitEvent(`${c.icon} ${c.name} sudah kamu pakai`, 'none', null, who); return; }
+                if (!payNeed(who, c.need, c.gold)) { emitEvent('Bahan atau uangnya belum cukup', 'none', null, who); return; }
+                g[c.slot] = k;
+                emitEvent(`🛡️ ${c.icon} ${c.name} sudah terpasang! ${c.note}`, 'icon:🛡️', null, who);
+            },
+            gatotbuy(who, k) {
+                const p = GATOT_SHOP[k];
+                if (!p || !atWork(KEEPER.tambang)) return;
+                if (state.gold < p) { emitEvent('Uangnya tidak cukup', 'none', null, who); return; }
+                if (!addBag(who, k, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                state.gold -= p;
+                emitEvent(`🧰 Membeli ${ITEMS[k].icon} ${ITEMS[k].label}`, 'none', null, who);
+            },
+            muse(who, k) { if (MUSE[k] && k !== 'obor' && have(who, k)) takeBag(who, k, 1); },
         };
         Object.assign(ACTIONS, MINE_ACTIONS);
+        function openSmithArms() {
+            const kp = KEEPER.pandai, again = () => setTimeout(() => { if (dlgOpen()) openSmithArms(); }, 350);
+            const needTxt = need => Object.entries(need).map(([k, c]) => `${c} ${ITEMS[k].icon} (di tas ${have(USER, k)})`).join(' · ');
+            const row = (ic, title, sub, gold, ok, f, done) => { const b = el('button', { class: 'btn', onclick: () => { f(); again(); } }, done ? '✓ Sudah' : `${gold} G`); if (!ok || done) b.disabled = true; return el('div', { class: 'shopitem' }, typeof ic === 'string' ? el('span', { class: 'ic', text: ic }) : el('span', { class: 'ic' }, ic), el('span', { class: 'nm' }, el('b', { text: title }), el('small', { text: sub })), b); };
+            const can = (need, gold) => state.gold >= gold && Object.entries(need).every(([k, c]) => have(USER, k) >= c);
+            const g = gearOf(USER);
+            openDlg('⚔️ Senjata & pelindung · Mas Agus', [
+                el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Senjata masuk tasmu; pelindung langsung dipakai dan hanya untukmu.` }),
+                el('h4', { text: '⚔️ Senjata' }),
+                el('div', { class: 'shoplist' }, Object.entries(ARM_SHOP).map(([k, c]) => row(iconEl('t_' + k), TOOLS[k].label, `${c.note} · ${needTxt(c.need)}`, c.gold, can(c.need, c.gold), () => sendAct('armbuy', k), !!have(USER, 't_' + k)))),
+                el('h4', { text: '🛡️ Pelindung' }),
+                el('div', { class: 'shoplist' }, Object.entries(GEAR).map(([k, c]) => row(c.icon, c.name, `${c.note} · ${needTxt(c.need)}`, c.gold, can(c.need, c.gold), () => sendAct('gearbuy', k), g[c.slot] === k || k === 'rompik' && g.rompi === 'rompib'))),
+            ]);
+            liveDlg = openSmithArms;
+        }
+        function openGatot() {
+            const again = () => setTimeout(() => { if (dlgOpen()) openGatot(); }, 350);
+            openDlg('🧰 Perlengkapan tambang · Pak Gatot', [
+                el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pegang barangnya lalu tekan tombol aksi di lantai tambang untuk memakainya.` }),
+                el('div', { class: 'shoplist' }, Object.entries(GATOT_SHOP).map(([k, p]) => { const b = el('button', { class: 'btn', onclick: () => { sendAct('gatotbuy', k); again(); } }, `${p} G`); if (state.gold < p) b.disabled = true; return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: ITEMS[k].icon }), el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `${MUSE[k].note} · di tas ${have(USER, k)}` })), b); })),
+            ]);
+            liveDlg = openGatot;
+        }
 
         // --- the places, built the first time someone walks in ---
         const mineFloors = {};
         const ROCK_GEO = new THREE.DodecahedronGeometry(0.42, 0), NUG_GEO = new THREE.IcosahedronGeometry(0.09, 0);
-        const glowMat = (c, k = 0.6) => matCache['glow' + c + k] ||= new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: k, roughness: 0.4 });
+        const glowMat = glowMatT;
         function buildAula(g) {
             for (let x = -10.5; x <= 10.5; x += 3) for (let z = -7.5; z <= 7.5; z += 3) box(2.94, 0.1, 2.94, (x + z) % 2 ? 0x564c42 : 0x5e5348, x, -0.05, z, g).castShadow = false;
             box(24.8, 4.2, 0.6, 0x6a5e52, 0, 2.1, -9.3, g);
             for (const s of [-1, 1]) box(0.6, 3.2, 19, 0x6a5e52, s * 12.3, 1.6, 0, g);
             box(24.8, 0.45, 0.4, 0x6a5e52, 0, 0.22, 9.3, g);
             textPlate(g, '🚪 Aula Simpang', 0, 3.75, -8.96, 3.2);
+            g.userData.doors = [];
             AULA_DOORS.forEach((d, i) => {
-                const x = doorX(i), open = i === 0;
+                const x = doorX(i);
                 for (const s of [-1, 1]) box(0.3, 2.7, 0.35, 0x5a3e24, x + s * 0.88, 1.35, -8.85, g);
                 box(2.1, 0.32, 0.4, 0x5a3e24, x, 2.78, -8.85, g);
-                box(1.46, 2.5, 0.06, open ? 0x060504 : 0x77726a, x, 1.25, -8.97, g);
-                if (!open) { for (let k = 0; k < 3; k++) box(1.4, 0.04, 0.08, 0x5a564f, x, 0.5 + k * 0.75, -8.92, g); }
-                textPlate(g, `${d.icon} ${i + 1}${open ? '' : ' 🔒'}`, x, 3.25, -8.96, 1.7);
+                box(1.46, 2.5, 0.06, 0x060504, x, 1.25, -8.98, g);
+                // a stone slab closes a door until it opens
+                const slab = new THREE.Group(); g.add(slab); g.userData.doors[i] = slab;
+                box(1.46, 2.5, 0.06, 0x77726a, x, 1.25, -8.93, slab); for (let k = 0; k < 3; k++) box(1.4, 0.04, 0.08, 0x5a564f, x, 0.5 + k * 0.75, -8.89, slab);
+                slab.visible = i > 0;
+                textPlate(g, `${d.icon} ${i + 1}`, x, 3.25, -8.96, 1.7);
                 // a carbide lamp beside each door
                 const l = ball(0.09, 0.12, 0.09, glowMat(0xffc46b, 1.2), x + 1.25, 2.0, -8.85, g); l.castShadow = false;
             });
@@ -11825,16 +12019,25 @@
                 const c = mesh(CONE, mat(Z.rock), g); c.scale.set(p.r * 0.85, 2.6 + r() * 1.2, p.r * 0.85); c.position.set(p.x, 1.3, p.z);
                 addCircleCollider(f + p.x, p.z, p.r);
             }
+            for (const p of S.pools) {
+                const m = mesh(new THREE.CircleGeometry(p.r, 22), Z.fx === 'lava' ? glowMat(0xff6a1a, 1.1) : new THREE.MeshStandardMaterial({ color: 0x2a6a9a, roughness: 0.08, metalness: 0.2, transparent: true, opacity: 0.82 }), g);
+                m.rotation.x = -Math.PI / 2; m.position.set(p.x, 0.015, p.z); m.castShadow = false;
+                for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; ball(0.3, 0.12, 0.25, Z.wall, p.x + Math.cos(a) * p.r, 0.05, p.z + Math.sin(a) * p.r, g).castShadow = false; }
+            }
             if (Z === MINE_ZONES[0]) {
                 // timber props and a carbide lamp in the earth tunnels
                 for (const x of [-6, 4]) { for (const s of [-1, 1]) box(0.22, 2.6, 0.22, 0x6e4723, x + s * 1.1, 1.3, -8.6, g); box(2.6, 0.22, 0.26, 0x6e4723, x, 2.6, -8.6, g); ball(0.08, 0.11, 0.08, glowMat(0xffc46b, 1.2), x, 2.3, -8.4, g).castShadow = false; }
                 for (const sx of [-0.4, 0.4]) box(0.06, 0.05, 10, 0x6e737c, -10.6 + sx, 0.03, -2, g).castShadow = false;
-            } else {
-                // pale crystals glowing in the limestone
+            } else if (Z === MINE_ZONES[1] || Z === MINE_ZONES[3]) {
+                // pale crystals in the limestone, red-hot ones in the mountain's belly
                 for (let i = 0; i < 7; i++) {
-                    const x = -10.5 + r() * 21, z = -8.6, cc = [0xbfe4ff, 0xe6c8ff, 0xc8fff0][i % 3];
+                    const x = -10.5 + r() * 21, z = -8.6, cc = Z === MINE_ZONES[3] ? [0xff8a3a, 0xffc24a, 0xff5a2a][i % 3] : [0xbfe4ff, 0xe6c8ff, 0xc8fff0][i % 3];
                     for (let k = 0; k < 3; k++) { const c = mesh(CONE, glowMat(cc, 0.5), g); c.scale.set(0.12, 0.5 + r() * 0.4, 0.12); c.position.set(x + (k - 1) * 0.18, 0.3, z + r() * 0.2); c.rotation.z = (k - 1) * 0.35; c.castShadow = false; }
                 }
+            } else {
+                // dripping stalactites over the dark river
+                for (let i = 0; i < 9; i++) { const c = mesh(CONE, mat(Z.rock), g); c.scale.set(0.2, 0.8 + r() * 0.6, 0.2); c.rotation.x = Math.PI; c.position.set(-10.5 + r() * 21, 3.2, -8.4 + r() * 1.2); c.castShadow = false; }
+                for (let i = 0; i < 5; i++) { const m = ball(0.05, 0.05, 0.05, glowMat(0x7fe0ff, 0.9), -10 + r() * 20, 0.08, -7 + r() * 13, g); m.castShadow = false; }
             }
             textPlate(g, `⛏️ Lantai ${n} · ${Z.name}`, 0, 2.3, -8.7, 2.8);
             // the ladder up at the landing
@@ -11850,16 +12053,34 @@
                 box(0.9, 0.5, 0.6, 0x7a4a24, 0, 0.25, 0, ch); box(0.94, 0.2, 0.64, 0x8a5a2a, 0, 0.58, 0, ch); box(0.96, 0.06, 0.1, 0xd4af37, 0, 0.4, 0.3, ch); box(0.14, 0.14, 0.04, 0xd4af37, 0, 0.42, 0.33, ch);
                 col(f, -0.5, 0.5, -6.95, -6.25);
             }
+            if (isBossF(n)) {
+                // the riddle stone (Damai) and the boss's ring of stones
+                const st = new THREE.Group(); st.position.set(-2.6, 0, -3); g.add(st); g.userData.riddle = st;
+                box(0.9, 1.3, 0.5, 0x8a867e, 0, 0.65, 0, st); for (const [c, x] of [[0xd9443a, -0.25], [0x3f8fd6, 0], [0x4caf6a, 0.25]]) ball(0.07, 0.07, 0.03, glowMat(c, 0.8), x, 1.0, 0.26, st).castShadow = false;
+                for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2; ball(0.35, 0.25, 0.3, Z.wall, Math.cos(a) * 4.4, 0.1, -3 + Math.sin(a) * 3.4, g).castShadow = false; }
+            }
             return g;
         }
 
-        // --- the floor you are on: rocks, the hidden ladder, the monsters ---
+        // --- the floor you are on: rocks, the hidden ladder, the monsters, the boss ---
         let mineLamp = null, mineCur = null, mineRockCols = [];
+        const mineShots = [];
+        function addMon(k, x, z, i, B) {
+            const D = B ? { ...MONS[B.model] || {}, ...B, fly: 0 } : MONS[k], mg = monModel(B ? B.model : D.model || k);
+            if (B && B.sc !== 1) mg.scale.setScalar(B.sc);
+            mineCur.g.add(mg); mg.position.set(x, D.fly ? 1.3 : 0, z);
+            const m = { i, k, D, boss: B || null, pos: new THREE.Vector3(MF(mineCur.n) + x, 0, z), hp: D.hp, g: mg, hitT: -9, atkT: 0, wT: 0, wx: x, wz: z, kv: [0, 0], dead: 0, sc: B ? B.sc : 1, nextT: elapsed + 4, phase: '', hidden: !!D.hide };
+            if (m.hidden) { mg.userData.body.visible = false; mg.userData.disguise.visible = true; }
+            mineCur.mons.push(m);
+            return m;
+        }
         function setMineFloor(n) {
             if (mineCur) { if (mineCur.g) mineCur.g.removeFromParent(); }
             for (const c of mineRockCols) c.off = true;
+            for (const s of mineShots) s.m.removeFromParent();
+            mineShots.length = 0;
             const day = state.day;
-            mineCur = { n, day, rocks: [], mons: [], g: null, ladder: null, cols: [], peace: minePeace() };
+            mineCur = { n, day, rocks: [], mons: [], g: null, ladder: null, cols: [], peace: minePeace(), boss: null, minions: 0 };
             if (n === 0) return;
             const fl = buildMineFloor(n), f = MF(n), g = new THREE.Group(), Z = zoneOf(n), R = mineRocks(n);
             fl.add(g); mineCur.g = g;
@@ -11867,29 +12088,30 @@
             R.forEach((rk, i) => {
                 const m = new THREE.Group(); m.position.set(rk.x, 0, rk.z); m.rotation.y = rk.ry; g.add(m);
                 const b = mesh(ROCK_GEO, mat(Z.rock), m); b.scale.set(rk.s, rk.s * 0.85, rk.s); b.position.y = 0.3 * rk.s;
-                if (ORE_COL[rk.k]) for (let k = 0; k < 4; k++) { const u = mesh(NUG_GEO, rk.k === 'kuarsa' || rk.k === 'perak' || rk.k === 'emas' ? glowMat(ORE_COL[rk.k], 0.35) : mat(ORE_COL[rk.k]), m); u.position.set(Math.cos(k * 1.7) * 0.3 * rk.s, (0.3 + (k % 2) * 0.16) * rk.s, Math.sin(k * 1.7) * 0.3 * rk.s); u.castShadow = false; }
+                if (ORE_COL[rk.k]) for (let k = 0; k < 4; k++) { const u = mesh(NUG_GEO, GEM.has(rk.k) ? glowMat(ORE_COL[rk.k], 0.35) : mat(ORE_COL[rk.k]), m); u.position.set(Math.cos(k * 1.7) * 0.3 * rk.s, (0.3 + (k % 2) * 0.16) * rk.s, Math.sin(k * 1.7) * 0.3 * rk.s); u.castShadow = false; }
                 let c = mineRockCols[i];
                 if (!c) { c = { t: 'c', x: 0, z: 0, r: 0.4, off: true }; colliders.push(c); mineRockCols[i] = c; }
                 Object.assign(c, { x: f + rk.x, z: rk.z, r: 0.36 * rk.s + 0.05 });
                 const gone = mineGone('b', n, i);
                 m.visible = !gone; c.off = gone;
-                mineCur.rocks.push({ i, x: rk.x, z: rk.z, k: rk.k, hp: rk.k === 'batu' ? 1 : n > 10 ? 3 : 2, m, c });
+                mineCur.rocks.push({ i, x: rk.x, z: rk.z, k: rk.k, hp: rk.k === 'batu' ? 1 : n > 20 ? 4 : n > 10 ? 3 : 2, m, c });
                 mineCur.cols.push(c);
             });
-            // the hole with the ladder down, under its rock
-            const lr = R[R.ladder], L = new THREE.Group(); L.position.set(lr.x, 0, lr.z); g.add(L);
+            // the hole with the ladder down, under its rock (or where the boss stood)
+            const lp = R.ladder >= 0 ? R[R.ladder] : { x: 0, z: -4.4 }, L = new THREE.Group(); L.position.set(lp.x, 0, lp.z); g.add(L);
             const hole = mesh(new THREE.CircleGeometry(0.45, 18), mat(0x050403), L); hole.rotation.x = -Math.PI / 2; hole.position.y = 0.02; hole.castShadow = false;
             for (const s of [-0.18, 0.18]) box(0.05, 0.5, 0.05, 0x8a5a3a, s, 0.2, -0.32, L);
             box(0.42, 0.04, 0.05, 0x8a5a3a, 0, 0.36, -0.32, L);
-            L.visible = mineGone('b', n, R.ladder);
-            mineCur.ladder = { g: L, x: lr.x, z: lr.z };
+            mineCur.ladder = { g: L, x: lp.x, z: lp.z };
             // monsters, unless this player chose the peaceful mine
-            if (!minePeace()) mineMons(n).forEach((d, i) => {
-                const M = MONS[d.k], mg = monModel(d.k); mg.position.set(f + d.x, M.fly ? 1.3 : 0, d.z); g.add(mg);
-                mg.position.x -= f;   // inside the floor's group
-                mineCur.mons.push({ i, k: d.k, pos: new THREE.Vector3(f + d.x, 0, d.z), hp: M.hp, g: mg, hitT: -9, atkT: 0, wT: 0, wx: d.x, wz: d.z, kv: [0, 0], dead: mineGone('k', n, i) ? -9 : 0 });
-            });
+            if (!minePeace()) {
+                mineMons(n).forEach((d, i) => { const m = addMon(d.k, d.x, d.z, i); if (mineGone('k', n, i)) m.dead = -9; });
+                if (isBossF(n) && !bossBeaten(n)) mineCur.boss = addMon(BOSS[n].k, 0, -3, -1, BOSS[n]);
+            }
             for (const m of mineCur.mons) m.g.visible = !m.dead;
+            // the slam warning ring
+            const ring = mesh(new THREE.RingGeometry(0.85, 1, 32), new THREE.MeshBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: 0.55, depthWrite: false }), g);
+            ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; ring.visible = false; mineCur.ring = ring;
         }
         function monModel(k) {
             const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.body = b; g.userData.parts = [];
@@ -11906,7 +12128,7 @@
                 for (const sd of [-1, 1]) { const a = cap(0.012, 0.2, 0xd8a03a, sd * 0.06, 0.2, 0.46, b); a.rotation.set(0.9, 0, sd * 0.4); }
             } else if (k === 'kelelawar') {
                 ball(0.17, 0.2, 0.16, 0x3a2a3a, 0, 0, 0, b); for (const s of [-1, 1]) { ball(0.04, 0.08, 0.03, 0x3a2a3a, s * 0.08, 0.2, 0, b); ball(0.03, 0.03, 0.03, glowMat(0xff3a2a, 0.9), s * 0.06, 0.04, 0.14, b); }
-                for (const s of [-1, 1]) { const w = new THREE.Group(); w.position.x = s * 0.12; b.add(w); P.push(w); const m = box(0.5, 0.02, 0.3, 0x4a3a4a, s * 0.25, 0, 0, w); m.castShadow = true; }
+                for (const s of [-1, 1]) { const w = new THREE.Group(); w.position.x = s * 0.12; b.add(w); P.push(w); box(0.5, 0.02, 0.3, 0x4a3a4a, s * 0.25, 0, 0, w); }
             } else if (k === 'kalajengking') {
                 ball(0.3, 0.14, 0.36, 0xcfe4f4, 0, 0.18, 0, b); for (const s of [-1, 1]) { ball(0.1, 0.07, 0.14, 0xa8d0ec, s * 0.28, 0.16, 0.42, b); for (let j = 0; j < 3; j++) box(0.3, 0.03, 0.03, 0x9ac0dc, s * 0.32, 0.08, 0.15 - j * 0.15, b); }
                 const tail = new THREE.Group(); tail.position.set(0, 0.22, -0.3); b.add(tail); P.push(tail);
@@ -11915,6 +12137,47 @@
             } else if (k === 'ular') {
                 for (let i = 0; i < 8; i++) { const s = new THREE.Group(); s.position.set(0, 0.13, 0.35 - i * 0.2); b.add(s); P.push(s); ball(i ? 0.14 - i * 0.008 : 0.16, 0.12, 0.14, i % 2 ? 0x6a7a3a : 0x5a6a2e, 0, 0, 0, s); }
                 for (const s of [-1, 1]) ball(0.035, 0.035, 0.035, glowMat(0xffd23a, 0.7), s * 0.08, 0.22, 0.44, b);
+            } else if (k === 'kepiting') {
+                // looks like an ore rock until you come near
+                const dz = new THREE.Group(); g.add(dz); g.userData.disguise = dz; dz.visible = false;
+                const rb = mesh(ROCK_GEO, mat(0x6a7a8a), dz); rb.scale.set(0.95, 0.8, 0.95); rb.position.y = 0.28;
+                for (let k2 = 0; k2 < 3; k2++) { const u = mesh(NUG_GEO, glowMat(0xf6cc3c, 0.35), dz); u.position.set(Math.cos(k2 * 2) * 0.28, 0.36 + (k2 % 2) * 0.12, Math.sin(k2 * 2) * 0.28); }
+                ball(0.36, 0.2, 0.3, 0x7a8a96, 0, 0.26, 0, b); ball(0.3, 0.12, 0.24, 0x8a9aa8, 0, 0.4, 0, b);
+                for (const s of [-1, 1]) { ball(0.12, 0.08, 0.1, 0xd8843c, s * 0.38, 0.24, 0.3, b); for (let j = 0; j < 3; j++) box(0.3, 0.03, 0.03, 0x5a6a76, s * 0.4, 0.12, 0.1 - j * 0.14, b); ball(0.035, 0.05, 0.035, 0x1e1a18, s * 0.08, 0.5, 0.2, b); }
+            } else if (k === 'belut') {
+                for (let i = 0; i < 9; i++) { const s = new THREE.Group(); s.position.set(0, 0.12, 0.4 - i * 0.17); b.add(s); P.push(s); ball(0.11 - i * 0.006, 0.1, 0.12, i % 2 ? 0x2a4a5a : 0x3a5a6a, 0, 0, 0, s); if (i % 3 === 1) ball(0.04, 0.04, 0.04, glowMat(0x9ff0ff, 1.1), 0, 0.09, 0, s).castShadow = false; }
+                for (const s of [-1, 1]) ball(0.03, 0.03, 0.03, glowMat(0xffff6a, 0.9), s * 0.06, 0.18, 0.5, b);
+            } else if (k === 'katak') {
+                ball(0.3, 0.22, 0.32, 0x4a9a2a, 0, 0.24, 0, b); ball(0.26, 0.1, 0.26, 0xe8d03a, 0, 0.12, 0.04, b);
+                for (const s of [-1, 1]) { eye(b, s * 0.13, 0.44, 0.18, 0.08, 0xff6a2a); ball(0.1, 0.06, 0.16, 0x3a8a2a, s * 0.24, 0.06, -0.12, b); }
+                for (let i = 0; i < 4; i++) ball(0.04, 0.02, 0.04, 0xd9443a, -0.12 + i * 0.08, 0.44, -0.08 + (i % 2) * 0.1, b);
+            } else if (k === 'arca') {
+                box(0.5, 0.7, 0.36, 0x8a867e, 0, 0.45, 0, b); box(0.4, 0.36, 0.36, 0x9a968e, 0, 1.0, 0, b); box(0.46, 0.1, 0.4, 0x7a766e, 0, 1.22, 0, b);
+                for (const s of [-1, 1]) { ball(0.05, 0.04, 0.03, glowMat(0xff6a2a, 1.1), s * 0.09, 1.04, 0.18, b).castShadow = false; const a = box(0.14, 0.5, 0.14, 0x8a867e, s * 0.36, 0.55, 0, b); P.push(a); }
+            } else if (k === 'banaspati') {
+                ball(0.3, 0.34, 0.3, glowMat(0xff7a1a, 1.2), 0, 0, 0, b); ball(0.2, 0.28, 0.2, glowMat(0xffd23a, 1.3), 0, 0.12, 0.06, b);
+                for (let i = 0; i < 4; i++) { const fl = mesh(CONE, glowMat(0xff5a1a, 1.1), b); fl.scale.set(0.1, 0.3, 0.1); fl.position.set(Math.cos(i * 1.6) * 0.16, 0.34, Math.sin(i * 1.6) * 0.16); P.push(fl); }
+                for (const s of [-1, 1]) ball(0.05, 0.05, 0.03, 0x2a0a00, s * 0.1, 0.06, 0.28, b);
+                b.traverse(o => { if (o.isMesh) o.castShadow = false; });
+            } else if (k === 'kadal') {
+                ball(0.2, 0.14, 0.42, 0x5a2a1a, 0, 0.18, 0, b); ball(0.15, 0.11, 0.18, 0x6a3a22, 0, 0.22, 0.44, b);
+                for (let i = 0; i < 5; i++) ball(0.05, 0.05, 0.05, glowMat(0xff6a1a, 0.9), 0, 0.3, 0.25 - i * 0.14, b).castShadow = false;
+                for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.24, 0.05, 0.06, 0x4a2214, sx * 0.2, 0.08, sz * 0.22, b);
+                const t = cap(0.05, 0.5, 0x5a2a1a, 0, 0.14, -0.62, b, 'z'); P.push(t);
+                for (const s of [-1, 1]) ball(0.03, 0.03, 0.03, glowMat(0xffd23a, 0.9), s * 0.08, 0.3, 0.56, b);
+            } else if (k === 'lele') {
+                // the catfish spirit: a huge dark fish with long whiskers, half out of the water
+                ball(0.9, 0.6, 1.6, 0x3a3a34, 0, 0.5, 0, b); ball(0.8, 0.5, 0.7, 0x4a4a40, 0, 0.55, 1.0, b); ball(0.7, 0.2, 1.3, 0xd8d0b0, 0, 0.22, 0.2, b);
+                for (const s of [-1, 1]) { for (let j = 0; j < 2; j++) { const w = cap(0.03, 0.9, 0x2a2a24, s * 0.5, 0.45 - j * 0.15, 1.6, b, 'z'); w.rotation.y = s * (0.5 + j * 0.3); P.push(w); } ball(0.1, 0.1, 0.06, glowMat(0xffe03a, 1), s * 0.45, 0.8, 1.45, b).castShadow = false; }
+                const fin = box(0.08, 0.6, 1.0, 0x2a2a24, 0, 1.05, -0.2, b); P.push(fin);
+                const tail = box(0.1, 0.8, 0.5, 0x2a2a24, 0, 0.5, -1.8, b); P.push(tail);
+            } else if (k === 'buto') {
+                // Buto Ijo: the green giant of Javanese tales, with horns, fangs and a gold crown
+                box(1.3, 1.4, 0.9, 0x3f8a3a, 0, 1.6, 0, b); box(1.4, 0.3, 0.95, 0x8a5a2a, 0, 0.95, 0, b);
+                for (const s of [-1, 1]) { box(0.45, 0.95, 0.5, 0x3a7a34, s * 0.38, 0.48, 0, b); const a = new THREE.Group(); a.position.set(s * 0.85, 2.15, 0); b.add(a); P.push(a); box(0.4, 1.2, 0.4, 0x3f8a3a, 0, -0.55, 0, a); ball(0.28, 0.24, 0.28, 0x3a7a34, 0, -1.2, 0.05, a); }
+                ball(0.62, 0.6, 0.56, 0x4a9a42, 0, 2.7, 0.05, b);
+                for (const s of [-1, 1]) { const h = mesh(CONE, mat(0xe8dcc0), b); h.scale.set(0.12, 0.4, 0.12); h.position.set(s * 0.38, 3.25, 0); h.rotation.z = -s * 0.4; eye(b, s * 0.22, 2.8, 0.5, 0.12, 0xff3a2a); const fg = mesh(CONE, mat(0xffffff), b); fg.scale.set(0.05, 0.16, 0.05); fg.rotation.x = Math.PI; fg.position.set(s * 0.16, 2.42, 0.52); }
+                box(0.9, 0.18, 0.7, 0xd4af37, 0, 3.12, 0, b); box(0.5, 0.08, 0.1, 0x2a1a10, 0, 2.5, 0.56, b);
             }
             return g;
         }
@@ -11930,9 +12193,12 @@
             p.x = clamp(p.x, f - MINE_HALF.x, f + MINE_HALF.x); p.z = clamp(p.z, -MINE_HALF.z, MINE_HALF.z);
         }
         const hurtFlash = (() => { const d = el('div', { id: 'hurtFlash' }); document.body.append(d); return d; })();
+        const bossBar = (() => { const d = el('div', { id: 'bossBar' }, el('b'), el('span', { class: 'ebar' }, el('i'))); d.style.display = 'none'; document.body.append(d); return d; })();
+        const rolling = () => player.rollT != null && elapsed - player.rollT < 0.34;
         function hurtPlayer(dmg, from) {
-            if (player.fainted === state.day) return;
-            player.hp = Math.max(0, player.hp - dmg);
+            if (player.fainted === state.day || rolling()) return;
+            const hit = Math.max(1, Math.round(dmg * (1 - gearDef(USER))));
+            player.hp = Math.max(0, player.hp - hit);
             const dx = player.pos.x - from.x, dz = player.pos.z - from.z, d = Math.hypot(dx, dz) || 1;
             player.pos.x += dx / d * 0.6; player.pos.z += dz / d * 0.6; mineCollide(player.pos, 0.35);
             hurtFlash.classList.add('on'); setTimeout(() => hurtFlash.classList.remove('on'), 120);
@@ -11958,7 +12224,7 @@
             if (player.fainted === state.day) { toast('😵 Kamu masih lemas. Istirahat dulu sampai besok, ya.'); return; }
             const Z = n ? zoneOf(n) : null;
             if (n > mineDeep()) sendAct('mdeep', n);
-            travel(HV(MF(n), 0, n ? 6.6 : 6.4), Math.PI, n ? `⛏️ Lantai ${n} · ${Z.name}` : '🚪 Aula Simpang');
+            travel(HV(MF(n), 0, n ? 6.6 : 6.4), Math.PI, n ? `⛏️ Lantai ${n} · ${Z.name}${isBossF(n) && !bossBeaten(n) ? ` · ${BOSS[n].icon} ${BOSS[n].name}!` : ''}` : '🚪 Aula Simpang');
         }
         function mineHit(rk) {
             if (tool !== 'beliung') { toast('Pegang ⛏️ beliung untuk memecah batu'); return; }
@@ -11973,104 +12239,226 @@
             rk.m.visible = false; rk.c.off = true;
             sendAct('mrock', `${mineCur.n}|${rk.i}|beliung`);
         }
+        // one blow (or a shot) at a monster
+        function hitMon(m, dmg, push = 5) {
+            if (m.dead || m.phase === 'dive') return;
+            if (m.hidden) { m.hidden = false; m.g.userData.body.visible = true; m.g.userData.disguise.visible = false; }
+            m.hp -= dmg; m.hitT = elapsed;
+            const dx = m.pos.x - player.pos.x, dz = m.pos.z - player.pos.z, d = Math.hypot(dx, dz) || 1, k = m.boss ? push * 0.25 : push;
+            m.kv = [dx / d * k, dz / d * k];
+            spawnIcon(m.pos.clone().setY(1.1 * m.sc), m.hp > 0 ? '💥' : '✨');
+            chime(m.hp > 0 ? [220, 330] : [523, 392, 262], 0.07, 'square', 0.04);
+            if (m.hp > 0) return;
+            m.dead = elapsed;
+            if (m.boss) { mLocal.add('boss' + mineCur.n); sendAct('mboss', `${mineCur.n}|f`); bossBar.style.display = 'none'; }
+            else if (!m.D.minion) { mLocal.add(`k${state.day}:${mineCur.n}:${m.i}`); sendAct('mkill', `${mineCur.n}|${m.i}`); }
+        }
         function mineAttack(m) {
-            const k = tool, dur = swingDur(k);
+            const k = tool, W = wpn(k), dur = swingDur(k) * (k === 'badik' ? 0.6 : 1);
             if (elapsed - (player.atkT ?? -9) < dur * 0.85) return;
             player.atkT = elapsed; player.swingT = elapsed;
             player.targetHeading = Math.atan2(m.pos.x - player.pos.x, m.pos.z - player.pos.z);
-            m.hp -= WEAPON[k] || 1; m.hitT = elapsed;
-            const dx = m.pos.x - player.pos.x, dz = m.pos.z - player.pos.z, d = Math.hypot(dx, dz) || 1;
-            m.kv = [dx / d * 5, dz / d * 5];
-            spawnIcon(m.pos.clone().setY(1.1), m.hp > 0 ? '💥' : '✨');
-            chime(m.hp > 0 ? [220, 330] : [523, 392, 262], 0.07, 'square', 0.04);
-            if (m.hp <= 0) { m.dead = elapsed; mLocal.add(`k${state.day}:${mineCur.n}:${m.i}`); sendAct('mkill', `${mineCur.n}|${m.i}`); }
+            const crit = W.crit && Math.random() < W.crit, dmg = W.d * (crit ? 2 : 1);
+            if (crit) spawnIcon(player.pos.clone().setY(2.2), '⚡');
+            if (W.shot) {
+                // a pebble from the slingshot flies to the target
+                const s = ball(0.06, 0.06, 0.06, 0x9a9890, player.pos.x - MF(mineCur.n), 1.1, player.pos.z, mineCur.g);
+                mineShots.push({ m: s, to: m, dmg, t: 0 });
+                chime([660], 0.04, 'triangle', 0.03);
+                return;
+            }
+            if (W.sweep) { for (const o of mineCur.mons) if (!o.dead && Math.hypot(o.pos.x - player.pos.x, o.pos.z - player.pos.z) < wReach(k) + 0.3 * o.sc) hitMon(o, dmg); }
+            else hitMon(m, dmg);
         }
-        let hpShown = '';
+        // 🌀 a sweeping kick of silat: everything around you, once every few seconds
+        function mineSweep() {
+            if (!mineCur || !mineCur.n || player.sit || elapsed - (player.sweepT ?? -99) < 6) return;
+            player.sweepT = elapsed; player.swingT = elapsed; player.spinT = elapsed;
+            const dmg = Math.ceil(wpn(tool).d * 1.5);
+            let n = 0;
+            for (const m of mineCur.mons) if (!m.dead && Math.hypot(m.pos.x - player.pos.x, m.pos.z - player.pos.z) < 2.4 + 0.3 * m.sc) { hitMon(m, dmg, 7); n++; }
+            chime([392, 523], 0.08, 'triangle', 0.05);
+            flashName(n ? `🌀 Sapuan! Kena ${n} monster` : '🌀 Sapuan!');
+        }
+        // 🤸 a quick roll: nothing can hurt you for a moment
+        function mineRoll() {
+            if (!mineCur || !mineCur.n || player.sit || travelling || elapsed - (player.rollT ?? -9) < 0.9) return;
+            player.rollDir = fwd(player.heading); player.rollT = elapsed;
+            chime([520, 300], 0.05, 'sine', 0.03);
+        }
+        // 🥾 boots run faster down there; rising water in the river zone on a rainy day slows you
+        const mineSpeed = () => (gearOf(USER).bot ? GEAR.bot.run : 1) * (mineCur && mineCur.n > 20 && mineCur.n <= 30 && isWet() ? 0.8 : 1);
+        const isMuse = k => !!MUSE[k] && k !== 'obor';
+        function useMine(k) {
+            if (!isMuse(k)) return;
+            const near = r => mineCur ? mineCur.mons.filter(m => !m.dead && Math.hypot(m.pos.x - player.pos.x, m.pos.z - player.pos.z) < r) : [];
+            if (k === 'ramuan') { if (player.hp >= hpMax()) { toast('Nyawamu masih penuh ❤️'); return; } player.hp = Math.min(hpMax(), player.hp + 50); spawnHearts(player.pos.clone().setY(1.8), 1); toast('🧉 Ramuan diminum: +50 ❤️'); }
+            else if (k === 'petasan') { for (const m of near(3.6)) hitMon(m, 8, 8); spawnIcon(player.pos.clone().setY(1.4), '💥'); chime([90, 70, 50], 0.12, 'sawtooth', 0.07); toast('🧨 DUAR!'); }
+            else if (k === 'garam') { for (const m of near(3.6)) m.fleeT = elapsed + 6; spawnIcon(player.pos.clone().setY(1.6), '🧂'); toast('🧂 Garam ditabur, monster di dekatmu kabur!'); }
+            else if (k === 'bomasap') { player.smokeT = elapsed + 8; spawnIcon(player.pos.clone().setY(1.6), '💨'); toast('💨 Asap tebal! Monster kehilangan jejakmu.'); }
+            sendAct('muse', k);
+        }
+        // 🧩 the boss riddle (Damai): remember the order the stone shows, then press it back
+        function openBossRiddle(n) {
+            const SYM = ['🔺', '🔵', '🟩', '⭐', '🌙'], len = 3 + n / 10, seq = Array.from({ length: len }, () => SYM[Math.floor(Math.random() * SYM.length)]), got = [];
+            const show = () => openDlg(`🧩 Teka-teki ${BOSS[n].name}`, [el('p', { text: 'Ingat urutan cahaya di batu ini:' }), el('p', { style: 'font-size:30px;text-align:center;letter-spacing:6px', text: seq.join(' ') })], [{ t: 'Sudah ingat ✔', big: true, f: () => setTimeout(ask, 50) }, { t: 'Nanti saja' }]);
+            const ask = () => openDlg(`🧩 Teka-teki ${BOSS[n].name}`, [el('p', { text: `Tekan urutannya (${got.length}/${len}): ${got.join(' ')}` })], [...SYM.map(s => ({ t: s, f: () => { got.push(s); if (got[got.length - 1] !== seq[got.length - 1]) { toast('❌ Salah urutan. Coba lagi dari awal, ya.'); setTimeout(show, 50); got.length = 0; return; } if (got.length === len) { mLocal.add('boss' + n); sendAct('mboss', n + '|p'); chime([523, 659, 784, 1047]); return; } setTimeout(ask, 30); } })), { t: 'Batal' }]);
+            show();
+        }
+        let hpShown = '', btnShown = null;
         function updateMine(dt) {
-            if (player.hpDay !== state.day) { player.hp = 100; player.hpDay = state.day; }
+            if (player.hpDay !== state.day) { player.hp = hpMax(); player.hpDay = state.day; }
+            if (player.hp > hpMax()) player.hp = hpMax();
             const here = started && inMine(player.pos) && homeScene, n = here ? mineN(player.pos) : -1;
             // ❤️ comes back slowly above ground and in the hall
-            if (n <= 0 && player.hp < 100 && player.fainted !== state.day) player.hp = Math.min(100, player.hp + dt * (n === 0 ? 3 : 1));
-            const show = n >= 0 || player.hp < 100, txt = show ? `❤️ ${Math.ceil(player.hp)}` : '';
-            if (txt !== hpShown) { hpShown = txt; $('hpLabel').style.display = show ? '' : 'none'; $('hpNum').textContent = txt; $('hpFill').style.width = player.hp + '%'; }
+            if (n <= 0 && player.hp < hpMax() && player.fainted !== state.day) player.hp = Math.min(hpMax(), player.hp + dt * (n === 0 ? 3 : 1));
+            const show = n >= 0 || player.hp < hpMax(), txt = show ? `❤️ ${Math.ceil(player.hp)}/${hpMax()}` : '';
+            if (txt !== hpShown) { hpShown = txt; $('hpLabel').style.display = show ? '' : 'none'; $('hpNum').textContent = txt; $('hpFill').style.width = (player.hp / hpMax() * 100) + '%'; }
+            const btns = n > 0 && !player.sit;
+            if (btns !== btnShown) { btnShown = btns; $('mineBtns').style.display = btns ? '' : 'none'; }
             if (homeScene && !mineLamp) { mineLamp = new THREE.PointLight(0xffd9a0, 0, 15, 1.4); homeScene.add(mineLamp); }
-            if (mineLamp) { mineLamp.intensity = n > 0 ? 26 : n === 0 ? 10 : 0; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
-            if (n < 0) { if (mineCur && mineCur.n !== -1) { if (mineCur.g) mineCur.g.removeFromParent(); for (const c of mineRockCols) c.off = true; mineCur = null; } return; }
+            const Z = n > 0 ? zoneOf(n) : null, helm = !!gearOf(USER).helm;
+            if (mineLamp) { mineLamp.intensity = n > 0 ? (helm ? 34 : 26) : n === 0 ? 10 : 0; mineLamp.distance = n > 0 && Z.dark ? (helm ? 15 : 11) : 15; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
+            if (n < 0) { if (mineCur && mineCur.n !== -1) { if (mineCur.g) mineCur.g.removeFromParent(); for (const c of mineRockCols) c.off = true; mineCur = null; bossBar.style.display = 'none'; } return; }
             buildMineFloor(n);
             if (!mineCur || mineCur.n !== n || mineCur.day !== state.day || mineCur.peace !== minePeace()) setMineFloor(n);
-            if (n === 0) { const cr = mineFloors[0].userData.crate; if (cr) cr.visible = !(state.mine && state.mine.g[USER]); return; }
-            const fl = mineFloors[n];
+            if (n === 0) {
+                const A = mineFloors[0].userData, cr = A.crate; if (cr) cr.visible = !(state.mine && state.mine.g[USER]);
+                if (A.doors) A.doors.forEach((s, i) => { s.visible = !doorOpen(i); });
+                return;
+            }
+            const fl = mineFloors[n], f = MF(n);
             if (fl.userData.chest) fl.userData.chest.visible = !(state.mine && state.mine.ch.includes(n));
+            if (fl.userData.riddle) fl.userData.riddle.visible = !bossBeaten(n) && minePeace();
             // what the other player broke or beat shows up here too
             for (const rk of mineCur.rocks) { const gone = mineGone('b', n, rk.i); if (gone === rk.m.visible) { rk.m.visible = !gone; rk.c.off = gone; } if (rk.m.scale.x < 1) rk.m.scale.setScalar(Math.min(1, rk.m.scale.x + dt * 0.8)); }
-            mineCur.ladder.g.visible = mineGone('b', n, mineRocks(n).ladder);
-            const f = MF(n), awake = !sleeping && !travelling && !dlgOpen() && !player.zz && player.fainted !== state.day;
+            const R = mineRocks(n);
+            mineCur.ladder.g.visible = R.ladder >= 0 ? mineGone('b', n, R.ladder) : bossBeaten(n);
+            // 🤸 rolling and 🌀 spinning
+            if (rolling()) {
+                const t = (elapsed - player.rollT) / 0.34;
+                player.pos.x += player.rollDir[0] * 8 * dt; player.pos.z += player.rollDir[1] * 8 * dt; mineCollide(player.pos, 0.35);
+                player.group.rotation.x = t * Math.PI * 2; player.group.position.y = Math.sin(t * Math.PI) * 0.25;
+            } else if (player.spinT != null && elapsed - player.spinT < 0.4) player.group.rotation.y = player.heading + (elapsed - player.spinT) / 0.4 * Math.PI * 2;
+            // 🌋 lava burns, 🌊 water slows nothing but looks cold
+            if (Z.fx === 'lava' && !rolling()) for (const p of mineShape(n).pools) if (Math.hypot(f + p.x - player.pos.x, p.z - player.pos.z) < p.r - 0.1) { player.lavaT = (player.lavaT || 0) + dt; if (player.lavaT > 0.5) { player.lavaT = 0; hurtPlayer(6, { x: player.pos.x, z: player.pos.z - 0.001 }); toast('🔥 Panas! Jangan berdiri di lava.'); } }
+            // ketapel pebbles in flight
+            for (let i = mineShots.length - 1; i >= 0; i--) {
+                const s = mineShots[i], tx = s.to.pos.x - f, tz = s.to.pos.z, dx = tx - s.m.position.x, dz = tz - s.m.position.z, d = Math.hypot(dx, dz);
+                if (d < 0.35 || s.to.dead || (s.t += dt) > 1.2) { if (!s.to.dead && d < 0.6) hitMon(s.to, s.dmg, 3); s.m.removeFromParent(); mineShots.splice(i, 1); continue; }
+                s.m.position.x += dx / d * 16 * dt; s.m.position.z += dz / d * 16 * dt;
+            }
+            const awake = !sleeping && !travelling && !dlgOpen() && !player.zz && player.fainted !== state.day;
+            const seen = awake && !(player.smokeT > elapsed), torch = heldItem() === 'obor' || leftItem() === 'obor', fear = wpn(tool).fear;
+            let bossNear = null;
             for (const m of mineCur.mons) {
-                const D = MONS[m.k], body = m.g.userData.body, P = m.g.userData.parts;
+                const D = m.D, body = m.g.userData.body, P = m.g.userData.parts;
                 if (m.dead) {
-                    if (m.g.visible) { const t = elapsed - m.dead; m.g.scale.setScalar(Math.max(0.01, 1 - t * 3)); if (t > 0.35 || m.dead < 0) m.g.visible = false; }
+                    if (m.g.visible) { const t = elapsed - m.dead; m.g.scale.setScalar(Math.max(0.01, (1 - t * 3) * m.sc)); if (t > 0.35 || m.dead < 0) m.g.visible = false; }
                     continue;
                 }
-                if (mineGone('k', n, m.i)) { m.dead = elapsed; continue; }
-                const dx = player.pos.x - m.pos.x, dz = player.pos.z - m.pos.z, d = Math.hypot(dx, dz);
+                if (!m.boss && !D.minion && mineGone('k', n, m.i)) { m.dead = elapsed; continue; }
+                if (m.boss && bossBeaten(n)) { m.dead = elapsed; continue; }
+                const dx = player.pos.x - m.pos.x, dz = player.pos.z - m.pos.z, d = Math.hypot(dx, dz) || 1;
                 let vx = 0, vz = 0;
-                if (elapsed - m.hitT < 0.3) { vx = m.kv[0]; vz = m.kv[1]; }
-                else if (awake && d < 6) { vx = dx / d * D.sp; vz = dz / d * D.sp; if (d < 0.7) vx = vz = 0; }
+                if (m.hidden) { if (seen && d < 1.8) { m.hidden = false; body.visible = true; m.g.userData.disguise.visible = false; spawnIcon(m.pos.clone().setY(1), '❗'); } m.g.position.set(m.pos.x - f, 0, m.pos.z); continue; }
+                const scared = !m.boss && (elapsed < (m.fleeT || 0) || (torch || fear) && D.hp <= 8 && !D.fire && d < 2.6);
+                if (m.boss) bossNear = m;
+                // a boss's special move
+                if (m.boss && seen && elapsed > m.nextT && !m.phase) { m.phase = 'tele'; m.phaseT = elapsed; m.aim = [dx / d, dz / d]; if (m.boss.act === 'slam') { mineCur.ring.visible = true; mineCur.ring.scale.setScalar(2.6); } if (m.boss.act === 'summon') m.phase = ''; }
+                if (m.boss && m.boss.act === 'summon' && seen && elapsed > m.nextT) {
+                    m.nextT = elapsed + 7;
+                    if (mineCur.mons.filter(o => o.D.minion && !o.dead).length < 4) for (let j = 0; j < 2; j++) addMon('anaktikus', m.pos.x - f + (j ? 1 : -1), m.pos.z + 0.6, 1000 + mineCur.minions++).g.visible = true;
+                    flashName('🐀 Raja Tikus memanggil anak-anaknya!');
+                }
+                if (m.phase === 'tele') {
+                    const t = elapsed - m.phaseT;
+                    m.g.position.x = m.pos.x - f + Math.sin(elapsed * 60) * 0.05;
+                    if (m.boss.act === 'slam') mineCur.ring.position.set(m.pos.x - f, 0.04, m.pos.z);
+                    if (t > (m.boss.act === 'slam' ? 0.9 : 0.6)) {
+                        if (m.boss.act === 'charge') { m.phase = 'charge'; m.phaseT = elapsed; }
+                        else if (m.boss.act === 'dive') { m.phase = 'dive'; m.phaseT = elapsed; m.g.visible = false; spawnIcon(m.pos.clone().setY(0.6), '🌊'); }
+                        else if (m.boss.act === 'slam') { mineCur.ring.visible = false; spawnIcon(m.pos.clone().setY(0.5), '💥'); chime([70, 50], 0.18, 'sawtooth', 0.08); if (d < 2.6 * 1.0 + 0.2) hurtPlayer(m.boss.dmg, m.pos); m.phase = ''; m.nextT = elapsed + 5; }
+                    }
+                } else if (m.phase === 'charge') {
+                    vx = m.aim[0] * m.boss.sp * 4.2; vz = m.aim[1] * m.boss.sp * 4.2;
+                    if (elapsed - m.phaseT > 0.7) { m.phase = ''; m.nextT = elapsed + 5; }
+                } else if (m.phase === 'dive') {
+                    if (seen) { vx = dx / d * m.boss.sp * 1.6; vz = dz / d * m.boss.sp * 1.6; }
+                    if (elapsed - m.phaseT > 2.2) { m.phase = ''; m.nextT = elapsed + 6; m.g.visible = true; spawnIcon(m.pos.clone().setY(1), '🌊'); chime([120, 90], 0.12, 'sine', 0.06); if (d < 1.8) hurtPlayer(m.boss.dmg, m.pos); }
+                } else if (elapsed - m.hitT < 0.3) { vx = m.kv[0]; vz = m.kv[1]; }
+                else if (scared) { vx = -dx / d * D.sp * 0.8; vz = -dz / d * D.sp * 0.8; }
+                else if (seen && d < (m.boss ? 12 : 6)) { const hop = D.hop ? Math.max(0, Math.sin(elapsed * 6 + m.i)) * 2 : 1; vx = dx / d * D.sp * hop; vz = dz / d * D.sp * hop; if (d < 0.7 + 0.35 * m.sc) vx = vz = 0; }
                 else if (awake) {
                     if (elapsed > m.wT) { m.wT = elapsed + 1.5 + Math.random() * 2.5; m.wx = clamp(m.pos.x - f + (Math.random() - 0.5) * 5, -10, 10); m.wz = clamp(m.pos.z + (Math.random() - 0.5) * 5, -7.5, 5); }
                     const wx = f + m.wx - m.pos.x, wz = m.wz - m.pos.z, wd = Math.hypot(wx, wz);
                     if (wd > 0.3) { vx = wx / wd * D.sp * 0.35; vz = wz / wd * D.sp * 0.35; }
                 }
                 m.pos.x += vx * dt; m.pos.z += vz * dt;
-                if (!D.fly) mineCollide(m.pos, 0.32); else { m.pos.x = clamp(m.pos.x, f - MINE_HALF.x, f + MINE_HALF.x); m.pos.z = clamp(m.pos.z, -MINE_HALF.z, MINE_HALF.z); }
-                if (awake && d < 0.95 && elapsed > m.atkT && elapsed - m.hitT > 0.4) { m.atkT = elapsed + 1.2; hurtPlayer(D.dmg, m.pos); }
+                if (!D.fly && m.phase !== 'dive') mineCollide(m.pos, 0.32 * m.sc); else { m.pos.x = clamp(m.pos.x, f - MINE_HALF.x, f + MINE_HALF.x); m.pos.z = clamp(m.pos.z, -MINE_HALF.z, MINE_HALF.z); }
+                if (seen && !scared && m.phase !== 'dive' && m.phase !== 'tele' && d < 0.6 + 0.35 * m.sc && elapsed > m.atkT && elapsed - m.hitT > 0.4) { m.atkT = elapsed + (m.boss ? 1.4 : 1.2); hurtPlayer(D.dmg, m.pos); }
                 if (Math.hypot(vx, vz) > 0.1) m.g.rotation.y = lerpAngle(m.g.rotation.y, Math.atan2(vx, vz), Math.min(1, dt * 8));
                 const t = elapsed * (Math.hypot(vx, vz) > 0.1 ? 10 : 4) + m.i;
-                m.g.position.set(m.pos.x - f, D.fly ? 1.2 + Math.sin(t * 0.5) * 0.25 : 0, m.pos.z);
-                if (m.k === 'lendir') { body.scale.set(1 + Math.sin(t) * 0.1, 1 - Math.sin(t) * 0.15, 1 + Math.sin(t) * 0.1); }
-                else if (m.k === 'kelelawar') { P.forEach((w, j) => { w.rotation.z = (j ? -1 : 1) * Math.sin(elapsed * 18 + m.i) * 0.7; }); }
-                else if (m.k === 'lipan' || m.k === 'ular') P.forEach((s, j) => { s.position.x = Math.sin(t - j * 0.9) * (m.k === 'ular' ? 0.12 : 0.04) * Math.min(1, j); });
-                else if (m.k === 'kalajengking') P[0].rotation.x = Math.sin(t * 0.6) * 0.2;
-                else if (m.k === 'tikus') P[0].rotation.y = Math.sin(t) * 0.4;
+                if (m.phase !== 'tele') m.g.position.set(m.pos.x - f, D.fly ? 1.2 + Math.sin(t * 0.5) * 0.25 : D.hop ? Math.max(0, Math.sin(elapsed * 6 + m.i)) * 0.35 : 0, m.pos.z);
+                const kind = m.boss ? m.boss.model : D.model || m.k;
+                if (kind === 'lendir') body.scale.set(1 + Math.sin(t) * 0.1, 1 - Math.sin(t) * 0.15, 1 + Math.sin(t) * 0.1);
+                else if (kind === 'kelelawar') P.forEach((w, j) => { w.rotation.z = (j ? -1 : 1) * Math.sin(elapsed * 18 + m.i) * 0.7; });
+                else if (kind === 'lipan' || kind === 'ular' || kind === 'belut') P.forEach((s, j) => { s.position.x = Math.sin(t - j * 0.9) * (kind === 'lipan' ? 0.04 : 0.12) * Math.min(1, j); });
+                else if (kind === 'kalajengking') P[0].rotation.x = Math.sin(t * 0.6) * 0.2 + (m.phase === 'tele' ? -0.6 : 0);
+                else if (kind === 'tikus' || kind === 'kadal') P[0].rotation.y = Math.sin(t) * 0.4;
+                else if (kind === 'banaspati') P.forEach((fl, j) => { fl.scale.y = 0.3 + Math.sin(elapsed * 14 + j) * 0.08; });
+                else if (kind === 'arca') P.forEach((a, j) => { a.rotation.x = Math.sin(t * 0.5 + j * Math.PI) * 0.4; });
+                else if (kind === 'buto') P.forEach((a, j) => { a.rotation.x = m.phase === 'tele' ? -2.6 : Math.sin(t * 0.4 + j * Math.PI) * 0.5; });
+                else if (kind === 'lele') P.forEach((w, j) => { w.rotation.y += Math.sin(elapsed * 3 + j) * 0.01; });
                 const flash = elapsed - m.hitT < 0.15;
-                m.g.scale.setScalar(flash ? 1.2 : 1);
+                m.g.scale.setScalar(m.sc * (flash ? 1.15 : 1));
             }
+            // the boss's health on top of the screen
+            if (bossNear && Math.hypot(bossNear.pos.x - player.pos.x, bossNear.pos.z - player.pos.z) < 14) {
+                bossBar.style.display = ''; bossBar.firstChild.textContent = `${bossNear.boss.icon} ${bossNear.boss.name}`; bossBar.lastChild.firstChild.style.width = Math.max(0, bossNear.hp / bossNear.boss.hp * 100) + '%';
+            } else bossBar.style.display = 'none';
         }
         // what to do here: hit a monster, break a rock, go down
         function mineFocus() {
             if (!mineCur || !mineCur.n || player.sit) return null;
-            const p = player.pos, f = MF(mineCur.n);
+            const p = player.pos, f = MF(mineCur.n), reach = wReach(tool);
             let best = null, bd = Infinity;
-            for (const m of mineCur.mons) { if (m.dead) continue; const d = Math.hypot(m.pos.x - p.x, m.pos.z - p.z); if (d < 1.9 && d < bd) { bd = d; best = m; } }
+            for (const m of mineCur.mons) { if (m.dead || m.hidden || m.phase === 'dive') continue; const d = Math.hypot(m.pos.x - p.x, m.pos.z - p.z) - 0.35 * (m.sc - 1); if (d < reach && d < bd) { bd = d; best = m; } }
             if (best) { MON_IT.m = best; MON_IT.pos.copy(best.pos); return MON_IT; }
             const L = mineCur.ladder;
             if (L.g.visible && Math.hypot(f + L.x - p.x, L.z - p.z) < 1.0) { LADDER_IT.pos.set(f + L.x, 0, L.z); return LADDER_IT; }
             const [hx, hz] = fwd(player.heading), ax = p.x + hx * 0.5, az = p.z + hz * 0.5;
             for (const rk of mineCur.rocks) { if (!rk.m.visible) continue; const d = Math.hypot(f + rk.x - ax, rk.z - az); if (d < 1.05 && d < bd) { bd = d; best = rk; } }
             if (best) { ROCK_IT.rk = best; ROCK_IT.pos.set(f + best.x, 0, best.z); return ROCK_IT; }
+            if (isMuse(heldItem())) return MUSE_IT;
             return null;
         }
         const MON_IT = { id: 'mmon', local: true, reach: 1.9, pos: new THREE.Vector3(), m: null,
-            label: () => { const m = MON_IT.m, D = m && MONS[m.k]; return D ? `${WEAPON[tool] ? `Serang dengan ${TOOLS[tool].icon} ${TOOLS[tool].label}` : 'Pukul'} ${D.icon} ${D.name} · ❤️ ${Math.max(0, m.hp)}/${D.hp}` : ''; },
+            label: () => { const m = MON_IT.m, D = m && (m.boss || m.D); return D ? `${WEAPON[tool] ? `Serang dengan ${TOOLS[tool].icon} ${TOOLS[tool].label}` : 'Pukul'} ${D.icon} ${D.name} · ❤️ ${Math.max(0, m.hp)}/${D.hp}` : ''; },
             act: () => MON_IT.m && !MON_IT.m.dead && mineAttack(MON_IT.m) };
         const ROCK_IT = { id: 'mrock', local: true, reach: 1.05, pos: new THREE.Vector3(), rk: null,
             label: () => { const r = ROCK_IT.rk; if (!r) return ''; const what = r.k === 'batu' ? 'Batu' : `Batu berisi ${ITEMS[r.k].icon} ${ITEMS[r.k].label.toLowerCase()}`; return tool === 'beliung' ? `Pecahkan ⛏️ · ${what}` : `${what} · pegang ⛏️ beliung`; },
             act: () => ROCK_IT.rk && mineHit(ROCK_IT.rk) };
         const LADDER_IT = { id: 'mladder', local: true, reach: 1.0, pos: new THREE.Vector3(),
-            label: () => !mineCur ? '' : mineCur.n >= MINE_N ? '🪜 Lantai 21 ke bawah masih tertimbun runtuhan (segera dibuka)' : `🪜 Turun ke lantai ${mineCur.n + 1}`,
-            act: () => { if (mineCur.n >= MINE_N) toast('⛏️ Pak Gatot: "Lorong di bawah masih runtuh. Sabar, sedang digali!"'); else mineGo(mineCur.n + 1); } };
+            label: () => !mineCur ? '' : mineCur.n >= MINE_N ? '🏁 Dasar Tambang Bertingkat · naik ke Aula, pintu 2 menunggu' : `🪜 Turun ke lantai ${mineCur.n + 1}`,
+            act: () => { if (mineCur.n >= MINE_N) mineGo(0); else mineGo(mineCur.n + 1); } };
+        const MUSE_IT = { id: 'muse', local: true, reach: 0, get pos() { return player.pos; },
+            label: () => { const k = heldItem(); return isMuse(k) ? `Pakai ${ITEMS[k].icon} ${ITEMS[k].label} · ${MUSE[k].note}` : ''; },
+            act: () => useMine(heldItem()) };
+        // the doors open one after another
+        const doorOpen = i => i === 0 || i === 1 && bossBeaten(40) && mineDeep() >= 40 || i > 1 && !!(state.mine && state.mine.dn && state.mine.dn[i - 1]);
         function openMineLift() {
             const deep = mineDeep(), here = inMine(player.pos) ? mineN(player.pos) : -1;
-            const stops = [0, 1, ...[5, 10, 15, 20].filter(n => n <= deep)];
+            const stops = [0, 1, ...[5, 10, 15, 20, 25, 30, 35, 40].filter(n => n <= deep)];
             const btns = stops.filter(n => n !== here).map(n => ({ t: n ? `⛏️ Lantai ${n} · ${zoneOf(n).name}` : '🚪 Aula Simpang', f: () => mineGo(n) }));
-            openDlg('🛗 Lift tambang', [el('p', { text: `Lantai terdalam yang pernah kalian capai: ${deep || '–'}.` }), el('p', { class: 'small-note', text: 'Lift berhenti di lantai 5, 10, 15, dan 20 setelah kalian pernah sampai ke sana.' })], [...btns, { t: 'Batal' }]);
+            openDlg('🛗 Lift tambang', [el('p', { text: `Lantai terdalam yang pernah kalian capai: ${deep || '–'}.` }), el('p', { class: 'small-note', text: 'Lift berhenti tiap 5 lantai setelah kalian pernah sampai ke sana.' })], [...btns, { t: 'Batal' }]);
         }
         function openMineMode() {
             const peace = minePeace();
             openDlg('⚔️ Mode tambang', [
                 el('p', { text: `Sekarang: ${peace ? '🕊️ Damai' : '⚔️ Petualang'}` }),
-                el('p', { class: 'small-note', text: '⚔️ Petualang: monster berkeliaran dan menyerang. Pakai 🗡️ golok (atau alat lain) untuk melawan. ❤️ habis berarti pingsan dan hari berakhir.' }),
-                el('p', { class: 'small-note', text: '🕊️ Damai: monster tidak muncul, cukup menambang dengan tenang. Pilihan ini untuk dirimu saja.' }),
+                el('p', { class: 'small-note', text: '⚔️ Petualang: monster berkeliaran dan menyerang, bos menjaga lantai 10, 20, 30, dan 40. ❤️ habis berarti pingsan dan hari berakhir.' }),
+                el('p', { class: 'small-note', text: '🕊️ Damai: monster tidak muncul, bos diganti teka-teki di batu. Pilihan ini untuk dirimu saja.' }),
             ], [{ t: '⚔️ Petualang', big: !peace, f: () => sendAct('mmode', 'p') }, { t: '🕊️ Damai', big: peace, f: () => sendAct('mmode', 'd') }, { t: 'Batal' }]);
         }
         function mineInteractables() {
@@ -12079,8 +12467,8 @@
             if (tb) add('mdown', HV(tb.f, 4.2, -0.8), 1.3, { label: () => '🕳️ Turun ke Aula Simpang', act: () => mineGo(0) });
             add('mup0', HV(A, 0, 8.0), 1.4, { label: () => '🪜 Naik ke Tambang Rakyat', act: () => tb && travel(HV(tb.f, 3.7, -0.8), -Math.PI / 2, `${tb.icon} ${tb.name}`) });
             AULA_DOORS.forEach((d, i) => add('mdoor' + i, HV(A, doorX(i), -8.1), 1.4, {
-                label: () => i === 0 ? `${d.icon} Masuk ${d.name}` : `${d.icon} ${d.name} · 🔒`,
-                act: () => { if (i === 0) mineGo(1); else toast(`${d.icon} ${d.name}: ${d.note}`); },
+                label: () => doorOpen(i) ? `${d.icon} Masuk ${d.name}` : `${d.icon} ${d.name} · 🔒`,
+                act: () => { if (!doorOpen(i)) toast(`${d.icon} ${d.name}: ${d.note}`); else if (i === 0) mineGo(1); else enterDoor(i); },
             }));
             add('mlift0', HV(A, 9.6, 2.6), 1.5, { label: () => '🛗 Naik lift tambang', act: openMineLift });
             add('mmode', HV(A, -9.5, 4.8), 1.5, { label: () => `Mode tambang: ${minePeace() ? '🕊️ Damai' : '⚔️ Petualang'} · ganti`, act: openMineMode });
@@ -12088,10 +12476,13 @@
             for (let n = 1; n <= MINE_N; n++) {
                 add('mup' + n, HV(MF(n), 0, 8.2), 1.3, { label: () => '🪜 Naik ke Aula Simpang', act: () => mineGo(0) });
                 if (n % 5 === 0) add('mlift' + n, HV(MF(n), 2.8, 7.2), 1.2, { label: () => '🛗 Lift tambang', act: openMineLift });
-                if (n % 10 === 0) add('mchest' + n, HV(MF(n), 0, -6.0), 1.3, { when: () => !(state.mine && state.mine.ch.includes(n)), label: () => '🎁 Buka peti harta', act: () => sendAct('mchest', n) });
+                if (n % 10 === 0) add('mchest' + n, HV(MF(n), 0, -6.0), 1.3, { when: () => !(state.mine && state.mine.ch.includes(n)), label: () => bossBeaten(n) ? '🎁 Buka peti harta' : `🔒 Peti harta · kalahkan ${BOSS[n].name} dulu`, act: () => { if (bossBeaten(n)) sendAct('mchest', n); else toast(`Peti terkunci selama ${BOSS[n].name} masih berkuasa di sini.`); } });
+                if (isBossF(n)) add('mriddle' + n, HV(MF(n), -2.6, -2.4), 1.3, { when: () => minePeace() && !bossBeaten(n), label: () => `🧩 Teka-teki ${BOSS[n].name}`, act: () => openBossRiddle(n) });
             }
             return L;
         }
+        // doors 2–8 (tahap 11 bagian 5)
+        function enterDoor(i) { const d = AULA_DOORS[i]; toast(`${d.icon} ${d.name}: pintunya terbuka, tapi lorong di baliknya masih digali. Segera!`); }
         const INTERACTABLES = interactables();
         INTERACTABLES.push(
             { id: 'gudang', pos: new THREE.Vector3(BUILDS.gudang.x, 0, BUILDS.gudang.z + BUILDS.gudang.d / 2 + 0.6), reach: 1.5, local: true, when: () => !!state.build.gudang, label: () => 'Buka gudang 🏚️', act: () => openStorage('gudang') },
@@ -12608,7 +12999,7 @@
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
-                    nc: encNpc(), mn: state.mine, lb: state.lumbung, bk: state.bank, up: state.up, dl: state.daily, bt: state.boat };
+                    nc: encNpc(), mn: state.mine, gr: state.gear || null, lb: state.lumbung, bk: state.bank, up: state.up, dl: state.daily, bt: state.boat };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0, a.mode === 'eat' ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -12708,6 +13099,7 @@
             if (w.sw && typeof w.sw === 'object') state.satwa = cleanSatwa(w.sw);
             if (w.ne && typeof w.ne === 'object') state.npcEv = cleanNpcEv(w.ne);
             if (w.mn && typeof w.mn === 'object') state.mine = cleanMine(w.mn);
+            if (w.gr && typeof w.gr === 'object') state.gear = cleanGear(w.gr);
             if (Array.isArray(w.nd)) state.npcDebt = w.nd.filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             if (w.fm && typeof w.fm === 'object') { const m = state.fam && state.fam.msg; state.fam = cleanFam(w.fm); state.fam.msg = w.fm.msg && Number.isInteger(w.fm.msg.d) ? { d: w.fm.msg.d, t: String(w.fm.msg.t).slice(0, 400) } : m || null; }
             if ('mt' in w && ride !== 'd' && elapsed > bike.parkT) state.motor = w.mt && MOTORS[w.mt.k] && [w.mt.x, w.mt.z, w.mt.h].every(Number.isFinite) ? { k: w.mt.k, x: w.mt.x, z: w.mt.z, h: w.mt.h } : null;
@@ -13199,6 +13591,8 @@
             const ti = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'].indexOf(e.code);
             if (ti >= 0) { if (e.shiftKey) selectLeft(ti); else selectSlot(ti); return; }
             if (e.code === 'KeyQ' && !e.repeat) { useLeft(); return; }
+            if (e.code === 'KeyR' && !e.repeat && inMine(player.pos)) { mineRoll(); return; }
+            if (e.code === 'KeyF' && !e.repeat && inMine(player.pos)) { mineSweep(); return; }
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
             keys.add(e.code);
             if (!e.repeat && ['KeyE', 'Space', 'Enter'].includes(e.code)) pressAct();
@@ -13293,6 +13687,8 @@
         // eat what you hold, wherever you are (button or F)
         const eatHeld = () => { const k = heldItem(); if (started && !sleeping && !dlgOpen() && foodOf(k)) sendAct('eat', k); };
         $('eatBtn').addEventListener('click', eatHeld);
+        $('rollBtn').addEventListener('pointerdown', e => { e.preventDefault(); mineRoll(); });
+        $('sweepBtn').addEventListener('pointerdown', e => { e.preventDefault(); mineSweep(); });
         window.addEventListener('keydown', e => { if (e.code === 'KeyF' && !e.repeat) eatHeld(); });
         $('closeHelp').addEventListener('click', () => toggleHelp(false));
         function setGfx(v) {
@@ -13459,7 +13855,7 @@
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
                 const tired = energyOf(USER) < 10;
                 player.moveT = elapsed; if (run && !tired) player.runT = elapsed;
-                const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1); // wading through a paddy is slow
+                const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1) * (inMine(player.pos) ? mineSpeed() : 1); // wading through a paddy is slow
                 if (ride === 'd') {
                     // on the bike: much faster, in short steps so it never slips through a fence
                     const v = motorSpeed() * Math.min(1, len) * (inPaddy(player.pos) ? 0.3 : 1), n = Math.max(1, Math.ceil(v * dt / 0.25));
@@ -13685,7 +14081,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { BOSS, GEAR, ARM_SHOP, gearOf, hpMax, openSmithArms, openGatot, mineRoll, mineSweep, useMine, openBossRiddle, bossBeaten, doorOpen, MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

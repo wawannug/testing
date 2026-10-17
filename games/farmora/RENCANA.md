@@ -109,7 +109,8 @@ Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot). Di mu
 Pintu lain yang sudah ada di tahap lain: **Gua Waktu** (masuk ke Lembah Purba, tahap 12) dan **Pintu Wingit** (Gua Pesugihan, tahap 14).
 
 **Bagian 1 sudah jadi ✅:** Aula Simpang dengan 8 pintu (pintu 1 terbuka), Tambang Bertingkat lantai 1–20 (zona Lorong Tanah dan Gua Kapur), bentuk lantai tetap dengan batu baru tiap hari, tangga di bawah batu, lift tiap 5 lantai, peti harta lantai 10 dan 20, 6 monster biasa, golok dari Pak Gatot, nyawa ❤️ terpisah dari energi, mode Petualang (bawaan) dan Damai, pingsan = hari berakhir.
-**Berikutnya:** lantai 21–40 (zona Sungai Bawah Tanah dan Perut Gunung), bos tiap 10 lantai, senjata dan pelindung lain, barang bantu, tugas Pak Gatot, lalu pintu 2–8 sesuai urutan.
+**Bagian 2–3 sudah jadi ✅:** lantai 21–40 (Sungai Bawah Tanah, Perut Gunung) dengan kolam air dan lava, 6 monster baru (kepiting batu menyamar), bos Raja Tikus, Kalajengking Kristal Raksasa, Lele Siluman, Buto Ijo (Damai: teka-teki), senjata (tongkat, celurit, ketapel, badik, tombak, mandau), pelindung, barang bantu Pak Gatot, tombol hindar dan jurus sapuan.
+**Berikutnya:** bahaya, geode, perhiasan, olahan barang monster, tugas Pak Gatot, saling menolong; lalu pintu 2–8 sesuai urutan.
 
 Isi pintu 1 (Tambang Bertingkat):
 - [ ] **4 zona**:

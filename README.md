@@ -425,20 +425,49 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Bonceng:** saat pasanganmu duduk di motor, dekati dia lalu pilih **🛵 Bonceng**. Kamu duduk di belakang dan ikut ke mana pun dia pergi. Tekan tombol untuk turun; kalau pengemudi turun, yang dibonceng ikut turun. Rok dan sarung ikut menutupi kaki saat duduk di motor.
 - Motor bebek dan matic sedikit melambat di luar jalan (rumput, tanah); motor trail tetap kencang. Di sawah motor berjalan pelan. Masuk rumah, naik perahu, naik ojek, atau tidur membuatmu turun dari motor dulu.
 
-## ⛏️ Aula Simpang dan Tambang Bertingkat (tahap 11, bagian 1)
+## ⛏️ Aula Simpang dan Tambang Bertingkat (tahap 11)
 - **Pintu masuk:** di dalam ⛏️ Tambang Rakyat (Desa Pegunungan) ada lubang 🕳️ di dinding timur. Turun ke **🚪 Aula Simpang**, ruang batu berlampu karbit dengan **8 pintu** yang terbuka berurutan. Sekarang baru pintu 1 (**Tambang Bertingkat**) yang terbuka; pintu lain bergembok 🔒 dan menunjukkan syaratnya.
 - **🎁 Titipan Pak Gatot:** sekali per pemain, peti di aula berisi **🗡️ golok** dan helm berlampu.
-- **Lantai 1–20** (lantai 21–40 menyusul):
+- **Lantai 1–40:**
 
   | Zona | Lantai | Isi batu | Monster |
   |---|---|---|---|
   | 🟤 Lorong Tanah | 1–10 | batu, tanah liat, tembaga, batu bara (besi mulai lantai 6) | lendir lumpur, tikus tambang, lipan gua |
   | ⚪ Gua Kapur | 11–20 | batu, besi, perak, kristal kuarsa, batu bara, tembaga (emas mulai lantai 16), kadang fosil kecil | kelelawar penghisap, kalajengking kristal, ular sanca gua |
+  | 🔵 Sungai Bawah Tanah | 21–30 | emas, perak, besi, kuarsa (akik bacan mulai lantai 26), fosil dan artefak lebih sering, kolam air | kepiting batu (menyamar jadi batu berbijih), belut listrik, katak racun |
+  | 🔴 Perut Gunung | 31–40 | emas, akik, kecubung, opal kalimaya (intan Martapura mulai lantai 36), kolam lava yang membakar | arca hidup, banaspati, kadal lava |
+
+  Zona 3 dan 4 lebih gelap; ⛑️ helm proyek membuat lampu kepala lebih terang dan jauh.
 
   - Bentuk tiap lantai **tetap**, tapi **batunya baru setiap hari** (sama di HP kalian berdua).
   - Pecahkan batu dengan ⛏️ beliung (batu biasa 1 pukulan, batu berbijih 2–3 pukulan, 1 ⚡ per batu). **Tangga ke bawah tersembunyi di bawah salah satu batu.**
   - **🛗 Lift** di lantai 5, 10, 15, dan 20: setelah pernah sampai ke sana, lift di aula bisa langsung membawa kalian ke lantai itu.
-  - **🎁 Peti harta** di lantai 10 dan 20 (sekali saja untuk farm kalian).
+  - **🎁 Peti harta** di lantai 10, 20, 30, dan 40 (sekali saja untuk farm kalian), terbuka setelah bosnya kalah.
+- **👑 Bos tiap 10 lantai** (sekali kalah, kalah untuk selamanya; tangga baru muncul setelah bos kalah):
+
+  | Lantai | Bos | Jurus | Hadiah |
+  |---|---|---|---|
+  | 10 | 🐀 Raja Tikus | memanggil anak tikus | 800 G + 👑 mahkota |
+  | 20 | 🦂 Kalajengking Kristal Raksasa | bergetar lalu menyeruduk | 1.500 G + 🔮 kristal raksasa |
+  | 30 | 🐟 Lele Siluman | menyelam, muncul di dekatmu | 2.500 G + sisik Lele Siluman |
+  | 40 | 👹 Buto Ijo | lingkaran merah lalu menghantam tanah | 5.000 G + 🦴 tanduk Buto Ijo |
+
+  Di mode 🕊️ Damai, bos diganti **🧩 teka-teki batu**: ingat urutan simbol lalu tekan kembali. Mengalahkan Buto Ijo membuka pintu 2 di aula.
+- **⚔️ Senjata dan 🛡️ pelindung** dari ⚒️ Pandai Besi Mas Agus (meja di sebelah kanan):
+
+  | Senjata | Kekuatan | Ciri | Bahan |
+  |---|---|---|---|
+  | 🦯 Tongkat kayu | 2 | jangkauan agak panjang | 120 G, 5 kayu |
+  | 🗡️ Golok | 3 | hadiah Pak Gatot | – |
+  | 🌙 Celurit | 3 | kena semua monster di dekatmu | 600 G, 4 besi |
+  | 🪃 Ketapel | 2 | menembak dari jauh (7 m) | 450 G, 3 kayu, 2 lendir |
+  | 🔪 Badik | 3 | cepat, 30% kritis (2×) | 900 G, 4 besi, 2 perak |
+  | 🔱 Tombak | 4 | jangkauan paling panjang | 1.200 G, 6 besi, 6 kayu |
+  | ⚔️ Mandau | 6 | dari tanduk Buto Ijo | 3.000 G, tanduk, 6 emas |
+
+  Pelindung (hanya untuk yang membeli): ⛑️ helm proyek (luka −10%, lampu terang), 🦺 rompi kulit (−15%) atau 🛡️ rompi besi (−30%), 🥾 sepatu bot (−5%), 🧿 jimat akik (nyawa maksimal +30).
+- **🧰 Toko Pak Gatot** (meja Tambang Rakyat): 🧉 ramuan (+50 ❤️), 🔥 obor (dipegang: monster kecil tak berani mendekat), 🧨 petasan (melukai semua monster di dekatmu), 🧂 garam kasar (monster kabur sebentar), 💨 bom asap (monster kehilangan jejakmu 8 detik). Pegang barangnya lalu tekan tombol aksi di lantai tambang.
+- **🤸 Hindar** (tombol bulat atau R): berguling cepat, tidak bisa dilukai sesaat. **🌀 Sapuan** (tombol atau F): jurus silat yang mengenai semua monster di sekelilingmu, tiap 6 detik.
 - **Monster dan ❤️ nyawa:**
   - Mode bawaan **⚔️ Petualang**: monster berkeliaran dan menyerang. Dekati lalu tekan tombol aksi untuk menyerang; 🗡️ golok paling kuat (3), beliung, kapak, cangkul, sabit (2), tangan kosong (1). Monster kalah kadang meninggalkan barang (lendir, batu bara, bisa lipan, sayap kelelawar, kristal kuarsa, sisik ular).
   - Mode **🕊️ Damai** (papan di aula, pilihan masing-masing pemain): monster tidak muncul.
