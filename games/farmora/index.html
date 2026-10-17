@@ -10626,7 +10626,7 @@
             // big pond and lake, the little duck pond, the sea (and the deep sea when you rented a boat today)
             const kind = big === true ? 'big' : big === false ? 'small' : big;
             const pool = FISH.filter(f => kind === 'sea' ? f.where === 'sea' || f.where === 'deep' && boatToday() : kind === 'river' ? ['both', 'small'].includes(f.where) || ['udang', 'baung', 'patin'].includes(f.key) : kind === 'lake' ? ['both', 'big', 'lake'].includes(f.where) : f.where === 'both' || f.where === kind);
-            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1) * (f.d >= 55 && suakaHas('kura') ? 1.8 : 1);
+            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1)
             let r = Math.random() * pool.reduce((t, f) => t + w(f), 0);
             for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
             return pool[0].key;
@@ -10873,31 +10873,40 @@
         // together. At 100 it is your friend: invite it to the 🦜 pojok suaka on the farm (4 at most), where it helps.
         // They are never caged: the suaka is a corner they visit.
         const SATWA = [
-            { k: 'luwak', name: 'Musang luwak', icon: '🦝', r: 'hutan', t: [[1140, 1410]], food: ['pisang', 'pepaya', 'kopi'], how: 'pelan', p: 75, fx: 'Kadang meninggalkan ☕ biji kopi luwak di kotak penyimpanan tiap pagi' },
+            { k: 'kakatua', name: 'Kakatua jambul kuning', icon: '🦜', r: 'pantai', t: [[420, 690]], food: ['jagung', 'kacang', 'pepaya'], how: 'pelan', p: 70, fx: 'Suka membawa pulang barang temuan: bijih, buah, benih, atau koin, tiap pagi' },
             { k: 'trenggiling', name: 'Trenggiling', icon: '🦔', r: 'hutan', t: [[1200, 1440]], food: ['egg', 'duckEgg'], how: 'diam', p: 70, fx: 'Memakan hama: rumput liar di farm dibersihkan tiap pagi' },
             { k: 'kukang', name: 'Kukang', icon: '🐒', r: 'gunung', t: [[1110, 1440]], food: ['pisang', 'jambu', 'mangga'], how: 'diam', p: 70, fx: 'Tidur jadi nyenyak: ketiduran pun bangun dengan energi penuh, dan kerja berat sedikit lebih hemat energi' },
             { k: 'tarsius', name: 'Tarsius', icon: '👀', r: 'pulau', t: [[1080, 1380]], food: ['udang'], how: 'diam', p: 90, home: true, fx: 'Penghuni asli Pulau Kencana: tidak pindah ke suaka, tapi tercatat sebagai sahabat di buku satwa' },
             { k: 'rangkong', name: 'Burung rangkong', icon: '🐦', r: 'gunung', t: [[360, 630]], food: ['pepaya', 'pisang', 'jambu'], how: 'pelan', p: 85, fx: 'Menyebar biji: tiap 3 hari ada 🌳 bibit pohon buah di kotak penyimpanan' },
             { k: 'merak', name: 'Merak hijau', icon: '🦚', r: 'sawah', t: [[360, 570], [960, 1110]], food: ['jagung', 'kacang'], how: 'pelan', p: 75, fx: 'Tiap 2 hari meninggalkan 🪶 bulu merak (bahan kerajinan, bisa dijual)' },
-            { k: 'kura', name: 'Kura-kura darat', icon: '🐢', r: 'sawah', t: [[420, 1020]], food: ['wortel', 'tomat', 'semangka'], how: 'bebas', p: 60, fx: 'Pembawa hoki: ikan langka lebih sering menggigit kail' },
-            { k: 'biawak', name: 'Biawak', icon: '🦎', r: 'pantai', t: [[540, 900]], food: ['bandeng', 'mujair', 'nila', 'lele'], how: 'pelan', p: 75, dry: true, fx: 'Tikus tak berani mendekat: tiap pagi ada 🥚 telur tambahan di kotak penyimpanan' },
+            { k: 'anoa', name: 'Anoa', icon: '🐃', r: 'hutan', t: [[900, 1110]], food: ['wortel', 'ubi', 'jagung'], how: 'diam', p: 65, fx: 'Mengumpulkan rumput dan dedaunan: pakan ternak di gudang bertambah tiap pagi' },
+            { k: 'jalak', name: 'Jalak Bali', icon: '🐦', r: 'sawah', t: [[360, 600]], food: ['pisang', 'pepaya', 'jambu'], how: 'pelan', p: 70, dry: true, fx: 'Kicaunya merdu: semua hewan ternak makin akrab dengan kalian tiap pagi' },
             { k: 'babirusa', name: 'Babirusa', icon: '🐗', r: 'hutan', t: [[900, 1140]], food: ['ubi', 'singkong', 'jagung'], how: 'diam', p: 70, fx: 'Pandai mengendus: tiap pagi menemukan umbi atau bijih logam' },
-            { k: 'kalong', name: 'Kalong', icon: '🦇', r: 'sawah', t: [[1080, 1350]], food: ['mangga', 'jambu', 'pepaya'], how: 'diam', p: 75, fx: 'Menyerbuki bunga: pohon buah berbuah lebih cepat' },
+            { k: 'owa', name: 'Owa Jawa', icon: '🐒', r: 'gunung', t: [[360, 630]], food: ['pisang', 'mangga', 'jambu'], how: 'diam', p: 70, fx: 'Menyebar biji dan menyerbuki bunga: pohon buah berbuah lebih cepat' },
+            { k: 'harimau', obs: 1, name: 'Harimau Sumatera', icon: '🐅', r: 'hutan', t: [[1050, 1200]], how: 'pelan', p: 14, fact: 'Kritis. Tinggal kurang dari 600 ekor di hutan Sumatra. Harimau terakhir di Indonesia setelah harimau Jawa dan Bali punah.' },
+            { k: 'badak', obs: 1, name: 'Badak Jawa', icon: '🦏', r: 'pantai', t: [[360, 480]], how: 'pelan', p: 12, fact: 'Kritis. Hanya sekitar 80 ekor, semuanya di Taman Nasional Ujung Kulon. Bercula satu dan sangat pemalu.' },
+            { k: 'orangutan', obs: 1, name: 'Orangutan', icon: '🦧', r: 'hutan', t: [[540, 900]], how: 'pelan', p: 16, fact: 'Kritis. Kera besar satu-satunya di Asia, hidup di Sumatra dan Kalimantan. Membuat sarang baru di pohon setiap malam.' },
+            { k: 'komodo', obs: 1, name: 'Komodo', icon: '🐉', r: 'pulau', t: [[480, 720]], how: 'pelan', p: 18, fact: 'Terancam. Kadal terbesar di dunia, hanya ada di Pulau Komodo, Rinca, dan Flores. Panjangnya bisa 3 meter.' },
+            { k: 'gajah', obs: 1, name: 'Gajah Sumatera', icon: '🐘', r: 'hutan', t: [[960, 1080]], how: 'pelan', p: 14, fact: 'Kritis. Hutannya terus menyusut. Gajah membantu menyebarkan biji dan membuka jalan di hutan.' },
+            { k: 'elang', obs: 1, name: 'Elang Jawa', icon: '🦅', r: 'gunung', t: [[540, 840]], how: 'pelan', p: 18, fact: 'Terancam. Burung nasional Indonesia (mirip Garuda), dengan jambul tegak di kepala. Hidup di hutan pegunungan Jawa.' },
+            { k: 'cendrawasih', obs: 1, name: 'Cendrawasih', icon: '🪶', r: 'gunung', t: [[360, 480]], how: 'pelan', p: 15, fact: 'Dilindungi. Burung surga dari Papua. Yang jantan menari dan memamerkan bulu indahnya untuk memikat betina.' },
             { k: 'maleo', name: 'Burung maleo', icon: '🐔', r: 'pantai', t: [[360, 660]], food: ['jagung', 'kacang'], how: 'pelan', p: 75, fx: 'Bertelur di pasir sarang suaka: tetaskan, lalu lepaskan anaknya ke alam' },
         ];
-        for (const s of SATWA) s.food = s.food.filter(f => ITEMS[f]);
+        for (const s of SATWA) s.food = (s.food || []).filter(f => ITEMS[f]);
+        const SAT_OLD = { luwak: 'kakatua', biawak: 'jalak', kura: 'anoa', kalong: 'owa' };   // (the four that were not rare are now rare ones: old progress carries over)
         const SATI = Object.fromEntries(SATWA.map(s => [s.k, s]));
         const SUAKA_MAX = 4, TRUST_MAX = 100;
-        const satS = () => (state.satwa ||= { tr: {}, fed: {}, seen: {}, fled: {}, su: [], nest: { s: 0, d: 0 }, lepas: 0 });
+        const satS = () => (state.satwa ||= { tr: {}, fed: {}, seen: {}, fled: {}, su: [], obs: {}, nest: { s: 0, d: 0 }, lepas: 0 });
         function cleanSatwa(o) {
             o = o && typeof o === 'object' ? o : {};
-            const num = v => Number.isFinite(+v) ? +v : 0, map = (m, f) => { const r = {}; for (const [k, v] of Object.entries(m && typeof m === 'object' ? m : {})) { const x = f(k, v); if (x !== undefined) r[k] = x; } return r; };
+            const num = v => Number.isFinite(+v) ? +v : 0, mk = k => SAT_OLD[k] || k, map = (m, f) => { const r = {}; for (const [k0, v] of Object.entries(m && typeof m === 'object' ? m : {})) { const k = k0.includes('|') ? mk(k0.split('|')[0]) + '|' + k0.split('|')[1] : mk(k0); const x = f(k, v); if (x !== undefined) r[k] = x; } return r; };
             return {
                 tr: map(o.tr, (k, v) => SATI[k] ? clamp(num(v), 0, TRUST_MAX) : undefined),
                 fed: map(o.fed, (k, v) => SATI[k.split('|')[0]] ? num(v) | 0 : undefined),
                 seen: map(o.seen, k => SATI[k] ? 1 : undefined),
                 fled: map(o.fled, (k, v) => SATI[k] ? num(v) | 0 : undefined),
-                su: (Array.isArray(o.su) ? o.su : []).filter((k, i, a) => SATI[k] && !SATI[k].home && a.indexOf(k) === i).slice(0, SUAKA_MAX),
+                su: (Array.isArray(o.su) ? o.su : []).map(mk).filter((k, i, a) => SATI[k] && !SATI[k].home && !SATI[k].obs && a.indexOf(k) === i).slice(0, SUAKA_MAX),
+                obs: map(o.obs, k => SATI[k] && SATI[k].obs ? 1 : undefined),
                 nest: { s: clamp(num(o.nest && o.nest.s) | 0, 0, 3), d: num(o.nest && o.nest.d) | 0 },
                 lepas: num(o.lepas) | 0,
                 msg: o.msg && Number.isInteger(o.msg.d) && typeof o.msg.t === 'string' ? { d: o.msg.d, t: o.msg.t.slice(0, 300) } : null,
@@ -10928,6 +10937,7 @@
             if (!s || suakaHas(k) || S.fled[k] === state.day || !satHour(s) || !satSpot(k)) return false;
             if (s.dry && isWet()) return false;
             const p = s.k === 'kura' && isWet() ? 100 : s.p;
+            if (s.obs && S.obs && S.obs[k] && satHash(k, 'again' + state.day) % 3) return false;   // once watched, it shows itself even less
             return isFriend(k) || satHash(k, 'day' + state.day) % 100 < p;
         }
         // ---- what they look like: small low-poly animals, some on a perch ----
@@ -10935,11 +10945,76 @@
         function satModel(k) {
             const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.b = b;
             // (the night ones have eye-shine, so you can spot them in the dark)
-            const night = ['luwak', 'trenggiling', 'kukang', 'tarsius', 'kalong'].includes(k);
+            const night = ['trenggiling', 'kukang', 'tarsius', 'harimau'].includes(k);
             const eye = (x, y, z, r = 0.025, p = b) => { const e = ball(r, r, r, 0x111111, x, y, z, p); if (night) e.material = SAT_SHINE; return e; };
             const legs = (xs, zs, h, c, r = 0.03) => { for (const x of xs) for (const z of zs) cap(r, h, c, x, h / 2 + r, z, b); };
-            const perch = (h, len) => { cap(0.07, h, 0x6e4723, 0, h / 2, 0, g); const br = cap(0.045, len, 0x6e4723, len / 2 - 0.1, h, 0, g, 'x'); br.rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) ball(0.22, 0.16, 0.22, 0x4f8a3a, 0.1 + i * 0.25, h + 0.25 + (i % 2) * 0.1, (i - 1) * 0.15, g); b.position.set(len * 0.55, h + 0.06, 0); };
-            if (k === 'luwak') {
+            const perch = (h, len) => { cap(0.07, h, 0x6e4723, 0, h / 2, 0, g); const br = cap(0.045, len, 0x6e4723, len / 2 - 0.1, h, 0, g, 'x'); br.rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) ball(0.26, 0.18, 0.24, 0x4f8a3a, -0.15 + i * 0.18, h + 0.62 + (i % 2) * 0.12, (i - 1) * 0.16, g); b.position.set(len * 0.55, h + 0.06, 0); };
+            if (k === 'kakatua') {
+                perch(1.5, 0.9);
+                ball(0.12, 0.17, 0.11, 0xf6f4ee, 0, 0.16, 0, b); ball(0.085, 0.08, 0.085, 0xf6f4ee, 0, 0.36, 0.03, b);
+                for (let i = 0; i < 4; i++) { const c = mesh(LOWCONE, mat(0xf6d23a), b); c.scale.set(0.025, 0.16, 0.012); c.position.set((i - 1.5) * 0.02, 0.48, -0.02 - i * 0.015); c.rotation.x = -0.5 - i * 0.12; }
+                ball(0.035, 0.04, 0.035, 0x2a2a2a, 0, 0.33, 0.1, b); eye(0.045, 0.39, 0.07, 0.014); eye(-0.045, 0.39, 0.07, 0.014);
+                box(0.12, 0.2, 0.04, 0xf2efe6, 0, 0.0, -0.08, b).rotation.x = 0.3;
+                b.scale.setScalar(1.3);
+            } else if (k === 'jalak') {
+                perch(1.3, 0.8);
+                ball(0.09, 0.09, 0.15, 0xfafaf6, 0, 0.12, 0, b); ball(0.065, 0.065, 0.065, 0xfafaf6, 0, 0.2, 0.12, b);
+                for (const sx of [-1, 1]) { ball(0.025, 0.025, 0.012, 0x3a7ae0, sx * 0.05, 0.22, 0.14, b); eye(sx * 0.058, 0.22, 0.145, 0.01); ball(0.02, 0.05, 0.1, 0x1a1a1a, sx * 0.085, 0.12, -0.08, b); }
+                const bk = mesh(LOWCONE, mat(0xe8c25a), b); bk.scale.set(0.015, 0.06, 0.015); bk.rotation.x = Math.PI / 2; bk.position.set(0, 0.2, 0.2);
+                box(0.07, 0.015, 0.14, 0xf2f2ee, 0, 0.1, -0.2, b); box(0.07, 0.016, 0.04, 0x1a1a1a, 0, 0.1, -0.27, b);
+                for (let i = 0; i < 3; i++) { const c = mesh(LOWCONE, mat(0xfafaf6), b); c.scale.set(0.012, 0.05, 0.008); c.position.set(0, 0.27, 0.1 - i * 0.02); c.rotation.x = -0.6; }
+                b.scale.setScalar(1.7);
+            } else if (k === 'anoa') {
+                ball(0.24, 0.22, 0.42, 0x2e2620, 0, 0.48, 0, b); ball(0.13, 0.13, 0.17, 0x2e2620, 0, 0.56, 0.45, b); ball(0.08, 0.06, 0.06, 0x4a3e36, 0, 0.5, 0.58, b);
+                for (const sx of [-1, 1]) { const h = mesh(LOWCONE, mat(0x1a1612), b); h.scale.set(0.025, 0.22, 0.025); h.position.set(sx * 0.06, 0.72, 0.36); h.rotation.x = -1.0; ball(0.04, 0.025, 0.02, 0x2e2620, sx * 0.12, 0.62, 0.42, b); eye(sx * 0.07, 0.6, 0.55, 0.014); }
+                legs([-0.14, 0.14], [-0.25, 0.28], 0.3, 0x2e2620, 0.045);
+                for (const x of [-0.14, 0.14]) for (const z of [-0.25, 0.28]) ball(0.05, 0.06, 0.05, 0xd8d0c0, x, 0.07, z, b);   // white socks
+                cap(0.02, 0.25, 0x2e2620, 0, 0.42, -0.45, b).rotation.x = 0.4;
+            } else if (k === 'owa' || k === 'orangutan') {
+                const ou = k === 'orangutan', fur = ou ? 0xb5562a : 0xaeaeaa;
+                perch(ou ? 2.6 : 2.1, ou ? 1.4 : 1.1);
+                ball(0.13, 0.16, 0.12, fur, 0, 0.14, 0, b); ball(0.1, 0.1, 0.1, fur, 0, 0.38, 0.02, b);
+                ball(0.07, 0.07, 0.04, ou ? 0x5a3a2a : 0x2a2622, 0, 0.37, 0.09, b); if (!ou) ball(0.09, 0.04, 0.09, 0x2a2622, 0, 0.47, 0.0, b);
+                eye(0.03, 0.39, 0.12, 0.013); eye(-0.03, 0.39, 0.12, 0.013);
+                const ar = cap(0.03, 0.42, fur, 0.08, 0.5, 0, b); ar.rotation.z = -0.2;            // one long arm up, holding the branch
+                const al = cap(0.03, 0.36, fur, -0.12, 0.05, 0.05, b); al.rotation.z = 0.5;       // the other hanging
+                if (ou) { for (const sx of [-1, 1]) ball(0.05, 0.07, 0.02, 0x6a4a3a, sx * 0.1, 0.37, 0.06, b); }   // cheek pads
+                b.scale.setScalar(ou ? 2.2 : 1.6);
+            } else if (k === 'harimau') {
+                ball(0.24, 0.24, 0.55, 0xe08a2a, 0, 0.55, 0, b); ball(0.2, 0.19, 0.2, 0xe08a2a, 0, 0.72, 0.56, b); ball(0.12, 0.08, 0.1, 0xf6efe0, 0, 0.66, 0.72, b);
+                for (let i = 0; i < 6; i++) box(0.5, 0.05, 0.05, 0x1a1410, 0, 0.62 + (i % 2) * 0.05, -0.38 + i * 0.15, b).rotation.z = 0.2 * (i % 2 ? 1 : -1);
+                for (const sx of [-1, 1]) { ball(0.05, 0.06, 0.03, 0xe08a2a, sx * 0.13, 0.88, 0.55, b); eye(sx * 0.08, 0.77, 0.74, 0.02); }
+                ball(0.035, 0.025, 0.02, 0x2a1a1a, 0, 0.7, 0.8, b);
+                legs([-0.14, 0.14], [-0.35, 0.35], 0.38, 0xe08a2a, 0.06);
+                const t = cap(0.04, 0.7, 0xe08a2a, 0, 0.6, -0.85, b, 'z'); t.rotation.x = Math.PI / 2 - 0.5;
+                b.scale.setScalar(1.3);
+            } else if (k === 'badak') {
+                ball(0.42, 0.4, 0.8, 0x7a756e, 0, 0.82, 0, b); ball(0.24, 0.24, 0.32, 0x7a756e, 0, 0.78, 0.86, b);
+                const h = mesh(LOWCONE, mat(0x9a948a), b); h.scale.set(0.07, 0.24, 0.07); h.position.set(0, 0.98, 1.08); h.rotation.x = 0.35;
+                for (const sx of [-1, 1]) { ball(0.05, 0.08, 0.03, 0x6a655e, sx * 0.13, 1.02, 0.72, b); eye(sx * 0.15, 0.85, 1.0, 0.018); }
+                for (let i = 0; i < 3; i++) box(0.86, 0.03, 0.04, 0x6a655e, 0, 0.9, -0.4 + i * 0.4, b);   // the folds of its armour-like skin
+                legs([-0.25, 0.25], [-0.5, 0.5], 0.45, 0x6a655e, 0.11);
+            } else if (k === 'gajah') {
+                ball(0.7, 0.66, 1.0, 0x8a8a86, 0, 1.6, 0, b); ball(0.45, 0.44, 0.42, 0x8a8a86, 0, 1.95, 0.95, b);
+                for (const sx of [-1, 1]) { const e = ball(0.06, 0.42, 0.34, 0x7e7e7a, sx * 0.42, 1.95, 0.85, b); e.rotation.y = sx * 0.4; eye(sx * 0.25, 2.05, 1.28, 0.03); const tk = mesh(LOWCONE, mat(0xf2ead8), b); tk.scale.set(0.04, 0.3, 0.04); tk.position.set(sx * 0.16, 1.55, 1.3); tk.rotation.x = 2.2; }
+                for (let i = 0; i < 5; i++) cap(0.11 - i * 0.012, 0.22, 0x8a8a86, 0, 1.75 - i * 0.22, 1.32 + Math.sin(i * 0.5) * 0.08, b);   // the trunk
+                legs([-0.38, 0.38], [-0.55, 0.55], 1.0, 0x7e7e7a, 0.18);
+                cap(0.03, 0.5, 0x7e7e7a, 0, 1.45, -1.0, b).rotation.x = 0.4;
+            } else if (k === 'elang') {
+                // soaring, wings spread
+                ball(0.1, 0.09, 0.28, 0x6a4a2a, 0, 0, 0, b); ball(0.08, 0.08, 0.09, 0xd8c8a8, 0, 0.04, 0.3, b);
+                for (let i = 0; i < 2; i++) { const c = mesh(LOWCONE, mat(0x3a2a1a), b); c.scale.set(0.02, 0.12, 0.012); c.position.set((i - 0.5) * 0.04, 0.14, 0.26); c.rotation.x = -0.4; }
+                const bk = mesh(LOWCONE, mat(0x2a2a2a), b); bk.scale.set(0.025, 0.07, 0.025); bk.rotation.x = Math.PI / 2 + 0.5; bk.position.set(0, 0.01, 0.4);
+                for (const sx of [-1, 1]) { const w = ball(0.75, 0.025, 0.2, 0x6a4a2a, sx * 0.72, 0.02, 0, b); w.rotation.z = sx * 0.1; ball(0.2, 0.02, 0.15, 0x2a1e12, sx * 1.35, 0.06, 0.02, b); }
+                box(0.24, 0.02, 0.26, 0x5a3e22, 0, 0, -0.38, b);
+                g.userData.fly = 1;
+            } else if (k === 'cendrawasih') {
+                perch(1.8, 0.9);
+                ball(0.09, 0.12, 0.09, 0x6a2a1a, 0, 0.15, 0, b); ball(0.07, 0.07, 0.07, 0xf2d24a, 0, 0.3, 0.03, b); ball(0.05, 0.04, 0.03, 0x2a8a5a, 0, 0.25, 0.08, b);
+                eye(0.035, 0.32, 0.08, 0.012); eye(-0.035, 0.32, 0.08, 0.012);
+                for (let i = 0; i < 7; i++) { const pl = mesh(LOWCONE, mat(i % 2 ? 0xf2c23a : 0xf29a3a), b); pl.scale.set(0.035, 0.6, 0.01); pl.position.set((i - 3) * 0.03, 0.02, -0.25); pl.rotation.x = -1.9 + Math.abs(i - 3) * 0.08; pl.rotation.z = (i - 3) * 0.12; }
+                b.scale.setScalar(1.5);
+            } else if (k === 'luwak') {
                 ball(0.3, 0.15, 0.13, 0x4a4440, 0, 0.3, 0, b); ball(0.1, 0.09, 0.12, 0x4a4440, 0, 0.36, 0.34, b); ball(0.06, 0.05, 0.08, 0xd9d2c4, 0, 0.34, 0.43, b);
                 ball(0.11, 0.035, 0.05, 0x1e1a18, 0, 0.39, 0.37, b); eye(0.04, 0.4, 0.44); eye(-0.04, 0.4, 0.44);
                 for (const sx of [-1, 1]) ball(0.03, 0.04, 0.02, 0x2a2624, sx * 0.06, 0.46, 0.32, b);
@@ -10984,7 +11059,7 @@
                 for (let i = 0; i < 4; i++) ball(0.07, 0.03, 0.07, 0x7a6a3a, (i % 2 - 0.5) * 0.18, 0.26, (i < 2 ? 1 : -1) * 0.1, b);
                 ball(0.07, 0.06, 0.09, 0x8a8a5a, 0, 0.12, 0.37, b); eye(0.035, 0.15, 0.43, 0.012); eye(-0.035, 0.15, 0.43, 0.012);
                 legs([-0.2, 0.2], [-0.2, 0.2], 0.04, 0x8a8a5a, 0.04);
-            } else if (k === 'biawak') {
+            } else if (k === 'biawak' || k === 'komodo') {
                 cap(0.1, 0.55, 0x5a5a40, 0, 0.13, 0, b, 'z'); ball(0.08, 0.06, 0.13, 0x5a5a40, 0, 0.14, 0.45, b);
                 const t = mesh(LOWCONE, mat(0x4a4a34), b); t.scale.set(0.07, 0.9, 0.05); t.rotation.x = -Math.PI / 2; t.position.set(0, 0.1, -0.78);
                 for (let i = 0; i < 4; i++) ball(0.06, 0.012, 0.05, 0xc8b860, 0, 0.23, 0.2 - i * 0.14, b);
@@ -10992,6 +11067,7 @@
                 const tg = cap(0.006, 0.08, 0xd9443a, 0, 0.12, 0.6, b, 'z');
                 for (const sx of [-1, 1]) for (const z of [-0.2, 0.22]) { const l = cap(0.025, 0.12, 0x4a4a34, sx * 0.13, 0.06, z, b); l.rotation.z = sx * 1.1; }
                 g.userData.tongue = tg;
+                if (k === 'komodo') { b.scale.setScalar(2.4); b.traverse(o => { if (o.isMesh && o.material.color && o.material.color.getHex() === 0x5a5a40) o.material = mat(0x6e6650); }); }
             } else if (k === 'babirusa') {
                 ball(0.34, 0.22, 0.2, 0x8a807a, 0, 0.42, 0, b); ball(0.13, 0.12, 0.15, 0x8a807a, 0, 0.44, 0.38, b); ball(0.06, 0.05, 0.03, 0x9a6a6a, 0, 0.42, 0.53, b);
                 for (const sx of [-1, 1]) { const tu = mesh(LOWCONE, mat(0xf2ead8), b); tu.scale.set(0.015, 0.2, 0.015); tu.position.set(sx * 0.05, 0.6, 0.38); tu.rotation.x = -0.6; const tl = mesh(LOWCONE, mat(0xf2ead8), b); tl.scale.set(0.012, 0.12, 0.012); tl.position.set(sx * 0.08, 0.5, 0.47); tl.rotation.x = -0.3; }
@@ -11019,6 +11095,7 @@
             return g;
         }
         const satVis = {}, satLocal = { seen: {}, fleeT: {} };
+        const SAT_PERCH = new Set(['kukang', 'tarsius', 'rangkong', 'owa', 'kakatua', 'jalak', 'orangutan', 'cendrawasih']);
         // the 🦜 pojok suaka: four places to rest in, and the maleo's sand nest
         const SUAKA_SLOTS = [[-1.5, -0.9], [1.4, -0.8], [-1.3, 1.0], [1.5, 0.9]];
         const suakaAt = i => { const B = BUILDS.suaka, [dx, dz] = SUAKA_SLOTS[i % 4]; return [B.x + dx, B.z + dz]; };
@@ -11034,28 +11111,31 @@
                 if (!near) { if (v) v.g.visible = false; continue; }
                 if (!v) { v = satVis[k] = { g: satModel(k), ph: satHash(k, 'ph') % 628 / 100, pos: new THREE.Vector3(), flee: null }; scene.add(v.g); }
                 v.g.visible = true;
-                const perched = ['kukang', 'tarsius', 'rangkong', 'kalong'].includes(k);
+                const perched = SAT_PERCH.has(k), fly = k === 'elang';
                 let x = sp[0], z = sp[1], h = v.ph;
                 if (v.flee) {
                     const t = elapsed - v.flee.t; x = v.flee.x + v.flee.dx * t * 6; z = v.flee.z + v.flee.dz * t * 6; h = Math.atan2(v.flee.dx, v.flee.dz);
                     if (t > 1.6) { v.g.visible = false; continue; }
+                } else if (fly) {
+                    // circling high over its spot
+                    const a = elapsed * 0.35 + v.ph; x += Math.cos(a) * 6; z += Math.sin(a) * 6; h = Math.atan2(-Math.sin(a), Math.cos(a));
                 } else if (!perched) {
                     // pottering about its spot, slowly
-                    const a = elapsed * (k === 'kura' ? 0.06 : 0.16) + v.ph, rr = home ? 0.35 : 1.4;
+                    const a = elapsed * (['anoa', 'badak', 'gajah'].includes(k) ? 0.07 : 0.16) + v.ph, rr = home ? 0.35 : 1.4;
                     x += Math.cos(a) * rr; z += Math.sin(a * 0.8) * rr; h = Math.atan2(-Math.sin(a), Math.cos(a * 0.8) * 0.8);
                     const pd = Math.hypot(player.pos.x - x, player.pos.z - z);
                     if (pd < 5) h = Math.atan2(player.pos.x - x, player.pos.z - z);
                 }
                 v.pos.set(x, 0, z);
-                v.g.position.set(x, groundY(x, z), z); v.g.rotation.y = perched ? v.ph : h;
+                v.g.position.set(x, groundY(x, z) + (fly ? 9 + Math.sin(elapsed * 0.7) * 0.6 : 0), z); v.g.rotation.y = perched ? v.ph : h; if (fly) v.g.rotation.z = -0.25;
                 const b = v.g.userData.b; if (b && !perched) b.position.y = Math.abs(Math.sin(elapsed * 5 + v.ph)) * 0.02;
-                if (k === 'kalong' && b) b.rotation.z = Math.sin(elapsed * 1.3 + v.ph) * 0.08;
+
                 if (v.g.userData.tongue) v.g.userData.tongue.visible = Math.sin(elapsed * 3 + v.ph) > 0.6;
                 const d = Math.hypot(player.pos.x - x, player.pos.z - z);
                 // first sighting: noted in the book for you both
-                if (wild && d < 12 && !S.seen[k] && !satLocal.seen[k]) { satLocal.seen[k] = 1; sendAct('satwa', 'seen|' + k); }
+                if (wild && d < (s.obs ? 25 : 12) && !S.seen[k] && !satLocal.seen[k]) { satLocal.seen[k] = 1; sendAct('satwa', 'seen|' + k); }
                 // a shy one bolts if you come running (or roaring up on the bike)
-                if (wild && !v.flee && s.how !== 'bebas' && !isFriend(k) && d < 7 && (elapsed - (player.runT || -9) < 0.35 || ride)) {
+                if (wild && !v.flee && !fly && s.how !== 'bebas' && !isFriend(k) && d < (s.obs ? 12 : 7) && (elapsed - (player.runT || -9) < 0.35 || ride)) {
                     const l = d || 1; v.flee = { t: elapsed, x, z, dx: (x - player.pos.x) / l, dz: (z - player.pos.z) / l };
                     toast(`${s.icon} ${s.name} kaget lalu kabur! Besok dekati pelan-pelan, jangan lari 🤫`);
                     sendAct('satwa', 'flee|' + k);
@@ -11074,11 +11154,12 @@
             for (const s of SATWA) {
                 const k = s.k;
                 L.push({
-                    id: 'satwa:' + k, local: true, pri: 0.3, reach: ['kukang', 'tarsius', 'rangkong', 'kalong'].includes(k) ? 2.6 : 2.0,
+                    id: 'satwa:' + k, local: true, pri: 0.3, reach: s.obs ? (k === 'elang' ? 14 : 9) : SAT_PERCH.has(k) ? 2.6 : 2.6,
                     get pos() { const v = satVis[k]; return v && v.g.visible && !v.flee ? v.pos : FAR_AWAY; },
                     when: () => { const v = satVis[k]; return !!(v && v.g.visible && !v.flee) && !ride && !player.sit; },
                     label() {
                         const S = satS(), tr = Math.round(S.tr[k] || 0);
+                        if (s.obs) return S.obs && S.obs[k] ? `${s.icon} ${s.name} · sudah tercatat di buku satwa` : elapsed - (player.moveT || -9) < 3 ? `🤫 Diam dulu… amati ${s.name} dari jauh` : `📷 Amati ${s.name} diam-diam`;
                         if (suakaHas(k)) return dailyLeft('satwa:' + k, USER, 1) ? `${s.icon} Elus ${s.name} 💚` : `${s.icon} ${s.name} betah di pojok suaka 💚`;
                         if (isFriend(k)) return s.home ? `${s.icon} Sapa ${s.name}, sahabatmu 💚` : state.build && state.build.suaka ? (S.su.length < SUAKA_MAX ? `🦜 Ajak ${s.name} tinggal di pojok suaka` : `${s.icon} ${s.name} sahabatmu 💚 · pojok suaka penuh (${SUAKA_MAX})`) : `${s.icon} ${s.name} sahabatmu 💚 · bangun 🦜 pojok suaka di papan pembangunan farm`;
                         if (S.fed[k + '|' + USER] === state.day) return `${s.icon} ${s.name} sudah makan darimu hari ini · 🤍 ${tr}/${TRUST_MAX}`;
@@ -11088,6 +11169,7 @@
                     },
                     act() {
                         const S = satS();
+                        if (s.obs) { if (S.obs && S.obs[k]) toast(`${s.icon} ${s.name}: ${s.fact}`); else if (elapsed - (player.moveT || -9) < 3) toast(`🤫 ${s.name} bisa kabur. Berdiri diam sebentar, lalu amati`); else sendAct('satwa', 'obs|' + k); return; }
                         if (suakaHas(k) || (isFriend(k) && s.home)) { sendAct('satwa', 'pet|' + k); return; }
                         if (isFriend(k)) { if (state.build && state.build.suaka && S.su.length < SUAKA_MAX) sendAct('satwa', 'suaka|' + k + '|1'); else toast(state.build && state.build.suaka ? 'Pojok suaka sudah penuh. Lepaskan dulu satu sahabat lewat papan pojok suaka' : '🦜 Pojok suaka dibangun lewat papan pembangunan di farm'); return; }
                         if (S.fed[k + '|' + USER] === state.day) { toast(`Besok lagi, ya. ${s.name} sudah kenyang darimu hari ini`); return; }
@@ -11122,6 +11204,7 @@
             if (!s) return;
             if (op === 'seen') { if (!S.seen[k]) { S.seen[k] = 1; emitEvent(`👀 Pertama kali melihat ${s.icon} ${s.name}! Tercatat di buku satwa`, 'none', null, who); } return; }
             if (op === 'flee') { if (!isFriend(k)) S.fled[k] = state.day; return; }
+            if (op === 'obs') { S.obs ||= {}; if (!s.obs || S.obs[k] || !satOut(k)) return; S.obs[k] = 1; S.seen[k] = 1; state.gold += 500; const v = satVis[k]; emitEvent(`📷 ${s.icon} ${s.name} berhasil diamati! Tercatat di buku satwa, Balai Desa memberi hadiah 500 G`, 'hearts', v ? [v.pos.x, 1.2, v.pos.z] : null, who); jot(`📷 ${who} berhasil mengamati ${s.name} di alam liar`); return; }
             if (op === 'pet') {
                 if (!dailyLeft('satwa:' + k, who, 1)) return;
                 useDaily('satwa:' + k, who); addEnergy(who, 5);
@@ -11135,7 +11218,7 @@
                 return;
             }
             if (op === 'feed') {
-                if (!satOut(k) || isFriend(k) || S.fed[k + '|' + who] === state.day || !s.food.includes(a) || !takeBag(who, a)) return;
+                if (s.obs || !satOut(k) || isFriend(k) || S.fed[k + '|' + who] === state.day || !s.food.includes(a) || !takeBag(who, a)) return;
                 S.fed[k + '|' + who] = state.day;
                 // together: you both near it
                 const sp = satSpot(k), at = sp ? { x: sp[0], z: sp[1] } : null;
@@ -11153,13 +11236,14 @@
             S.fled = {};
             for (const k of Object.keys(S.fed)) if (S.fed[k] < state.day - 1) delete S.fed[k];
             if (!state.build || !state.build.suaka) { S.msg = null; return; }
-            if (suakaHas('luwak') && Math.random() < 0.5) { put('kopiluwak'); news.push('☕ biji kopi luwak'); }
+            if (suakaHas('kakatua') && Math.random() < 0.7) { const pool = ['tembaga', 'besi', ...ALL_FRUITS.map(f => f.key), ...GARDEN.filter(g => g.type === 'veg').map(g => 'b_' + g.key)].filter(k => ITEMS[k]), r = Math.random(); if (r < 0.3) { const g = 50 + Math.floor(Math.random() * 100); state.gold += g; news.push(`🦜 koin temuan kakatua +${g} G`); } else { const k = pool[Math.floor(Math.random() * pool.length)]; put(k); news.push(`🦜 ${ITEMS[k].icon} ${ITEMS[k].label.toLowerCase()} temuan kakatua`); } }
             if (suakaHas('trenggiling')) { let n = 0; state.weeds = state.weeds.map(v => { if (v && n < 6) { n++; return 0; } return v; }); if (n) news.push(`🦔 ${n} rumput liar dibersihkan`); }
             if (suakaHas('rangkong') && d % 3 === 0) { const f = ALL_FRUITS[Math.floor(Math.random() * ALL_FRUITS.length)]; if (ITEMS['p_' + f.key]) { put('p_' + f.key); news.push(`🌳 bibit ${f.label.toLowerCase()}`); } }
             if (suakaHas('merak') && d % 2 === 0) { put('bulumerak'); news.push('🪶 bulu merak'); }
-            if (suakaHas('biawak')) { put('egg'); news.push('🥚 telur tambahan'); }
+            if (suakaHas('jalak')) { for (const d of Object.values(state.animals)) d.friend = Math.min(HEART_MAX * 100, d.friend + 4); news.push('🐦 kicau jalak bali membuat ternak senang'); }
+            if (suakaHas('anoa')) { for (const k of FEED_KINDS) state.feed[k] = Math.min(FEED_MAX, (state.feed[k] || 0) + 3); news.push('🐃 anoa mengumpulkan pakan ternak'); }
             if (suakaHas('babirusa')) { const f = ['ubi', 'tembaga', 'besi', 'singkong'][Math.floor(Math.random() * 4)]; if (ITEMS[f]) { put(f); news.push(`${ITEMS[f].icon} ${ITEMS[f].label.toLowerCase()} temuan babirusa`); } }
-            if (suakaHas('kalong')) {
+            if (suakaHas('owa')) {
                 const ripen = (t, f) => { if (f && t.r === 0 && t.p > 0 && ++t.p >= f.cycle) { t.r = f.yield[0] + Math.floor(Math.random() * (f.yield[1] - f.yield[0] + 1)); t.p = 0; } };
                 for (const f of FRUIT_DEFS) ripen(state.trees[f.key], f);
                 for (const t of state.ptrees) if (t.g >= TREE_GROW(FDEF[t.k])) ripen(t, FDEF[t.k]);
@@ -11174,17 +11258,24 @@
         // 📖 the book of animals you have watched
         function openSatwaBook() {
             const S = satS(), WHEN = s => s.t.map(([a, b]) => `${fmtTime(a)}–${fmtTime(b % 1440)}`).join(' & ');
-            const nF = SATWA.filter(s => isFriend(s.k)).length, nS = SATWA.filter(s => S.seen[s.k]).length;
-            const cards = SATWA.map(s => {
+            const TAME = SATWA.filter(s => !s.obs), ICON = SATWA.filter(s => s.obs), nF = TAME.filter(s => isFriend(s.k)).length, nS = SATWA.filter(s => S.seen[s.k]).length, nO = ICON.filter(s => S.obs && S.obs[s.k]).length;
+            const card = s => {
+                if (s.obs) {
+                    const seen = !!S.seen[s.k], ok = !!(S.obs && S.obs[s.k]);
+                    return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: seen ? s.icon : '❔' }), el('span', { class: 'nm' }, el('b', { text: seen ? s.name : '???' }),
+                        el('small', { text: `${REGI[s.r].name} · ${seen ? WHEN(s) : (s.t[0][0] >= 1020 ? 'sore atau malam' : s.t[0][0] < 600 ? 'pagi sekali' : 'siang hari')} · sangat jarang muncul, hanya bisa diamati dari jauh` }),
+                        el('small', { text: ok ? `📷 Sudah diamati · ${s.fact}` : 'Belum diamati. Dekati pelan-pelan, berdiri diam, lalu amati. Hadiah 500 G dari Balai Desa.' })));
+                }
                 const seen = !!S.seen[s.k], tr = Math.round(S.tr[s.k] || 0), st = suakaHas(s.k) ? '🦜 tinggal di pojok suaka' : isFriend(s.k) ? '💚 sahabat' : seen ? '🌿 liar' : '';
                 return el('div', { class: 'shopitem' },
                     el('span', { class: 'ic', text: seen ? s.icon : '❔' }),
                     el('span', { class: 'nm' }, el('b', { text: seen ? s.name : '???' }),
                         el('small', { text: seen ? `${REGI[s.r].name} · ${WHEN(s)} · ${s.how === 'pelan' ? 'dekati pelan-pelan' : s.how === 'diam' ? 'diam dulu sebelum memberi makan' : 'tidak penakut'} · suka ${foodNames(s)}` : `Pernah terlihat di ${REGI[s.r].name}, ${s.t[0][0] >= 1080 ? 'malam hari' : s.t[0][0] < 720 ? 'pagi hari' : 'siang hari'}` }),
                         seen ? el('small', { text: `🤍 ${tr}/${TRUST_MAX} ${st} · ${s.fx}` }) : null));
-            });
+            };
+            const cards = [el('h4', { text: '🤝 Bisa dijinakkan' }), ...TAME.map(card), el('h4', { text: '📷 Satwa ikonik (hanya diamati)' }), ...ICON.map(card)];
             openDlg('🦡 Buku pengamatan satwa', [
-                el('p', { class: 'small-note', text: `Terlihat ${nS}/${SATWA.length} · sahabat ${nF}/${SATWA.length} · anak maleo dilepas ${S.lepas}. Satwa dilindungi tidak dikurung: mereka jadi sahabat yang mampir. Beri makanan kesukaannya sekali sehari masing-masing; datang berdua membuatnya lebih cepat percaya.` }),
+                el('p', { class: 'small-note', text: `Terlihat ${nS}/${SATWA.length} · sahabat ${nF}/${TAME.length} · satwa ikonik diamati ${nO}/${ICON.length} · anak maleo dilepas ${S.lepas}. Satwa dilindungi tidak dikurung: mereka jadi sahabat yang mampir. Beri makanan kesukaannya sekali sehari masing-masing; datang berdua membuatnya lebih cepat percaya.` }),
                 el('div', { class: 'shoplist' }, cards),
             ]);
         }

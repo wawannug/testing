@@ -88,9 +88,9 @@ Kalender gabungan setelah tahap 7 dan 8:
 - [x] **Pojok suaka** di farm (paling banyak ~4 hewan) dan **buku pengamatan satwa**.
 - Hewan dilindungi tidak dikurung: mereka jadi sahabat yang berkunjung.
 
-## 🦡 Tahap 10b: Perbaikan satwa langka
-- [ ] Ganti 4 hewan yang sebenarnya tidak langka (musang luwak, biawak, kalong, kura-kura darat) dengan Jalak Bali, Anoa, Owa Jawa, dan Kakatua jambul kuning.
-- [ ] Satwa ikonik yang hanya diamati (Harimau Sumatera, Badak Jawa, Orangutan, Komodo, Gajah Sumatera, Elang Jawa, Cendrawasih): sangat jarang muncul di tempat jauh, dicatat di buku satwa, hadiah dari Balai Desa.
+## 🦡 Tahap 10b: Perbaikan satwa langka ✅
+- [x] Ganti 4 hewan yang sebenarnya tidak langka (musang luwak, biawak, kalong, kura-kura darat) dengan Jalak Bali, Anoa, Owa Jawa, dan Kakatua jambul kuning.
+- [x] Satwa ikonik yang hanya diamati (Harimau Sumatera, Badak Jawa, Orangutan, Komodo, Gajah Sumatera, Elang Jawa, Cendrawasih): sangat jarang muncul di tempat jauh, dicatat di buku satwa, hadiah dari Balai Desa.
 
 ## ⛏️ Tahap 11: Tambang, monster, dan cerita warga
 Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot). Di mulut tambang ada **Aula Simpang**: ruang batu berlampu karbit dengan beberapa pintu, masing-masing dengan gaya main sendiri. Hanya satu ruang yang dimuat sekaligus, jadi tetap ringan di HP.

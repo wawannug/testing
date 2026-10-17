@@ -310,22 +310,38 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - Lahir, kata pertama, hari pertama sekolah, remaja, dan lulus tercatat di 📔 Jurnal berdua.
 
 ## 🦡 Satwa langka dan pojok suaka (tahap 10)
-- **11 satwa langka** hidup di desa-desa, masing-masing muncul di wilayah dan jam tertentu (tidak setiap hari).
+- **11 satwa langka yang bisa dijinakkan** hidup di desa-desa, masing-masing muncul di wilayah dan jam tertentu (tidak setiap hari).
 
   | Satwa | Di mana | Kapan | Sukanya | Bantuannya di suaka |
   |---|---|---|---|---|
-  | 🦝 Musang luwak | Desa Hutan | 19:00–23:30 | pisang, pepaya, kopi | kadang ☕ biji kopi luwak (mahal) |
+  | 🦜 Kakatua jambul kuning | Desa Pantai | 07:00–11:30 | jagung, kacang, pepaya | membawa barang temuan: bijih, buah, benih, atau koin |
   | 🦔 Trenggiling | Desa Hutan | 20:00–24:00 | telur | membersihkan rumput liar di farm |
   | 🐒 Kukang | Desa Pegunungan | 18:30–24:00 | pisang, jambu, mangga | tidur nyenyak: ketiduran tetap bangun dengan energi penuh, kerja berat lebih hemat energi |
   | 👀 Tarsius | Pulau Kencana | 18:00–23:00 | udang | tetap di pulau, sahabat di buku satwa |
   | 🐦 Burung rangkong | Desa Pegunungan | 06:00–10:30 | pepaya, pisang, jambu | tiap 3 hari 🌳 bibit pohon buah |
   | 🦚 Merak hijau | Lembah Persawahan | 06:00–09:30 & 16:00–18:30 | jagung, kacang | tiap 2 hari 🪶 bulu merak |
-  | 🐢 Kura-kura darat | Lembah Persawahan | 07:00–17:00 (pasti muncul saat hujan) | wortel, tomat, semangka | ikan langka lebih sering menggigit |
-  | 🦎 Biawak | Desa Pantai | 09:00–15:00 (tidak saat hujan) | bandeng, mujair, nila, lele | 🥚 telur tambahan tiap pagi |
+  | 🐃 Anoa | Desa Hutan | 15:00–18:30 | wortel, ubi, jagung | pakan ternak di gudang bertambah tiap pagi |
+  | 🐦 Jalak Bali | Lembah Persawahan | 06:00–10:00 (tidak saat hujan) | pisang, pepaya, jambu | kicaunya membuat semua ternak makin akrab tiap pagi |
   | 🐗 Babirusa | Desa Hutan | 15:00–19:00 | ubi, singkong, jagung | menemukan umbi atau bijih logam |
-  | 🦇 Kalong | Lembah Persawahan | 18:00–22:30 | mangga, jambu, pepaya | pohon buah berbuah lebih cepat |
+  | 🐒 Owa Jawa | Desa Pegunungan | 06:00–10:30 | pisang, mangga, jambu | pohon buah berbuah lebih cepat |
   | 🐔 Burung maleo | Desa Pantai | 06:00–11:00 | jagung, kacang | bertelur di sarang suaka: tetaskan 3 hari, lepaskan anaknya (+300 G dari Balai Desa) |
 
+- **📷 Satwa ikonik (hanya diamati, tidak dijinakkan):**
+
+  | Satwa | Di mana | Kapan |
+  |---|---|---|
+  | 🐅 Harimau Sumatera | Desa Hutan | 17:30–20:00 |
+  | 🦏 Badak Jawa | Desa Pantai | 06:00–08:00 |
+  | 🦧 Orangutan | Desa Hutan | 09:00–15:00 |
+  | 🐉 Komodo | Pulau Kencana | 08:00–12:00 |
+  | 🐘 Gajah Sumatera | Desa Hutan | 16:00–18:00 |
+  | 🦅 Elang Jawa | Desa Pegunungan, terbang berputar di langit | 09:00–14:00 |
+  | 🪶 Cendrawasih | Desa Pegunungan | 06:00–08:00 |
+
+  - Satwa ikonik sangat jarang muncul (sekitar 1 dari 6–8 hari).
+  - Cara mengamati: dekati pelan-pelan (berlari atau naik motor dalam 12 m membuatnya pergi), berdiri diam 3 detik, lalu pilih **📷 Amati**.
+  - Pengamatan pertama tiap satwa memberi hadiah **500 G** dari Balai Desa, membuka kartu fakta di Buku satwa, dan tercatat di Jurnal.
+- Musang luwak, biawak, kalong, dan kura-kura darat sudah diganti karena sebenarnya tidak langka. Progres yang sudah ada otomatis pindah ke penggantinya (luwak → kakatua, biawak → jalak bali, kura-kura → anoa, kalong → owa jawa), termasuk penghuni pojok suaka.
 - **Menjinakkan dengan makanan.** Bawa makanan kesukaannya di tas, dekati, lalu tekan tombol untuk memberi makan. Meteran percaya 🤍 naik:
   - +20 untuk makanan paling favorit (yang pertama di daftar), +13 untuk yang lain;
   - ×1,5 kalau kalian berdua sama-sama di dekatnya;
