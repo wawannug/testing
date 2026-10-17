@@ -179,12 +179,12 @@ Hewan purba hidup kembali dan tersebar sesuai habitat. Tidak ada membunuh hewan;
 - [x] **Telur dino** jadi bahan masakan baru, dan **buku hewan purba** dengan kartu fakta.
 - [x] **Festival Purba** (Pulau Kencana: tunggang Triceratops, pameran telur, parade Pteranodon) dan **Malam Legenda Danau** (Plesiosaurus di bawah bulan purnama).
 
-## 💞 Tahap 13: Hewan ternak dan momen berdua
+## 💞 Tahap 13: Hewan ternak dan momen berdua ✅
 - [x] **Renovasi rumah** (Rumah keluarga, Rumah besar) dan **anak** (paling banyak 2, hamil atau adopsi, bayi sampai dewasa, sifat dan cita-cita).
-- [ ] Renovasi berikutnya: mode dekorasi perabot sendiri, gaya rumah (joglo, panggung, modern), ruang bawah tanah, ruang musik, perpustakaan.
-- [ ] Anak: foto keluarga tahunan, liburan keluarga, tedak siten, anak ikut festival.
-- [ ] Hewan ternak bisa beranak, ditambah kelinci dan kuda.
-- [ ] Hari jadi tiap tahun, album foto otomatis dari momen jurnal, renovasi rumah.
+- [x] Renovasi berikutnya: mode dekorasi perabot sendiri, gaya rumah (joglo, panggung, modern), ruang bawah tanah, ruang musik, perpustakaan.
+- [x] Anak: foto keluarga tahunan, liburan keluarga, tedak siten, anak ikut festival.
+- [x] Hewan ternak bisa beranak, ditambah kelinci dan kuda.
+- [x] Hari jadi tiap tahun, album foto otomatis dari momen jurnal, renovasi rumah.
 
 ## 👻 Tahap 14: Sisi Wingit Farmora
 Seram tapi tetap game santai: merinding, lucu, dan ada pilihan moral, tanpa adegan sadis.

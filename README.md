@@ -368,6 +368,33 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
 - Lahir, kata pertama, hari pertama sekolah, remaja, dan lulus tercatat di 📔 Jurnal berdua.
 
+## 💞 Ternak beranak, kelinci, kuda, dan momen keluarga (tahap 13)
+- **🐣 Ternak beranak:**
+  - Sepasang ternak (jantan dan betina) yang sama-sama ❤️ 5 dan diberi makan bisa punya anak.
+  - Waktu tunggunya: telur ayam/bebek menetas 3 hari, kelinci 4, cempe dan anak domba 5, anak sapi 7, anak kuda 10.
+  - Anaknya dewasa dalam 7 hari, lalu memberi susu, telur, atau wol seperti induknya. Paling banyak 3 ekor tambahan per jenis.
+  - Dekati untuk mengelus, mengambil hasil, atau **ganti nama**.
+- **🐇 Kelinci anggora** (900 G) dan **🐴 kuda** (7.000 G) dibeli dari Pak Bambang di Rumah Peternakan.
+  - Kelinci tinggal bersama ayam dan memberi bulu anggora tiap 3 hari.
+  - Kuda merumput bersama sapi dan bisa **ditunggangi** (2,2× lari).
+- **💞 Hari jadi** tiap awal tahun: +50 ⚡ dan 🎂 kue tart untuk berdua.
+- **📔 Album kenangan** (meja di ruang keluarga):
+  - Foto diambil otomatis saat momen penting: kelahiran, hari jadi, bos kalah, sahabat baru, dan lainnya.
+  - Ada juga **📸 foto keluarga tahunan**, ditambah semua momen dari jurnal.
+  - Foto tersimpan di perangkat masing-masing.
+- **🧳 Liburan keluarga** ke Pulau Kencana dari Terminal Bus (1.500 G): +40 ⚡, anak-anak ikut bermain di pantai pulau.
+- **👣 Tedak siten:**
+  - Upacara turun tanah untuk anak usia balita: menapak tujuh jadah, naik tangga tebu, lalu memilih benda di dalam kurungan.
+  - Pilihannya menguatkan sifat yang menentukan cita-citanya: 📚 pintar, 🌾 rajin, 🎨 kreatif, atau 🧸 ramah.
+- **Anak ikut festival:** saat festival berlangsung, anak-anak datang menonton ke lapangan festival.
+- **🎨 Gaya rumah** (setelah Rumah besar, pesan ke Pak Markus di Penggergajian): 🛖 Joglo, 🪵 Rumah panggung, atau 🏢 Modern.
+- **🏰 Renovasi Rumah impian** (60.000 G): **ruang bawah tanah** lewat pintu di samping rumah, berisi:
+  - 🎵 ruang musik: gamelan, piano, gitar, kendang (+15 ⚡ sekali sehari);
+  - 📚 perpustakaan: 5 buku untuk dibaca.
+- **🛋️ Perabot sendiri:**
+  - Beli sofa, lampu, tanaman, rak buku, karpet, meja, gramofon, lukisan, dan guci di Pusat Kerajinan (Bu Yuli).
+  - Pegang perabot di dalam rumah lalu tekan tombol aksi untuk menaruhnya. Dekati dengan tangan kosong untuk memutar atau mengangkatnya lagi.
+
 ## 🦡 Satwa langka dan pojok suaka (tahap 10)
 - **11 satwa langka yang bisa dijinakkan** hidup di desa-desa, masing-masing muncul di wilayah dan jam tertentu (tidak setiap hari).
 
