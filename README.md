@@ -326,6 +326,11 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - Cerita tertentu baru muncul kalau sudah cukup akrab.
 - Tiap cerita hanya terjadi sekali per warga, dan cerita hari itu sama untuk kalian berdua. Siapa yang menjawab duluan, dia yang dapat keakrabannya.
 
+## 📖 Cerita khusus warga (❤️ 3, 6, 9)
+- Setiap warga (43 orang) punya **tiga cerita** tentang hidupnya. Saat keakrabanmu dengan seseorang mencapai ❤️ 3, ❤️ 6, dan ❤️ 9, ajak dia bicara lalu pilih **📖 Cerita**.
+- Hadiahnya: cerita 1 = 200 G + barang kesukaannya, cerita 2 = 800 G, cerita 3 = 2.000 G + kenang-kenangan yang dicatat di 📔 jurnal (dan keakraban bertambah).
+- Cerita dihitung per pemain: kalian berdua bisa mendengarnya masing-masing.
+
 ## 🏡 Renovasi rumah dan anak
 - **Renovasi rumah** dipesan ke 🪚 Pak Markus (penggergajian), di bagian atas jendela tukang kayu:
 

@@ -92,7 +92,7 @@ Kalender gabungan setelah tahap 7 dan 8:
 - [x] Ganti 4 hewan yang sebenarnya tidak langka (musang luwak, biawak, kalong, kura-kura darat) dengan Jalak Bali, Anoa, Owa Jawa, dan Kakatua jambul kuning.
 - [x] Satwa ikonik yang hanya diamati (Harimau Sumatera, Badak Jawa, Orangutan, Komodo, Gajah Sumatera, Elang Jawa, Cendrawasih): sangat jarang muncul di tempat jauh, dicatat di buku satwa, hadiah dari Balai Desa.
 
-## ⛏️ Tahap 11: Tambang, monster, dan cerita warga
+## ⛏️ Tahap 11: Tambang, monster, dan cerita warga ✅
 Tambang Rakyat di Desa Pegunungan (sebelah Pandai Besi, mandor Pak Gatot). Di mulut tambang ada **Aula Simpang**: ruang batu berlampu karbit dengan beberapa pintu, masing-masing dengan gaya main sendiri. Hanya satu ruang yang dimuat sekaligus, jadi tetap ringan di HP.
 
 | Pintu | Mirip | Inti permainan | Terbuka |
@@ -112,10 +112,10 @@ Pintu lain yang sudah ada di tahap lain: **Gua Waktu** (masuk ke Lembah Purba, t
 **Bagian 2–3 sudah jadi ✅:** lantai 21–40 (Sungai Bawah Tanah, Perut Gunung) dengan kolam air dan lava, 6 monster baru (kepiting batu menyamar), bos Raja Tikus, Kalajengking Kristal Raksasa, Lele Siluman, Buto Ijo (Damai: teka-teki), senjata (tongkat, celurit, ketapel, badik, tombak, mandau), pelindung, barang bantu Pak Gatot, tombol hindar dan jurus sapuan.
 **Bagian 4 sudah jadi ✅:** runtuhan batu, gas tambang, lava, air naik saat hujan, roboh dan ditolong pasangan, tugas Pak Gatot, geode, beliung emas, perhiasan untuk pasangan, umpan legendaris, pupuk super.
 **Bagian 5 sudah jadi ✅:** pintu 2–8 (Gua Lawa Angker, Kawah Candradimuka dengan Tungku Empu Gandring, Ruang Ujian Dewa dengan berkah dan Altar Cahaya, Gua Bawah Laut dengan oksigen, karang, kapal VOC dan Gurita Raksasa, Pertahanan Bor, Pasar Gaib, Pintu Aksara Jawa dengan prasasti dan ujian Naga Basuki).
-**Berikutnya:** cerita warga.
+**Bagian 6 sudah jadi ✅:** cerita khusus 43 warga di ❤️ 3, 6, dan 9.
 
 Isi pintu 1 (Tambang Bertingkat):
-- [ ] **4 zona**:
+- [x] **4 zona**:
 
   | Zona | Lantai | Yang ditemukan |
   |---|---|---|
@@ -124,16 +124,16 @@ Isi pintu 1 (Tambang Bertingkat):
   | 🔵 Sungai Bawah Tanah | 21–30 | Emas, fosil ikan purba, artefak kuno |
   | 🔴 Perut Gunung | 31–40 | Akik bacan, kecubung, kalimaya, intan Martapura, fosil besar |
 
-- [ ] **Cara main**:
+- [x] **Cara main**:
   - Lantai berupa gua kecil dengan bentuk tetap, batunya baru tiap hari (sudah diputuskan).
   - Tangga tersembunyi di bawah batu, dan kerekan lori tiap 5 lantai.
   - Makin dalam makin gelap: perlu lampu helm atau karbit yang bahan bakarnya diisi.
   - Kalau pingsan, dibawa Pak Gatot pulang: hari berakhir, tidak ada barang hilang (sudah diputuskan).
-- [ ] **Bahaya**: runtuhan batu (ada tanda retakan), kelelawar, gas tambang, air naik saat hujan.
-- [ ] **Berdua**: batu besar ditarik berdua, satu pegang lampu satu menambang, saling menolong kalau pingsan.
-- [ ] **Hasilnya**: alat naik tingkat di Pandai Besi, perhiasan permata (cincin akik) sebagai hadiah pasangan, koleksi museum, fosil untuk riset purba, batu belah (geode).
-- [ ] **Tugas Pak Gatot**: hadiah lampu lebih terang, masker, dan izin masuk di luar jam jaga.
-- [ ] **Monster** (hanya di tambang, mungkin juga Alas Wingit saat malam). Mode **Damai** (diusir atau dihindari, bos berupa teka-teki) atau **Petualang** (bertarung ringan).
+- [x] **Bahaya**: runtuhan batu (ada tanda retakan), kelelawar, gas tambang, air naik saat hujan.
+- [x] **Berdua**: batu besar ditarik berdua, satu pegang lampu satu menambang, saling menolong kalau pingsan.
+- [x] **Hasilnya**: alat naik tingkat di Pandai Besi, perhiasan permata (cincin akik) sebagai hadiah pasangan, koleksi museum, fosil untuk riset purba, batu belah (geode).
+- [x] **Tugas Pak Gatot**: hadiah lampu lebih terang, masker, dan izin masuk di luar jam jaga.
+- [x] **Monster** (hanya di tambang, mungkin juga Alas Wingit saat malam). Mode **Damai** (diusir atau dihindari, bos berupa teka-teki) atau **Petualang** (bertarung ringan).
 
   | Zona | Monster biasa | Bos |
   |---|---|---|
@@ -143,20 +143,20 @@ Isi pintu 1 (Tambang Bertingkat):
   | Perut Gunung | Arca hidup, banaspati, kadal lava | Buto Ijo (40) |
   | Lantai rahasia | — | Naga Basuki: diuji, bukan dikalahkan, hadiahnya pusaka |
 
-- [ ] **Senjata**:
+- [x] **Senjata**:
   - Tongkat kayu, golok (memotong akar), celurit (kena beberapa monster), badik (cepat, kritis), tombak (jangkauan panjang), mandau, keris pusaka (bercahaya, monster kecil takut)
   - Jarak jauh: ketapel (peluru kerikil), sumpit (membuat monster tertidur)
-- [ ] **Barang bantu**:
+- [x] **Barang bantu**:
   - Serangan dan pengusir: obor, petasan, garam kasar, bom asap
   - Pemulih: ramuan Mbah Dukun, bekal makanan
-- [ ] **Pelindung**: helm proyek, rompi kulit atau besi, sepatu bot tambang, jimat.
-- [ ] **Cara bertarung di HP**:
+- [x] **Pelindung**: helm proyek, rompi kulit atau besi, sepatu bot tambang, jimat.
+- [x] **Cara bertarung di HP**:
   - Ketuk untuk menyerang, tahan untuk jurus, dengan bidikan otomatis
   - Tombol hindar (berguling)
   - Nyawa ❤️ terpisah dari energi ⚡
   - Jurus silat dari guru di desa: sapuan, tangkisan
-- [ ] **Barang dari monster**: lendir jadi pupuk super, cangkang jadi perhiasan, sisik Lele Siluman jadi umpan legendaris, tanduk Buto Ijo jadi senjata terkuat.
-- [ ] Cerita khusus warga di keakraban ❤️ 3, 6, dan 9.
+- [x] **Barang dari monster**: lendir jadi pupuk super, cangkang jadi perhiasan, sisik Lele Siluman jadi umpan legendaris, tanduk Buto Ijo jadi senjata terkuat.
+- [x] Cerita khusus warga di keakraban ❤️ 3, 6, dan 9.
 
 ## 🦖 Tahap 12: Farmora Purba
 Hewan purba hidup kembali dan tersebar sesuai habitat. Tidak ada membunuh hewan; pemangsa jadi tantangan (mengaum, mengejar sebentar, energi berkurang).
