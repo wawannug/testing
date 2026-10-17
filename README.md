@@ -416,6 +416,42 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - Papan pojok suaka dipakai untuk mengajak atau melepas sahabat ke alam.
 - **🦡 Buku satwa** (di layar Bantuan **?**): satwa yang pernah terlihat, tempat dan jam munculnya, makanan kesukaan, meteran percaya, dan bantuannya. Yang belum terlihat hanya diberi petunjuk.
 
+## 🦖 Farmora Purba (tahap 12)
+Hewan purba hidup kembali lewat **dua jalan**:
+- **🧬 Riset fosil:**
+  - Di Museum Nusantara ada meja **Pusat Riset Purba**.
+  - Stegodon, bangau raksasa, Gigantopithecus, dan Harimau Jawa memakai set fosil yang sudah lengkap di museum. Hewan lain perlu **3 🦴 fosil** masing-masing.
+  - Riset memakan 3 hari, lalu hewannya hidup kembali dan muncul di habitatnya di dunia. Yang bisa ditangkar juga memberi **🥚 telur**.
+  - T-rex baru bisa diteliti setelah 16 hewan lain hidup kembali.
+- **🌀 Gua Waktu** di dinding barat Aula Simpang membawa ke **Lembah Purba**: 4 lembah (Rawa Purba, Hutan Pakis, Padang Purba, Kaki Gunung Api) tempat semua hewan purba masih hidup. Di sana:
+  - batu berisi fosil (dipecah dengan ⛏️);
+  - tanah gembur berisi fosil (digali dengan 🪏, 4 tiap lembah per hari);
+  - satu sarang tiap lembah: beri makan induknya dulu, lalu boleh membawa satu telur (sekali seminggu per jenis).
+- **🥚 Penangkaran purba** (bangunan farm di meja kerja: 3.000 G, 40 kayu, 20 batu, 4 besi; muat 6 ekor):
+  - Telur menetas dalam 4 hari, lalu anaknya tumbuh dewasa dalam 6 hari asal diberi makan tiap hari.
+  - Yang dewasa membantu tiap pagi:
+
+  | Hewan | Bantuan |
+  |---|---|
+  | 🐘 Stegodon | 2 pupuk tiap pagi, bisa **ditunggangi** (1,6×, kuat di sawah) |
+  | 🦎 Compsognathus | menemukan 1 benih tiap pagi |
+  | 🦖 Velociraptor | ternak makin akrab |
+  | 🦍 Gigantopithecus | memetik 3 buah |
+  | 🦕 Triceratops | **tunggangan cepat** (2,6× lari) |
+  | 🦅 Pteranodon | **terbang** ke wilayah lain, berdua kalau pasanganmu di dekatmu |
+  | 🐢 Ankylosaurus | memecah batu besar di farm |
+
+  Yang bertelur memberi **telur dino** tiap 2 hari: bahan 🍳 omelet dan 🥞 martabak telur dino di dapur.
+- **Di alam:**
+  - Hewan yang sudah hidup kembali berkeliaran di wilayahnya: bangau raksasa di petak sawah, Parasaurolophus meniup "terompet" tiap subuh di Lembah Sari, Archaeopteryx di kota, Brachiosaurus di gunung, Archelon di pantai, dan seterusnya.
+  - Beri makan sesuai jenisnya (sayur/buah/rumput, ikan, atau telur) beberapa hari supaya jadi **💛 sahabat**. Harimau Jawa paling sulit: 7 kali. Archelon yang sudah bersahabat bisa mengantarmu ke Pulau Kencana.
+- **Pemangsa** (Velociraptor, Harimau Jawa, T-rex) mengaum lalu mengejar sebentar. Kalau tertangkap, energimu −15 ⚡. Tidak ada yang dibunuh. Saat menunggangi Triceratops atau Stegodon, pemangsa tidak berani mendekat.
+- **Legenda:**
+  - 🌕 **Malam Legenda Danau** (tiap bulan purnama, 20.00–24.00): Plesiosaurus muncul di tengah Danau Gunungsari.
+  - 🐊 **Mosasaurus** kadang melompat saat memancing di laut dalam dengan perahu sewaan.
+  - 🦕 **Festival Purba** (Musim Panas hari 26, pantai festival): pameran telur dino dinilai juri, Pteranodon berparade di langit.
+- **📗 Buku hewan purba** (dari meja riset) mencatat yang sudah dilihat, dihidupkan, ditangkar, dan bersahabat, lengkap dengan kartu fakta.
+
 ## 🛵 Motor dan bonceng berdua
 - **Beli di 💻 laptop toko online, tab 🛵 Motor.** Satu motor dipakai berdua dan langsung diantar ke dekat gerbang selatan farm.
 

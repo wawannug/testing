@@ -2608,6 +2608,7 @@
             gudang: { label: 'Gudang', icon: '🏚️', need: { kayu: 20, batu: 15 }, gold: 500, x: -17, z: -19.8, w: 6, d: 4.4, note: 'Lumbung pribadi: simpan barang sebanyak apa pun, dipakai berdua' },
             rumahkaca: { label: 'Rumah kaca', icon: '🪟', need: { kayu: 25, besi: 4, batu: 10 }, gold: 1500, x: 7.5, z: 6.4, w: 7.2, d: 4.8, note: 'Tanah di dalamnya tersiram otomatis tiap pagi, tanaman tumbuh 25% lebih cepat, dan pohon buah di dalamnya tetap berbuah di musim dingin' },
             suaka: { label: 'Pojok suaka', icon: '🦜', need: { kayu: 20, batu: 8 }, gold: 800, x: -3, z: 5.6, w: 5.2, d: 4.2, note: 'Sudut tenang untuk satwa langka yang sudah jadi sahabat (paling banyak 4). Mereka mampir tiap hari dan membantu farm' },
+            penangkaran: { label: 'Penangkaran purba', icon: '🥚', need: { kayu: 40, batu: 20, besi: 4 }, gold: 3000, x: -10.8, z: 4.6, w: 6, d: 4.6, note: 'Sarang dan kandang untuk hewan purba hasil riset: tetaskan telur, besarkan, tunggangi (paling banyak 6)' },
             pendopo: { label: 'Pendopo taman', icon: '🛖', need: { kayu: 15, batu: 6 }, gold: 300, x: -7, z: 0, w: 4.4, d: 4.4, note: 'Tempat bersantai berdua: +15 ⚡ sekali sehari masing-masing' },
         };
         for (const [k, B] of Object.entries(BUILDS)) { B.x0 = B.x; B.z0 = B.z; B.x += LO('build:' + k)[0]; B.z += LO('build:' + k)[1]; }
@@ -2639,6 +2640,18 @@
                     for (const s2 of [-1, 1]) { const r = mesh(BOX, glass, g); r.scale.set(B.w + 0.2, 0.05, hd * 1.16); r.rotation.x = s2 * 0.5; r.position.set(0, H2 + 0.55, s2 * hd * 0.5); r.castShadow = false; }
                     box(B.w + 0.2, 0.1, 0.1, 0xf2f2ee, 0, H2 + 1.08, 0, g);
                     textPlate(g, '🪟 Rumah kaca', 0, H2 + 0.2, hd + 0.08, 1.6);
+                } else if (key === 'penangkaran') {
+                    // a strong log fence with a gate at the front, a sand nest, a trough and a sign
+                    const hw = B.w / 2, hd = B.d / 2;
+                    for (let x = -hw; x <= hw + 0.01; x += B.w / 10) for (const sz of [-hd, hd]) if (!(sz > 0 && Math.abs(x) < 0.9)) cap(0.08, 1.0, 0x7a5a3a, x, 0.55, sz, g);
+                    for (let z = -hd + B.d / 7; z < hd - 0.01; z += B.d / 7) for (const sx of [-hw, hw]) cap(0.08, 1.0, 0x7a5a3a, sx, 0.55, z, g);
+                    for (const sz of [-hd, hd]) for (const [x0, x1] of sz > 0 ? [[-hw, -0.9], [0.9, hw]] : [[-hw, hw]]) { const r = cap(0.05, x1 - x0, 0x6a4a2a, (x0 + x1) / 2, 0.8, sz, g, 'x'); r.rotation.z = Math.PI / 2; }
+                    for (const sx of [-hw, hw]) cap(0.05, B.d, 0x6a4a2a, sx, 0.8, 0, g, 'z');
+                    const sand = mesh(new THREE.CircleGeometry(1.0, 18), mat(0xe8d6a0), g); sand.rotation.x = -Math.PI / 2; sand.position.set(-hw + 1.6, 0.025, hd - 1.0); sand.castShadow = false;
+                    box(1.6, 0.4, 0.5, 0x8a5a3a, hw - 1.2, 0.2, -hd + 0.6, g); box(1.5, 0.08, 0.4, 0x6a9a3a, hw - 1.2, 0.42, -hd + 0.6, g);
+                    for (const sx of [-0.3, 0.3]) cap(0.06, 1.4, 0x6e4723, sx + 2.2, 0.7, hd + 0.35, g);
+                    textPlate(g, '🥚 Penangkaran Purba', 2.2, 1.35, hd + 0.38, 1.8);
+                    for (const [x0, x1, z0, z1] of [[-hw, hw, -hd - 0.1, -hd + 0.1], [-hw - 0.1, -hw + 0.1, -hd, hd], [hw - 0.1, hw + 0.1, -hd, hd], [-hw, -0.9, hd - 0.1, hd + 0.1], [0.9, hw, hd - 0.1, hd + 0.1]]) addBoxCollider(B.x + x0, B.x + x1, B.z + z0, B.z + z1);
                 } else if (key === 'suaka') {
                     // a low bamboo fence with a way in at the front, a pool, a log, a sand nest, a perch and a sign
                     const hw = B.w / 2, hd = B.d / 2;
@@ -2702,6 +2715,7 @@
             { k: 'karapan', s: 'kemarau', d: 24, icon: '🐂', name: 'Karapan Sapi', p: 'fsawah', r: 'sawah', h: [8, 16], kind: 'karapan', fl: [0xd9261c, 0xffd34d, 0x111111], note: 'Balapan sapi khas Madura. Sapi farm yang akrab berlari lebih kencang' },
             { k: 'kopi', s: 'gugur', d: 27, icon: '☕', name: 'Festival Kopi Gunung', p: 'fkopi', r: 'gunung', h: [8, 16], kind: 'kopi', fl: [0x6e4723, 0xe6a23c, 0x4caf6a], note: 'Lomba meracik kopi di kebun kopi: sangrai sampai sedang, lalu seduh pas di garis' },
             { k: 'masak', s: 'penghujan', d: 6, icon: '🍲', name: 'Lomba Masak Nusantara', p: 'fpanggung', r: 'kota', h: [9, 16], kind: 'masak', fl: [0xd9261c, 0xffd34d, 0x4caf6a], note: 'Sajikan satu masakan untuk juri. Juri berganti setiap tahun, jadi cari tahu seleranya' },
+            { k: 'purba', s: 'panas', d: 26, icon: '🦕', name: 'Festival Purba', p: 'fpantai', r: 'pantai', h: [9, 17], kind: 'show', what: 'telur dino', ok: k => k === 'telurdino' || k.startsWith('telur_'), fl: [0x7a8a4a, 0xd9643a, 0xf2e6c8], note: 'Pameran telur dino dinilai juri, Pteranodon berparade di langit pantai' },
             { k: 'lampion', s: 'dingin', d: 24, icon: '🏮', name: 'Festival Lampion', p: 'fkota', r: 'kota', h: [17, 22], kind: 'lamp', fl: [0xd9261c, 0xffb300], note: 'Terbangkan lampion harapan di pantai utara kota, paling indah kalau berdua' },
         ];
         const onFestGround = (x, z) => ['fsawah', 'fpantai', 'fdanau', 'fkota', 'fklenteng', 'fpanggung', 'fkopi'].some(k => { const P = VOUT[k]; return Math.hypot(x - P.c[0], z - P.c[1]) < P.r + 3.5 || (P.st && Math.hypot(x - P.st[0], z - P.st[1]) < 3.5); }) || [[-6, 90], [0.8, 79], [-6, 86.4]].some(([px, pz]) => Math.hypot(x - px, z - pz) < 3.5);
@@ -2938,6 +2952,7 @@
             { k: 'imlek', name: 'Imlek', icon: '🧧', where: 'halaman Kelenteng Hok Tek, Desa Pantai', day: d => isSD(d, 'semi', 2), h: [8, 20], p: 'fklenteng', r: 'pantai', kind: 'imlek', note: 'Barongsai menari di halaman kelenteng (09:00–12:00 dan 15:00–18:00). Warga yang akrab memberi angpao 🧧 saat diajak ngobrol.' },
             { k: 'takbiran', name: 'Malam Takbiran', icon: '🌙', where: 'lapangan festival Lembah Sari', day: d => isSD(d, 'kemarau', 1), h: [19, 22], kind: 'takbir', note: 'Pawai obor anak-anak dan warga di lapangan festival Lembah Sari. Besok Lebaran!' },
             { k: 'lebaran', name: 'Idulfitri (Lebaran)', icon: '🕌', where: 'rumah-rumah warga', day: d => isSD(d, 'kemarau', 2), h: [7, 17], kind: 'lebaran', note: 'Salat Id pagi di musala dan masjid. Warga di rumah seharian (toko tutup): bersilaturahmi ke rumah-rumah, dapat ketupat dan keakraban.' },
+            { k: 'legenda', name: 'Malam Legenda Danau', icon: '🌕', where: 'Danau Gunungsari', day: d => d % 28 === 14, h: [20, 24], kind: 'legenda', note: 'Bulan purnama: sesuatu berleher panjang muncul dari tengah danau. Datanglah malam-malam…' },
             { k: 'waisak', name: 'Waisak', icon: '🪷', where: 'Vihara Dharma, kota', day: d => isSD(d, 'gugur', 8), h: [18, 22], kind: 'waisak', note: 'Lilin menyala di halaman Vihara Dharma, dan lampion kecil diterbangkan ke langit.' },
             { k: 'ogoh', name: 'Pawai Ogoh-ogoh', icon: '👹', where: 'pantai Desa Pantai', day: d => isSD(d, 'penghujan', 26), h: [18, 22], p: 'fpantai', r: 'pantai', kind: 'ogoh', note: 'Ogoh-ogoh diarak keliling lapangan pantai, lalu dibakar pukul 21:30. Besok Nyepi.' },
             { k: 'nyepi', name: 'Hari Raya Nyepi', icon: '🤫', where: 'Desa Pantai', day: d => isSD(d, 'penghujan', 27), h: [6, 24], kind: 'nyepi', note: 'Desa Pantai sepi: warga di rumah dan toko tutup. Hari yang tenang: semua pekerjaan memakai energi setengahnya.' },
@@ -4314,6 +4329,10 @@
             sepatu: { label: 'Sepatu bot tua', icon: '👢', price: 2 },
         };
         for (const f of ALL_FRUITS) PRODUCTS[f.key] = { label: f.label, icon: f.icon, price: f.price };
+        // 🦖 fossil pieces and eggs of the prehistoric animals (tahap 12); the four museum species use the museum's sets
+        const DINO_LIST = [['stegodon', 'Stegodon', 1, 1], ['compso', 'Compsognathus', 0, 1], ['raptor', 'Velociraptor', 0, 1], ['giganto', 'Gigantopithecus', 1, 1], ['harimau', 'Harimau Jawa', 1, 0], ['microraptor', 'Microraptor', 0, 0], ['triceratops', 'Triceratops', 0, 1], ['pteranodon', 'Pteranodon', 0, 1], ['brachio', 'Brachiosaurus', 0, 0], ['archelon', 'Archelon', 0, 0], ['plesio', 'Plesiosaurus', 0, 0], ['mosa', 'Mosasaurus', 0, 0], ['ankylo', 'Ankylosaurus', 0, 1], ['trex', 'T-rex', 0, 0], ['bangau', 'Bangau raksasa', 1, 0], ['parasauro', 'Parasaurolophus', 0, 0], ['archaeo', 'Archaeopteryx', 0, 0]];
+        for (const [k, n, set, egg] of DINO_LIST) { if (!set) PRODUCTS['fp_' + k] = { label: 'Fosil ' + n, icon: '🦴', price: 260 }; if (egg) PRODUCTS['telur_' + k] = { label: 'Telur ' + n, icon: '🥚', price: 1500 }; }
+        PRODUCTS.telurdino = { label: 'Telur dino', icon: '🥚', price: 420 };
         // 🎣 freshwater fish: d = how hard it fights (1–100), m = how it moves on the line,
         // where = big pond / duck pond / both, time = when it bites best, w = how common
         const FISH = [
@@ -4464,6 +4483,8 @@
         for (const g of GARDEN) if (!g.out) PRODUCTS[g.key] = { label: g.label, icon: g.icon, price: g.price };
         const RECIPES = [
             { key: 'dadar', label: 'Telur dadar', icon: '🍳', price: 160, need: { egg: 2 } },
+            { key: 'omeletdino', label: 'Omelet telur dino', icon: '🍳', price: 980, need: { telurdino: 1, cabai: 1 } },
+            { key: 'martabakdino', label: 'Martabak telur dino', icon: '🥞', price: 1400, need: { telurdino: 1, egg: 2 } },
             { key: 'puding', label: 'Puding susu', icon: '🍮', price: 260, need: { milk: 1, egg: 1 } },
             { key: 'tumis', label: 'Tumis kangkung', icon: '🥘', price: 320, need: { kangkung: 2, cabai: 1 } },
             { key: 'salad', label: 'Salad segar', icon: '🥗', price: 380, need: { selada: 1, tomat: 1, apel: 1 } },
@@ -4624,6 +4645,7 @@
                 { k: 'alam', label: 'Alam & tambang', icon: '🪨', keys: ['kayu', 'batu', 'tanahliat', 'rumput', 'tembaga', 'besi', 'emas', 'batubara', 'perak', 'kuarsa', 'kerang', 'bintanglaut', 'mutiara'] },
                 { k: 'masak', label: 'Masakan & kerajinan', icon: '🍲', keys: [...RECIPES.map(r => r.out || r.key), 'kopisangrai', 'anyaman', 'ukiran'] },
                 { k: 'purba', label: 'Fosil & artefak', icon: '🦴', keys: [...FOSSIL_SETS.flatMap(s => s.parts), ...Object.keys(ARTEFACTS)] },
+                { k: 'dino', label: 'Hewan purba', icon: '🦖', keys: [...DINO_LIST.map(d => 'fp_' + d[0]), ...DINO_LIST.map(d => 'telur_' + d[0]), 'telurdino', 'omeletdino', 'martabakdino'] },
                 { k: 'tambang', label: 'Permata & hasil monster', icon: '💎', keys: ['akik', 'kecubung', 'kalimaya', 'intan', 'lendir', 'racunlipan', 'sayapkelelawar', 'sisikular', 'capitbatu', 'sengatbelut', 'racunkatak', 'pecahanarca', 'apibanaspati', 'sisiklava', 'mahkotatikus', 'kristalraksasa', 'sisiklele', 'tandukbuto', 'tintagurita', 'sisiknaga', 'koinvoc', 'mahkotamajapahit', 'cahaya'] },
             ].map(c => ({ ...c, keys: c.keys.filter(k => PRODUCTS[k] && !seen.has(k) && seen.add(k)) }));
         })();
@@ -4662,6 +4684,7 @@
             pantai: [0.05, ['giganto'], ['a_manik', 'a_koin']],
             farm: [0.03, [], ['a_koin', 'a_manik', 'a_kapak']],
             hoe: [0.012, [], ['a_koin', 'a_gerabah', 'a_manik', 'a_kapak']],
+            lembah: [0.75, ['stegodon', 'bangau', 'giganto', 'harimau'], ['fp_compso', 'fp_raptor', 'fp_microraptor', 'fp_triceratops', 'fp_pteranodon', 'fp_brachio', 'fp_archelon', 'fp_plesio', 'fp_mosa', 'fp_ankylo', 'fp_trex', 'fp_parasauro', 'fp_archaeo']],
         };
         function digFind(who, src, at) {
             const D = DIG[src];
@@ -5911,7 +5934,7 @@
             st.wild = Array.isArray(saved.wild) ? saved.wild.filter(w => w && Number.isFinite(w.x) && Number.isFinite(w.z) && WILD_REG.includes(w.r) && (w.k === 't' || w.k === 'r')).slice(0, WILD_MAX).map(w => ({ i: w.i | 0, k: w.k, r: w.r, x: +w.x, z: +w.z, g: Math.min(WILD_GROW, +w.g || 0), s: w.s ? 1 : 0, h: +w.h || 0, d: +w.d || 0 })) : null;
             st.satwa = cleanSatwa(saved.satwa);
             st.fam = cleanFam(saved.fam);
-            st.story = cleanStory(saved.story); st.mine = cleanMine(saved.mine); st.gear = cleanGear(saved.gear);
+            st.purba = cleanPurba(saved.purba); st.dino = cleanPen(saved.dino); st.story = cleanStory(saved.story); st.mine = cleanMine(saved.mine); st.gear = cleanGear(saved.gear);
             st.npcEv = cleanNpcEv(saved.npcEv); st.npcDebt = (Array.isArray(saved.npcDebt) ? saved.npcDebt : []).filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             st.wildN = Math.max(+saved.wildN || 0, ...(st.wild || []).map(w => w.i));
             st.req = Array.isArray(saved.req) ? saved.req.filter(r => r && NPCI[r.n] && ITEMS[r.k]).slice(0, 4).map(r => ({ i: r.i | 0, n: r.n, k: r.k, q: clamp(r.q | 0, 1, 9), g: r.g | 0, due: r.due | 0 })) : null;
@@ -10642,6 +10665,7 @@
             list.push(...satwaInteractables());
             list.push(...famInteractables());
             list.push(...mineInteractables());
+            list.push(...purbaInteractables());
             // 🛵 get on the bike, or on the back of it behind your partner
             list.push({
                 id: 'motor', local: true, reach: 1.8, get pos() { return MOTOR_POS; },
@@ -11732,6 +11756,13 @@
         const DEWA_Z = { name: '⚡ Ruang Ujian Dewa', tier: 4, floor: 0x5a5470, floor2: 0x6a6484, wall: 0x8a84a8, rock: 0xa8a2c0, ores: [], deep: [], mons: ['tikus', 'lipan', 'kalajengking', 'ular', 'belut', 'katak', 'arca', 'kadal', 'banaspati'], deco: 'crystal' };
         const LAUT_Z = { name: '🐠 Gua Bawah Laut', tier: 3, floor: 0xb8a070, floor2: 0xc8b080, wall: 0x2f6a72, rock: 0x5a8a8a, ores: [['batu', 30], ['kerang', 20], ['mutiara', 4], ['perak', 12], ['emas', 8], ['kuarsa', 8]], deep: [['akik', 4]], mons: ['ubur', 'buntal', 'belut', 'kepiting'], fx: 'sea', dark: 1, deco: 'coral' };
         const BOR_Z = { name: '🛡️ Pertahanan Bor', tier: 3, floor: 0x4a3c22, floor2: 0x5a4a2a, wall: 0x6a5a3a, rock: 0x8a7a5a, ores: [], deep: [], mons: ['tikus', 'lipan', 'kalajengking', 'ular', 'katak', 'kadal'], deco: 'timber' };
+        // 🦖 the Lembah Purba (tahap 12): bright green valleys with fossils in the stones
+        const LEMBAH_Z = [
+            { name: '🌿 Rawa Purba', tier: 1, floor: 0x5a8a3a, floor2: 0x4a7a32, wall: 0x2f5a24, rock: 0x8a8a7a, ores: [['batu', 50], ['tanahliat', 15], ['fp_archelon', 6], ['fp_parasauro', 6], ['fp_compso', 6]], deep: [], mons: [], fx: 'water', deco: 'fern', light: 1 },
+            { name: '🌴 Hutan Pakis', tier: 1, floor: 0x4a7a2e, floor2: 0x3e6a28, wall: 0x24481c, rock: 0x7a7a6a, ores: [['batu', 50], ['kayu', 12], ['fp_raptor', 7], ['fp_microraptor', 6], ['fp_compso', 5]], deep: [], mons: [], deco: 'fern', light: 1 },
+            { name: '🌾 Padang Purba', tier: 1, floor: 0x8a9a4a, floor2: 0x7a8a40, wall: 0x4a6a2a, rock: 0x9a8a6a, ores: [['batu', 45], ['fp_triceratops', 7], ['fp_ankylo', 6], ['fp_brachio', 6], ['fp_pteranodon', 6], ['fp_archaeo', 5]], deep: [], mons: [], deco: 'fern', light: 1 },
+            { name: '🌋 Kaki Gunung Api', tier: 2, floor: 0x5a5a3a, floor2: 0x4a4a32, wall: 0x3a3a2a, rock: 0x6a5a4a, ores: [['batu', 40], ['emas', 6], ['fp_trex', 5], ['fp_plesio', 5], ['fp_mosa', 5], ['fp_ankylo', 5]], deep: [], mons: [], deco: 'fern', volcano: 1, light: 1 },
+        ];
         const HALL_Z = { name: '', tier: 1, floor: 0x564c42, floor2: 0x5e5348, wall: 0x6a5e52, rock: 0x857563, ores: [], deep: [], mons: [] };
         // what floor n is
         const FSC = {};
@@ -11750,13 +11781,14 @@
             else if (n === 800) s = { kind: 'pasar', zone: HALL_Z, room: 1 };
             else if (n === 900) s = { kind: 'aksara', zone: HALL_Z, room: 1 };
             else if (n === 901) s = { kind: 'naga', zone: DEWA_Z, depth: 1, hard: 1, arena: 1, exit: 0 };
+            else if (n >= 1001 && n <= 1004) s = { kind: 'purba', zone: LEMBAH_Z[n - 1001], depth: n - 1000, hard: 1, rocks: 1, next: n < 1004 ? n + 1 : 0, exit: 0 };
             else return null;
             s.boss = BOSS[n] || null;
             return FSC[n] = s;
         }
         const validF = n => Number.isInteger(n) && !!FS(n);
         const zoneOf = n => (FS(n) || FS(1)).zone;
-        const ORE_COL = { tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c, akik: 0x2fae6a, kecubung: 0x9a4ad8, kalimaya: 0x7fe0ff, intan: 0xeaffff, geode: 0x9a7ab8, kerang: 0xf2d0c0, mutiara: 0xfff6ee };
+        const ORE_COL = { kayu: 0x8a5a2a, ...Object.fromEntries(DINO_LIST.map(d => ['fp_' + d[0], 0xf2ead8])), tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c, akik: 0x2fae6a, kecubung: 0x9a4ad8, kalimaya: 0x7fe0ff, intan: 0xeaffff, geode: 0x9a7ab8, kerang: 0xf2d0c0, mutiara: 0xfff6ee };
         const GEM = new Set(['kuarsa', 'perak', 'emas', 'akik', 'kecubung', 'kalimaya', 'intan', 'mutiara']);
         const MONS = {
             lendir: { name: 'Lendir lumpur', icon: '🟤', hp: 3, dmg: 6, sp: 1.5, drop: 'lendir' },
@@ -11811,7 +11843,7 @@
             { icon: '📜', name: 'Pintu Aksara Jawa', note: 'Pintu rahasia. Terbuka setelah kalian berdagang di Pasar Gaib.', goal: 'Ujian Naga Basuki' },
         ];
         const DOOR_FLOOR = [1, 101, 400, 500, 601, 700, 800, 900];
-        const MINE_BG = new THREE.Color(0x0c0a08), SEA_BG = new THREE.Color(0x06222c);
+        const PURBA_SKY = new THREE.Color(0x9fd8e8), MINE_BG = new THREE.Color(0x0c0a08), SEA_BG = new THREE.Color(0x06222c);
         const doorX = i => -10.5 + i * 3;
         // a small seeded random, so both players see the same floor and the same rocks
         const mrng = s => () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -11879,7 +11911,7 @@
         // today's monsters on floor n
         function mineMons(n, day = state.day) {
             const S = FS(n);
-            if (!S || S.boss || S.arena || S.room) return [];
+            if (!S || S.boss || S.arena || S.room || !S.zone.mons.length) return [];
             const r = mrng(n * 3571 + day * 9973 + 7), Z = S.zone, { slots } = mineShape(n);
             const d = S.depth, cnt = Math.min(8, S.kind === 'mine' ? 2 + Math.floor(((n - 1) % 10) / 3) + Math.floor((n - 1) / 10) + Math.floor(r() * 2) : 4 + Math.floor(Math.min(d, 30) / 8) + Math.floor(r() * 2));
             const out = [];
@@ -12432,13 +12464,18 @@
             } else if (Z.deco === 'drip') {
                 for (let i = 0; i < 9; i++) { const c = mesh(CONE, mat(Z.rock), g); c.scale.set(0.2, 0.8 + r() * 0.6, 0.2); c.rotation.x = Math.PI; c.position.set(-10.5 + r() * 21, 3.2, -8.4 + r() * 1.2); c.castShadow = false; }
                 for (let i = 0; i < 5; i++) { const m = ball(0.05, 0.05, 0.05, glowMat(0x7fe0ff, 0.9), -10 + r() * 20, 0.08, -7 + r() * 13, g); m.castShadow = false; }
+            } else if (Z.deco === 'fern') {
+                // giant ferns, cycads and flowers; a smoking volcano far behind the last valley
+                for (let i = 0; i < 26; i++) { const x = -11.5 + r() * 23, z = i < 14 ? -8.6 + r() * 1.4 : -7 + r() * 15; if (Math.abs(x) < 2 && z > 5) continue; const fe = new THREE.Group(); fe.position.set(x, 0, z); g.add(fe); for (let k = 0; k < 5; k++) { const pv = new THREE.Group(); pv.rotation.set(-0.5, k / 5 * Math.PI * 2, 0); fe.add(pv); box(0.12, 0.04, 0.9, [0x3f8a2e, 0x4a9a34, 0x2f7a26][k % 3], 0, 0.5, 0.4, pv); } if (i % 4 === 0) ball(0.08, 0.08, 0.08, [0xff7a8a, 0xffd23a, 0xd88aff][i % 3], 0, 0.15, 0, fe); }
+                for (let i = 0; i < 6; i++) { const x = -11 + r() * 22, z = -8.8 + r() * 0.8; cap(0.18, 2.2, 0x6a4a2a, x, 1.3, z, g); for (let k = 0; k < 6; k++) { const fr = box(0.15, 0.04, 1.4, 0x3a8a2a, x + Math.sin(k) * 0.6, 2.5, z + Math.cos(k) * 0.6, g); fr.rotation.y = k; fr.rotation.x = 0.4; } }
+                if (Z.volcano) { const v = mesh(CONE, mat(0x4a3a2a), g); v.scale.set(6, 7, 3); v.position.set(4, 1, -12); const lv = ball(1.2, 0.4, 0.8, glowMatT(0xff6a1a, 1.2), 4, 4.6, -12, g); lv.castShadow = false; }
             } else if (Z.deco === 'coral') {
                 // swaying weed and bright coral on the sea floor
                 g.userData.weed = [];
                 for (let i = 0; i < 16; i++) { const x = -11 + r() * 22, z = -8.4 + r() * 1.6 + (i % 2 ? 0 : 15.6 * r()); const w = cap(0.05, 0.9 + r() * 0.8, 0x2f8a4a, x, 0.6, z, g); w.castShadow = false; g.userData.weed.push(w); }
                 for (let i = 0; i < 10; i++) { const c = ball(0.3 + r() * 0.3, 0.25, 0.3, [0xff7a8a, 0xffb24a, 0xb07aff, 0x4ad8c8][i % 4], -11 + r() * 22, 0.15, -8.6 + r() * 1.2, g); c.castShadow = false; }
             }
-            const title = S.kind === 'mine' ? `⛏️ Lantai ${n} · ${Z.name}` : S.kind === 'lawa' ? `🦇 Gua Lawa · kedalaman ${S.depth}` : S.kind === 'kawah' ? `🌋 Kawah · lapisan ${S.depth}` : S.kind === 'dewa' ? `⚡ Ruangan ${S.depth}` : S.kind === 'laut' ? (n === 601 ? '🐠 Gua Bawah Laut' : '🐙 Sarang Gurita') : S.kind === 'bor' ? '🛡️ Pertahanan Bor' : '🐉 Ruang Naga Basuki';
+            const title = S.kind === 'mine' ? `⛏️ Lantai ${n} · ${Z.name}` : S.kind === 'lawa' ? `🦇 Gua Lawa · kedalaman ${S.depth}` : S.kind === 'kawah' ? `🌋 Kawah · lapisan ${S.depth}` : S.kind === 'dewa' ? `⚡ Ruangan ${S.depth}` : S.kind === 'laut' ? (n === 601 ? '🐠 Gua Bawah Laut' : '🐙 Sarang Gurita') : S.kind === 'bor' ? '🛡️ Pertahanan Bor' : S.kind === 'purba' ? Z.name : '🐉 Ruang Naga Basuki';
             textPlate(g, title, 0, 2.3, -8.7, 2.8);
             // the ladder up at the landing
             for (const s of [-0.3, 0.3]) { const p = box(0.08, 2.6, 0.08, 0x8a5a3a, s, 1.3, 8.5, g); p.rotation.x = -0.25; }
@@ -12542,7 +12579,7 @@
                 mineCur.cols.push(c);
             });
             // the way on: under its rock, where the boss stood, or a dark passage
-            const lp = R.ladder >= 0 ? R[R.ladder] : n === 601 ? { x: 10.2, z: -7.4 } : { x: 0, z: -4.4 }, L = new THREE.Group(); L.position.set(lp.x, 0, lp.z); g.add(L);
+            const lp = R.ladder >= 0 ? R[R.ladder] : n === 601 ? { x: 10.2, z: -7.4 } : S.kind === 'purba' ? { x: 0, z: -7.4 } : { x: 0, z: -4.4 }, L = new THREE.Group(); L.position.set(lp.x, 0, lp.z); g.add(L);
             const hole = mesh(new THREE.CircleGeometry(0.45, 18), mat(0x050403), L); hole.rotation.x = -Math.PI / 2; hole.position.y = 0.02; hole.castShadow = false;
             for (const s of [-0.18, 0.18]) box(0.05, 0.5, 0.05, 0x8a5a3a, s, 0.2, -0.32, L);
             box(0.42, 0.04, 0.05, 0x8a5a3a, 0, 0.36, -0.32, L);
@@ -12552,6 +12589,7 @@
             if (S.boss && !bossBeaten(n) && (!minePeace() || S.boss.test)) mineCur.boss = addMon(S.boss.k, 0, -3, -1, S.boss);
             for (const m of mineCur.mons) m.g.visible = !m.dead;
             if (S.kind === 'dewa') mineCur.wave = { i: 0, n: S.boss ? 0 : 2 + Math.floor(S.depth / 4) };
+            if (S.kind === 'purba') lembahSpawn(n);
             if (n === 700) mineCur.drill = { hp: 100, on: false, t: 0, next: 0, rep: -9 };
             if (S.oxygen && !(player.o2 > 0 && player.o2N === n - 1)) player.o2 = o2Max();
             player.o2N = n;
@@ -12711,6 +12749,7 @@
             if (S.kind === 'dewa') return n === 500 ? '⚡ Ruang Ujian Dewa' : `⚡ Ruangan ${S.depth} dari 10${boss}`;
             if (S.kind === 'laut') return n === 601 ? '🐠 Gua Bawah Laut' : `🐙 Sarang Gurita${boss}`;
             if (S.kind === 'bor') return '🛡️ Pertahanan Bor';
+            if (S.kind === 'purba') return `🦖 Lembah Purba · ${S.zone.name}`;
             if (S.kind === 'pasar') return '🏮 Pasar Gaib';
             if (S.kind === 'aksara') return '📜 Pintu Aksara Jawa';
             return '🐉 Ruang Naga Basuki';
@@ -12835,7 +12874,7 @@
             if (btns !== btnShown) { btnShown = btns; $('mineBtns').style.display = btns ? '' : 'none'; }
             if (homeScene && !mineLamp) { mineLamp = new THREE.PointLight(0xffd9a0, 0, 15, 1.4); homeScene.add(mineLamp); }
             const Z = S ? S.zone : null, helm = !!gearOf(USER).helm;
-            if (mineLamp) { mineLamp.intensity = floor ? (helm ? 34 : 26) * (gatotDone('lampu') ? 1.3 : 1) * (partnerHere(7) ? 1.25 : 1) : n >= 0 ? 10 : 0; mineLamp.distance = floor && Z.dark ? (helm ? 15 : 11) : 15; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
+            if (mineLamp) { mineLamp.intensity = floor && Z.light ? 0 : floor ? (helm ? 34 : 26) * (gatotDone('lampu') ? 1.3 : 1) * (partnerHere(7) ? 1.25 : 1) : n >= 0 ? 10 : 0; mineLamp.distance = floor && Z.dark ? (helm ? 15 : 11) : 15; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
             if (n < 0) { if (mineCur) { if (mineCur.g) mineCur.g.removeFromParent(); for (const c of mineRockCols) c.off = true; for (const c of minePillarCols) c.off = true; mineCur = null; bossBar.style.display = 'none'; player.bless = null; } return; }
             buildMineFloor(n);
             if (!mineCur || mineCur.n !== n || mineCur.day !== state.day || mineCur.peace !== minePeace()) setMineFloor(n);
@@ -12856,7 +12895,7 @@
             // what the other player broke or beat shows up here too
             for (const rk of mineCur.rocks) { const gone = mineGone('b', n, rk.i); if (gone === rk.m.visible) { rk.m.visible = !gone; rk.c.off = gone; } if (rk.m.scale.x < 1) rk.m.scale.setScalar(Math.min(1, rk.m.scale.x + dt * 0.8)); }
             const R = mineRocks(n);
-            mineCur.ladder.g.visible = S.next == null && !S.exit ? false : R.ladder >= 0 ? mineGone('b', n, R.ladder) : n === 601 ? true : S.kind === 'dewa' && !S.boss ? mineCur.cleared : S.boss ? bossBeaten(n) : false;
+            mineCur.ladder.g.visible = S.next == null && !S.exit ? false : R.ladder >= 0 ? mineGone('b', n, R.ladder) : n === 601 || S.kind === 'purba' ? true : S.kind === 'dewa' && !S.boss ? mineCur.cleared : S.boss ? bossBeaten(n) : false;
             // 🤸 rolling and 🌀 spinning
             if (rolling()) {
                 const t = (elapsed - player.rollT) / 0.34;
@@ -13036,7 +13075,7 @@
             label: () => { const r = ROCK_IT.rk; if (!r) return ''; const what = r.k === 'batu' ? 'Batu' : `Batu berisi ${ITEMS[r.k].icon} ${ITEMS[r.k].label.toLowerCase()}`; return tool === 'beliung' ? `Pecahkan ⛏️ · ${what}` : `${what} · pegang ⛏️ beliung`; },
             act: () => ROCK_IT.rk && mineHit(ROCK_IT.rk) };
         const LADDER_IT = { id: 'mladder', local: true, reach: 1.0, pos: new THREE.Vector3(),
-            label: () => { if (!mineCur) return ''; const S = FS(mineCur.n); if (S.kind === 'mine') return mineCur.n >= MINE_N ? '🏁 Dasar Tambang Bertingkat · kembali ke Aula' : `🪜 Turun ke lantai ${mineCur.n + 1}`; if (S.kind === 'lawa') return `🪜 Turun ke kedalaman ${S.depth + 1}`; if (S.next === 400 || S.next === 500) return '🏁 Kembali ke balai'; if (S.next === 0) return '🏁 Kembali ke Aula Simpang'; return S.kind === 'dewa' ? `⚡ Masuk ruangan ${S.depth + 1}` : S.kind === 'laut' ? '🌑 Masuk lorong gelap…' : `🪜 Turun ke lapisan ${S.depth + 1}`; },
+            label: () => { if (!mineCur) return ''; const S = FS(mineCur.n); if (S.kind === 'mine') return mineCur.n >= MINE_N ? '🏁 Dasar Tambang Bertingkat · kembali ke Aula' : `🪜 Turun ke lantai ${mineCur.n + 1}`; if (S.kind === 'lawa') return `🪜 Turun ke kedalaman ${S.depth + 1}`; if (S.next === 400 || S.next === 500) return '🏁 Kembali ke balai'; if (S.next === 0) return '🏁 Kembali ke Aula Simpang'; if (S.kind === 'purba') return S.next ? `🌿 Jalan setapak ke ${FS(S.next).zone.name}` : '🌀 Kembali lewat Gua Waktu'; return S.kind === 'dewa' ? `⚡ Masuk ruangan ${S.depth + 1}` : S.kind === 'laut' ? '🌑 Masuk lorong gelap…' : `🪜 Turun ke lapisan ${S.depth + 1}`; },
             act: () => { const S = FS(mineCur.n); mineGo(S.next != null ? S.next : 0); } };
         const EXIT_IT = { id: 'mexit', local: true, reach: 1.3, pos: new THREE.Vector3(),
             label: () => { const S = mineCur && FS(mineCur.n); return S && S.exit === 400 ? '🪜 Naik ke balai Kawah' : S && S.exit === 500 ? '🪜 Kembali ke balai (berkah hilang)' : '🪜 Kembali ke Aula Simpang'; },
@@ -13176,6 +13215,519 @@
         };
         function openStory(n, k) {
             openDlg(`📖 ${n.name} · cerita ${k}/3 (❤️ ${STORY_AT[k - 1]})`, [el('p', { class: 'npcline', text: STORIES[n.id][k - 1] })], [{ t: k === 3 ? '💝 Terima kasih…' : '😊 Terima kasih sudah bercerita', big: true, f: () => sendAct('npcstory', `${n.id}|${k}`) }]);
+        }
+        // ---------- 🦖 Tahap 12: Farmora Purba ----------
+        // Prehistoric animals come back, two ways. 🧬 At the Pusat Riset Purba (in the museum) fossils are studied for three
+        // days and the animal lives again: it turns up in its own habitat in the world, and the ones that can be raised
+        // give you an egg to hatch in the 🥚 penangkaran on the farm. 🕳️ Or go through the Gua Waktu in the Aula Simpang to
+        // the Lembah Purba, where they all still live, with nests and fossils in the ground. Nobody hunts them: a predator
+        // only roars and gives chase for a moment, and costs you energy if it catches you.
+        const PURBA = [
+            { k: 'stegodon', name: 'Stegodon kerdil Flores', icon: '🐘', r: 'sawah', diet: 'herb', raise: 1, mount: 1.6, mam: 1, set: 1, abil: 'Memberi 2 pupuk tiap pagi, bisa ditunggangi (kuat di sawah)', fact: 'Kerabat gajah setinggi sekitar 1,2 meter dari Flores. Pulau kecil membuat tubuhnya mengecil.' },
+            { k: 'compso', name: 'Compsognathus', icon: '🦎', r: 'hutan', diet: 'carn', raise: 1, abil: 'Peliharaan kecil: tiap pagi menemukan 1 benih', fact: 'Dinosaurus seukuran ayam dari zaman Jura. Larinya cepat dan makanannya kadal kecil.' },
+            { k: 'raptor', name: 'Velociraptor', icon: '🦖', r: 'hutan', diet: 'carn', pred: 1, pack: 3, raise: 1, abil: 'Penjaga farm: ternak makin akrab tiap pagi', fact: 'Pemburu berbulu seukuran kalkun dengan cakar sabit di kakinya. Berburu berkelompok.' },
+            { k: 'giganto', name: 'Gigantopithecus', icon: '🦍', r: 'hutan', diet: 'herb', raise: 1, mam: 1, set: 1, abil: 'Memetik 3 buah dari kebun tiap pagi', fact: 'Kera raksasa setinggi 3 meter yang memakan buah dan bambu.' },
+            { k: 'harimau', name: 'Harimau Jawa', icon: '🐅', r: 'hutan', diet: 'carn', pred: 1, mam: 1, set: 1, friendN: 7, abil: 'Sahabat paling sulit: tidak lagi mengejarmu, dan berjaga di hutan', fact: 'Harimau dari Pulau Jawa yang kini punah. Belangnya lebih rapat dan tipis.' },
+            { k: 'microraptor', name: 'Microraptor', icon: '🐦', r: 'hutan', diet: 'carn', fly: 1, fact: 'Dinosaurus kecil bersayap empat yang meluncur dari pohon ke pohon. Bulunya hitam mengilap.' },
+            { k: 'triceratops', name: 'Triceratops', icon: '🦕', r: 'gunung', diet: 'herb', raise: 1, mount: 2.6, abil: 'Tunggangan cepat di darat (2,6× lari)', fact: 'Dinosaurus bertanduk tiga dengan perisai besar di lehernya. Hidup di akhir zaman Kapur.' },
+            { k: 'pteranodon', name: 'Pteranodon', icon: '🦅', r: 'gunung', diet: 'fish', fly: 1, raise: 1, abil: 'Terbang antar wilayah, berdua kalau pasanganmu di dekatmu', fact: 'Reptil terbang dengan rentang sayap 6 meter. Bukan dinosaurus, tapi sepupunya.' },
+            { k: 'brachio', name: 'Brachiosaurus', icon: '🦕', r: 'gunung', diet: 'herb', huge: 1, fact: 'Raksasa berleher panjang setinggi gedung empat lantai, memakan daun di pucuk pohon.' },
+            { k: 'archelon', name: 'Archelon', icon: '🐢', r: 'pantai', diet: 'fish', sea: 1, abil: 'Sahabat: mengantarmu berenang ke Pulau Kencana', fact: 'Penyu raksasa sepanjang 4 meter dari zaman Kapur.' },
+            { k: 'plesio', name: 'Plesiosaurus', icon: '🦕', r: 'gunung', diet: 'fish', legend: 'danau', fact: 'Reptil laut berleher panjang. Legenda bilang ia muncul di danau saat bulan purnama.' },
+            { k: 'mosa', name: 'Mosasaurus', icon: '🐊', r: 'pantai', diet: 'fish', legend: 'laut', fact: 'Penguasa laut zaman Kapur sepanjang 15 meter. Hanya terlihat dari perahu di laut dalam.' },
+            { k: 'ankylo', name: 'Ankylosaurus', icon: '🐢', r: 'pulau', diet: 'herb', raise: 1, abil: 'Memecah batu besar di farm tiap pagi', fact: 'Dinosaurus berlapis baja dengan gada tulang di ujung ekornya.' },
+            { k: 'trex', name: 'Tyrannosaurus rex', icon: '🦖', r: 'pulau', diet: 'carn', pred: 1, last: 1, fact: 'Raja para kadal tiran, gigitannya terkuat di antara hewan darat. Legenda terakhir Farmora Purba.' },
+            { k: 'bangau', name: 'Bangau raksasa Flores', icon: '🦩', r: 'sawah', diet: 'fish', set: 1, fact: 'Leptoptilos robustus, bangau setinggi 1,8 meter yang hampir tak bisa terbang.' },
+            { k: 'parasauro', name: 'Parasaurolophus', icon: '🦕', r: 'sawah', diet: 'herb', abil: 'Meniup "terompet" jambulnya tiap subuh', fact: 'Dinosaurus berparuh bebek dengan jambul panjang berongga yang bisa berbunyi seperti terompet.' },
+            { k: 'archaeo', name: 'Archaeopteryx', icon: '🐦', r: 'kota', diet: 'carn', fly: 1, fact: 'Burung purba bergigi dan bercakar di sayapnya, peralihan antara dinosaurus dan burung.' },
+        ];
+        const PB = Object.fromEntries(PURBA.map(p => [p.k, p]));
+        const DINO_EAT = { herb: 'sayur, buah, atau rumput', carn: 'ikan atau telur', fish: 'ikan' };
+        const dinoFood = (diet, k) => !!k && (diet === 'herb' ? (k === 'rumput' || !!(GDEF[k] && GDEF[k].type === 'veg') || ALL_FRUITS.some(f => f.key === k) || ['jagung', 'padi'].includes(k)) : diet === 'fish' ? !!FISH_DEF[k] && k !== 'sepatu' : !!FISH_DEF[k] && k !== 'sepatu' || ['egg', 'duckEgg'].includes(k));
+        // fossils: the four in the museum's sets come from there; the others are pieces found in the ground
+        const fossilKey = k => 'fp_' + k;
+        const RISET_COST = { stegodon: 2000, compso: 1500, raptor: 3000, giganto: 3000, harimau: 5000, microraptor: 1500, triceratops: 4000, pteranodon: 4000, brachio: 6000, archelon: 3500, plesio: 7000, mosa: 7000, ankylo: 4500, trex: 12000, bangau: 2000, parasauro: 2500, archaeo: 2000 };
+        const dinoSetDone = k => { const S = FOSSIL_SETS.find(s => s.k === k); return !!S && setDone(S); };
+        const pbS = () => state.purba ||= cleanPurba();
+        function cleanPurba(o) {
+            o = o && typeof o === 'object' ? o : {};
+            const ks = v => { const r = {}; for (const [k, x] of Object.entries(v && typeof v === 'object' ? v : {})) if (PB[k] && Number.isFinite(+x)) r[k] = +x; return r; };
+            const per = v => { const r = {}; for (const u of [NA, NW]) r[u] = ks(v && v[u]); return r; };
+            return { res: ks(o.res), rq: ks(o.rq), seen: ks(o.seen), fr: per(o.fr), fd: per(o.fd), nest: ks(o.nest) };
+        }
+        const PEN_MAX = 6;
+        function cleanPen(a) { return (Array.isArray(a) ? a : []).filter(d => d && PB[d.k] && PB[d.k].raise && [0, 1, 2].includes(d.st)).slice(0, PEN_MAX).map(d => ({ k: d.k, st: d.st, d: d.d | 0, fed: d.fed | 0, love: clamp(d.love | 0, 0, 999), lay: d.lay | 0 })); }
+        const isRes = k => !!(state.purba && state.purba.res[k] != null);
+        const isSeen = k => !!(state.purba && state.purba.seen[k]);
+        const pbFriend = (k, u = USER) => (state.purba && state.purba.fr[u] && state.purba.fr[u][k]) || 0;
+        const isPbFriend = (k, u = USER) => pbFriend(k, u) >= (PB[k].friendN || 3);
+        const penHas = k => (state.dino || []).some(d => d.k === k && d.st === 2);
+        const weekOf = d => Math.floor((d - 1) / 7);
+        Object.assign(ACTIONS, {
+            risetstart(who, k) {
+                const P = PB[k], S = pbS();
+                if (!P || S.res[k] != null || S.rq[k] != null) return;
+                if (P.last && PURBA.some(o => o.k !== 'trex' && S.res[o.k] == null)) { emitEvent('🧬 T-rex baru bisa diteliti setelah semua hewan purba lain hidup kembali', 'none', null, who); return; }
+                const c = RISET_COST[k];
+                if (P.set ? !dinoSetDone(k) : have(who, fossilKey(k)) < 3) { emitEvent(P.set ? `Lengkapi dulu set fosil ${P.name} di museum` : `Perlu 3 🦴 fosil ${P.name}`, 'none', null, who); return; }
+                if (state.gold < c) { emitEvent('Uangnya belum cukup', 'none', null, who); return; }
+                state.gold -= c; if (!P.set) takeBag(who, fossilKey(k), 3);
+                S.rq[k] = state.day + 3;
+                emitEvent(`🧬 Riset ${P.icon} ${P.name} dimulai: selesai dalam 3 hari`, 'icon:🧬', null, who);
+            },
+            risettake(who, k) {
+                const P = PB[k], S = pbS();
+                if (!P || S.rq[k] == null || S.rq[k] > state.day) return;
+                if (P.raise && bagRoom(who, 'telur_' + k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                delete S.rq[k]; S.res[k] = state.day; S.seen[k] = 1;
+                if (P.raise) addBag(who, 'telur_' + k, 1);
+                emitEvent(`🧬 ${P.icon} ${P.name} hidup kembali!${P.raise ? ' Ini telurnya, tetaskan di penangkaran 🥚' : ''} Ia kini tinggal di ${REGI[P.r].name}`, 'gift', null, who);
+                jot(`🧬 ${P.name} hidup kembali berkat riset kalian`);
+                if (PURBA.every(o => S.res[o.k] != null)) jot('🦖 Semua hewan purba Farmora sudah hidup kembali!');
+            },
+            dinoegg(who, k) {
+                const P = PB[k];
+                if (!P || !P.raise || !(state.build && state.build.penangkaran)) return;
+                state.dino ||= [];
+                if (state.dino.length >= PEN_MAX) { emitEvent(`Penangkaran sudah penuh (${PEN_MAX} ekor)`, 'none', null, who); return; }
+                if (!takeBag(who, 'telur_' + k)) return;
+                state.dino.push({ k, st: 0, d: state.day, fed: 0, love: 0, lay: 0 });
+                emitEvent(`🥚 Telur ${P.name} diletakkan di sarang. Menetas dalam 4 hari`, 'icon:🥚', null, who);
+            },
+            dinofeed(who, x) {
+                const [is, k] = String(x).split('|'), d = (state.dino || [])[is | 0];
+                if (!d || d.st === 0 || d.fed === state.day) return;
+                if (!dinoFood(PB[d.k].diet, k)) { emitEvent(`${PB[d.k].name} makan ${DINO_EAT[PB[d.k].diet]}`, 'none', null, who); return; }
+                if (!takeBag(who, k)) return;
+                d.fed = state.day; d.love = Math.min(999, d.love + 10);
+                emitEvent(`${PB[d.k].icon} ${PB[d.k].name} makan dengan lahap! 💛`, 'heart1', null, who);
+            },
+            dinopet(who, x) { const d = (state.dino || [])[x | 0]; if (!d || d.st === 0) return; d.love = Math.min(999, d.love + 2); emitEvent(`${PB[d.k].icon} ${PB[d.k].name} senang dielus`, 'heart1', null, who); },
+            purbaseen(who, k) { const S = pbS(); if (PB[k] && !S.seen[k]) { S.seen[k] = 1; emitEvent(`📗 Tercatat di buku purba: ${PB[k].icon} ${PB[k].name}`, 'none', null, who); if (PB[k].legend) jot(`🌟 ${who} menyaksikan ${PB[k].name}, sang legenda!`); } },
+            purbafeed(who, x) {
+                const [k, item] = String(x).split('|'), P = PB[k], S = pbS();
+                if (!P) return;
+                S.fd[who] ||= {}; S.fr[who] ||= {};
+                if (S.fd[who][k] === state.day) { emitEvent(`${P.name} sudah kamu beri makan hari ini`, 'none', null, who); return; }
+                if (!dinoFood(P.diet, item)) { emitEvent(`${P.name} makan ${DINO_EAT[P.diet]}`, 'none', null, who); return; }
+                if (!takeBag(who, item)) return;
+                S.fd[who][k] = state.day; S.fr[who][k] = (S.fr[who][k] || 0) + 1; S.seen[k] = 1;
+                const need = P.friendN || 3, n = S.fr[who][k];
+                emitEvent(n >= need ? `💛 ${P.icon} ${P.name} kini sahabatmu!${P.abil && !P.raise ? ' ' + P.abil : ''}` : `${P.icon} ${P.name} memakan pemberianmu (${n}/${need})`, n >= need ? 'gift' : 'heart1', null, who);
+                if (n === need) jot(`💛 ${who} bersahabat dengan ${P.name}`);
+            },
+            purbanest(who, k) {
+                const P = PB[k], S = pbS();
+                if (!P || !P.raise || S.nest[k] === weekOf(state.day)) { emitEvent('Sarang ini sudah kosong minggu ini', 'none', null, who); return; }
+                if (bagRoom(who, 'telur_' + k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                S.nest[k] = weekOf(state.day); addBag(who, 'telur_' + k, 1); S.seen[k] = 1;
+                emitEvent(`🥚 Induk ${P.name} mengizinkanmu membawa sebutir telur. Jaga baik-baik!`, 'gift', null, who);
+            },
+            purbabite(who, k) { const P = PB[k]; if (!P) return; addEnergy(who, -15); emitEvent(`${P.icon} ${P.name} menerjangmu! −15 ⚡ Lari, atau bersahabatlah dengannya`, 'none', null, who); },
+            lembahdig(who, x) {
+                const [ns, is] = String(x).split('|'), n = +ns, i = +is;
+                if (!(n >= 1001 && n <= 1004) || !(i >= 0 && i < 4)) return;
+                const M = mineS(), B = M.b[n] ||= [];
+                if (B.includes(900 + i)) return;
+                B.push(900 + i);
+                const before = net.evN;
+                digFind(who, 'lembah');
+                if (net.evN === before) { addBag(who, 'batu', 1); emitEvent('⛏️ Hanya batu kali ini…', 'none', null, who); }
+            },
+            ptera(who, r) { if (!REGI[r] || !penHas('pteranodon')) return; emitEvent(`🦅 Pteranodon terbang ke ${REGI[r].name}!`, 'fly:' + r, null, who); },
+        });
+        // every night: eggs hatch, babies grow, the grown-ups help out and lay eggs
+        function purbaNight() {
+            const news = [];
+            for (const d of state.dino || []) {
+                const P = PB[d.k];
+                if (d.st === 0 && state.day - d.d >= 4) { d.st = 1; d.d = state.day; news.push(`🐣 ${P.name} menetas!`); }
+                else if (d.st === 1 && state.day - d.d >= 6 && d.fed >= state.day - 1) { d.st = 2; d.d = state.day; news.push(`🦖 ${P.name} sudah dewasa`); }
+                if (d.st !== 2) continue;
+                if (d.k === 'stegodon') addBag(NA, 'pupuk', 2) || addBag(NW, 'pupuk', 2);
+                if (d.k === 'compso') { const seeds = Object.keys(ITEMS).filter(k => k.startsWith('b_')); const s = seeds[Math.floor(Math.random() * seeds.length)]; if (s && (addBag(NA, s, 1) || addBag(NW, s, 1))) news.push(`🦎 Compsognathus menemukan ${ITEMS[s].icon} ${ITEMS[s].label}`); }
+                if (d.k === 'raptor') for (const a of Object.values(state.animals || {})) a.friend = Math.min(HEART_MAX * 100, a.friend + 3);
+                if (d.k === 'giganto') { let n = 0; for (let t = 0; t < 3; t++) { const f = ALL_FRUITS[Math.floor(Math.random() * ALL_FRUITS.length)]; if (f && (addBag(NA, f.key, 1) || addBag(NW, f.key, 1))) n++; } if (n) news.push(`🦍 Gigantopithecus memetik ${n} buah`); }
+                if (d.k === 'ankylo' && Array.isArray(state.rocks)) { const i = state.rocks.findIndex(v => !v); if (i >= 0) { state.rocks[i] = 1; addBag(NA, 'batu', 3) || addBag(NW, 'batu', 3); news.push('🐢 Ankylosaurus memecah batu besar di farm (+3 batu)'); } }
+                // the egg-laying ones give an egg for the kitchen every other day
+                if (!P.mam && d.fed >= state.day - 1 && state.day - d.lay >= 2) { d.lay = state.day; if (addBag(NA, 'telurdino', 1) || addBag(NW, 'telurdino', 1)) news.push(`🥚 ${P.name} bertelur`); }
+            }
+            if (news.length) emitEvent(news.slice(0, 3).join(' · '), 'none');
+        }
+        // --- the animals, drawn ---
+        // a four-legged or two-legged body with a neck, a head and a tail; the details make each one itself
+        function dinoModel(k) {
+            const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.body = b;
+            const legs = [], parts = []; g.userData.legs = legs; g.userData.parts = parts;
+            const leg = (x, z, len, r, c) => { const l = new THREE.Group(); l.position.set(x, len, z); b.add(l); cap(r, len * 0.8, c, 0, -len / 2, 0, l); ball(r * 1.2, r * 0.7, r * 1.4, c, 0, -len + r * 0.4, r * 0.3, l); legs.push(l); return l; };
+            const tail = (len, r, c, y, z0, up = 0) => { const t = new THREE.Group(); t.position.set(0, y, z0); b.add(t); for (let i = 0; i < 5; i++) ball(r * (1 - i * 0.17), r * (1 - i * 0.17), len / 4, c, 0, up * i * len / 5, -i * len / 5, t); parts.push(t); return t; };
+            const P = PB[k];
+            if (k === 'stegodon') {
+                ball(0.75, 0.62, 0.95, 0x8a7a6e, 0, 1.05, 0, b); ball(0.45, 0.42, 0.42, 0x8a7a6e, 0, 1.25, 0.9, b);
+                for (const s of [-1, 1]) { ball(0.32, 0.38, 0.06, 0x7a6a5e, s * 0.4, 1.3, 0.75, b); const tusk = cap(0.05, 0.6, 0xf2ead8, s * 0.2, 0.95, 1.2, b); tusk.rotation.x = 1.2; eye(b, s * 0.2, 1.38, 1.24, 0.06); }
+                const tr = cap(0.09, 0.6, 0x8a7a6e, 0, 0.85, 1.32, b); tr.rotation.x = 0.3; parts.push(tr);
+                for (const [x, z] of [[-0.4, 0.5], [0.4, 0.5], [-0.4, -0.5], [0.4, -0.5]]) leg(x, z, 0.6, 0.17, 0x7a6a5e);
+            } else if (k === 'compso' || k === 'raptor' || k === 'microraptor' || k === 'archaeo') {
+                const sm = { compso: 0.5, raptor: 0.9, microraptor: 0.45, archaeo: 0.4 }[k], c = { compso: 0x6a9a3a, raptor: 0x9a6a3a, microraptor: 0x1e2430, archaeo: 0x5a4a3a }[k];
+                const s2 = new THREE.Group(); s2.scale.setScalar(sm); b.add(s2);
+                ball(0.32, 0.3, 0.55, c, 0, 0.95, 0, s2); const nk = cap(0.12, 0.35, c, 0, 1.25, 0.45, s2); nk.rotation.x = 0.7; ball(0.18, 0.16, 0.3, c, 0, 1.45, 0.72, s2);
+                for (const sd of [-1, 1]) eye(s2, sd * 0.11, 1.52, 0.84, 0.04, 0xffd23a);
+                for (const sd of [-1, 1]) { const l = new THREE.Group(); l.position.set(sd * 0.18, 0.75, 0); s2.add(l); cap(0.07, 0.5, c, 0, -0.35, 0.05, l); ball(0.08, 0.04, 0.16, c, 0, -0.72, 0.12, l); legs.push(l); }
+                const t = new THREE.Group(); t.position.set(0, 0.95, -0.45); s2.add(t); for (let i = 0; i < 5; i++) ball(0.16 - i * 0.025, 0.14 - i * 0.022, 0.18, c, 0, 0.03 * i, -i * 0.24, t); parts.push(t);
+                if (k === 'raptor') { for (let i = 0; i < 6; i++) ball(0.05, 0.12, 0.05, 0xd8843c, 0, 1.25 - i * 0.02, 0.2 - i * 0.14, s2); for (const sd of [-1, 1]) { const cl = mesh(CONE, mat(0xf2ead8), s2); cl.scale.set(0.03, 0.1, 0.03); cl.position.set(sd * 0.18, 0.06, 0.2); cl.rotation.x = 1.2; } }
+                if (P.fly) for (const sd of [-1, 1]) { const w = new THREE.Group(); w.position.set(sd * 0.25, 1.05, 0.05); s2.add(w); box(0.8, 0.03, 0.4, k === 'microraptor' ? 0x2a3a5a : 0x7a5a3a, sd * 0.4, 0, 0, w); w.userData.wing = sd; parts.push(w); }
+            } else if (k === 'giganto') {
+                ball(0.7, 0.85, 0.55, 0x5a3a24, 0, 1.6, 0, b); ball(0.42, 0.4, 0.4, 0x5a3a24, 0, 2.55, 0.12, b); ball(0.26, 0.2, 0.18, 0x8a6a54, 0, 2.48, 0.42, b);
+                for (const sd of [-1, 1]) { eye(b, sd * 0.13, 2.62, 0.45, 0.06); const a = new THREE.Group(); a.position.set(sd * 0.72, 2.1, 0.1); b.add(a); cap(0.16, 1.0, 0x5a3a24, 0, -0.6, 0, a); parts.push(a); }
+                for (const sd of [-1, 1]) leg(sd * 0.32, 0, 0.75, 0.2, 0x4a2a18);
+            } else if (k === 'harimau') {
+                ball(0.42, 0.42, 0.85, 0xd8843c, 0, 0.85, 0, b); ball(0.34, 0.32, 0.36, 0xd8843c, 0, 1.0, 0.85, b); ball(0.2, 0.14, 0.16, 0xf2e6d0, 0, 0.92, 1.12, b);
+                for (let i = 0; i < 7; i++) box(0.04, 0.5, 0.08, 0x2a1a10, 0, 1.0, 0.5 - i * 0.18, b);
+                for (const sd of [-1, 1]) { eye(b, sd * 0.13, 1.08, 1.15, 0.05, 0xc8e05a); ball(0.08, 0.1, 0.04, 0xd8843c, sd * 0.2, 1.3, 0.8, b); }
+                for (const [x, z] of [[-0.25, 0.5], [0.25, 0.5], [-0.25, -0.5], [0.25, -0.5]]) leg(x, z, 0.55, 0.11, 0xd8843c);
+                tail(1.0, 0.08, 0xd8843c, 0.95, -0.85, 0.15);
+            } else if (k === 'triceratops') {
+                ball(0.85, 0.7, 1.3, 0x7a8a4a, 0, 1.15, 0, b); ball(0.5, 0.48, 0.6, 0x7a8a4a, 0, 1.1, 1.35, b);
+                const fr = mesh(new THREE.CircleGeometry(0.85, 16), mat(0xb87a3a), b); fr.position.set(0, 1.55, 1.05); fr.rotation.x = -0.4; fr.material = fr.material.clone(); fr.material.side = THREE.DoubleSide;
+                for (const [x, y, z, l] of [[-0.25, 1.6, 1.55, 0.6], [0.25, 1.6, 1.55, 0.6], [0, 1.2, 1.9, 0.3]]) { const h = mesh(CONE, mat(0xf2ead8), b); h.scale.set(0.08, l, 0.08); h.position.set(x, y, z); h.rotation.x = 1.0; }
+                for (const sd of [-1, 1]) eye(b, sd * 0.3, 1.3, 1.65, 0.07);
+                ball(0.2, 0.16, 0.2, 0x6a5a3a, 0, 0.95, 1.9, b);
+                for (const [x, z] of [[-0.5, 0.7], [0.5, 0.7], [-0.5, -0.7], [0.5, -0.7]]) leg(x, z, 0.7, 0.2, 0x6a7a3a);
+                tail(1.4, 0.3, 0x7a8a4a, 1.1, -1.2, -0.08);
+            } else if (k === 'pteranodon') {
+                ball(0.3, 0.28, 0.6, 0xc8b8a0, 0, 1.5, 0, b); const hd = ball(0.18, 0.18, 0.5, 0xc8b8a0, 0, 1.75, 0.6, b);
+                const crest = mesh(CONE, mat(0xd9443a), b); crest.scale.set(0.06, 0.6, 0.06); crest.position.set(0, 1.85, 0.2); crest.rotation.x = -1.8;
+                const beak = mesh(CONE, mat(0xe8c86a), b); beak.scale.set(0.07, 0.6, 0.07); beak.position.set(0, 1.72, 1.15); beak.rotation.x = 1.57;
+                for (const sd of [-1, 1]) { eye(b, sd * 0.12, 1.82, 0.72, 0.04); const w = new THREE.Group(); w.position.set(sd * 0.25, 1.55, 0); b.add(w); box(2.6, 0.04, 0.9, 0xb8a890, sd * 1.3, 0, 0, w); w.userData.wing = sd; parts.push(w); }
+            } else if (k === 'brachio') {
+                ball(1.4, 1.2, 2.0, 0x7a8a9a, 0, 3.0, 0, b);
+                const nk = new THREE.Group(); nk.position.set(0, 3.6, 1.6); b.add(nk); for (let i = 0; i < 8; i++) ball(0.42 - i * 0.025, 0.42 - i * 0.025, 0.5, 0x7a8a9a, 0, i * 0.75, i * 0.22, nk); parts.push(nk);
+                ball(0.45, 0.38, 0.7, 0x7a8a9a, 0, 6.3, 2.2, nk); for (const sd of [-1, 1]) eye(nk, sd * 0.25, 6.45, 2.6, 0.08);
+                for (const [x, z] of [[-0.8, 1.2], [0.8, 1.2], [-0.8, -1.2], [0.8, -1.2]]) leg(x, z, 2.2, 0.38, 0x6a7a8a);
+                tail(3.0, 0.6, 0x7a8a9a, 2.8, -1.8, -0.15);
+            } else if (k === 'archelon') {
+                ball(1.3, 0.45, 1.6, 0x5a6a5a, 0, 0.5, 0, b); for (let i = 0; i < 5; i++) ball(0.25, 0.12, 0.3, 0x7a8a6a, 0, 0.92, 1.0 - i * 0.5, b);
+                ball(0.42, 0.36, 0.5, 0x6a7a6a, 0, 0.55, 1.75, b); for (const sd of [-1, 1]) { eye(b, sd * 0.2, 0.7, 2.1, 0.06); for (const z of [0.9, -0.9]) { const fl = box(1.0, 0.08, 0.45, 0x6a7a6a, sd * 1.3, 0.35, z, b); fl.rotation.y = sd * (z > 0 ? -0.4 : 0.4); parts.push(fl); } }
+            } else if (k === 'plesio') {
+                ball(1.2, 0.6, 1.8, 0x3a5a6a, 0, 0.4, 0, b);
+                const nk = new THREE.Group(); nk.position.set(0, 0.6, 1.4); b.add(nk); for (let i = 0; i < 9; i++) ball(0.3 - i * 0.012, 0.3, 0.36, 0x3a5a6a, 0, i * 0.5, i * 0.18, nk); parts.push(nk);
+                ball(0.36, 0.3, 0.55, 0x3a5a6a, 0, 4.7, 1.8, nk); for (const sd of [-1, 1]) eye(nk, sd * 0.2, 4.82, 2.15, 0.07, 0x9ff0ff);
+            } else if (k === 'mosa') {
+                ball(1.0, 0.8, 3.2, 0x2a4a5a, 0, 0, 0, b); ball(0.7, 0.55, 1.2, 0x2a4a5a, 0, 0.2, 3.2, b); ball(0.6, 0.3, 1.0, 0xd8d0b8, 0, -0.25, 3.1, b);
+                for (const sd of [-1, 1]) eye(b, sd * 0.4, 0.5, 3.8, 0.1, 0xffd23a);
+                const fin = box(0.1, 1.4, 1.2, 0x1a3a4a, 0, 0, -3.6, b); parts.push(fin);
+            } else if (k === 'ankylo') {
+                ball(0.95, 0.55, 1.3, 0x8a7a5a, 0, 0.8, 0, b);
+                for (let i = 0; i < 14; i++) { const sp = mesh(CONE, mat(0x6a5a3a), b); sp.scale.set(0.1, 0.22, 0.1); sp.position.set((i % 2 ? 1 : -1) * (0.3 + (i % 3) * 0.25), 1.25 - (i % 3) * 0.1, 0.9 - Math.floor(i / 2) * 0.28); }
+                ball(0.4, 0.3, 0.45, 0x8a7a5a, 0, 0.7, 1.35, b); for (const sd of [-1, 1]) eye(b, sd * 0.22, 0.82, 1.65, 0.05);
+                for (const [x, z] of [[-0.5, 0.6], [0.5, 0.6], [-0.5, -0.6], [0.5, -0.6]]) leg(x, z, 0.45, 0.17, 0x7a6a4a);
+                const t = tail(1.4, 0.18, 0x8a7a5a, 0.7, -1.2); ball(0.32, 0.25, 0.32, 0x6a5a3a, 0, 0, -1.45, t);
+            } else if (k === 'trex') {
+                ball(0.9, 1.0, 1.4, 0x5a6a3a, 0, 2.5, 0, b); ball(0.7, 0.62, 0.95, 0x5a6a3a, 0, 3.4, 1.3, b); ball(0.55, 0.22, 0.85, 0x4a5a2e, 0, 3.0, 1.45, b);
+                for (const sd of [-1, 1]) { eye(b, sd * 0.4, 3.6, 1.95, 0.09, 0xffd23a); const a = cap(0.08, 0.4, 0x5a6a3a, sd * 0.6, 2.3, 1.1, b); a.rotation.x = 1.2; for (let i = 0; i < 4; i++) { const tth = mesh(CONE, mat(0xffffff), b); tth.scale.set(0.04, 0.12, 0.04); tth.rotation.x = Math.PI; tth.position.set(sd * (0.15 + i * 0.1), 3.15, 1.95 - i * 0.12); } }
+                for (const sd of [-1, 1]) leg(sd * 0.5, -0.1, 1.6, 0.32, 0x4a5a2e);
+                tail(2.6, 0.55, 0x5a6a3a, 2.4, -1.2, 0.04);
+            } else if (k === 'bangau') {
+                ball(0.36, 0.38, 0.5, 0xe8e2d6, 0, 1.45, 0, b); ball(0.3, 0.26, 0.42, 0x3a3a3a, 0, 1.55, -0.2, b);
+                const nk = cap(0.07, 0.5, 0xd8a8a0, 0, 1.95, 0.25, b); nk.rotation.x = 0.4; ball(0.14, 0.13, 0.16, 0xd8a8a0, 0, 2.25, 0.4, b);
+                const bk = mesh(CONE, mat(0xe8d8a0), b); bk.scale.set(0.06, 0.45, 0.06); bk.position.set(0, 2.15, 0.7); bk.rotation.x = 1.9;
+                for (const sd of [-1, 1]) { eye(b, sd * 0.07, 2.3, 0.48, 0.03); const l = new THREE.Group(); l.position.set(sd * 0.12, 1.1, 0); b.add(l); cap(0.035, 1.0, 0xd8b8a8, 0, -0.55, 0, l); legs.push(l); }
+            } else if (k === 'parasauro') {
+                ball(0.75, 0.68, 1.15, 0x4a7a8a, 0, 1.6, 0, b); ball(0.38, 0.36, 0.55, 0x4a7a8a, 0, 2.55, 1.0, b); ball(0.24, 0.12, 0.36, 0xd8a85a, 0, 2.45, 1.45, b);
+                const cr = cap(0.1, 1.1, 0xd9643a, 0, 3.0, 0.5, b); cr.rotation.x = -1.0; for (const sd of [-1, 1]) eye(b, sd * 0.2, 2.65, 1.25, 0.05);
+                for (const sd of [-1, 1]) leg(sd * 0.4, -0.1, 0.95, 0.22, 0x3a6a7a);
+                tail(1.8, 0.4, 0x4a7a8a, 1.6, -1.0, 0.02);
+            }
+            g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+            return g;
+        }
+        // --- where they live in the world: spots in their region, the same for both of you ---
+        const DINO_SPOTS = {};
+        for (const P of PURBA) {
+            if (P.legend) continue;
+            const R = REGI[P.r], rnd = mulberry32(satHash(P.k, 'dino')), L = [];
+            for (let i = 0; i < 600 && L.length < 5; i++) {
+                const x = R.x0 + 6 + rnd() * (R.x1 - R.x0 - 12), z = R.z0 + 6 + rnd() * (R.z1 - R.z0 - 12);
+                if (!walkable({ x, z }) || inRiver(x, z, 2) || nearPath(x, z, P.huge ? 6 : 2.5) || nearBuilding(x, z, P.huge ? 8 : 3) || lakeDist(x, z) < 3) continue;
+                if (P.k === 'bangau' ? !inPaddy({ x, z }) : inPaddy({ x, z })) continue;
+                if (P.r === 'pantai' && (coastDist(x, z) < (P.sea ? 1 : 4) || coastDist(x, z) > (P.sea ? 6 : 18))) continue;
+                if (P.huge && H(x, z) < 6) continue;   // the brachiosaurus stands high on the mountain
+                if (L.some(([px, pz]) => Math.hypot(px - x, pz - z) < 10)) continue;
+                L.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10]);
+            }
+            // the giant may find no high ground free: then anywhere open in its region
+            for (let i = 0; i < 400 && P.huge && L.length < 2; i++) { const x = R.x0 + 8 + rnd() * (R.x1 - R.x0 - 16), z = R.z0 + 8 + rnd() * (R.z1 - R.z0 - 16); if (walkable({ x, z }) && !nearPath(x, z, 6) && !nearBuilding(x, z, 8) && lakeDist(x, z) > 6 && !inRiver(x, z, 3)) L.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10]); }
+            DINO_SPOTS[P.k] = L;
+        }
+        // today's herd of one species in the world (after it lives again)
+        const dinoHerd = k => { const P = PB[k], L = DINO_SPOTS[k]; if (!L || !L.length) return []; const s = L[satHash(k, state.day) % L.length], n = P.pack || 1; return Array.from({ length: n }, (_, i) => [s[0] + (i ? Math.cos(i * 2.1) * 1.8 : 0), s[1] + (i ? Math.sin(i * 2.1) * 1.8 : 0)]); };
+        // the living ones on screen: {k, pos, home, g, chase, cool, ...}
+        let wildDinos = [], wildDay = -1, partnerMount = null;
+        function syncWildDinos() {
+            const want = [];
+            for (const P of PURBA) if (!P.legend && isRes(P.k) && !(P.k === 'trex' && !isRes('trex'))) dinoHerd(P.k).forEach((p, i) => want.push({ k: P.k, i, x: p[0], z: p[1] }));
+            const key = d => d.k + ':' + d.i;
+            const have2 = new Map(wildDinos.map(d => [key(d), d]));
+            for (const d of wildDinos) if (!want.some(w => key(w) === key(d)) || wildDay !== state.day) { d.g.removeFromParent(); have2.delete(key(d)); }
+            wildDinos = want.map(w => { const o = wildDay === state.day && have2.get(key(w)); if (o) return o; return { k: w.k, i: w.i, home: [w.x, w.z], pos: new THREE.Vector3(w.x, 0, w.z), g: null, wT: 0, tx: w.x, tz: w.z, chaseT: -99, cool: -99 }; });
+            wildDay = state.day;
+        }
+        // one step of a dino's life: wander near home, flee or (a predator) chase for a moment
+        function stepDino(d, dt, sc, out) {
+            const P = PB[d.k], p = player.pos, dx = p.x - d.pos.x, dz = p.z - d.pos.z, dist = Math.hypot(dx, dz) || 1;
+            let vx = 0, vz = 0, sp = P.huge ? 0.8 : P.fly ? 2.2 : 1.1;
+            const mounted = player.mount === 'triceratops' || player.mount === 'stegodon';
+            const near = !player.sit && !travelling && !sleeping && !dlgOpen() && (out ? !inHome(p) : true);
+            if (P.pred && near && !isPbFriend(d.k) && !mounted && dist < 7 && elapsed > d.cool && !(player.smokeT > elapsed)) {
+                if (d.chaseT < 0 || elapsed - d.chaseT > 4) { d.chaseT = elapsed; spawnIcon(d.pos.clone().setY(P.k === 'trex' ? 4.5 : 1.6), '💢'); roarSound(P.k); }
+                if (elapsed - d.chaseT < 3.5) { vx = dx / dist * (P.k === 'trex' ? 6.2 : 5.6); vz = dz / dist * (P.k === 'trex' ? 6.2 : 5.6); if (dist < (P.k === 'trex' ? 2.2 : 1.0)) { d.cool = elapsed + 14; sendAct('purbabite', d.k); player.pos.x += dx / dist * 1.2; player.pos.z += dz / dist * 1.2; hurtFlash.classList.add('on'); setTimeout(() => hurtFlash.classList.remove('on'), 140); } }
+                else d.cool = elapsed + 8;
+            }
+            if (!vx && !vz) {
+                if (elapsed > d.wT) { d.wT = elapsed + 3 + Math.random() * 4; const a = Math.random() * 6.3, r = Math.random() * (P.huge ? 4 : 5); d.tx = d.home[0] + Math.cos(a) * r; d.tz = d.home[1] + Math.sin(a) * r; }
+                const wx = d.tx - d.pos.x, wz = d.tz - d.pos.z, wd = Math.hypot(wx, wz);
+                if (wd > 0.3) { vx = wx / wd * sp; vz = wz / wd * sp; }
+            }
+            const nx = d.pos.x + vx * dt, nz = d.pos.z + vz * dt;
+            if (!out || P.fly || walkable({ x: nx, z: nz }) && !inRiver(nx, nz, 0.5)) { d.pos.x = nx; d.pos.z = nz; }
+            const moving = Math.hypot(vx, vz) > 0.1;
+            if (moving) d.g.rotation.y = lerpAngle(d.g.rotation.y, Math.atan2(vx, vz), Math.min(1, dt * 5));
+            const gy = out ? (P.sea ? Math.max(groundY(d.pos.x, d.pos.z), SEA_Y - 0.3) : groundY(d.pos.x, d.pos.z)) : 0;
+            d.g.position.set(d.pos.x - (out ? 0 : MF(mineCur.n)), gy + (P.fly ? 3 + Math.sin(elapsed + d.i) * 0.6 : 0), d.pos.z);
+            animDino(d.g, moving ? Math.hypot(vx, vz) : 0, d.i);
+        }
+        function animDino(g, v, i) {
+            const t = elapsed * (2 + v * 2) + i;
+            (g.userData.legs || []).forEach((l, j) => { l.rotation.x = v ? Math.sin(t + j * Math.PI) * 0.5 : 0; });
+            (g.userData.parts || []).forEach((p, j) => { if (p.userData.wing) p.rotation.z = p.userData.wing * Math.sin(elapsed * 6 + i) * 0.45; else p.rotation.y = Math.sin(elapsed * 1.5 + i + j) * 0.25; });
+        }
+        const roarSound = k => chime(k === 'trex' ? [90, 70, 55] : k === 'harimau' ? [160, 120] : [240, 200, 160], 0.14, 'sawtooth', 0.06);
+        // the penangkaran on the farm: its dinos walk inside the fence; eggs sit in the nest
+        let penVis = [];
+        function updatePen(dt) {
+            const B = BUILDS.penangkaran, list = state.dino || [];
+            if (!(state.build && state.build.penangkaran)) return;
+            while (penVis.length > list.length) penVis.pop().g.removeFromParent();
+            list.forEach((d, i) => {
+                let v = penVis[i];
+                const look = d.k + d.st;
+                if (!v || v.look !== look) {
+                    if (v) v.g.removeFromParent();
+                    const g = d.st === 0 ? (() => { const e = new THREE.Group(); ball(0.18, 0.24, 0.18, 0xf2e6c8, 0, 0.24, 0, e); for (let s = 0; s < 4; s++) ball(0.04, 0.04, 0.02, 0x8a6a4a, Math.cos(s) * 0.12, 0.25 + s * 0.04, 0.16, e); return e; })() : dinoModel(d.k);
+                    const sc = d.st === 0 ? 1 : (PB[d.k].huge ? 0.3 : 1) * (d.st === 1 ? 0.4 : { triceratops: 0.6, stegodon: 0.75, giganto: 0.7, ankylo: 0.75, pteranodon: 0.6, raptor: 1, compso: 1 }[d.k] || 0.7);
+                    g.scale.setScalar(sc); scene.add(g);
+                    v = penVis[i] = { g, look, x: B.x - B.w / 2 + 1 + (i % 3) * 2.4, z: B.z - 0.8 + Math.floor(i / 3) * 1.6, tx: 0, tz: 0, wT: 0 };
+                    v.tx = v.x; v.tz = v.z;
+                }
+                v.g.visible = player.mount !== d.k || i !== player.mountI;
+                if (d.st === 0) { v.g.position.set(B.x - B.w / 2 + 0.8 + i * 0.4, 0, B.z + B.d / 2 - 0.8); v.g.rotation.z = Math.sin(elapsed * 3 + i) * 0.05; return; }
+                if (elapsed > v.wT) { v.wT = elapsed + 2 + Math.random() * 3; v.tx = B.x + (Math.random() - 0.5) * (B.w - 1.6); v.tz = B.z + (Math.random() - 0.5) * (B.d - 1.6); }
+                const dx = v.tx - v.x, dz = v.tz - v.z, dd = Math.hypot(dx, dz), sp = 0.8;
+                let mv = 0;
+                if (dd > 0.2) { v.x += dx / dd * sp * dt; v.z += dz / dd * sp * dt; mv = sp; v.g.rotation.y = lerpAngle(v.g.rotation.y, Math.atan2(dx, dz), Math.min(1, dt * 4)); }
+                v.g.position.set(v.x, groundY(v.x, v.z) + (PB[d.k].fly ? 0.6 : 0), v.z);
+                animDino(v.g, mv, i);
+            });
+        }
+        // 🦕 riding: the animal walks under you, wherever you go outdoors
+        let mountVis = null;
+        const MOUNT_H = { triceratops: 1.25, stegodon: 1.05 };
+        function startMount(i) {
+            const d = (state.dino || [])[i];
+            if (!d || d.st !== 2 || !PB[d.k].mount) return;
+            if (ride) stopRide(true);
+            standUp(); player.mount = d.k; player.mountI = i;
+            if (mountVis) mountVis.removeFromParent();
+            mountVis = dinoModel(d.k); mountVis.scale.setScalar(d.k === 'triceratops' ? 0.7 : 0.8); scene.add(mountVis);
+            toast(`${PB[d.k].icon} Menunggangi ${PB[d.k].name}! Tekan tombol aksi untuk turun`);
+        }
+        function stopMount() {
+            if (!player.mount) return;
+            player.mount = null; if (mountVis) { mountVis.removeFromParent(); mountVis = null; }
+            player.pos.x += 1.0; resolveCollisions(player.pos, 0.35);
+        }
+        const mountSpeed = () => player.mount ? PB[player.mount].mount * (player.mount === 'stegodon' && inPaddy(player.pos) ? 1 / 0.45 : 1) : 1;
+        const MOUNT_IT = { id: 'unmount', local: true, reach: 0, get pos() { return player.pos; }, label: () => `Turun dari ${player.mount ? PB[player.mount].name : ''}`, act: stopMount };
+        // --- 🕳️ the Lembah Purba behind the Gua Waktu: everyone still lives here ---
+        const LEMBAH_DINO = { 1001: ['stegodon', 'bangau', 'parasauro', 'compso', 'archelon'], 1002: ['raptor', 'giganto', 'microraptor', 'harimau', 'compso'], 1003: ['triceratops', 'ankylo', 'brachio', 'pteranodon', 'archaeo'], 1004: ['trex', 'triceratops', 'ankylo', 'pteranodon', 'parasauro'] };
+        function lembahSpawn(n) {
+            const S = FS(n), f = MF(n), sl = mineShape(n).slots, r = mrng(n * 41 + state.day * 13);
+            mineCur.dinos = [];
+            for (const k of LEMBAH_DINO[n]) {
+                const P = PB[k], cnt = P.pack || (P.huge ? 1 : 2);
+                const s = sl[Math.floor(r() * sl.length)]; if (!s) continue;
+                for (let i = 0; i < cnt; i++) {
+                    const x = s[0] + (i ? Math.cos(i * 2.1) * 1.6 : 0), z = s[1] + (i ? Math.sin(i * 2.1) * 1.6 : 0);
+                    const g = dinoModel(k); g.scale.setScalar(P.huge ? 0.6 : 1); mineCur.g.add(g);
+                    mineCur.dinos.push({ k, i, home: [f + x, z], pos: new THREE.Vector3(f + x, 0, z), g, wT: 0, tx: f + x, tz: z, chaseT: -99, cool: -99 });
+                }
+            }
+            // one nest of a raisable animal, and four patches of soft ground with fossils in them
+            const rs = LEMBAH_DINO[n].filter(k => PB[k].raise), nk = rs[Math.floor(r() * rs.length)], ns = sl[Math.floor(r() * sl.length)];
+            if (nk && ns) {
+                const g = new THREE.Group(); g.position.set(ns[0], 0, ns[1]); mineCur.g.add(g);
+                ball(0.7, 0.15, 0.7, 0x8a6a3a, 0, 0.08, 0, g); for (let i = 0; i < 3; i++) ball(0.16, 0.2, 0.16, 0xf2e6c8, Math.cos(i * 2.1) * 0.25, 0.25, Math.sin(i * 2.1) * 0.25, g);
+                mineCur.nest = { k: nk, x: f + ns[0], z: ns[1], g };
+            }
+            mineCur.digs = [];
+            for (let i = 0; i < 4; i++) {
+                const s = sl[Math.floor(r() * sl.length)]; if (!s) continue;
+                const g = new THREE.Group(); g.position.set(s[0], 0, s[1]); mineCur.g.add(g);
+                ball(0.45, 0.12, 0.45, 0x6a4a2a, 0, 0.04, 0, g); for (let j = 0; j < 3; j++) ball(0.06, 0.04, 0.12, 0xf2ead8, Math.cos(j * 2) * 0.2, 0.12, Math.sin(j * 2) * 0.2, g);
+                mineCur.digs.push({ i, x: f + s[0], z: s[1], g });
+            }
+        }
+        // --- the dialogs ---
+        function openRiset() {
+            const S = pbS(), again = () => setTimeout(() => { if (dlgOpen()) openRiset(); }, 350);
+            const rows = PURBA.map(P => {
+                const done = S.res[P.k] != null, due = S.rq[P.k], c = RISET_COST[P.k];
+                const need = P.set ? `set fosil di museum ${dinoSetDone(P.k) ? '✓' : '✗'}` : `3 🦴 fosil (di tas ${have(USER, fossilKey(P.k))})`;
+                let btn;
+                if (done) btn = el('button', { class: 'btn', disabled: true }, '✓ Hidup');
+                else if (due != null) { btn = el('button', { class: 'btn', onclick: () => { sendAct('risettake', P.k); again(); } }, due <= state.day ? (P.raise ? '🥚 Ambil' : '🌿 Lepas') : `${due - state.day} hari`); if (due > state.day) btn.disabled = true; }
+                else { const ok = state.gold >= c && (P.set ? dinoSetDone(P.k) : have(USER, fossilKey(P.k)) >= 3) && !(P.last && PURBA.some(o => o.k !== 'trex' && S.res[o.k] == null)); btn = el('button', { class: 'btn', onclick: () => { sendAct('risetstart', P.k); again(); } }, `${c.toLocaleString('id-ID')} G`); if (!ok) btn.disabled = true; }
+                return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: P.icon }), el('span', { class: 'nm' }, el('b', { text: P.name }), el('small', { text: done ? `Hidup di ${REGI[P.r].name}${P.raise ? ' · bisa ditangkar' : ''}` : `${need}${P.raise ? ' · menghasilkan telur' : ' · dilepas ke alam'}${P.last ? ' · setelah semua yang lain' : ''}` })), btn);
+            });
+            openDlg('🧬 Pusat Riset Purba', [el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Riset 3 hari. Fosil didapat dari menggali di Lembah Purba (lewat Gua Waktu di Aula Simpang), memecah batu tambang zona dalam, dan Gua Lawa Angker.` }), el('div', { class: 'shoplist' }, rows)], [{ t: '📗 Buku hewan purba', f: openPurbaBook }, { t: 'Tutup' }]);
+            liveDlg = openRiset;
+        }
+        function openPurbaBook() {
+            const st = P => [isSeen(P.k) ? '👀' : '·', isRes(P.k) ? '🧬' : '', (state.dino || []).some(d => d.k === P.k) ? '🥚' : '', isPbFriend(P.k) ? '💛' : ''].join('');
+            openDlg(`📗 Buku hewan purba · ${PURBA.filter(P => isSeen(P.k)).length}/${PURBA.length}`, [el('p', { class: 'small-note', text: '👀 sudah dilihat · 🧬 hidup kembali · 🥚 ditangkar · 💛 sahabat. Ketuk untuk kartu fakta.' }),
+                el('div', { class: 'shoplist' }, PURBA.map(P => el('div', { class: 'shopitem', onclick: () => isSeen(P.k) && openFact(P.name, `${P.fact}${P.abil ? `\n\n✨ ${P.abil}` : ''}\n\n📍 ${P.legend === 'danau' ? 'Danau gunung, malam bulan purnama' : P.legend === 'laut' ? 'Laut dalam, dari perahu' : REGI[P.r].name} · makan ${DINO_EAT[P.diet]}`, P.icon) }, el('span', { class: 'ic', text: isSeen(P.k) ? P.icon : '❔' }), el('span', { class: 'nm' }, el('b', { text: isSeen(P.k) ? P.name : '???' }), el('small', { text: st(P) })))))]);
+        }
+        function openDinoDlg(d) {
+            const P = PB[d.k], held = heldItem(), fedToday = state.purba && state.purba.fd[USER] && state.purba.fd[USER][d.k] === state.day;
+            if (!isSeen(d.k)) sendAct('purbaseen', d.k);
+            const btns = [];
+            if (dinoFood(P.diet, held) && !fedToday) btns.push({ t: `🍽️ Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, big: true, f: () => sendAct('purbafeed', `${d.k}|${held}`) });
+            if (d.k === 'archelon' && isPbFriend('archelon') && regionOf(player.pos) && regionOf(player.pos).id === 'pantai') btns.push({ t: '🐢 Berenang ke Pulau Kencana', big: true, f: () => { ensureRegion('pulau'); travel(ISLAND_DOCK.clone(), Math.PI / 2, '🐢 Archelon mengantarmu ke Pulau Kencana'); } });
+            btns.push({ t: '📗 Buku purba', f: openPurbaBook }, { t: 'Dah 👋' });
+            openDlg(`${P.icon} ${P.name}`, [el('p', { text: P.fact }), el('p', { class: 'small-note', text: `Makanannya: ${DINO_EAT[P.diet]} · persahabatan ${Math.min(pbFriend(d.k), P.friendN || 3)}/${P.friendN || 3}${fedToday ? ' · sudah makan darimu hari ini' : ''}${P.pred && !isPbFriend(d.k) ? ' · ⚠️ pemangsa: bisa mengejar!' : ''}` })], btns);
+        }
+        function openPen(i) {
+            const d = (state.dino || [])[i];
+            if (!d) return;
+            const P = PB[d.k], held = heldItem(), btns = [];
+            if (d.st === 0) { openDlg(`🥚 Telur ${P.name}`, [el('p', { text: `Menetas dalam ${Math.max(0, 4 - (state.day - d.d))} hari. Hangat sekali disentuh…` })]); return; }
+            if (dinoFood(P.diet, held) && d.fed !== state.day) btns.push({ t: `🍽️ Beri ${ITEMS[held].icon} ${ITEMS[held].label}`, big: true, f: () => sendAct('dinofeed', `${i}|${held}`) });
+            btns.push({ t: '🤗 Elus', f: () => sendAct('dinopet', i) });
+            if (d.st === 2 && P.mount) btns.push({ t: `🦕 Tunggangi`, big: true, f: () => startMount(i) });
+            if (d.st === 2 && d.k === 'pteranodon') btns.push({ t: '🦅 Terbang ke wilayah lain', big: true, f: openFly });
+            btns.push({ t: 'Dah 👋' });
+            openDlg(`${P.icon} ${P.name} ${d.st === 1 ? '(anak)' : ''}`, [el('p', { class: 'small-note', text: `${d.st === 1 ? `Dewasa dalam ${Math.max(0, 6 - (state.day - d.d))} hari (asal diberi makan tiap hari)` : P.abil || 'Sahabat di penangkaran'} · makan ${DINO_EAT[P.diet]} · ${d.fed === state.day ? '🍽️ sudah makan hari ini' : '🍽️ belum makan hari ini'} · 💛 ${Math.floor(d.love / 10)}` })], btns);
+        }
+        function openFly() {
+            openDlg('🦅 Terbang dengan Pteranodon', [el('p', { class: 'small-note', text: 'Pilih tujuan. Kalau pasanganmu ada di dekatmu, kalian terbang berdua.' })], [...REGIONS.map(R => ({ t: R.name, f: () => sendAct('ptera', R.id) })), { t: 'Batal' }]);
+        }
+        // the Pteranodon lands you near the middle of a region
+        function flyTo(r) {
+            const R = REGI[r], cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
+            let best = null, bd = Infinity;
+            for (const p of Object.values(NODES)) { const d = Math.hypot(p[0] - cx, p[1] - cz); if (d < bd && regionOf({ x: p[0], z: p[1] }) && regionOf({ x: p[0], z: p[1] }).id === r) { bd = d; best = p; } }
+            if (!best) return;
+            if (player.mount) stopMount();
+            ensureRegion(r);
+            travel(new THREE.Vector3(best[0], 0, best[1]), 0, `🦅 Terbang ke ${R.name}`);
+        }
+        const DINO_IT = { id: 'dino', local: true, reach: 2.6, pos: new THREE.Vector3(), d: null, label: () => { const d = DINO_IT.d, P = d && PB[d.k]; if (!P) return ''; return dinoFood(P.diet, heldItem()) ? `🍽️ Beri makan ${P.icon} ${P.name}` : `👀 Amati ${P.icon} ${P.name}`; }, act: () => DINO_IT.d && openDinoDlg(DINO_IT.d) };
+        const PEN_IT = { id: 'pen', local: true, reach: 2.2, pos: new THREE.Vector3(), i: 0, label: () => { const d = (state.dino || [])[PEN_IT.i]; return d ? `${PB[d.k].icon} ${d.st === 0 ? 'Telur' : ''} ${PB[d.k].name}${d.st === 1 ? ' (anak)' : ''}` : ''; }, act: () => openPen(PEN_IT.i) };
+        const PENEGG_IT = { id: 'penegg', local: true, reach: 3, pos: new THREE.Vector3(), label: () => { const k = (heldItem() || '').slice(6); return PB[k] ? `🥚 Letakkan telur ${PB[k].name} di sarang` : ''; }, act: () => sendAct('dinoegg', (heldItem() || '').slice(6)) };
+        const NEST_IT = { id: 'nest', local: true, reach: 1.3, pos: new THREE.Vector3(), label: () => { const N = mineCur && mineCur.nest; if (!N) return ''; const fed = state.purba && state.purba.fd[USER] && state.purba.fd[USER][N.k] === state.day; return fed ? `🥚 Ambil sebutir telur ${PB[N.k].name}` : `🥚 Sarang ${PB[N.k].name} · beri makan induknya dulu`; }, act: () => { const N = mineCur.nest, fed = state.purba && state.purba.fd[USER] && state.purba.fd[USER][N.k] === state.day; if (fed) sendAct('purbanest', N.k); else toast(`Induk ${PB[N.k].name} menjaga sarangnya. Beri dia makan (${DINO_EAT[PB[N.k].diet]}) dulu supaya percaya.`); } };
+        const DIG_IT = { id: 'ldig', local: true, reach: 1.1, pos: new THREE.Vector3(), i: 0, label: () => tool === 'cangkul' ? '🦴 Gali tanah gembur' : '🦴 Tanah gembur · pegang 🪏 cangkul', act: () => { if (tool !== 'cangkul') { toast('Pegang 🪏 cangkul untuk menggali'); return; } player.swingT = elapsed; const D = mineCur.digs.find(x => x.i === DIG_IT.i); if (D) D.g.visible = false; mLocal.add(`b${state.day}:${mineCur.n}:${900 + DIG_IT.i}`); sendAct('lembahdig', `${mineCur.n}|${DIG_IT.i}`); } };
+        const LEGEND_IT = { id: 'legend', local: true, reach: 30, pos: new THREE.Vector3(LAKE.x, 0, LAKE.z), label: () => '🌕 Pandangi Plesiosaurus di tengah danau', act: () => { sendAct('purbaseen', 'plesio'); spawnHearts(player.pos.clone().setY(1.8)); openFact('Malam Legenda Danau', 'Di bawah bulan purnama, leher panjang itu muncul dari tengah danau, memandang kalian sebentar… lalu perlahan tenggelam lagi. Legenda itu benar.', '🌕'); } };
+        function purbaFocus() {
+            if (player.mount) return MOUNT_IT;
+            const p = player.pos;
+            let best = null, bd = Infinity;
+            const consider = (it, d) => { if (d < it.reach && d < bd) { best = it; bd = d; } };
+            if (inMine(p) && mineCur && FS(mineCur.n) && FS(mineCur.n).kind === 'purba') {
+                for (const d of mineCur.dinos || []) { const dd = Math.hypot(d.pos.x - p.x, d.pos.z - p.z) - (PB[d.k].huge ? 2.5 : 0); if (dd < 2.6 && dd < bd) { bd = dd; best = DINO_IT; DINO_IT.d = d; DINO_IT.pos.copy(d.pos); } }
+                const N = mineCur.nest; if (N && Math.hypot(N.x - p.x, N.z - p.z) < 1.3) { NEST_IT.pos.set(N.x, 0, N.z); return NEST_IT; }
+                for (const D of mineCur.digs || []) if (D.g.visible && Math.hypot(D.x - p.x, D.z - p.z) < 1.1) { DIG_IT.i = D.i; DIG_IT.pos.set(D.x, 0, D.z); return DIG_IT; }
+                return best;
+            }
+            if (inHome(p)) return null;
+            for (const d of wildDinos) { if (!d.g) continue; const dd = Math.hypot(d.pos.x - p.x, d.pos.z - p.z) - (PB[d.k].huge ? 3 : 0); if (dd < 2.6 && dd < bd) { bd = dd; best = DINO_IT; DINO_IT.d = d; DINO_IT.pos.copy(d.pos); } }
+            const B = BUILDS.penangkaran;
+            if (state.build && state.build.penangkaran && Math.abs(p.x - B.x) < B.w / 2 + 1.2 && Math.abs(p.z - B.z) < B.d / 2 + 1.2) {
+                if ((heldItem() || '').startsWith('telur_')) { PENEGG_IT.pos.set(B.x, 0, B.z); return PENEGG_IT; }
+                penVis.forEach((v, i) => { const dd = Math.hypot(v.g.position.x - p.x, v.g.position.z - p.z); if (dd < 2.2 && dd < bd) { bd = dd; best = PEN_IT; PEN_IT.i = i; PEN_IT.pos.copy(v.g.position); } });
+            }
+            if (acaraLive('legenda') && state.minutes >= 20 * 60 && lakeDist(p.x, p.z) < 8) return LEGEND_IT;
+            return best;
+        }
+        function purbaInteractables() {
+            const L = [], add = (id, pos, reach, o) => L.push({ id, pos, reach, local: true, ...o });
+            const mu = VB.find(b => b.type === 'museum');
+            if (mu) add('vriset', HV(mu.f, -3.6, 2.7), 1.4, { label: () => '🧬 Pusat Riset Purba', act: openRiset });
+            add('mwaktu', HV(MF(0), -11.0, -1.5), 1.6, { label: () => '🌀 Masuk Gua Waktu · ke Lembah Purba', act: () => mineGo(1001) });
+            return L;
+        }
+        // --- every frame: the animals out in the world, the pen, riding, the legends ---
+        let rodLab = false, portal = null, lastRes = -1, trumpetDay = -1, mosaT = 0, legendVis = null, flock = null;
+        function updatePurba(dt) {
+            if (!started) return;
+            // the lab bench in the museum, and the time portal in the hall, once those rooms exist
+            const mu = VB.find(b => b.type === 'museum');
+            if (!rodLab && homeScene && mu && mu.roomBuilt) {
+                rodLab = true; const g = new THREE.Group(); g.position.set(mu.f - 3.6, 0, 3.0); homeScene.add(g);
+                box(1.4, 0.8, 0.6, 0xe8eef2, 0, 0.4, 0, g); box(0.3, 0.4, 0.3, 0x9fd8ff, -0.4, 1.0, 0, g); const egg = ball(0.12, 0.16, 0.12, glowMatT(0xbfffa8, 0.6), 0.3, 1.0, 0, g); egg.castShadow = false; cap(0.05, 0.3, 0x55595e, 0.3, 0.85, 0, g);
+                textPlate(g, '🧬 Riset Purba', 0, 1.6, 0.32, 1.3);
+            }
+            if (!portal && mineFloors[0]) {
+                const g = new THREE.Group(); g.position.set(-11.9, 0, -1.5); g.rotation.y = Math.PI / 2; mineFloors[0].add(g); portal = g;
+                const ring = mesh(new THREE.TorusGeometry(1.0, 0.15, 8, 28), glowMatT(0x7af0c8, 1.0), g); ring.position.y = 1.3; ring.castShadow = false;
+                const inside = mesh(new THREE.CircleGeometry(0.9, 24), new THREE.MeshBasicMaterial({ color: 0x1a4a3a, transparent: true, opacity: 0.85 }), g); inside.position.y = 1.3; g.userData.inside = inside;
+                textPlate(g, '🌀 Gua Waktu', 0, 2.65, 0.05, 1.4);
+            }
+            if (portal) portal.children[0].rotation.z += dt * 0.8;
+            // 🦖 the wild ones
+            const resN = state.purba ? Object.keys(state.purba.res).length : 0;
+            if (resN !== lastRes || wildDay !== state.day) { lastRes = resN; syncWildDinos(); }
+            const out = !inHome(player.pos);
+            for (const d of wildDinos) {
+                const far = Math.hypot(d.home[0] - player.pos.x, d.home[1] - player.pos.z);
+                if (!d.g && far < 70) { d.g = dinoModel(d.k); d.g.scale.setScalar(PB[d.k].huge ? 0.8 : { stegodon: 0.75, triceratops: 0.7, giganto: 0.75, ankylo: 0.75, trex: 0.75 }[d.k] || 1); scene.add(d.g); }
+                else if (d.g && far > 95) { d.g.removeFromParent(); d.g = null; }
+                if (d.g) { d.g.visible = out; if (out) stepDino(d, dt, 1, true); }
+            }
+            // the Lembah Purba
+            if (inMine(player.pos) && mineCur && mineCur.dinos) for (const d of mineCur.dinos) stepDino(d, dt, 1, false);
+            if (mineCur && mineCur.digs) for (const D of mineCur.digs) if (mineGone('b', mineCur.n, 900 + D.i)) D.g.visible = false;
+            updatePen(dt);
+            // 🦕 riding
+            if (player.mount) {
+                if (inHome(player.pos) || sleeping || player.sit) stopMount();
+                else if (mountVis) { mountVis.position.set(player.pos.x, groundY(player.pos.x, player.pos.z), player.pos.z); mountVis.rotation.y = player.heading; animDino(mountVis, player.moving ? 3 : 0, 0); }
+            }
+            // your partner's mount
+            const pm = onPartner.mo && PB[onPartner.mo] && partnerF.group.visible && !inHome(partnerF.pos) ? onPartner.mo : null;
+            if (pm && (!partnerMount || partnerMount.userData.k !== pm)) { if (partnerMount) partnerMount.removeFromParent(); partnerMount = dinoModel(pm); partnerMount.userData.k = pm; partnerMount.scale.setScalar(pm === 'triceratops' ? 0.7 : 0.8); scene.add(partnerMount); }
+            if (!pm && partnerMount) { partnerMount.removeFromParent(); partnerMount = null; }
+            if (partnerMount) { partnerMount.position.set(partnerF.pos.x, groundY(partnerF.pos.x, partnerF.pos.z), partnerF.pos.z); partnerMount.rotation.y = partnerF.heading; animDino(partnerMount, partnerF.moving ? 3 : 0, 1); ridePose(partnerF, 'd', groundY(partnerF.pos.x, partnerF.pos.z) + MOUNT_H[pm]); }
+            // 🎺 the parasaurolophus at dawn
+            if (isRes('parasauro') && trumpetDay !== state.day && state.minutes >= 300 && state.minutes < 330 && regionOf(player.pos) && regionOf(player.pos).id === 'sawah') { trumpetDay = state.day; chime([196, 247, 294], 0.5, 'sawtooth', 0.05); toast('🎺 Terompet Parasaurolophus terdengar dari sawah. Selamat pagi, Lembah Sari!'); }
+            // 🐊 the mosasaurus, seen only from a boat at sea
+            if (fishing && fishing.bob && boatToday() && !walkable(fishing.bob) && (mosaT -= dt) < 0) {
+                mosaT = 30;
+                if (Math.random() < (isRes('mosa') ? 0.5 : 0.15)) {
+                    const g = dinoModel('mosa'), b0 = fishing.bob.clone(); g.position.set(b0.x + 9, SEA_Y - 1, b0.z - 4); g.rotation.y = -1.2; scene.add(g);
+                    const t0 = elapsed, jump = () => { const t = (elapsed - t0) / 2.4; if (t >= 1) { g.removeFromParent(); return; } g.position.y = SEA_Y - 1 + Math.sin(t * Math.PI) * 4; g.position.x -= 0.12; g.rotation.x = (t - 0.5) * 1.2; requestAnimationFrame(jump); };
+                    jump(); splash(new THREE.Vector3(b0.x + 9, SEA_Y, b0.z - 4)); toast('🐊 Sesuatu yang sangat besar melompat dari laut… Mosasaurus!'); sendAct('purbaseen', 'mosa');
+                }
+            }
+            // 🌕 the night of the lake legend
+            const lg = acaraLive('legenda') && state.minutes >= 20 * 60;
+            if (lg && !legendVis) { legendVis = dinoModel('plesio'); legendVis.scale.setScalar(1.2); legendVis.position.set(LAKE.x, LAKE.y - 0.4, LAKE.z); scene.add(legendVis); }
+            if (!lg && legendVis) { legendVis.removeFromParent(); legendVis = null; }
+            if (legendVis) { legendVis.rotation.y = Math.sin(elapsed * 0.2) * 0.8; legendVis.position.y = LAKE.y - 0.4 + Math.sin(elapsed * 0.6) * 0.2; animDino(legendVis, 0.5, 0); }
+            // 🦕 the prehistoric festival: Pteranodons circle over the beach
+            const F = festToday(), fl = F && F.k === 'purba' && festLive(F);
+            if (fl && !flock) { flock = new THREE.Group(); scene.add(flock); for (let i = 0; i < 5; i++) { const p = dinoModel('pteranodon'); p.scale.setScalar(0.8); flock.add(p); } }
+            if (!fl && flock) { flock.removeFromParent(); flock = null; }
+            if (flock) { const c = VOUT.fpantai.c; flock.children.forEach((p, i) => { const a = elapsed * 0.4 + i * 1.25; p.position.set(c[0] + Math.cos(a) * 9, 10 + Math.sin(a * 2) * 1.2, c[1] + Math.sin(a) * 9); p.rotation.y = -a; animDino(p, 2, i); }); }
         }
         const INTERACTABLES = interactables();
         INTERACTABLES.push(
@@ -13350,6 +13902,8 @@
         function findFocus() {
             let best = null, bestD = Infinity;
             if (ride) { RIDE_IT.pos.copy(player.pos); return RIDE_IT; }
+            const pf = purbaFocus();
+            if (pf === MOUNT_IT) return pf;
             const mf = inMine(player.pos) ? mineFocus() : null;   // ⛏️ a monster near you comes first
             if (mf === MON_IT || mf === REVIVE_IT) return mf;
             const outside = !inHome(player.pos) && !player.sit;
@@ -13365,6 +13919,7 @@
                 if (d0 < it.reach && d < bestD) { best = it; bestD = d; }
             }
             if (mf && (!best || Math.hypot(mf.pos.x - player.pos.x, mf.pos.z - player.pos.z) < bestD)) return mf;
+            if (pf && (!best || pf === NEST_IT || pf === DIG_IT || pf === PENEGG_IT || pf === LEGEND_IT || Math.hypot(pf.pos.x - player.pos.x, pf.pos.z - player.pos.z) * 0.5 < bestD)) return pf;
             if (best && best.id === 'fpot' && (heldItem() || '').startsWith('b_')) return best;
             if (outside) for (const d of state.deco) {
                 if (!MACHINES[d.k]) continue;
@@ -13469,6 +14024,7 @@
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
             else if (typeof e.f === 'string' && e.f.startsWith('mine:') && at) spawnIcon(at, e.f.slice(5));
+            else if (typeof e.f === 'string' && e.f.startsWith('fly:') && REGI[e.f.slice(4)] && (e.w === USER || partnerF && partnerF.pos.distanceTo(player.pos) < 4)) flyTo(e.f.slice(4));
             else if (e.f === 'revive' && e.w !== USER && player.down) { player.down = null; player.group.rotation.z = 0; player.hp = 30; spawnHearts(player.pos.clone().setY(1.8)); }
             else if (e.f === 'hug') startHug();
             else if (e.f === 'gift') {
@@ -13682,6 +14238,7 @@
             sendMine.sq = (sendMine.sq || 0) + 1;
             const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, tl2: leftTool(), role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0, mt: ride === 'd' ? 1 : ride === 'b' ? 2 : 0 };
             if (player.down) o.dn = 1;
+            if (player.mount) o.mo = player.mount;
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -13697,7 +14254,7 @@
                     eg: state.eggs.map(e => e ? e : 0), wb: state.wb, en: state.en, rc: state.recap || null, pots: state.pots.map(encPot), ord: state.orders.map(o => [o.k, o.n, o.due, o.by || '']), pkg: state.pkg, ib: state.ib,
                     wd: { [NA]: state.wardrobe[NA].map(id => CLOTHES.indexOf(CLOTH[id])), [NW]: state.wardrobe[NW].map(id => CLOTHES.indexOf(CLOTH[id])) },
                     pc: state.pkgCloth.map(([id, u]) => [CLOTHES.indexOf(CLOTH[id]), u]),
-                    nc: encNpc(), sy: state.story || null, mn: state.mine, gr: state.gear || null, lb: state.lumbung, bk: state.bank, up: state.up, dl: state.daily, bt: state.boat };
+                    nc: encNpc(), pb: { p: state.purba || null, d: state.dino || [] }, sy: state.story || null, mn: state.mine, gr: state.gear || null, lb: state.lumbung, bk: state.bank, up: state.up, dl: state.daily, bt: state.boat };
                 o.a = animals.map(a => [r2(a.pos.x), r2(a.pos.z), r2(a.heading), a.moving ? 1 : 0, a.mode === 'eat' ? 1 : 0]);
                 o.ev = net.events;
                 o.ack = net.lastQ;
@@ -13743,7 +14300,7 @@
             }
             partnerF.live = !!o.here;
             if (o.zz && !onPartner.zz && started && !sleeping) toast(player.zz ? `${OTHER} juga tidur 💤` : `💤 ${OTHER} sudah tidur. Tidurlah juga di kasur supaya hari berganti.`);
-            onPartner.zz = !!o.zz; onPartner.dn = !!o.dn;
+            onPartner.zz = !!o.zz; onPartner.dn = !!o.dn; onPartner.mo = o.mo || null;
             if (Array.isArray(o.p)) partnerF.netT = o.p.map(Number);
             if (net.mode === 'host' && Array.isArray(o.acts)) {
                 // a friend who reopened the game numbers their actions from the start again
@@ -13798,6 +14355,7 @@
             if (w.ne && typeof w.ne === 'object') state.npcEv = cleanNpcEv(w.ne);
             if (w.mn && typeof w.mn === 'object') state.mine = cleanMine(w.mn);
             if (w.sy && typeof w.sy === 'object') state.story = cleanStory(w.sy);
+            if (w.pb && typeof w.pb === 'object') { state.purba = cleanPurba(w.pb.p); state.dino = cleanPen(w.pb.d); }
             if (w.gr && typeof w.gr === 'object') state.gear = cleanGear(w.gr);
             if (Array.isArray(w.nd)) state.npcDebt = w.nd.filter(x => x && NPCI[x.id] && Number.isFinite(x.due) && Number.isFinite(x.g)).slice(0, 10);
             if (w.fm && typeof w.fm === 'object') { const m = state.fam && state.fam.msg; state.fam = cleanFam(w.fm); state.fam.msg = w.fm.msg && Number.isInteger(w.fm.msg.d) ? { d: w.fm.msg.d, t: String(w.fm.msg.t).slice(0, 400) } : m || null; }
@@ -14206,7 +14764,7 @@
                     if (l.s === 1 && state.day + 1 - l.d >= 3) Object.assign(l, { s: 0, hp: 3 });
                     else if (l.s === 2 && state.day + 1 - l.d >= 4) Object.assign(l, { s: 0, hp: 3 });
                 }
-                wildNight(); reqNight(); carpNight(); satwaNight(); famNight(); npcDebtNight();
+                wildNight(); reqNight(); carpNight(); satwaNight(); famNight(); npcDebtNight(); purbaNight();
                 for (let n = 0; n < 3; n++) { const i = Math.floor(Math.random() * WEED_POS.length), w = WEED_POS[i]; if (!state.tiles[tileKey(Math.round(w.x), Math.round(w.z))]) state.weeds[i] = 1; }
                 villageNight(newSeason !== oldSeason);
                 state.day++;
@@ -14276,7 +14834,7 @@
                 homeKey.intensity = roof ? sun.intensity : 0.9 + 0.55 * day;
                 homeHemi.intensity = roof ? hemi.intensity + 0.15 : 0.85 + 0.25 * day;
                 homeKey.color.copy(roof ? sun.color : new THREE.Color(0xfff0d6));
-                if (inMine(player.pos)) { const S0 = FS(mineN(player.pos)), aula = !!(S0 && S0.room); homeScene.background = S0 && S0.zone.fx === 'sea' ? SEA_BG : MINE_BG; homeKey.intensity = aula ? 0.5 : 0.18; homeHemi.intensity = aula ? 0.7 : 0.32; }
+                if (inMine(player.pos)) { const S0 = FS(mineN(player.pos)), aula = !!(S0 && S0.room); homeScene.background = S0 && S0.zone.light ? PURBA_SKY : S0 && S0.zone.fx === 'sea' ? SEA_BG : MINE_BG; if (S0 && S0.zone.light) { homeKey.intensity = 1.4; homeHemi.intensity = 1.15; } else homeKey.intensity = aula ? 0.5 : 0.18; homeHemi.intensity = aula ? 0.7 : 0.32; }
             }
             for (const l of lamps) { l.light.intensity = night * 14; l.lantern.material.emissiveIntensity = night * 1.2; }
         }
@@ -14554,7 +15112,7 @@
                 const run = keys.has('ShiftLeft') || keys.has('ShiftRight') || len > 0.95 && joy.id !== null || !!(player.goal && player.goalFar);
                 const tired = energyOf(USER) < 10;
                 player.moveT = elapsed; if (run && !tired) player.runT = elapsed;
-                const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1) * (inMine(player.pos) ? mineSpeed() : 1); // wading through a paddy is slow
+                const sp = (run && !tired ? 7.5 : tired ? 3.2 : 4.5) * Math.min(1, len) * (inPaddy(player.pos) ? 0.45 : 1) * (inMine(player.pos) ? mineSpeed() : 1) * mountSpeed(); // wading through a paddy is slow
                 if (ride === 'd') {
                     // on the bike: much faster, in short steps so it never slips through a fence
                     const v = motorSpeed() * Math.min(1, len) * (inPaddy(player.pos) ? 0.3 : 1), n = Math.max(1, Math.ceil(v * dt / 0.25));
@@ -14592,10 +15150,11 @@
             player.group.rotation.set(0, player.heading, 0);
             player.moving = moving;
             setHeld(player, player.sit || ride ? null : tool); setHeld2(player, player.sit || ride ? null : leftTool());
-            animateFarmer(player, moving && !ride, dt);
+            animateFarmer(player, moving && !ride && !player.mount, dt);
             if (player.sit) { player.pos.set(player.sit.x, 0, player.sit.z); sitPose(player, player.sit.k, player.sit.y, player.sit.rec); }
             else player.pos.y = inHome(player.pos) ? 0 : groundY(player.pos.x, player.pos.z);
             if (ride === 'd') ridePose(player, 'd', player.pos.y);
+            else if (player.mount) ridePose(player, 'd', player.pos.y + MOUNT_H[player.mount]);
             if (player.prayDone && player.sit && player.sit.k === 2 && elapsed - player.prayStart >= PRAY_TIME) { const done = player.prayDone; standUp(); done(); }
         }
 
@@ -14703,7 +15262,7 @@
             updateRide(dt);
             updateSatwa(dt); updatePuffs(dt);
             updateKids(dt); updateFamVis();
-            updateMine(dt);
+            updateMine(dt); updatePurba(dt);
             updateNPCs(dt);
             regionStream(dt);
             seaSpot(dt);
@@ -14780,7 +15339,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { STORIES, storyNext, openStory, heartsOf, addFriend, FS, floorTitle, enterDoor, PRASASTI, pasarOpen, openPasar, openTungku, openAltar, openBless, AKSARA, openAksaraGate, get mineFloors() { return mineFloors; }, lawaLuck, GATOT_Q, gatotDone, JEWEL, GEODE, partnerHere, BOSS, GEAR, ARM_SHOP, gearOf, hpMax, openSmithArms, openGatot, mineRoll, mineSweep, useMine, openBossRiddle, bossBeaten, doorOpen, MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { get penVis() { return penVis; }, updatePurba, PURBA, PB, DINO_SPOTS, get wildDinos() { return wildDinos; }, openRiset, openPurbaBook, openPen, startMount, stopMount, purbaNight, isRes, flyTo, dinoModel, lembahSpawn, STORIES, storyNext, openStory, heartsOf, addFriend, FS, floorTitle, enterDoor, PRASASTI, pasarOpen, openPasar, openTungku, openAltar, openBless, AKSARA, openAksaraGate, get mineFloors() { return mineFloors; }, lawaLuck, GATOT_Q, gatotDone, JEWEL, GEODE, partnerHere, BOSS, GEAR, ARM_SHOP, gearOf, hpMax, openSmithArms, openGatot, mineRoll, mineSweep, useMine, openBossRiddle, bossBeaten, doorOpen, MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();

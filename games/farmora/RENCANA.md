@@ -158,10 +158,10 @@ Isi pintu 1 (Tambang Bertingkat):
 - [x] **Barang dari monster**: lendir jadi pupuk super, cangkang jadi perhiasan, sisik Lele Siluman jadi umpan legendaris, tanduk Buto Ijo jadi senjata terkuat.
 - [x] Cerita khusus warga di keakraban ❤️ 3, 6, dan 9.
 
-## 🦖 Tahap 12: Farmora Purba
+## 🦖 Tahap 12: Farmora Purba ✅
 Hewan purba hidup kembali dan tersebar sesuai habitat. Tidak ada membunuh hewan; pemangsa jadi tantangan (mengaum, mengejar sebentar, energi berkurang).
-- [ ] **A:** Pusat Riset Purba di kota, fosil, telur, dan penangkaran di farm. Hewan pertama: Stegodon kerdil Flores (membajak sawah, bisa ditunggangi) dan Compsognathus (peliharaan kecil).
-- [ ] **B:** Hutan dan Gunung.
+- [x] **A:** Pusat Riset Purba di kota, fosil, telur, dan penangkaran di farm. Hewan pertama: Stegodon kerdil Flores (membajak sawah, bisa ditunggangi) dan Compsognathus (peliharaan kecil).
+- [x] **B:** Hutan dan Gunung.
   - Velociraptor: kawanan; setelah akrab jadi penjaga farm
   - Gigantopithecus: memetik buah tinggi
   - Harimau Jawa: sahabat paling sulit didapat
@@ -169,15 +169,15 @@ Hewan purba hidup kembali dan tersebar sesuai habitat. Tidak ada membunuh hewan;
   - Triceratops: tunggang cepat di darat
   - Pteranodon: terbang berdua sebagai jalur cepat antar wilayah
   - Brachiosaurus: pemandangan di dekat puncak
-- [ ] **C:** Pantai dan Pulau Kencana (jadi Lembah Purba).
+- [x] **C:** Pantai dan Pulau Kencana (jadi Lembah Purba).
   - Archelon: berenang ke pulau
   - Plesiosaurus: legenda danau
   - Mosasaurus: hanya terlihat dari perahu
   - Ankylosaurus: memecah batu besar
   - T-rex: legenda terakhir
-- [ ] Desa Lembah Sari: bangau raksasa Flores di petak sawah, Parasaurolophus sebagai "terompet" subuh. Kota: Archaeopteryx di atap gedung.
-- [ ] **Telur dino** jadi bahan masakan baru, dan **buku hewan purba** dengan kartu fakta.
-- [ ] **Festival Purba** (Pulau Kencana: tunggang Triceratops, pameran telur, parade Pteranodon) dan **Malam Legenda Danau** (Plesiosaurus di bawah bulan purnama).
+- [x] Desa Lembah Sari: bangau raksasa Flores di petak sawah, Parasaurolophus sebagai "terompet" subuh. Kota: Archaeopteryx di atap gedung.
+- [x] **Telur dino** jadi bahan masakan baru, dan **buku hewan purba** dengan kartu fakta.
+- [x] **Festival Purba** (Pulau Kencana: tunggang Triceratops, pameran telur, parade Pteranodon) dan **Malam Legenda Danau** (Plesiosaurus di bawah bulan purnama).
 
 ## 💞 Tahap 13: Hewan ternak dan momen berdua
 - [x] **Renovasi rumah** (Rumah keluarga, Rumah besar) dan **anak** (paling banyak 2, hamil atau adopsi, bayi sampai dewasa, sifat dan cita-cita).
