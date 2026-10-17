@@ -269,7 +269,7 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 - **Punya anak (paling banyak 2)**, setelah Rumah keluarga selesai:
   - Datangi kamar anak (lantai 2) lalu pilih **Bicarakan rencana punya anak**: 🤰 **hamil** (lahir sekitar 14 hari game kemudian) atau 📝 **adopsi** (datang 3 hari kemudian).
   - Pasanganmu menjawab di kamar anak. Kalau pasangan sedang turu, kamu bisa memastikan kalian sudah sepakat berdua.
-  - Setelah si kecil datang, **beri nama** dari jendela anak (dekati si kecil atau kamar anak).
+  - Setelah si kecil datang, jendela anak **terbuka sendiri** untuk memberi nama (sekali sehari di tiap HP sampai diberi nama), atau dekati si kecil di kamar anak.
   - Anak pertama laki-laki atau perempuan diundi 50:50 (kejutan); anak kedua selalu kebalikannya, jadi kalian punya sepasang.
   - **Kembar:** kehamilan pertama punya peluang 15% kembar sepasang (laki-laki dan perempuan). Seminggu sebelum lahir, bidan desa memberi kabar hasil USG. Si kembar langsung mengisi kedua kamar anak.
 - **Tahap tumbuh** (kecepatan bisa diatur di jendela anak: Santai ×2 lebih lama, Normal, Cepat ×½):

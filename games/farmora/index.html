@@ -11243,8 +11243,11 @@
                 if (!KIDTAG[i] || KIDTAG[i].t !== nm || KIDTAG[i].g !== f.group) { if (KIDTAG[i] && KIDTAG[i].o.parent) KIDTAG[i].o.parent.remove(KIDTAG[i].o); const o = nameTag(nm), L = KID_LOOK[kidFigs[i].st]; o.scale.multiplyScalar(0.75 / L.s); if (f.baby) o.position.set(0, 0.8, 1.5); else o.position.y = L.tag; f.group.add(o); KIDTAG[i] = { t: nm, g: f.group, o }; }
             }
             if (F.msg && F.msg.d === state.day && famShown !== state.day && !sleeping && !dlgOpen()) { famShown = state.day; setTimeout(() => toast(F.msg.t), 3500); }
+            // a new baby without a name: the naming window opens by itself (once a day on each phone, until named)
+            const un = F.kids.findIndex(k => !k.name);
+            if (un >= 0 && started && !sleeping && !travelling && !dlgOpen() && namePrompt !== state.day) { namePrompt = state.day; setTimeout(() => { if (!dlgOpen() && famS().kids[un] && !famS().kids[un].name) { toast('👶 Si kecil sudah datang! Yuk beri nama 💕'); openKid(un); } }, 4500); }
         }
-        let famShown = 0;
+        let famShown = 0, namePrompt = 0;
         // ---- 🏡 the renovated house: a carport, then a side wing; inside, a bathtub and a modern kitchen ----
         const famVis = { out: 0, home: 0 };
         function updateFamVis() {
