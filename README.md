@@ -484,6 +484,19 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
   - ⛏️ **Beliung emas** (setelah tempa besi; 5 emas + 2.000 G) memecah batu tambang lebih cepat.
   - Di 🧺 Kriya: 💍 cincin akik, 📿 kalung kecubung, 🦪 gelang cangkang, ✨ anting kalimaya. Berikan ke pasangan: langsung dipakai, +20 ⚡ untuk berdua. Di Kriya juga ada 🪱 **umpan legendaris** dari sisik Lele Siluman (ikan langka 6× lebih sering menggigit, terpakai saat dapat ikan langka).
   - Di meja kerja: 🧪 **pupuk super** dari lendir (pupuk biasa, dan tanaman langsung tumbuh sehari).
+- **🚪 Pintu 2–8** (terbuka berurutan; tujuan tiap pintu tertulis di labelnya):
+
+  | Pintu | Isi | Tujuan (membuka pintu berikutnya) |
+  |---|---|---|
+  | 2. 🦇 Gua Lawa Angker | gua tanpa dasar, bentuknya acak tiap hari, monster semua zona dan makin kuat, 🕳️ lubang yang menjatuhkanmu dua lapis, hoki harian dari Mbah Dukun, rekor terdalam | capai kedalaman 25 |
+  | 3. 🌋 Kawah Candradimuka | balai dengan 🔥 **Tungku Empu Gandring** (tempa ✨ keris pusaka, api untuk senjata +2, api untuk beliung), lalu 9 lapisan lava dan bos **Banaspati Raja** | kalahkan Banaspati Raja |
+  | 4. ⚡ Ruang Ujian Dewa | 10 ruangan berisi gelombang monster; tiap ruangan lulus memberi ✨ pecahan cahaya dan pilihan **berkah** (Gatotkaca, Srikandi, Semar, Dewi Sri, Nyi Roro Kidul) yang berlaku sampai keluar; **Altar Cahaya** untuk berkah abadi (nyawa +10, serangan +1); bos **Batara Kala** di ruangan 10 | kalahkan Batara Kala |
+  | 5. 🐠 Gua Bawah Laut | perlu 🤿 baju selam (Mas Agus); 🫧 oksigen terbatas, isi di gelembung udara; tanam 6 karang (pakai kerang), peti kapal VOC, lalu sarang **Gurita Raksasa** | kalahkan Gurita Raksasa |
+  | 6. 🛡️ Pertahanan Bor | nyalakan bor emas lalu jaga 3 menit dari monster (rawat bor, pasang 🪤 perangkap); berhasil = emas (dan intan pertama kali), sekali sehari | jaga bor sampai selesai |
+  | 7. 🏮 Pasar Gaib | buka **Jumat malam** 18.00–04.00: tukar-menukar mingguan dengan jin, undian peti 500 G, jual permata dengan harga jin yang naik turun | berdagang pertama kali |
+  | 8. 📜 Pintu Aksara Jawa | cari 5 **batu prasasti** beraksara (ꦲ ꦤ ꦕ ꦫ ꦏ) di depan bangunan umum di lima wilayah, susun di gerbang → harta Majapahit (10.000 G + mahkota), lalu **ujian Naga Basuki**: bertahan 45 detik | lulus ujian → keris pusaka + sisik naga |
+
+  Di mode Damai: bos dan ruangan dewa diganti teka-teki, bor cukup dirawat supaya tidak terlalu panas; ujian Naga Basuki tetap ada.
 - **🤸 Hindar** (tombol bulat atau R): berguling cepat, tidak bisa dilukai sesaat. **🌀 Sapuan** (tombol atau F): jurus silat yang mengenai semua monster di sekelilingmu, tiap 6 detik.
 - **Monster dan ❤️ nyawa:**
   - Mode bawaan **⚔️ Petualang**: monster berkeliaran dan menyerang. Dekati lalu tekan tombol aksi untuk menyerang; 🗡️ golok paling kuat (3), beliung, kapak, cangkul, sabit (2), tangan kosong (1). Monster kalah kadang meninggalkan barang (lendir, batu bara, bisa lipan, sayap kelelawar, kristal kuarsa, sisik ular).

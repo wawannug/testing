@@ -111,7 +111,8 @@ Pintu lain yang sudah ada di tahap lain: **Gua Waktu** (masuk ke Lembah Purba, t
 **Bagian 1 sudah jadi ✅:** Aula Simpang dengan 8 pintu (pintu 1 terbuka), Tambang Bertingkat lantai 1–20 (zona Lorong Tanah dan Gua Kapur), bentuk lantai tetap dengan batu baru tiap hari, tangga di bawah batu, lift tiap 5 lantai, peti harta lantai 10 dan 20, 6 monster biasa, golok dari Pak Gatot, nyawa ❤️ terpisah dari energi, mode Petualang (bawaan) dan Damai, pingsan = hari berakhir.
 **Bagian 2–3 sudah jadi ✅:** lantai 21–40 (Sungai Bawah Tanah, Perut Gunung) dengan kolam air dan lava, 6 monster baru (kepiting batu menyamar), bos Raja Tikus, Kalajengking Kristal Raksasa, Lele Siluman, Buto Ijo (Damai: teka-teki), senjata (tongkat, celurit, ketapel, badik, tombak, mandau), pelindung, barang bantu Pak Gatot, tombol hindar dan jurus sapuan.
 **Bagian 4 sudah jadi ✅:** runtuhan batu, gas tambang, lava, air naik saat hujan, roboh dan ditolong pasangan, tugas Pak Gatot, geode, beliung emas, perhiasan untuk pasangan, umpan legendaris, pupuk super.
-**Berikutnya:** pintu 2–8 sesuai urutan, lalu cerita warga.
+**Bagian 5 sudah jadi ✅:** pintu 2–8 (Gua Lawa Angker, Kawah Candradimuka dengan Tungku Empu Gandring, Ruang Ujian Dewa dengan berkah dan Altar Cahaya, Gua Bawah Laut dengan oksigen, karang, kapal VOC dan Gurita Raksasa, Pertahanan Bor, Pasar Gaib, Pintu Aksara Jawa dengan prasasti dan ujian Naga Basuki).
+**Berikutnya:** cerita warga.
 
 Isi pintu 1 (Tambang Bertingkat):
 - [ ] **4 zona**:
