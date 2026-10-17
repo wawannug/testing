@@ -12,6 +12,60 @@ Koleksi game kecil yang bisa dimainkan langsung di browser. Buka `index.html` un
 
 Untuk menambah game baru, buat folder `games/<nama-game>/index.html`, lalu tambahkan kartunya di `index.html`. Sediakan juga tautan kembali ke `../../index.html`.
 
+## 🚀 Deploy ke playground.wadimar.com (GitHub Pages)
+Situs ini dilayani **GitHub Pages** langsung dari repo ini, dengan domain sendiri **playground.wadimar.com**. Gratis, dan setiap perubahan yang di-push ke branch Pages otomatis tayang dalam 1–2 menit.
+
+| Halaman | Alamat |
+| --- | --- |
+| Menu awal | https://playground.wadimar.com/ |
+| Farmora | https://playground.wadimar.com/games/farmora/ |
+| Ladago | https://playground.wadimar.com/games/ladago/ |
+| Fotoin | https://playground.wadimar.com/games/fotoin/ |
+
+### 1. Nyalakan GitHub Pages (sekali saja)
+1. Buka **github.com/wawannug/testing → Settings → Pages**.
+2. Di **Build and deployment**, pilih **Source: Deploy from a branch**.
+3. Pilih **Branch: `claude/cloud-ldok5v`** dengan folder **`/ (root)`**, lalu tekan **Save**. Kalau nanti digabung ke `main`, ganti ke `main`.
+4. Tunggu 1–2 menit, lalu cek https://wawannug.github.io/testing/games/farmora/.
+
+### 2. Arahkan subdomain di Spaceship (sekali saja)
+1. Di **Spaceship → Pengelola Hosting**, lepaskan `playground.wadimar.com` dari hosting Spaceship lewat menu ⋮ kalau masih tersambung.
+2. Buka **Spaceship → wadimar.com → DNS / Advanced DNS**. Hapus record lama yang host-nya `playground` (tipe A, AAAA, atau CNAME).
+3. Tambahkan satu record:
+
+   | Type | Host | Value |
+   | --- | --- | --- |
+   | CNAME | `playground` | `wawannug.github.io` |
+
+   Isi tanpa `https://` dan tanpa `/testing`. Record lain milik `wadimar.com` jangan diubah.
+
+### 3. Pasang domain di GitHub (sekali saja)
+1. Buka **Settings → Pages → Custom domain**, isi `playground.wadimar.com`, lalu tekan **Save**. File `CNAME` di repo ini sudah berisi domain tersebut.
+2. Tunggu sampai muncul **DNS check successful** (beberapa menit sampai beberapa jam).
+3. Centang **Enforce HTTPS**. Kalau masih abu-abu, tunggu sertifikat jadi (sampai sekitar 1 jam).
+4. **Disarankan:** di foto profil GitHub **→ Settings → Pages → Add a domain**, isi `wadimar.com`, lalu tambahkan record **TXT** yang diberikan GitHub di DNS Spaceship dan tekan **Verify**. Ini mencegah orang lain memakai subdomain kalian.
+
+### 4. Update berikutnya
+- Tidak perlu langkah apa pun. Setiap commit yang di-push ke branch Pages otomatis tayang dalam 1–2 menit.
+- Kalau HP masih menampilkan versi lama, muat ulang halaman atau tutup lalu buka lagi tab-nya.
+- Link artifact claude.ai diperbarui terpisah (dipublikasi ulang dari sesi Claude). Save di sana tersimpan di penyimpanan artifact, bukan di HP.
+
+### 5. Pindah alamat: bawa save Farmora
+Save di HP tersimpan per alamat situs, jadi save di `wawannug.github.io` tidak terbaca otomatis di `playground.wadimar.com`. Lakukan di **masing-masing HP**:
+1. Di alamat lama, tekan **🗂️ Cadangan → ⬇️ Unduh save ke file**.
+2. Di alamat baru, tekan **🗂️ Cadangan → ⬆️ Buka file save** dan pilih file tadi.
+
+Kalau alamat lama sudah otomatis pindah ke domain baru, save terakhir tetap bisa didapat dari relay main berdua: buka game saat pasangan sedang online.
+
+### 🛠️ Kalau ada masalah
+| Masalah | Solusi |
+| --- | --- |
+| *DNS check unsuccessful* | Pastikan CNAME `playground` mengarah ke `wawannug.github.io` dan tidak ada record A untuk `playground`. Tunggu sebentar, lalu tekan **Check again**. |
+| *Situs tidak aman* | Sertifikat HTTPS belum jadi. Tunggu sampai sekitar 1 jam, lalu centang **Enforce HTTPS**. |
+| Muncul halaman Spaceship atau parkir | Subdomain masih tersambung ke hosting Spaceship (ulangi langkah 2.1), atau DNS di HP masih menyimpan data lama. Coba mode penyamaran atau data seluler. |
+| Error 404 dari GitHub | Cek **Settings → Pages**: branch harus `claude/cloud-ldok5v`, dan Custom domain harus berisi `playground.wadimar.com`. |
+| Game terbuka tapi progres kosong | Save belum dipindah. Lihat langkah 5. |
+
 ---
 
 # Farmora 🌾
@@ -444,8 +498,5 @@ Pilih **Mode → Berdua online 💞**. Satu orang menekan **Buat ruang foto** la
 
 Video mengalir langsung antar perangkat lewat WebRTC melalui [PeerJS](https://peerjs.com/), dengan server TURN publik (Open Relay) sebagai cadangan. Bersamaan dengan itu, kedua HP juga tersambung lewat relay internet (broker MQTT publik). Jadi kalau koneksi langsung gagal, misalnya di data seluler, kalian tetap terhubung: hitung mundur dan foto berdua tetap jalan, dan pratinjau pasangan tampil sebagai gambar kecil yang diperbarui beberapa kali per detik.
 
-**Penting:** kamera dan mode berdua tidak jalan di link artifact claude.ai, karena link itu memblokir kamera dan WebRTC. Pakai versi web, misalnya GitHub Pages:
-1. Buka **Settings → Pages** di repo ini.
-2. Di **Source**, pilih *Deploy from a branch*, branch `claude/cloud-ldok5v` (atau `main` setelah digabung), folder `/ (root)`, lalu **Save**.
-3. Setelah 1–2 menit, Fotoin bisa dibuka di https://wawannug.github.io/testing/games/fotoin/
+**Penting:** kamera dan mode berdua tidak jalan di link artifact claude.ai, karena link itu memblokir kamera dan WebRTC. Pakai versi web di https://playground.wadimar.com/games/fotoin/ (cara deploy-nya ada di bagian **🚀 Deploy** di atas).
 
