@@ -467,6 +467,23 @@ Pintu depan rumah sekarang membawa masuk ke dalam rumah (seperti di Stardew Vall
 
   Pelindung (hanya untuk yang membeli): ⛑️ helm proyek (luka −10%, lampu terang), 🦺 rompi kulit (−15%) atau 🛡️ rompi besi (−30%), 🥾 sepatu bot (−5%), 🧿 jimat akik (nyawa maksimal +30).
 - **🧰 Toko Pak Gatot** (meja Tambang Rakyat): 🧉 ramuan (+50 ❤️), 🔥 obor (dipegang: monster kecil tak berani mendekat), 🧨 petasan (melukai semua monster di dekatmu), 🧂 garam kasar (monster kabur sebentar), 💨 bom asap (monster kehilangan jejakmu 8 detik). Pegang barangnya lalu tekan tombol aksi di lantai tambang.
+- **⚠️ Bahaya:**
+  - **Runtuhan batu** mulai lantai 5: muncul retakan gelap di lantai, lalu batu jatuh. Menghindarlah.
+  - **☁️ Gas tambang** (awan hijau) kadang muncul di lantai 3–20 dan melukai pelan-pelan.
+  - **Kolam lava** di Perut Gunung membakar.
+  - Saat **hujan**, air di Sungai Bawah Tanah naik sehingga langkahmu lebih lambat.
+  - Di mode Damai, luka dari bahaya hanya separuh.
+- **🤝 Saling menolong:** kalau nyawamu habis saat pasanganmu ada di lantai yang sama, kamu **roboh**, bukan pingsan. Pasanganmu punya 20 detik untuk menekan **🤝 Tolong berdiri** (nyawa kembali 30). Lampu kepala juga lebih terang kalau kalian berdekatan.
+- **📜 Tugas Pak Gatot** (berurutan, di toko Pak Gatot):
+  1. Bawakan 10 batu bara → 🔦 lampu karbit lebih terang.
+  2. Kalahkan Raja Tikus → 😷 masker anti gas.
+  3. Sampai lantai 30 dan bawakan 3 kuarsa → 🗝️ izin masuk Tambang Rakyat kapan saja.
+  4. Bawakan 5 sisik kadal lava → 3.000 G dan 🧿 jimat untuk berdua.
+- **Hasil tambang:**
+  - 🪨 **Geode** dibelah Mas Agus (25 G); isinya kuarsa, perak, akik, kecubung, emas, kalimaya, kadang intan atau fosil.
+  - ⛏️ **Beliung emas** (setelah tempa besi; 5 emas + 2.000 G) memecah batu tambang lebih cepat.
+  - Di 🧺 Kriya: 💍 cincin akik, 📿 kalung kecubung, 🦪 gelang cangkang, ✨ anting kalimaya. Berikan ke pasangan: langsung dipakai, +20 ⚡ untuk berdua. Di Kriya juga ada 🪱 **umpan legendaris** dari sisik Lele Siluman (ikan langka 6× lebih sering menggigit, terpakai saat dapat ikan langka).
+  - Di meja kerja: 🧪 **pupuk super** dari lendir (pupuk biasa, dan tanaman langsung tumbuh sehari).
 - **🤸 Hindar** (tombol bulat atau R): berguling cepat, tidak bisa dilukai sesaat. **🌀 Sapuan** (tombol atau F): jurus silat yang mengenai semua monster di sekelilingmu, tiap 6 detik.
 - **Monster dan ❤️ nyawa:**
   - Mode bawaan **⚔️ Petualang**: monster berkeliaran dan menyerang. Dekati lalu tekan tombol aksi untuk menyerang; 🗡️ golok paling kuat (3), beliung, kapak, cangkul, sabit (2), tangan kosong (1). Monster kalah kadang meninggalkan barang (lendir, batu bara, bisa lipan, sayap kelelawar, kristal kuarsa, sisik ular).

@@ -4284,6 +4284,13 @@
             kristalraksasa: { label: 'Kristal kalajengking raksasa', icon: '🔮', price: 1500 },
             sisiklele: { label: 'Sisik Lele Siluman', icon: '🐟', price: 2200 },
             tandukbuto: { label: 'Tanduk Buto Ijo', icon: '🦴', price: 4000 },
+            geode: { label: 'Batu belah (geode)', icon: '🪨', price: 30 },
+            pupuksuper: { label: 'Pupuk super', icon: '🧪', price: 60 },
+            cincinakik: { label: 'Cincin akik', icon: '💍', price: 1100 },
+            kalungkecubung: { label: 'Kalung kecubung', icon: '📿', price: 1200 },
+            gelangcangkang: { label: 'Gelang cangkang', icon: '🦪', price: 520 },
+            antingkalimaya: { label: 'Anting kalimaya', icon: '✨', price: 1800 },
+            umpanlegenda: { label: 'Umpan legendaris', icon: '🪱', price: 600 },
             // ⛏️ things to use in the mine (Pak Gatot's shop)
             ramuan: { label: 'Ramuan penyembuh', icon: '🧉', price: 90 },
             obor: { label: 'Obor', icon: '🔥', price: 25 },
@@ -4958,6 +4965,7 @@
             { out: 'x_sprinklerbesi', n: 1, need: { besi: 2, tembaga: 1 }, note: 'Menyiram 5×5 kotak di sekitarnya setiap pagi' },
             ...Object.entries(MACHINES).map(([k, M]) => ({ out: 'x_' + k, n: 1, need: M.craft, note: `Mesin: ${M.take === 'fruit' ? 'buah apa saja → selai' : M.take.map(t => `${t[1]} ${PRODUCTS[t[0]].label.toLowerCase()} → ${t[3]} ${PRODUCTS[t[2]].label.toLowerCase()}`).join(', ')} · ${M.days} hari` })),
             { out: 'pupuk', n: 1, need: { rumput: 3 }, note: 'Kompos dari rumput' },
+            { out: 'pupuksuper', n: 2, need: { lendir: 3, pupuk: 1 }, note: 'Seperti pupuk, dan tanaman langsung tumbuh sehari' },
         ];
         for (const k of FEED_KINDS) ITEMS['pk_' + k] = { label: `Pakan ${FEED_NAME[k]}`, icon: '🌾' };
         // drawn icons for the tools (nicer than emoji, and there is no emoji for a hoe or a watering can)
@@ -8195,6 +8203,7 @@
         // is a building open now?
         function vOpen(b) {
             const m = state.minutes;
+            if (b.id === 'tambang' && gatotDone('izin')) return true;   // 🗝️ Pak Gatot's permit
             if (b.house) return m >= 360 && m < 1260 && NPCS.some(n => n.home === b.id && n.st && !n.st.walk && n.st.p === b.id && n.st.a !== 'sleep');
             if (b.r === 'pantai' && acaraIs('nyepi')) return false;
             const kp = KEEPER[b.id], hr = kp && !WORSHIP.has(b.id) ? hoursOf(kp, state.day) : b.open;
@@ -8808,7 +8817,11 @@
         const MAKES = {
             herbal: [{ id: 'jamu', label: '🥤 Jamu kunyit asam ×2', need: { kunyit: 1, jahe: 1, gula: 1 }, out: 'jamu', n: 2, fee: 5 }],
             kopi: [{ id: 'sangrai', label: '☕ Kopi sangrai premium', need: { kopi: 2 }, out: 'kopisangrai', n: 1, fee: 5 }],
-            kriya: [{ id: 'anyaman', label: '🧺 Anyaman', need: { rumput: 2, kayu: 1 }, out: 'anyaman', n: 1, fee: 0 }, { id: 'ukiran', label: '🗿 Ukiran kayu', need: { kayu: 3 }, out: 'ukiran', n: 1, fee: 0 }],
+            kriya: [{ id: 'anyaman', label: '🧺 Anyaman', need: { rumput: 2, kayu: 1 }, out: 'anyaman', n: 1, fee: 0 }, { id: 'ukiran', label: '🗿 Ukiran kayu', need: { kayu: 3 }, out: 'ukiran', n: 1, fee: 0 },
+                // 💍 jewellery from the mine: a present your partner wears
+                { id: 'cincin', label: '💍 Cincin akik', need: { akik: 1, perak: 1 }, out: 'cincinakik', n: 1, fee: 50 }, { id: 'kalung', label: '📿 Kalung kecubung', need: { kecubung: 1, emas: 1 }, out: 'kalungkecubung', n: 1, fee: 80 },
+                { id: 'gelang', label: '🦪 Gelang cangkang', need: { capitbatu: 2, perak: 1 }, out: 'gelangcangkang', n: 1, fee: 30 }, { id: 'anting', label: '✨ Anting kalimaya', need: { kalimaya: 1, emas: 1 }, out: 'antingkalimaya', n: 1, fee: 100 },
+                { id: 'umpan', label: '🪱 Umpan legendaris ×3', need: { sisiklele: 1 }, out: 'umpanlegenda', n: 3, fee: 0 }],
         };
         function openMake(type) {
             const b = VB.find(b => b.type === type), list = MAKES[type];
@@ -9763,6 +9776,7 @@
                     p.w = true; p.dry = 0;
                     emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
                 }
+                if (!p.f && takeBag(who, 'pupuksuper')) { p.f = true; p.p = (p.p || 0) + 1; emitEvent(`Memberi pupuk super ${d.label} 🧪✨ · langsung tumbuh sehari`, 'icon:🧪', at, who); return; }
                 if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
@@ -9901,6 +9915,7 @@
                     p.w = true; p.dry = 0;
                     emitEvent(`Menyiram ${d.icon} ${d.label} 💧`, 'water', at, who); return;
                 }
+                if (!p.f && takeBag(who, 'pupuksuper')) { p.f = true; p.p = (p.p || 0) + 1; emitEvent(`Memberi pupuk super ${d.label} 🧪✨ · langsung tumbuh sehari`, 'icon:🧪', at, who); return; }
                 if (!p.f && takeBag(who, 'pupuk')) { p.f = true; emitEvent(`Memberi pupuk ${d.label} 🧪 · tumbuh lebih cepat`, 'icon:🧪', at, who); return; }
                 emitEvent(`${d.label} sudah disiram hari ini 🌱`, 'none', null, who);
             },
@@ -10018,6 +10033,7 @@
                 if (!addBag(who, k, 1)) { emitEvent(FULL_MSG, 'none', null, who); return; }
                 const f = FISH_DEF[k], FC = festToday(), fm = festMine(who);
                 if (k !== 'sepatu' && FC && FC.kind === 'fish' && festLive(FC) && fm && fm.j && !fm.r) fm.n = (fm.n || 0) + 1;
+                if (f && f.d >= 70 && have(who, 'umpanlegenda')) takeBag(who, 'umpanlegenda', 1);
                 if (f && f.d >= 70) jot(`🎣 ${who} menangkap ${PRODUCTS[k].icon} ${PRODUCTS[k].label}, ikan langka! ⭐`);
                 else if (k !== 'sepatu' && firstTime('ikan')) jot(`🎣 Ikan pertama: ${who} dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}`);
                 emitEvent(k === 'sepatu' ? 'Eh, yang tersangkut malah 👢 sepatu bot tua 😅' : `Dapat ${PRODUCTS[k].icon} ${PRODUCTS[k].label}!${f.d >= 70 ? ' ⭐ Ikan langka!' : ''} 🎣`, 'icon:' + PRODUCTS[k].icon, null, who);
@@ -10039,6 +10055,7 @@
                 const to = otherOf(who), it = ITEMS[k];
                 if (!it || isTool(k) || !takeBag(who, k)) return;
                 if (!addBag(to, k, 1)) { addBag(who, k, 1); emitEvent(`Tas ${to} penuh, hadiahnya belum bisa diberikan 🎁`, 'none', null, who); return; }
+                if (JEWEL[k]) { addEnergy(who, 20); addEnergy(to, 20); (state.jewel ||= {})[to] = k; emitEvent(`💍 ${to} langsung memakai ${it.icon} ${it.label} darimu. Cantik sekali! +20 ⚡ untuk berdua`, 'gift', null, who); if (firstTime('jewel')) jot(`💍 ${who} memberi ${it.label} untuk ${to}`); return; }
                 emitEvent(`Memberi ${it.icon} ${it.label} untuk ${to} 🎁`, 'gift', null, who);
             },
             mandi(who) {
@@ -10424,6 +10441,7 @@
                     const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
                     if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
                     if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
+                    if (!p.f && have(USER, 'pupuksuper') > 0) return `Beri pupuk super ${d.label} 🧪✨ (di tas ${have(USER, 'pupuksuper')})`;
                     if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
                     if (rainOnRoof()) return `${d.icon} ${d.label} · disiram hujan 🌧️ · siap ${left} hari lagi`;
                     return `${d.icon} ${d.label} · siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
@@ -10713,12 +10731,13 @@
             SEA.pos.set(SEA.x, 0, SEA.z);
         }
         function rollFish(big) {
-            if (Math.random() < 0.06) return 'sepatu';
+            const bait = have(USER, 'umpanlegenda') > 0;
+            if (!bait && Math.random() < 0.06) return 'sepatu';
             const h = state.minutes / 60, night = h >= 18 || h < 5, morning = h >= 5 && h < 10;
             // big pond and lake, the little duck pond, the sea (and the deep sea when you rented a boat today)
             const kind = big === true ? 'big' : big === false ? 'small' : big;
             const pool = FISH.filter(f => kind === 'sea' ? f.where === 'sea' || f.where === 'deep' && boatToday() : kind === 'river' ? ['both', 'small'].includes(f.where) || ['udang', 'baung', 'patin'].includes(f.key) : kind === 'lake' ? ['both', 'big', 'lake'].includes(f.where) : f.where === 'both' || f.where === kind);
-            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1)
+            const w = f => f.w * (f.time === 'night' ? (night ? 3 : 0.25) : f.time === 'morning' ? (morning ? 2.5 : 0.5) : 1) * (isWet() && f.d >= 50 ? 1.6 : 1) * (bait && f.d >= 70 ? 6 : 1)
             let r = Math.random() * pool.reduce((t, f) => t + w(f), 0);
             for (const f of pool) { r -= w(f); if (r <= 0) return f.key; }
             return pool[0].key;
@@ -11692,12 +11711,12 @@
         // home and the day ends.
         const MINE_ZONES = [
             { name: '🟤 Lorong Tanah', floor: 0x4e3f30, floor2: 0x58483a, wall: 0x6a5642, rock: 0x857563, ores: [['batu', 55], ['tanahliat', 10], ['tembaga', 22], ['batubara', 13]], deep: [['besi', 6]], mons: ['lendir', 'tikus', 'lipan'] },
-            { name: '⚪ Gua Kapur', floor: 0x5d5f62, floor2: 0x686a6c, wall: 0x9a978e, rock: 0xb0aca2, ores: [['batu', 44], ['besi', 20], ['perak', 12], ['kuarsa', 10], ['batubara', 8], ['tembaga', 6]], deep: [['emas', 4]], mons: ['kelelawar', 'kalajengking', 'ular'] },
-            { name: '🔵 Sungai Bawah Tanah', floor: 0x2c3842, floor2: 0x33414c, wall: 0x46566a, rock: 0x6a7a8a, ores: [['batu', 40], ['besi', 14], ['emas', 12], ['perak', 12], ['kuarsa', 10], ['batubara', 6]], deep: [['akik', 5]], mons: ['kepiting', 'belut', 'katak'], fx: 'water', dark: 1 },
-            { name: '🔴 Perut Gunung', floor: 0x3a2622, floor2: 0x48291f, wall: 0x5a3a30, rock: 0x7a5a4e, ores: [['batu', 36], ['emas', 16], ['besi', 10], ['akik', 8], ['kecubung', 8], ['kalimaya', 6], ['batubara', 8]], deep: [['intan', 3]], mons: ['arca', 'banaspati', 'kadal'], fx: 'lava', dark: 2 },
+            { name: '⚪ Gua Kapur', floor: 0x5d5f62, floor2: 0x686a6c, wall: 0x9a978e, rock: 0xb0aca2, ores: [['batu', 44], ['besi', 20], ['perak', 12], ['kuarsa', 10], ['batubara', 8], ['tembaga', 6], ['geode', 3]], deep: [['emas', 4]], mons: ['kelelawar', 'kalajengking', 'ular'] },
+            { name: '🔵 Sungai Bawah Tanah', floor: 0x2c3842, floor2: 0x33414c, wall: 0x46566a, rock: 0x6a7a8a, ores: [['batu', 40], ['besi', 14], ['emas', 12], ['perak', 12], ['kuarsa', 10], ['batubara', 6], ['geode', 4]], deep: [['akik', 5]], mons: ['kepiting', 'belut', 'katak'], fx: 'water', dark: 1 },
+            { name: '🔴 Perut Gunung', floor: 0x3a2622, floor2: 0x48291f, wall: 0x5a3a30, rock: 0x7a5a4e, ores: [['batu', 36], ['emas', 16], ['besi', 10], ['akik', 8], ['kecubung', 8], ['kalimaya', 6], ['batubara', 8], ['geode', 5]], deep: [['intan', 3]], mons: ['arca', 'banaspati', 'kadal'], fx: 'lava', dark: 2 },
         ];
         const zoneOf = n => MINE_ZONES[clamp(Math.floor((n - 1) / 10), 0, MINE_ZONES.length - 1)];
-        const ORE_COL = { tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c, akik: 0x2fae6a, kecubung: 0x9a4ad8, kalimaya: 0x7fe0ff, intan: 0xeaffff };
+        const ORE_COL = { tanahliat: 0xa8704a, tembaga: 0xd8843c, batubara: 0x18181c, besi: 0xa0aab6, perak: 0xf0f4f8, kuarsa: 0xf4e8ff, emas: 0xf6cc3c, akik: 0x2fae6a, kecubung: 0x9a4ad8, kalimaya: 0x7fe0ff, intan: 0xeaffff, geode: 0x9a7ab8 };
         const GEM = new Set(['kuarsa', 'perak', 'emas', 'akik', 'kecubung', 'kalimaya', 'intan']);
         const MONS = {
             lendir: { name: 'Lendir lumpur', icon: '🟤', hp: 3, dmg: 6, sp: 1.5, drop: 'lendir' },
@@ -11812,7 +11831,8 @@
             for (const u of [NA, NW]) { if (o.m && o.m[u] === 'd') m[u] = 'd'; if (o.g && o.g[u]) g[u] = 1; }
             const fl = a => ints(a).filter(n => n >= 1 && n <= MINE_N);
             const dn = {}; for (let i = 1; i < 8; i++) if (o.dn && o.dn[i]) dn[i] = 1;
-            return { d: o.d | 0, b: per(o.b), k: per(o.k), deep: clamp(o.deep | 0, 0, MINE_N), m, g, ch: fl(o.ch), bs: fl(o.bs), dn };
+            const q = (Array.isArray(o.q) ? o.q : []).filter(id => typeof id === 'string' && /^[a-z]{2,10}$/.test(id)).slice(0, 20);
+            return { d: o.d | 0, b: per(o.b), k: per(o.k), deep: clamp(o.deep | 0, 0, MINE_N), m, g, ch: fl(o.ch), bs: fl(o.bs), dn, q };
         }
         // the host's copy, emptied of broken rocks and beaten monsters each new day
         function mineS() {
@@ -11944,6 +11964,46 @@
             },
             muse(who, k) { if (MUSE[k] && k !== 'obor' && have(who, k)) takeBag(who, k, 1); },
         };
+        // 💍 jewellery your partner wears; 🪨 what a geode holds
+        const JEWEL = { cincinakik: 1, kalungkecubung: 1, gelangcangkang: 1, antingkalimaya: 1 };
+        const GEODE = [['kuarsa', 30], ['perak', 18], ['tembaga', 14], ['akik', 12], ['kecubung', 10], ['emas', 8], ['kalimaya', 5], ['intan', 1.5], ['f_gggigi', 1.5]];
+        // 🧰 Pak Gatot's errands, one after another
+        const GATOT_Q = [
+            { id: 'lampu', text: 'Bawakan 10 ⚫ batu bara untuk tungku karbit', need: { batubara: 10 }, prize: '🔦 Lampu karbit: lampu kepala kalian berdua lebih terang di tambang' },
+            { id: 'masker', text: 'Kalahkan 🐀 Raja Tikus di lantai 10 (atau pecahkan teka-tekinya)', cond: () => bossBeaten(10), prize: '😷 Masker: gas tambang tidak melukai kalian' },
+            { id: 'izin', text: 'Sampai lantai 30 dan bawakan 3 💎 kristal kuarsa', need: { kuarsa: 3 }, cond: () => mineDeep() >= 30, prize: '🗝️ Izin masuk: Tambang Rakyat terbuka untuk kalian kapan saja' },
+            { id: 'lava', text: 'Bawakan 5 🦎 sisik kadal lava dari Perut Gunung', need: { sisiklava: 5 }, prize: '💰 3.000 G dan 🧿 jimat akik untuk kalian berdua' },
+        ];
+        const gatotDone = id => !!(state.mine && state.mine.q && state.mine.q.includes(id));
+        Object.assign(MINE_ACTIONS, {
+            gatotq(who, id) {
+                const M = mineS(), i = GATOT_Q.findIndex(q => q.id === id), q = GATOT_Q[i];
+                M.q ||= [];
+                if (!q || M.q.includes(id) || GATOT_Q.slice(0, i).some(o => !M.q.includes(o.id))) return;
+                if (q.cond && !q.cond()) { emitEvent('Pak Gatot: "Belum selesai, Nak. Semangat!"', 'none', null, who); return; }
+                if (q.need && Object.entries(q.need).some(([k, c]) => have(who, k) < c)) { emitEvent('Barangnya belum cukup', 'none', null, who); return; }
+                if (q.need) for (const [k, c] of Object.entries(q.need)) takeBag(who, k, c);
+                M.q.push(id);
+                if (id === 'lava') { state.gold += 3000; state.gear ||= cleanGear(); for (const u of [NA, NW]) (state.gear[u] ||= {}).jimat = 'jimat'; }
+                emitEvent(`🧰 Tugas Pak Gatot selesai! ${q.prize}`, 'gift', null, who);
+                jot(`🧰 Tugas Pak Gatot: ${q.text} · hadiah ${q.prize}`);
+            },
+            geode(who) {
+                if (!atWork(KEEPER.pandai) || !have(who, 'geode')) return;
+                if (state.gold < 25) { emitEvent('Uangnya tidak cukup', 'none', null, who); return; }
+                const k = pickW(Math.random, GEODE.filter(([k]) => ITEMS[k]));
+                if (bagRoom(who, k) < 1) { emitEvent(FULL_MSG, 'none', null, who); return; }
+                takeBag(who, 'geode', 1); state.gold -= 25; addBag(who, k, 1);
+                emitEvent(`🪨 Krak! Geode dibelah Mas Agus, isinya ${ITEMS[k].icon} ${ITEMS[k].label}!`, 'icon:' + ITEMS[k].icon, null, who);
+            },
+            tempa2(who) {
+                if (!atWork(KEEPER.pandai) || !state.up || state.up.beliung !== 1) return;
+                if (have(who, 'emas') < 5 || state.gold < 2000) { emitEvent('Bijih emas atau uangnya belum cukup', 'none', null, who); return; }
+                takeBag(who, 'emas', 5); state.gold -= 2000; state.up.beliung = 2;
+                emitEvent('⛏️✨ Beliung emas jadi! Batu tambang pecah lebih cepat', 'icon:⚒️', null, who);
+            },
+            mrevive(who) { emitEvent(`🤝 ${who} menolongmu berdiri. Ayo lanjut!`, 'revive', null, who); },
+        });
         Object.assign(ACTIONS, MINE_ACTIONS);
         function openSmithArms() {
             const kp = KEEPER.pandai, again = () => setTimeout(() => { if (dlgOpen()) openSmithArms(); }, 350);
@@ -11955,15 +12015,29 @@
                 el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Senjata masuk tasmu; pelindung langsung dipakai dan hanya untukmu.` }),
                 el('h4', { text: '⚔️ Senjata' }),
                 el('div', { class: 'shoplist' }, Object.entries(ARM_SHOP).map(([k, c]) => row(iconEl('t_' + k), TOOLS[k].label, `${c.note} · ${needTxt(c.need)}`, c.gold, can(c.need, c.gold), () => sendAct('armbuy', k), !!have(USER, 't_' + k)))),
+                el('h4', { text: '🪨 Lain-lain' }),
+                el('div', { class: 'shoplist' }, [
+                    row('🪨', `Belah geode (di tas ${have(USER, 'geode')})`, 'Isinya bisa kuarsa, perak, akik, kecubung, emas, kalimaya, bahkan intan', 25, have(USER, 'geode') > 0 && state.gold >= 25, () => sendAct('geode')),
+                    row('⛏️', 'Beliung emas', state.up && state.up.beliung ? 'Batu tambang pecah lebih cepat · 5 emas (di tas ' + have(USER, 'emas') + ')' : 'Tempa beliung dengan besi dulu', 2000, !!(state.up && state.up.beliung === 1) && have(USER, 'emas') >= 5 && state.gold >= 2000, () => sendAct('tempa2'), !!(state.up && state.up.beliung === 2)),
+                ]),
                 el('h4', { text: '🛡️ Pelindung' }),
                 el('div', { class: 'shoplist' }, Object.entries(GEAR).map(([k, c]) => row(c.icon, c.name, `${c.note} · ${needTxt(c.need)}`, c.gold, can(c.need, c.gold), () => sendAct('gearbuy', k), g[c.slot] === k || k === 'rompik' && g.rompi === 'rompib'))),
             ]);
             liveDlg = openSmithArms;
         }
+        function gatotQuestEl() {
+            const q = GATOT_Q.find(q => !gatotDone(q.id));
+            if (!q) return el('p', { class: 'small-note', text: '🧰 Semua tugas Pak Gatot sudah kalian selesaikan. Matur nuwun!' });
+            const ok = (!q.cond || q.cond()) && (!q.need || Object.entries(q.need).every(([k, c]) => have(USER, k) >= c));
+            const b = el('button', { class: 'btn', onclick: () => { sendAct('gatotq', q.id); setTimeout(() => { if (dlgOpen()) openGatot(); }, 350); } }, 'Serahkan'); if (!ok) b.disabled = true;
+            return el('div', { class: 'shoplist' }, el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: '📜' }), el('span', { class: 'nm' }, el('b', { text: `Tugas ${GATOT_Q.indexOf(q) + 1}/${GATOT_Q.length}: ${q.text}` }), el('small', { text: `Hadiah: ${q.prize}` })), b));
+        }
         function openGatot() {
             const again = () => setTimeout(() => { if (dlgOpen()) openGatot(); }, 350);
             openDlg('🧰 Perlengkapan tambang · Pak Gatot', [
                 el('p', { class: 'small-note', text: `💰 ${state.gold.toLocaleString('id-ID')} G · Pegang barangnya lalu tekan tombol aksi di lantai tambang untuk memakainya.` }),
+                gatotQuestEl(),
+                el('h4', { text: '🧰 Toko' }),
                 el('div', { class: 'shoplist' }, Object.entries(GATOT_SHOP).map(([k, p]) => { const b = el('button', { class: 'btn', onclick: () => { sendAct('gatotbuy', k); again(); } }, `${p} G`); if (state.gold < p) b.disabled = true; return el('div', { class: 'shopitem' }, el('span', { class: 'ic', text: ITEMS[k].icon }), el('span', { class: 'nm' }, el('b', { text: ITEMS[k].label }), el('small', { text: `${MUSE[k].note} · di tas ${have(USER, k)}` })), b); })),
             ]);
             liveDlg = openGatot;
@@ -12112,6 +12186,16 @@
             // the slam warning ring
             const ring = mesh(new THREE.RingGeometry(0.85, 1, 32), new THREE.MeshBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: 0.55, depthWrite: false }), g);
             ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; ring.visible = false; mineCur.ring = ring;
+            const crack = mesh(new THREE.CircleGeometry(1.1, 12), new THREE.MeshBasicMaterial({ color: 0x1a1410, transparent: true, opacity: 0.6, depthWrite: false }), g);
+            crack.rotation.x = -Math.PI / 2; crack.visible = false; mineCur.crack = crack; caveT = 0;
+            // gas on one day in four, in the first two zones
+            mineCur.gas = []; mineCur.gasM = [];
+            const gr = mrng(n * 977 + day * 31);
+            if (n <= 20 && n >= 3 && gr() < 0.25) for (let i = 0; i < 3; i++) {
+                const sl = mineShape(n).slots[Math.floor(gr() * mineShape(n).slots.length)]; if (!sl || sl[1] > 3) continue;
+                mineCur.gas.push({ x: sl[0], z: sl[1] });
+                const c = mesh(SPH, new THREE.MeshBasicMaterial({ color: 0x7adf5a, transparent: true, opacity: 0.22, depthWrite: false }), g); c.scale.set(1.6, 0.9, 1.6); c.position.set(sl[0], 0.6, sl[1]); c.castShadow = false; mineCur.gasM.push(c);
+            }
         }
         function monModel(k) {
             const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.body = b; g.userData.parts = [];
@@ -12195,8 +12279,9 @@
         const hurtFlash = (() => { const d = el('div', { id: 'hurtFlash' }); document.body.append(d); return d; })();
         const bossBar = (() => { const d = el('div', { id: 'bossBar' }, el('b'), el('span', { class: 'ebar' }, el('i'))); d.style.display = 'none'; document.body.append(d); return d; })();
         const rolling = () => player.rollT != null && elapsed - player.rollT < 0.34;
+        let caveT = 0, gasT = 0;
         function hurtPlayer(dmg, from) {
-            if (player.fainted === state.day || rolling()) return;
+            if (player.fainted === state.day || rolling() || player.down) return;
             const hit = Math.max(1, Math.round(dmg * (1 - gearDef(USER))));
             player.hp = Math.max(0, player.hp - hit);
             const dx = player.pos.x - from.x, dz = player.pos.z - from.z, d = Math.hypot(dx, dz) || 1;
@@ -12204,8 +12289,10 @@
             hurtFlash.classList.add('on'); setTimeout(() => hurtFlash.classList.remove('on'), 120);
             chime([180, 120], 0.1, 'square', 0.05);
             if (navigator.vibrate) try { navigator.vibrate(60); } catch (e) { }
-            if (player.hp <= 0) mineFaint();
+            if (player.hp <= 0) { if (partnerHere(8) && !player.down) { player.down = elapsed; clearGoal(); toast(`😵 Kamu roboh! ${OTHER} bisa menolongmu dalam 20 detik…`); } else if (!player.down) mineFaint(); }
         }
+        // your partner on this same floor, within r metres
+        const partnerHere = r => !!(net.connected && partnerF && partnerF.live && partnerF.group.visible && inMine(partnerF.pos) && floorOf(partnerF.pos) === floorOf(player.pos) && partnerF.pos.distanceTo(player.pos) < r);
         // ❤️ at 0: Pak Gatot carries you home to bed and the day ends
         function mineFaint() {
             if (player.fainted === state.day) return;
@@ -12233,7 +12320,7 @@
             if (energyOf(USER) < 1) { toast('Capek sekali 😩 Makan dulu untuk isi energi ⚡'); return; }
             if (bagRoom(USER, rk.k) < 1) { toast(FULL_MSG); return; }
             player.atkT = elapsed; player.swingT = elapsed;
-            if (--rk.hp > 0) { rk.m.scale.setScalar(0.9); chime([300, 260], 0.05, 'square', 0.03); return; }
+            if ((rk.hp -= state.up && state.up.beliung === 2 ? 2 : 1) > 0) { rk.m.scale.setScalar(0.9); chime([300, 260], 0.05, 'square', 0.03); return; }
             chime([240, 180], 0.06, 'square', 0.04);
             mLocal.add(`b${state.day}:${mineCur.n}:${rk.i}`);
             rk.m.visible = false; rk.c.off = true;
@@ -12318,7 +12405,7 @@
             if (btns !== btnShown) { btnShown = btns; $('mineBtns').style.display = btns ? '' : 'none'; }
             if (homeScene && !mineLamp) { mineLamp = new THREE.PointLight(0xffd9a0, 0, 15, 1.4); homeScene.add(mineLamp); }
             const Z = n > 0 ? zoneOf(n) : null, helm = !!gearOf(USER).helm;
-            if (mineLamp) { mineLamp.intensity = n > 0 ? (helm ? 34 : 26) : n === 0 ? 10 : 0; mineLamp.distance = n > 0 && Z.dark ? (helm ? 15 : 11) : 15; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
+            if (mineLamp) { mineLamp.intensity = n > 0 ? (helm ? 34 : 26) * (gatotDone('lampu') ? 1.3 : 1) * (partnerHere(7) ? 1.25 : 1) : n === 0 ? 10 : 0; mineLamp.distance = n > 0 && Z.dark ? (helm ? 15 : 11) : 15; if (n >= 0) mineLamp.position.set(player.pos.x, 2.6, player.pos.z + 0.6); }
             if (n < 0) { if (mineCur && mineCur.n !== -1) { if (mineCur.g) mineCur.g.removeFromParent(); for (const c of mineRockCols) c.off = true; mineCur = null; bossBar.style.display = 'none'; } return; }
             buildMineFloor(n);
             if (!mineCur || mineCur.n !== n || mineCur.day !== state.day || mineCur.peace !== minePeace()) setMineFloor(n);
@@ -12342,6 +12429,24 @@
             } else if (player.spinT != null && elapsed - player.spinT < 0.4) player.group.rotation.y = player.heading + (elapsed - player.spinT) / 0.4 * Math.PI * 2;
             // 🌋 lava burns, 🌊 water slows nothing but looks cold
             if (Z.fx === 'lava' && !rolling()) for (const p of mineShape(n).pools) if (Math.hypot(f + p.x - player.pos.x, p.z - player.pos.z) < p.r - 0.1) { player.lavaT = (player.lavaT || 0) + dt; if (player.lavaT > 0.5) { player.lavaT = 0; hurtPlayer(6, { x: player.pos.x, z: player.pos.z - 0.001 }); toast('🔥 Panas! Jangan berdiri di lava.'); } }
+            // 😵 down on the floor: your partner has 20 seconds to help you up
+            if (player.down) {
+                player.lockT = elapsed + 0.2; player.group.rotation.z = 1.3;
+                if (elapsed - player.down > 20 || !partnerHere(30)) { player.down = null; player.group.rotation.z = 0; mineFaint(); }
+            }
+            const hz = !sleeping && !travelling && !dlgOpen() && !player.down && player.fainted !== state.day, soft = minePeace() ? 0.5 : 1;
+            // 🪨 a cave-in: cracks show first, then stones come down
+            if (hz && n >= 5) {
+                if (!mineCur.cave) { if (!caveT) caveT = elapsed + 14 + Math.random() * 14; if (elapsed > caveT) { const a = Math.random() * 6.3, d = Math.random() * 1.2; mineCur.cave = { x: player.pos.x + Math.cos(a) * d, z: player.pos.z + Math.sin(a) * d, t: elapsed }; mineCur.crack.visible = true; mineCur.crack.position.set(mineCur.cave.x - f, 0.05, mineCur.cave.z); spawnIcon(new THREE.Vector3(mineCur.cave.x, 2.4, mineCur.cave.z), '⚠️'); chime([140, 150, 130], 0.08, 'sawtooth', 0.03); } }
+                else if (elapsed - mineCur.cave.t > 1.3) {
+                    const c = mineCur.cave; mineCur.cave = null; mineCur.crack.visible = false; caveT = elapsed + 18 + Math.random() * 16;
+                    spawnIcon(new THREE.Vector3(c.x, 1.0, c.z), '🪨'); chime([80, 60], 0.15, 'sawtooth', 0.06);
+                    if (Math.hypot(c.x - player.pos.x, c.z - player.pos.z) < 1.15) { hurtPlayer(Math.round(14 * soft), { x: c.x, z: c.z }); toast('🪨 Kejatuhan batu! Lihat retakan di lantai, lalu menghindar.'); }
+                }
+            }
+            // ☁️ mine gas: green clouds on some days in the upper zones; a mask keeps you safe
+            if (hz && mineCur.gas.length && !gatotDone('masker')) for (const g of mineCur.gas) if (Math.hypot(f + g.x - player.pos.x, g.z - player.pos.z) < 1.6) { gasT += dt; if (gasT > 0.5) { gasT = 0; hurtPlayer(Math.round(3 * soft) || 1, { x: player.pos.x, z: player.pos.z - 0.001 }); flashName('☁️ Gas tambang! Cepat keluar dari awan hijau'); } }
+            for (const g of mineCur.gasM) g.scale.setScalar(1 + Math.sin(elapsed * 1.5 + g.position.x) * 0.06);
             // ketapel pebbles in flight
             for (let i = mineShots.length - 1; i >= 0; i--) {
                 const s = mineShots[i], tx = s.to.pos.x - f, tz = s.to.pos.z, dx = tx - s.m.position.x, dz = tz - s.m.position.z, d = Math.hypot(dx, dz);
@@ -12425,6 +12530,7 @@
             let best = null, bd = Infinity;
             for (const m of mineCur.mons) { if (m.dead || m.hidden || m.phase === 'dive') continue; const d = Math.hypot(m.pos.x - p.x, m.pos.z - p.z) - 0.35 * (m.sc - 1); if (d < reach && d < bd) { bd = d; best = m; } }
             if (best) { MON_IT.m = best; MON_IT.pos.copy(best.pos); return MON_IT; }
+            if (onPartner.dn && partnerHere(1.8)) { REVIVE_IT.pos.copy(partnerF.pos); return REVIVE_IT; }
             const L = mineCur.ladder;
             if (L.g.visible && Math.hypot(f + L.x - p.x, L.z - p.z) < 1.0) { LADDER_IT.pos.set(f + L.x, 0, L.z); return LADDER_IT; }
             const [hx, hz] = fwd(player.heading), ax = p.x + hx * 0.5, az = p.z + hz * 0.5;
@@ -12442,6 +12548,7 @@
         const LADDER_IT = { id: 'mladder', local: true, reach: 1.0, pos: new THREE.Vector3(),
             label: () => !mineCur ? '' : mineCur.n >= MINE_N ? '🏁 Dasar Tambang Bertingkat · naik ke Aula, pintu 2 menunggu' : `🪜 Turun ke lantai ${mineCur.n + 1}`,
             act: () => { if (mineCur.n >= MINE_N) mineGo(0); else mineGo(mineCur.n + 1); } };
+        const REVIVE_IT = { id: 'mrevive', local: true, reach: 1.8, pos: new THREE.Vector3(), label: () => `🤝 Tolong ${OTHER} berdiri`, act: () => { sendAct('mrevive'); spawnHearts(partnerF.pos.clone().setY(1.4), 1); } };
         const MUSE_IT = { id: 'muse', local: true, reach: 0, get pos() { return player.pos; },
             label: () => { const k = heldItem(); return isMuse(k) ? `Pakai ${ITEMS[k].icon} ${ITEMS[k].label} · ${MUSE[k].note}` : ''; },
             act: () => useMine(heldItem()) };
@@ -12507,7 +12614,8 @@
                 const d = GDEF[p.s], left = Math.max(0, Math.ceil(d.days - p.p));
                 if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
                 if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
-                if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
+                if (!p.f && have(USER, 'pupuksuper') > 0) return `Beri pupuk super ${d.label} 🧪✨ (di tas ${have(USER, 'pupuksuper')})`;
+                    if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
                 return `${d.icon} ${d.label} · ${isWet() ? 'disiram hujan 🌧️ · ' : ''}siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
             },
             choose(cb) {
@@ -12631,6 +12739,7 @@
                     if (p.p >= d.days) return `Panen ${d.icon} ${d.label}${d.yield > 1 ? ' (' + d.yield + ')' : ''}`;
                     if (tool === 'tangan') return `✋ Angkat pot ${d.icon} ${d.label} untuk dipindah`;
                     if (!p.w) return tool === 'penyiram' ? `Siram ${d.icon} ${d.label} · 💧${myWater()}/${WATER_MAX}` : `${d.icon} ${d.label} perlu disiram · ${toolHint('penyiram')}`;
+                    if (!p.f && have(USER, 'pupuksuper') > 0) return `Beri pupuk super ${d.label} 🧪✨ (di tas ${have(USER, 'pupuksuper')})`;
                     if (!p.f && have(USER, 'pupuk') > 0) return `Beri pupuk ${d.label} 🧪 (di tas ${have(USER, 'pupuk')})`;
                     return `${d.icon} ${d.label} di pot · siap ${left} hari lagi${p.f ? ' · 🧪' : ''}`;
                 },
@@ -12655,7 +12764,7 @@
             let best = null, bestD = Infinity;
             if (ride) { RIDE_IT.pos.copy(player.pos); return RIDE_IT; }
             const mf = inMine(player.pos) ? mineFocus() : null;   // ⛏️ a monster near you comes first
-            if (mf === MON_IT) return mf;
+            if (mf === MON_IT || mf === REVIVE_IT) return mf;
             const outside = !inHome(player.pos) && !player.sit;
             // carrying a pot: the only thing to do is set it down
             if (outside && carriedBy(USER)) { const [x, z] = potFront(); POTPLACE_IT.pos.set(x, 0, z); return POTPLACE_IT; }
@@ -12773,6 +12882,7 @@
             else if (e.f === 'sell') chime([784, 988, 1175, 1568], 0.08, 'square', 0.04);
             else if (e.f === 'water') { if (at) spawnIcon(at, '💧'); splash(at); }
             else if (typeof e.f === 'string' && e.f.startsWith('mine:') && at) spawnIcon(at, e.f.slice(5));
+            else if (e.f === 'revive' && e.w !== USER && player.down) { player.down = null; player.group.rotation.z = 0; player.hp = 30; spawnHearts(player.pos.clone().setY(1.8)); }
             else if (e.f === 'hug') startHug();
             else if (e.f === 'gift') {
                 // whoever receives the present is delighted: hops, waves both arms, hearts all around;
@@ -12984,6 +13094,7 @@
             if (!net.backend) return;
             sendMine.sq = (sendMine.sq || 0) + 1;
             const o = { app: 'farmora', v: 3, user: USER, tb: net.tab, sq: sendMine.sq, zz: player.zz ? 1 : 0, tl: tool, tl2: leftTool(), role: net.mode, rdy: started ? 1 : 0, look: { o: look.o }, p: [r2(player.pos.x), r2(player.pos.z), r2(player.heading), player.moving ? 1 : 0, player.sit ? player.sit.k : 0, player.sit && player.sit.y ? player.sit.y : 0, player.sit && player.sit.rec ? player.sit.rec : 0], here: started ? 1 : 0, mt: ride === 'd' ? 1 : ride === 'b' ? 2 : 0 };
+            if (player.down) o.dn = 1;
             slotOut(o);
             const sa = slotAck(); if (sa) o.sa = sa;
             if (net.mode === 'host') {
@@ -13045,7 +13156,7 @@
             }
             partnerF.live = !!o.here;
             if (o.zz && !onPartner.zz && started && !sleeping) toast(player.zz ? `${OTHER} juga tidur 💤` : `💤 ${OTHER} sudah tidur. Tidurlah juga di kasur supaya hari berganti.`);
-            onPartner.zz = !!o.zz;
+            onPartner.zz = !!o.zz; onPartner.dn = !!o.dn;
             if (Array.isArray(o.p)) partnerF.netT = o.p.map(Number);
             if (net.mode === 'host' && Array.isArray(o.acts)) {
                 // a friend who reopened the game numbers their actions from the start again
@@ -14081,7 +14192,7 @@
         }
         camTarget.copy(player.pos);
         $('fruitPrices').innerHTML = ALL_FRUITS.map(f => `<span>${f.icon} ${f.label} · ${f.price} G · tiap ${f.cycle} hari</span>`).join('');
-        window.kebun = { BOSS, GEAR, ARM_SHOP, gearOf, hpMax, openSmithArms, openGatot, mineRoll, mineSweep, useMine, openBossRiddle, bossBeaten, doorOpen, MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
+        window.kebun = { GATOT_Q, gatotDone, JEWEL, GEODE, partnerHere, BOSS, GEAR, ARM_SHOP, gearOf, hpMax, openSmithArms, openGatot, mineRoll, mineSweep, useMine, openBossRiddle, bossBeaten, doorOpen, MINE_ZONES, MONS, AULA_DOORS, mineRocks, mineMons, mineShape, mineS, cleanMine, mineGo, get mineCur() { return mineCur; }, MF, MINE_N, inMine, mineN, mineFocus, mineAttack, mineHit, hurtPlayer, mineFaint, openMineLift, openMineMode, mineGone, minePeace, swingPose, SWING_KIND, setHeld, toolPuff, NPC_EV, npcEvToday, openNpcEvent, npcEvAct, npcDebtNight, set kidTilt(v) { KID_TILT = v; }, kidFig, KID_LOOK, famS, famAct, famNight, kidStage, kidFigs, openKid, houseLvl, updateFamVis, cleanFam, RENO, SATWA, SATI, SAT_SPOTS, satSpot, satOut, satS, satVis, satwaNight, openSatwaBook, openSuaka, suakaHas, cleanSatwa, satModel, roadTop, THREE, MOTORS, startRide, stopRide, get ride() { return ride; }, get bike() { return bike; }, motorSpeed, carpWhy, carpThing, openCarpenter, carpNight, LAYOUT, footOf, layoutStale, patokSpot, FOOT0, FRUIT_DEFS, BUILDS_X: BUILDS, MACHINES, machInput, autoWater, inGH, growPots, updateBuilds, QUAL, QBASE, qualRoll, harvestTo, have, takeBag, useLeft, selectLeft, get selSlot2() { return selSlot2; }, smartPick, get smartBtn() { return smartBtn; }, set smartBtn(v) { smartBtn = v; }, karapanGame, jukungGame, kopiGame, masakJudge, ACARA, acaraOn, acaraVis, burst, fireworks, evRec, openMuseum, openBook, openRestore, BUNDLES, BUNDLE_ROOMS, COL_KEYS, MUS_KEYS, FOSSIL_SETS, digFind, bdays, isBday, colCount, updateRestore, FESTS, festOn, festRivals, openFest, festVis, lanterns, kites, openBackups, allBackups, get backups() { return backups; }, get autoSave() { return autoSave; }, setAutoSave, morningSave, perf, reqFill, nearPath, nearBuilding, coastDist, openJournal, BUILDS, get buildVis() { return buildVis; }, get BRIDGES() { return BRIDGES; }, get camLift() { return camLift; }, get zoom() { return zoom; }, camTarget, meshY, ensureRegion, edgePts, EDGES, roadKind, ROAD_STYLE, PADDIES, onBridge, inRiver, VOUT, STOPS, MAP_PINS, INL, RIV, riverAt, walkable, H, openMap, decoWhy, showEventX: e => showEvent(e), groundY, get renderer() { return renderer; }, get scene() { return scene; }, get colliders() { return colliders; }, openTownShopX: id => openTownShop(id), NPCS, VB, VBI, npcState, openNpcDlg, openBoard, REGI, NODES, nodePath, inWorld, startHug, fpotVis, get pF() { return partnerF; }, get homeScene() { return homeScene; }, get CRAFTS() { return CRAFTS; }, get player() { return player; }, fallAsleep, sitOn, BED, get state() { return state; }, voice, get buses() { return [sfxBus, musicBus]; }, get actx() { return actx; }, mus, sndPref, setSound, makeFarmer, animateFarmer, sitPose, HAIR_STYLE_IDS, openSalon, wildNight, wildIt, get elapsed() { return elapsed; }, CLOTHES, look, wear, openWardrobe, openShop, get slots() { return slots; }, writeSlot, openStorage, pickTool, startGame, player, animals, camera, net, PLANTS, partnerF, travel, HV, F1, F2, RF, INTERACTABLES, openShop, sendAct, buildHome, potVis, placeName, dlgOpen, startBath, startToilet, get look() { return look; }, CLOTH, tillWhy, treeWhy, groundWhy, TILE_IT, get focus() { return focus; }, tileVis, ptreeVis, encTiles, decTiles, addBag, tileMark, openKitchen, RECIPES, SUPPLIES, PRODUCTS, get fishing() { return fishing; }, rollFish, FISH, FISH_DEF, fishStep, fishTest(k) { const f = fishing = { key: k, bob: new THREE.Vector3(12, 0, 14), t0: 0 }; reel(f); }, fishPull, pressAct, releaseAct, castPower }; // handy for debugging in the console
         hud.inv.style.visibility = 'hidden';
         renderTitle();
         renderBadge();
